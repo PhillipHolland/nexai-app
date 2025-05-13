@@ -1,0 +1,910 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Color Classes */
+.bg-darkest-green {
+    background: #09332C; /* Darkest Green for main background, sidebar */
+}
+
+.bg-dark-green {
+    background: #2E4B3C; /* Dark Green for header, popups */
+}
+
+.bg-dark-green-gradient {
+    background: linear-gradient(to bottom, #2E4B3C, #09332C); /* Gradient for sidebar (not used now) */
+}
+
+.bg-light-cream {
+    background: #F7EDDA; /* Light Cream for response background, inputs */
+}
+
+.bg-warm-cream {
+    background: #F7DFBA; /* Warm Cream for user messages, errors, buttons */
+}
+
+.bg-warm-orange {
+    background: #FFA74F; /* Warm Orange for buttons, prompt starters */
+}
+
+.bg-bright-coral {
+    background: #F0531C; /* Bright Coral for hover states, badges */
+}
+
+.text-light-cream {
+    color: #F7EDDA; /* Light Cream for text on dark backgrounds */
+}
+
+.text-dark-green {
+    color: #2E4B3C; /* Dark Green for text on light backgrounds, prompt helper text */
+}
+
+.text-warm-orange {
+    color: #FFA74F; /* Warm Orange for buttons, links */
+}
+
+.text-bright-coral {
+    color: #F0531C; /* Bright Coral for hover states */
+}
+
+.text-warm-cream {
+    color: #F7DFBA; /* Warm Cream for contrasting text */
+}
+
+.border-dark-green {
+    border-color: #2E4B3C; /* Dark Green for borders */
+}
+
+.border-warm-orange {
+    border-color: #FFA74F; /* Warm Orange for focus borders */
+}
+
+/* Layout and Formatting Classes */
+.fixed {
+    position: fixed;
+}
+
+.top-0 {
+    top: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.right-0 {
+    right: 0;
+}
+
+.top-16 {
+    top: 4rem; /* 16 * 0.25rem = 4rem */
+}
+
+.bottom-0 {
+    bottom: 0;
+}
+
+.z-20 {
+    z-index: 20;
+}
+
+.z-30 {
+    z-index: 30;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+.container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.max-w-4xl {
+    max-width: 56rem; /* Tailwind's max-w-4xl */
+}
+
+.max-w-3xl {
+    max-width: 48rem; /* Tailwind's max-w-3xl */
+}
+
+.max-w-md {
+    max-width: 28rem; /* Tailwind's max-w-md */
+}
+
+.max-h-64 {
+    max-height: 16rem; /* 64 * 0.25rem = 16rem */
+}
+
+.w-full {
+    width: 100%;
+}
+
+.w-64 {
+    width: 16rem; /* 64 * 0.25rem = 16rem */
+}
+
+.w-12 {
+    width: 3rem; /* 12 * 0.25rem = 3rem */
+}
+
+.w-8 {
+    width: 2rem; /* 8 * 0.25rem = 2rem */
+}
+
+.w-6 {
+    width: 1.5rem; /* 6 * 0.25rem = 1.5rem */
+}
+
+.w-5 {
+    width: 1.25rem; /* 5 * 0.25rem = 1.25rem */
+}
+
+.h-96 {
+    height: 24rem; /* 96 * 0.25rem = 24rem */
+}
+
+.h-20 {
+    height: 5rem; /* 20 * 0.25rem = 5rem */
+}
+
+.h-12 {
+    height: 3rem; /* 12 * 0.25rem = 3rem */
+}
+
+.h-8 {
+    height: 2rem; /* 8 * 0.25rem = 2rem */
+}
+
+.h-6 {
+    height: 1.5rem; /* 6 * 0.25rem = 1.5rem */
+}
+
+.h-5 {
+    height: 1.25rem; /* 5 * 0.25rem = 1.5rem */
+}
+
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.pt-24 {
+    padding-top: 6rem; /* 24 * 0.25rem = 6rem */
+}
+
+.p-4 {
+    padding: 1rem; /* 4 * 0.25rem = 1rem */
+}
+
+.p-6 {
+    padding: 1.5rem; /* 6 * 0.25rem = 1.5rem */
+}
+
+.p-3 {
+    padding: 0.75rem; /* 3 * 0.25rem = 0.75rem */
+}
+
+.p-2 {
+    padding: 0.5rem; /* 2 * 0.25rem = 0.5rem */
+}
+
+.pr-12 {
+    padding-right: 3rem; /* 12 * 0.25rem = 3rem */
+}
+
+.pr-10 {
+    padding-right: 2.5rem; /* 10 * 0.25rem = 2.5rem */
+}
+
+.pr-6 {
+    padding-right: 1.5rem; /* 6 * 0.25rem = 1.5rem */
+}
+
+.pr-16 {
+    padding-right: 4rem; /* 16 * 0.25rem = 4rem */
+}
+
+.pl-2 {
+    padding-left: 0.5rem; /* 2 * 0.25rem = 0.5rem */
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.ml-2 {
+    margin-left: 0.5rem;
+}
+
+.space-x-4 > * + * {
+    margin-left: 1rem; /* 4 * 0.25rem = 1rem */
+}
+
+.space-x-2 > * + * {
+    margin-left: 0.5rem; /* 2 * 0.25rem = 0.5rem */
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem; /* 4 * 0.25rem = 1rem */
+}
+
+.space-y-2 > * + * {
+    margin-top: 0.5rem; /* 2 * 0.25rem = 0.5rem */
+}
+
+.gap-2 {
+    gap: 0.5rem; /* 2 * 0.25rem = 0.5rem */
+}
+
+.gap-3 {
+    gap: 0.75rem; /* 3 * 0.25rem = 0.75rem */
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.sm\:flex-row {
+    flex-direction: column;
+}
+
+@media (min-width: 640px) {
+    .sm\:flex-row {
+        flex-direction: row;
+    }
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+.flex-grow {
+    flex-grow: 1;
+}
+
+.flex-grow-0 {
+    flex-grow: 0;
+}
+
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+.overflow-y-auto {
+    overflow-y: auto;
+}
+
+.overflow-x-auto {
+    overflow-x: auto;
+}
+
+.snap-x {
+    scroll-snap-type: x mandatory;
+}
+
+.snap-mandatory {
+    scroll-snap-type: mandatory;
+}
+
+.snap-start {
+    scroll-snap-align: start;
+}
+
+.min-w-fit {
+    min-width: fit-content;
+}
+
+.min-w-\[48px\] {
+    min-width: 48px;
+}
+
+.max-w-\[200px\] {
+    max-width: 200px;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.rounded-3xl {
+    border-radius: 1.5rem;
+}
+
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.transition {
+    transition: all 0.2s ease-in-out;
+}
+
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+.duration-300 {
+    transition-duration: 300ms;
+}
+
+.duration-200 {
+    transition-duration: 200ms;
+}
+
+.hover\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+.hover\:scale-110:hover {
+    transform: scale(1.1);
+}
+
+.focus\:outline-none:focus {
+    outline: none;
+}
+
+.focus\:ring-2:focus {
+    box-shadow: 0 0 0 2px #FFA74F; /* Warm Orange for focus ring */
+}
+
+.focus\:ring-warm-orange:focus {
+    box-shadow: 0 0 0 2px #FFA74F; /* Warm Orange for focus ring */
+}
+
+.chat-container,
+#sidebar,
+header {
+    border-color: #09332C; /* Darkest Green for borders */
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+select,
+input,
+textarea {
+    border-radius: 0.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.prompt-starter {
+    border-radius: 1.5rem; /* rounded-3xl */
+    transition: all 0.2s ease-in-out;
+    min-width: fit-content;
+    max-width: 200px;
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem; /* Adjusted for smaller icons */
+}
+
+.prompt-starter:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tab-button {
+    border-radius: 0.5rem;
+}
+
+.tab-button:hover {
+    /* Hover state handled by class change */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes tooltipSlide {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.chat-container > div,
+#history > div,
+#client-documents > div {
+    animation: fadeIn 0.3s ease-in;
+}
+
+#sidebar {
+    animation: slideIn 0.3s ease-in;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    display: none; /* Ensure hidden by default */
+    transition: width 0.3s ease; /* Smooth width transition */
+}
+
+#typing-indicator {
+    display: none;
+}
+
+#typing-indicator.active {
+    display: block;
+}
+
+.copy-button {
+    padding: 0.5rem; /* Adjusted to fit within padding */
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, transform 0.1s;
+    position: absolute;
+    top: 0.5rem; /* Adjusted to account for container padding */
+    right: 0.5rem; /* Adjusted to account for container padding */
+}
+
+.copy-button:hover {
+    transform: translateY(-1px);
+}
+
+.copy-tooltip {
+    display: none;
+    position: absolute;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.copy-tooltip.active {
+    display: block;
+    animation: tooltipSlide 0.3s ease-in;
+}
+
+.follow-up-area {
+    display: none;
+    margin-top: 0.5rem;
+}
+
+.follow-up-area.active {
+    display: block;
+}
+
+.follow-up-button {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.follow-up-button:hover {
+    transform: translateY(-1px);
+}
+
+#sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#sidebar.hidden {
+    display: none;
+}
+
+#sidebar.active {
+    display: block; /* Ensure sidebar shows when active */
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        width: 80%;
+    }
+}
+
+.tab-button {
+    /* Already styled via class */
+}
+
+.tab-button.active {
+    /* Already styled via class */
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.badge {
+    display: none;
+}
+
+.badge.active {
+    display: inline-block;
+}
+
+/* Markdown styles */
+.markdown-content {
+    display: inline-block;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    max-width: calc(100% - 2rem); /* Account for padding and copy button */
+    box-sizing: border-box;
+    background: #F7EDDA; /* Ensure assistant bubble background */
+    color: #2E4B3C; /* Ensure assistant bubble text color */
+}
+
+.markdown-content h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content p {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+    margin: 0.5rem 0 0.5rem 1.5rem;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+    margin: 0.5rem 0 0.5rem 1.5rem;
+}
+
+.markdown-content li {
+    margin: 0.25rem 0;
+}
+
+.markdown-content strong {
+    font-weight: 700;
+}
+
+.markdown-content em {
+    font-style: italic;
+}
+
+.markdown-content a {
+    text-decoration: underline;
+}
+
+.markdown-content code {
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.markdown-content pre {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
+
+.markdown-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Popup styles */
+#reply-popup,
+#search-popup {
+    display: none;
+}
+
+#reply-popup.active,
+#search-popup.active {
+    display: flex;
+}
+
+#reply-popup .bg-dark-green,
+#search-popup .bg-dark-green {
+    /* Already styled via class */
+}
+
+/* Prompt starters */
+#prompt-starters {
+    opacity: 1; /* Ensure initial visibility */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+}
+
+#prompt-starters::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+/* Refresh icon animation */
+.refresh-icon:hover {
+    animation: spin 0.5s linear;
+}
+
+/* Messages */
+.chat-container {
+    /* Already styled via class */
+}
+
+/* Chat Bubbles */
+.mb-2.text-right span {
+    display: inline-block; /* Ensure bubble visibility */
+    padding: 0.5rem; /* Match assistant bubble padding */
+    border-radius: 0.5rem;
+    background: #2E4B3C !important; /* Sender chat bubble background */
+    color: #F7DFBA !important; /* Sender chat bubble text */
+}
+
+.mb-2.text-left.relative {
+    position: relative;
+    max-width: 100%; /* Ensure it fits within container */
+}
+
+.mb-2.text-left .markdown-content {
+    background: #F7EDDA; /* Assistant chat bubble background */
+    color: #2E4B3C; /* Assistant chat bubble text */
+}
+
+/* Placeholder text */
+#message-input::placeholder {
+    /* Already styled via class */
+}
+
+/* Additional Layout Styles */
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.right-8 {
+    right: 2rem; /* 8 * 0.25rem = 2rem */
+}
+
+.right-6 {
+    right: 1.5rem; /* 6 * 0.25rem = 1.5rem */
+}
+
+.right-2 {
+    right: 0.5rem;
+}
+
+.top-1\/2 {
+    top: 50%;
+}
+
+.transform {
+    transform: translateY(-50%);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.bg-opacity-50 {
+    background-opacity: 0.5;
+}
+
+@media (min-width: 640px) {
+    .sm\:p-6 {
+        padding: 1.5rem;
+    }
+}
+
+/* Button Overrides to Remove Bounding Boxes */
+#toggle-sidebar,
+#logout-button,
+#collapse-sidebar {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#toggle-sidebar:focus,
+#logout-button:focus,
+#collapse-sidebar:focus,
+#toggle-sidebar:active,
+#logout-button:active,
+#collapse-sidebar:active {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Refresh Button Specific Styles */
+.refresh-button {
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0;
+    margin: 0;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-button:focus,
+.refresh-button:active {
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Send Button Specific Styles */
+#send-button {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    right: 0.5rem;
+    top: calc(50% + 0.75rem); /* Shift down by 50% of SVG height (0.75rem) */
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#send-button:focus,
+#send-button:active {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Input Container */
+.input-container {
+    display: flex;
+    align-items: center;
+    max-width: 48rem;
+    width: 100%;
+}
+
+.text-entry-container {
+    position: relative;
+    flex-grow: 1;
+}
+
+#message-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem; /* p-3 */
+    padding-right: 3rem; /* Space for send button */
+    line-height: 1.5rem; /* Match SVG height for centering */
+    height: 3rem; /* Match refresh button height */
+}
