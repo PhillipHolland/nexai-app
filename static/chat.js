@@ -95,6 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`/api/client/${currentClientId}`, {
                 method: 'GET',
                 credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json', // Ensure server knows we expect JSON
+                },
             });
             if (!response.ok) throw new Error(`Failed to fetch client data: ${response.status} ${response.statusText}`);
             const data = await response.json();
@@ -158,7 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         fetch(`/api/client/${currentClientId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
             body: JSON.stringify(info),
             credentials: 'same-origin',
         }).then(response => response.json()).then(data => {
@@ -184,6 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`/api/new_conversation/${currentClientId}`, {
                 method: 'POST',
                 credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
             });
             if (!response.ok) throw new Error(`Failed to start new conversation: ${response.status} ${response.statusText}`);
             messages.innerHTML = '';
@@ -356,7 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Sending chat request to /api/chat with payload:', JSON.stringify(payload));
                 const chatResponse = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
                     body: JSON.stringify(payload),
                     credentials: 'same-origin',
                 });
