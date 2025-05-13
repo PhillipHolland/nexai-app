@@ -114,6 +114,10 @@ body {
     max-width: 28rem; /* Tailwind's max-w-md */
 }
 
+.max-w-sm {
+    max-width: 24rem; /* Tailwind's max-w-sm */
+}
+
 .max-h-64 {
     max-height: 16rem; /* 64 * 0.25rem = 16rem */
 }
@@ -172,6 +176,10 @@ body {
 
 .pt-24 {
     padding-top: 6rem; /* 24 * 0.25rem = 6rem */
+}
+
+.pt-16 {
+    padding-top: 4rem; /* Adjusted for mobile */
 }
 
 .p-4 {
@@ -250,6 +258,10 @@ body {
     margin-top: 0.5rem;
 }
 
+.mt-6 {
+    margin-top: 1.5rem;
+}
+
 .ml-2 {
     margin-left: 0.5rem;
 }
@@ -276,6 +288,10 @@ body {
 
 .gap-3 {
     gap: 0.75rem; /* 3 * 0.25rem = 0.75rem */
+}
+
+.gap-1 {
+    gap: 0.25rem; /* Adjusted for mobile */
 }
 
 .flex {
@@ -907,4 +923,108 @@ textarea {
     padding-right: 3rem; /* Space for send button */
     line-height: 1.5rem; /* Match SVG height for centering */
     height: 3rem; /* Match refresh button height */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+    /* Header Adjustments */
+    header .container {
+        padding: 0.5rem 1rem; /* Reduce padding */
+        max-width: 100%;
+    }
+    header img {
+        height: 3rem; /* Reduce logo size (from h-20) */
+    }
+    #toggle-sidebar svg,
+    #collapse-sidebar svg,
+    #logout-button {
+        width: 1.5rem; /* Adjust icon sizes */
+        height: 1.5rem;
+    }
+    #logout-button {
+        font-size: 0.875rem; /* Smaller text */
+    }
+    .pt-24 {
+        padding-top: 4rem; /* Adjust padding for smaller header */
+    }
+
+    /* Sidebar Adjustments */
+    #sidebar {
+        width: 80%;
+        padding: 1rem;
+    }
+    #sidebar h2 {
+        font-size: 1.125rem; /* Smaller heading */
+    }
+    #sidebar select,
+    #sidebar input,
+    #sidebar textarea,
+    #sidebar button {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    .max-h-64 {
+        max-height: 12rem; /* Reduce height for mobile */
+    }
+
+    /* Main Content */
+    .flex-1 {
+        padding: 0.5rem;
+    }
+    .container.max-w-3xl {
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+    .chat-container {
+        height: 20rem; /* Reduce height for mobile */
+        padding: 0.5rem;
+    }
+    .input-container {
+        max-width: 100%;
+        gap: 0.25rem;
+    }
+    #message-input {
+        padding: 0.5rem;
+        padding-right: 2rem;
+        height: 2.5rem;
+        font-size: 0.875rem;
+    }
+    .refresh-button,
+    #send-button {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    .refresh-button svg,
+    #send-button svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    /* Prompt Starters */
+    #prompt-starters {
+        gap: 0.25rem;
+    }
+    .prompt-starter {
+        padding: 0.25rem 0.5rem;
+        max-width: 150px;
+        font-size: 0.75rem;
+    }
+    .prompt-starter svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Popups */
+    #reply-popup .bg-dark-green,
+    #search-popup .bg-dark-green {
+        padding: 1rem;
+        width: 90%;
+        max-width: 100%;
+    }
+    #reply-input,
+    #search-input {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+    }
 }
