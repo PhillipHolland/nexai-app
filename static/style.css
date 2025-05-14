@@ -533,32 +533,29 @@ textarea {
     transition: width 0.3s ease; /* Smooth width transition */
 }
 
-#loading-bar {
+#progress-bar {
     display: none;
-    background: #F7EDDA; /* Light cream background to match chat bubble */
-    border-radius: 0.5rem;
-    padding: 0.25rem; /* Reduced padding to fit the bar */
-    width: 100px; /* Explicitly set to match the bar’s width */
-    position: relative;
-    border: 1px solid #F7EDDA; /* Debug border same as background for invisibility */
-    z-index: 10; /* Ensure it’s above other elements */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for visibility */
+    background: #09332C; /* Match background for seamless integration */
+    padding: 0.25rem;
+    width: 100%;
+    position: fixed;
+    z-index: 50;
 }
 
-#loading-bar.active {
-    display: block; /* Ensure visibility */
+#progress-bar.active {
+    display: block;
 }
 
-#loading-bar .bar {
+.progress-bar-inner {
     width: 100px;
     height: 6px;
-    background: rgba(46, 75, 60, 0.7);
+    background: #F7EDDA; /* Light cream background */
     border-radius: 2px;
     position: relative;
-    overflow: visible; /* Ensure segment isn’t clipped */
+    overflow: visible;
 }
 
-#loading-bar .bar .segment {
+.progress-bar-segment {
     width: 20px;
     height: 100%;
     background: #FFA74F; /* Warm orange segment */

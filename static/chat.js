@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const searchSubmit = document.getElementById('search-submit');
     const searchCancel = document.getElementById('search-cancel');
+    const progressBar = document.getElementById('progress-bar');
 
     if (!chatForm) console.error('chat-form not found');
     if (!messageInput) console.error('message-input not found');
@@ -44,10 +45,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sidebar) console.error('sidebar not found');
     if (!promptStartersContainer) console.error('prompt-starters not found');
     if (!fileInput) console.error('file-input not found');
+    if (!progressBar) console.error('progress-bar not found');
 
     let currentClientId = '';
     let historyCount = 0;
     let documentCount = 0;
+    let startTime = null;
+
+    // Start the progress bar animation
+    function startProgressBar() {
+        progressBar.classList.add('active');
+        startTime = Date.now();
+        // Reset segment position for animation
+        const segment = progressBar.querySelector('.progress-bar-segment');
+        segment.style.transform = 'translateX(0)';
+    }
+
+    // Stop the progress bar with a minimum display time
+    function stopProgressBar() {
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 1000 - elapsedTime); // Minimum 1 second display
+        setTimeout(() => {
+            progressBar.classList.remove('active');
+        }, remainingTime);
+    }
 
     // Sidebar toggling
     toggleSidebar.addEventListener('click', () => {
@@ -327,6 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
         messageInput.value = ''; // Clear input after displaying
         sendButton.classList.add('hidden'); // Hide send button after submission
 
+        // Start progress bar immediately
+        startProgressBar();
+
         // Handle file upload
         let fileContent = '';
         if (file) {
@@ -362,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 messages.appendChild(errorMessage);
                 sendButton.disabled = false;
                 sendButton.innerHTML = `<svg class="w-6 h-6 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>`;
+                stopProgressBar();
                 return;
             }
         }
@@ -390,27 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 console.log('Chat response received, processing as JSON');
-                let loadingBar = document.createElement('div');
-                loadingBar.id = 'loading-bar';
-                loadingBar.className = 'mb-2 text-left active';
-                loadingBar.innerHTML = `
-                    <div class="bar">
-                        <div class="segment"></div>
-                    </div>
-                `;
-                messages.appendChild(loadingBar);
-                console.log('Loading bar added, dimensions:', loadingBar.getBoundingClientRect());
-                messages.scrollTop = messages.scrollHeight;
-
-                // Ensure the loading bar is visible for at least 500ms
-                const minDisplayTime = 500; // Minimum display time in milliseconds
-                const startTime = Date.now();
                 const data = await chatResponse.json();
-                const elapsedTime = Date.now() - startTime;
-                const remainingTime = Math.max(0, minDisplayTime - elapsedTime);
-
-                await new Promise(resolve => setTimeout(resolve, remainingTime));
-
                 console.log('API response data:', data);
 
                 let assistantMessage = document.createElement('div');
@@ -454,9 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Handle the non-streaming JSON response
-                console.log('Loading bar removed');
-                loadingBar.remove();
                 if (data.choices && data.choices.length > 0) {
                     messageContent = data.choices[0].delta.content || 'No content received';
                     contentDiv.innerHTML = marked.parse(messageContent);
@@ -475,9 +477,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage.className = 'mb-2 text-left';
                 errorMessage.innerHTML = `<span class="inline-block p-2 rounded-lg bg-warm-cream text-dark-green">Error: ${error.message}</span>`;
                 messages.appendChild(errorMessage);
-                console.log('Loading bar removed due to error');
-                if (loadingBar) loadingBar.remove();
+            } finally {
+                stopProgressBar();
             }
+        } else {
+            stopProgressBar();
         }
 
         sendButton.disabled = false;
