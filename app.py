@@ -18,10 +18,10 @@ XAI_API_KEY = os.getenv("XAI_API_KEY")
 if not XAI_API_KEY:
     raise ValueError("XAI_API_KEY environment variable not set")
 
-UPLOAD_FOLDER = 'uploads'
+# Use /tmp for uploads on Vercel (read-only file system workaround)
+UPLOAD_FOLDER = '/tmp/uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Mock database for client data
 clients = {
@@ -221,6 +221,8 @@ def upload_file():
             clients[client_id] = {"info": {}, "history": [], "documents": []}
 
         filename = secure_filename(file.filename)
+        # Create the uploads directory in /tmp if it doesn't exist
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
