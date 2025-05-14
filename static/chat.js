@@ -190,26 +190,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (!response.ok) throw new Error(`Failed to start new conversation: ${response.status} ${response.statusText}`);
                 console.log('New conversation started');
-                messages.innerHTML = '';
-                historyCount = 0;
-                historyBadge.textContent = '0';
-                historyBadge.classList.remove('active');
-                clientSelector.dispatchEvent(new Event('change')); // Refresh history
-                messageInput.value = '';
-                sendButton.classList.add('hidden'); // Hide send button on new conversation
             } catch (error) {
                 console.error('Error starting new conversation:', error);
                 alert('Failed to start new conversation');
             }
-        } else {
-            // If no client is selected, just clear the UI
-            messages.innerHTML = '';
-            historyCount = 0;
-            historyBadge.textContent = '0';
-            historyBadge.classList.remove('active');
-            messageInput.value = '';
-            sendButton.classList.add('hidden'); // Hide send button on new conversation
         }
+        // Reset UI to mimic a fresh load
+        messages.innerHTML = '';
+        historyCount = 0;
+        historyBadge.textContent = '0';
+        historyBadge.classList.remove('active');
+        clientSelector.dispatchEvent(new Event('change')); // Refresh history
+        messageInput.value = '';
+        sendButton.classList.add('hidden'); // Hide send button on new conversation
+        // Collapse sidebar on mobile
+        sidebar.classList.add('hidden');
+        sidebar.classList.remove('active');
+        sidebar.classList.add('collapsed');
+        // Reset scroll position
+        messages.scrollTop = 0;
+        // Clear active popups
+        replyPopup.classList.remove('active');
+        searchPopup.classList.remove('active');
+        replyInput.value = '';
+        searchInput.value = '';
+        // Remove focus from input
+        messageInput.blur();
     });
 
     // Prompt starters
@@ -378,11 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let typingIndicator = document.createElement('div');
                 typingIndicator.id = 'typing-indicator';
                 typingIndicator.className = 'mb-2 text-left active';
-                typingIndicator.innerHTML = `
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                `;
                 messages.appendChild(typingIndicator);
                 messages.scrollTop = messages.scrollHeight;
 

@@ -535,19 +535,23 @@ textarea {
 
 #typing-indicator {
     display: none;
+    position: relative;
+    width: 40px;
+    height: 16px;
+    background: #F7EDDA; /* Light cream background */
+    border-radius: 0.5rem;
+    padding: 0.5rem;
 }
 
 #typing-indicator.active {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: #F7EDDA; /* Light cream background */
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    color: #2E4B3C; /* Dark green text */
+    display: inline-block;
 }
 
+#typing-indicator::before,
+#typing-indicator::after,
 #typing-indicator .dot {
+    content: '';
+    position: absolute;
     width: 8px;
     height: 8px;
     background: #2E4B3C; /* Dark green dots */
@@ -555,11 +559,20 @@ textarea {
     animation: dotPulse 1.5s infinite;
 }
 
-#typing-indicator .dot:nth-child(2) {
+#typing-indicator .dot {
+    left: 16px;
+    top: 4px;
+}
+
+#typing-indicator::before {
+    left: 8px;
+    top: 4px;
     animation-delay: 0.3s;
 }
 
-#typing-indicator .dot:nth-child(3) {
+#typing-indicator::after {
+    left: 24px;
+    top: 4px;
     animation-delay: 0.6s;
 }
 
@@ -597,10 +610,17 @@ textarea {
 .follow-up-area {
     display: none;
     margin-top: 0.5rem;
+    margin-right: 2.5rem; /* Space for copy button */
 }
 
 .follow-up-area.active {
     display: block;
+}
+
+.follow-up-area textarea {
+    width: 100%;
+    max-width: calc(100% - 2.5rem); /* Account for copy button space */
+    box-sizing: border-box;
 }
 
 .follow-up-button {
