@@ -1063,7 +1063,7 @@ textarea {
 
     /* Main Content */
     .flex-1 {
-        padding: 0;
+        padding: 0.25rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -1075,25 +1075,18 @@ textarea {
         box-sizing: border-box;
     }
     .chat-container {
+        height: 20rem; /* Restore original height */
         padding: 0.25rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        margin-top: 0;
-        margin-bottom: 6rem; /* Space for fixed input container */
     }
     .input-container {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
         max-width: 100%;
         width: 100%;
         gap: 0.25rem;
         box-sizing: border-box;
-        padding: 0.25rem;
-        background: #09332C; /* Match body background */
-        z-index: 20;
+        padding: 0 0.25rem;
     }
     #message-input {
         padding: 0.25rem;

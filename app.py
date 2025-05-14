@@ -9,12 +9,12 @@ clients = ["jane_smith", "john_doe"]
 
 @app.route('/')
 def index():
-    if 'logged_in' not in session:
-        return redirect(url_for('login'))
+    # Removed login requirement
     return render_template('index.html', clients=clients)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Keep the route for future use, but it's not enforced
     if request.method == 'POST':
         password = request.form.get('password')
         if password == 'LexAI2025!':
