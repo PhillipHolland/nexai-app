@@ -360,6 +360,10 @@ body {
     justify-content: flex-end;
 }
 
+.justify-start {
+    justify-content: flex-start;
+}
+
 .flex-1 {
     flex: 1 1 0%;
 }
@@ -877,10 +881,6 @@ textarea {
     right: 0.25rem; /* Adjusted for mobile */
 }
 
-.right-0\.5 {
-    right: 0.125rem; /* Further adjusted for mobile */
-}
-
 .top-1\/2 {
     top: 50%;
 }
@@ -1003,13 +1003,24 @@ textarea {
     height: 3rem; /* Match refresh button height */
 }
 
-/* Center Logo on All Platforms */
+/* Header Layout: Center Logo, Keep Menu Icon on Left */
 header .container {
-    justify-content: center; /* Center the content */
+    position: relative; /* Allow absolute positioning of toggle */
+    display: flex;
+    justify-content: center; /* Center the logo */
+    align-items: center;
 }
 
 header .container .flex {
-    justify-content: center; /* Ensure logo and toggle are centered */
+    position: absolute;
+    left: 0.5rem; /* Position toggle on the left */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+header .container img {
+    margin: 0 auto; /* Ensure logo is centered */
 }
 
 /* Mobile Responsiveness */
@@ -1033,10 +1044,18 @@ header .container .flex {
         width: 100%;
         box-sizing: border-box;
         display: flex;
-        justify-content: center; /* Center the content */
+        justify-content: center; /* Center the logo */
         align-items: center;
     }
-    header img {
+    header .container .flex {
+        position: absolute;
+        left: 0.5rem; /* Keep toggle on the left */
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+    header .container img {
+        margin: 0 auto; /* Ensure logo is centered */
         height: 2rem; /* Keep logo size */
     }
     #toggle-sidebar svg,
@@ -1088,26 +1107,42 @@ header .container .flex {
 
     /* Main Content */
     .flex-1 {
-        padding: 0.25rem;
+        padding: 0;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        padding-bottom: 3rem; /* Reduced to account for adjusted input area height */
+        padding-bottom: 0; /* Remove padding-bottom since input area is fixed */
     }
     .container.max-w-3xl {
         max-width: 100%;
-        padding: 0 0.25rem;
+        padding: 0;
         width: 100%;
         box-sizing: border-box;
     }
+
+    /* Fixed Input Area Container */
+    .max-w-3xl.mx-auto {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #09332C; /* Match background */
+        z-index: 10;
+        padding: 0.25rem; /* Minimal padding */
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
     .chat-container {
-        height: calc(100vh - 12rem); /* Adjust height: viewport - header (5.5rem) - prompt starters (2rem) - input area (2rem) - padding (2.5rem) */
+        height: calc(100vh - 9rem); /* Adjust height: viewport - header (5.5rem) - input area (3.5rem) */
         padding: 0.25rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
         margin-top: 0;
-        margin-bottom: 4rem; /* Ensure space for prompt starters */
+        margin-bottom: 3.5rem; /* Match input area height */
     }
     .input-container {
         max-width: 100%;
@@ -1115,12 +1150,6 @@ header .container .flex {
         gap: 0.25rem;
         box-sizing: border-box;
         padding: 0 0.25rem;
-        position: fixed;
-        bottom: 0.5rem; /* Add padding from bottom for keyboard */
-        left: 0;
-        right: 0;
-        background: #09332C; /* Match background */
-        z-index: 10;
     }
     #message-input {
         padding: 0.25rem;
@@ -1149,12 +1178,6 @@ header .container .flex {
         max-width: 100%;
         padding: 0 0.25rem;
         box-sizing: border-box;
-        position: fixed;
-        bottom: 3rem; /* Position above input area (height: 2rem + padding: 0.5rem + extra: 0.5rem) */
-        left: 0;
-        right: 0;
-        background: #09332C; /* Match background */
-        z-index: 10;
     }
     .prompt-starter {
         padding: 0.25rem 0.5rem;
