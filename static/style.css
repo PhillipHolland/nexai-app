@@ -194,6 +194,10 @@ body {
     padding-top: 3rem; /* Further adjusted for mobile */
 }
 
+.pt-14 {
+    padding-top: 3.5rem; /* Adjusted for mobile to avoid overlap */
+}
+
 .p-4 {
     padding: 1rem; /* 4 * 0.25rem = 1rem */
 }
@@ -605,19 +609,31 @@ textarea {
     #sidebar h2 {
         font-size: 1rem; /* Smaller heading */
     }
+    #sidebar .space-y-2 {
+        width: 100%;
+        padding: 0;
+        space-y: 1rem; /* Increased padding between elements */
+    }
     #sidebar select,
     #sidebar input,
     #sidebar textarea,
     #sidebar button {
         width: 100%;
-        max-width: calc(100% - 1rem); /* Account for padding */
-        padding: 0.5rem;
+        max-width: 100%; /* Ensure fields don't exceed parent */
+        padding: 0.25rem;
         font-size: 0.875rem;
         box-sizing: border-box;
         margin: 0;
     }
     .max-h-64 {
         max-height: 12rem; /* Reduce height for mobile */
+    }
+    #client-info,
+    #history,
+    #client-documents {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
     }
 }
 
@@ -840,6 +856,10 @@ textarea {
     right: 0.5rem;
 }
 
+.right-1 {
+    right: 0.25rem; /* Adjusted for mobile */
+}
+
 .top-1\/2 {
     top: 50%;
 }
@@ -977,34 +997,42 @@ textarea {
     }
 
     /* Header Adjustments */
+    header {
+        height: 2.5rem; /* Explicitly set header height */
+    }
     header .container {
         padding: 0.25rem; /* Further reduce padding */
         max-width: 100%;
         width: 100%;
         box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     header img {
-        height: 2rem; /* Logo size */
+        height: 1.5rem; /* Further reduce logo size */
     }
     #toggle-sidebar svg,
     #collapse-sidebar svg {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1rem;
+        height: 1rem;
     }
     #logout-button {
         padding: 0;
         margin: 0;
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1rem;
+        height: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
+        position: absolute;
+        right: 0.25rem; /* Ensure it fits within viewport */
     }
     #logout-button::before {
         content: '';
         display: block;
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1rem;
+        height: 1rem;
         background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>') no-repeat center;
         background-size: contain;
         color: #F7EDDA;
@@ -1016,7 +1044,7 @@ textarea {
         display: none; /* Hide text on mobile */
     }
     .pt-24 {
-        padding-top: 2.5rem; /* Further adjust padding for smaller header */
+        padding-top: 3rem; /* Adjust padding to account for header height */
     }
 
     /* Sidebar Adjustments */
@@ -1025,6 +1053,7 @@ textarea {
         max-width: 100%;
         padding: 0.5rem;
         box-sizing: border-box;
+        top: 2.5rem; /* Match header height */
     }
     #sidebar h2 {
         font-size: 1rem; /* Smaller heading */
@@ -1032,6 +1061,7 @@ textarea {
     #sidebar .space-y-2 {
         width: 100%;
         padding: 0;
+        space-y: 1rem; /* Increased padding between elements */
     }
     #sidebar select,
     #sidebar input,
@@ -1074,6 +1104,7 @@ textarea {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        margin-top: 0.5rem; /* Add margin to avoid overlap */
     }
     .input-container {
         max-width: 100%;
