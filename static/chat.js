@@ -363,8 +363,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 messages: [{ role: 'user', content: message + (fileContent ? `\n\nFile Content: ${fileContent}` : '') }],
                 client_id: currentClientId || "default_client", // Default to "default_client" if none selected
             };
+            let loadingBar;
             try {
                 console.log('Sending chat request to /api/chat with payload:', JSON.stringify(payload));
+
+                // Add loading bar before the fetch request
+                loadingBar = document.createElement('div');
+                loadingBar.id = 'loading-bar';
+                loadingBar.className = 'mb-2 text-left active';
+                loadingBar.innerHTML = `
+                    <div class="bar">
+                        <div class="segment"></div>
+                    </div>
+                `;
+                messages.appendChild(loadingBar);
+                console.log('Loading bar added before fetch');
+                messages.scrollTop = messages.scrollHeight;
+
+                // Perform the fetch request
+                console.log('Initiating fetch request');
                 const chatResponse = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
@@ -374,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(payload),
                     credentials: 'same-origin',
                 });
+                console.log('Fetch request completed, status:', chatResponse.status);
 
                 if (!chatResponse.ok) {
                     const errorText = await chatResponse.text();
@@ -381,18 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 console.log('Chat response received, processing as JSON');
-                let loadingBar = document.createElement('div');
-                loadingBar.id = 'loading-bar';
-                loadingBar.className = 'mb-2 text-left active';
-                loadingBar.innerHTML = `
-                    <div class="bar">
-                        <div class="segment"></div>
-                    </div>
-                `;
-                messages.appendChild(loadingBar);
-                console.log('Loading bar added');
-                messages.scrollTop = messages.scrollHeight;
-
                 const data = await chatResponse.json();
                 console.log('API response data:', data);
 
@@ -438,8 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Handle the non-streaming JSON response
-                console.log('Loading bar removed');
-                loadingBar.remove();
+                console.log('Loading bar removed after successful response');
+                if (loadingBar) loadingBar.remove();
                 if (data.choices && data.choices.length > 0) {
                     messageContent = data.choices[0].delta.content || 'No content received';
                     contentDiv.innerHTML = marked.parse(messageContent);

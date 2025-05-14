@@ -147,7 +147,7 @@ body {
 }
 
 .w-5 {
-    width: 1.25rem; /* 5 * 0.25rem = 1.25rem */
+    width: 1.25rem; /* 5 * 0.25rem = 1.5rem */
 }
 
 .w-4 {
@@ -542,6 +542,7 @@ textarea {
     position: relative;
     border: 1px solid #2E4B3C; /* Debug border to ensure visibility */
     z-index: 10; /* Ensure it’s above other elements */
+    min-height: 20px; /* Ensure visibility even if content is small */
 }
 
 #loading-bar.active {
