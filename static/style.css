@@ -194,8 +194,8 @@ body {
     padding-top: 3rem; /* Further adjusted for mobile */
 }
 
-.pt-14 {
-    padding-top: 3.5rem; /* Adjusted for mobile to avoid overlap */
+.pt-20 {
+    padding-top: 5rem; /* Adjusted for mobile to avoid overlap with restored banner height */
 }
 
 .p-4 {
@@ -605,6 +605,7 @@ textarea {
         max-width: 100%;
         padding: 0.5rem;
         box-sizing: border-box;
+        top: 5rem; /* Match restored header height */
     }
     #sidebar h2 {
         font-size: 1rem; /* Smaller heading */
@@ -624,6 +625,9 @@ textarea {
         font-size: 0.875rem;
         box-sizing: border-box;
         margin: 0;
+    }
+    #export-history {
+        margin-top: 1.5rem; /* Additional spacing above Export History button */
     }
     .max-h-64 {
         max-height: 12rem; /* Reduce height for mobile */
@@ -860,6 +864,10 @@ textarea {
     right: 0.25rem; /* Adjusted for mobile */
 }
 
+.right-0\.5 {
+    right: 0.125rem; /* Further adjusted for mobile */
+}
+
 .top-1\/2 {
     top: 50%;
 }
@@ -998,7 +1006,7 @@ textarea {
 
     /* Header Adjustments */
     header {
-        height: 2.5rem; /* Explicitly set header height */
+        height: 5rem; /* Restore original banner height */
     }
     header .container {
         padding: 0.25rem; /* Further reduce padding */
@@ -1010,7 +1018,7 @@ textarea {
         align-items: center;
     }
     header img {
-        height: 1.5rem; /* Further reduce logo size */
+        height: 2rem; /* Keep logo size */
     }
     #toggle-sidebar svg,
     #collapse-sidebar svg {
@@ -1026,7 +1034,7 @@ textarea {
         align-items: center;
         justify-content: center;
         position: absolute;
-        right: 0.25rem; /* Ensure it fits within viewport */
+        right: 0.125rem; /* Further adjust to fit within viewport */
     }
     #logout-button::before {
         content: '';
@@ -1044,7 +1052,7 @@ textarea {
         display: none; /* Hide text on mobile */
     }
     .pt-24 {
-        padding-top: 3rem; /* Adjust padding to account for header height */
+        padding-top: 5.5rem; /* Adjust padding to account for restored header height plus buffer */
     }
 
     /* Sidebar Adjustments */
@@ -1053,7 +1061,7 @@ textarea {
         max-width: 100%;
         padding: 0.5rem;
         box-sizing: border-box;
-        top: 2.5rem; /* Match header height */
+        top: 5rem; /* Match restored header height */
     }
     #sidebar h2 {
         font-size: 1rem; /* Smaller heading */
@@ -1073,6 +1081,9 @@ textarea {
         font-size: 0.875rem;
         box-sizing: border-box;
         margin: 0;
+    }
+    #export-history {
+        margin-top: 1.5rem; /* Additional spacing above Export History button */
     }
     .max-h-64 {
         max-height: 12rem; /* Reduce height for mobile */
@@ -1104,7 +1115,7 @@ textarea {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        margin-top: 0.5rem; /* Add margin to avoid overlap */
+        margin-top: 0; /* Remove extra margin since padding-top is adjusted */
     }
     .input-container {
         max-width: 100%;
