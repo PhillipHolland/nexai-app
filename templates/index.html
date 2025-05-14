@@ -9,21 +9,21 @@
     <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="bg-darkest-green text-light-cream font-sans flex flex-col min-h-screen">
+<body class="bg-darkest-green text-light-cream font-sans">
     <!-- Fixed Header -->
     <header class="fixed top-0 left-0 right-0 bg-dark-green shadow-lg z-20">
-        <div class="container mx-auto max-w-4xl p-4 flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <button id="toggle-sidebar" class="text-light-cream hover:text-bright-coral hover:scale-105 transition-all duration-200" title="Menu">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+        <div class="container mx-auto max-w-4xl p-4 flex items-center">
+            <button id="toggle-sidebar" class="text-light-cream hover:text-bright-coral hover:scale-105 transition-all duration-200" title="Menu">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <div class="flex-grow flex justify-center">
                 <img src="/static/lexAI.png" alt="LexAI Practice Partner" class="h-20">
             </div>
         </div>
     </header>
-    <div class="flex flex-1 flex-col pt-24">
+    <div class="flex min-h-screen pt-24">
         <!-- Collapsible Left Sidebar -->
         <div id="sidebar" class="bg-darkest-green w-64 p-6 flex flex-col space-y-4 fixed top-16 bottom-0 z-30 transition-all duration-300 hidden">
             <div class="flex justify-between items-center">
@@ -85,11 +85,9 @@
             </div>
         </div>
         <!-- Main Content -->
-        <div class="flex-1 p-4 sm:p-6 flex flex-col">
-            <div class="container mx-auto max-w-3xl flex-1 flex flex-col">
-                <div id="messages" class="chat-container bg-light-cream rounded-lg p-4 mb-4 overflow-y-auto flex-1">
-                    <!-- Chat messages will be inserted here -->
-                </div>
+        <div class="flex-1 p-4 sm:p-6">
+            <div class="container mx-auto max-w-3xl">
+                <div id="messages" class="chat-container bg-light-cream rounded-lg p-4 mb-4 h-96 overflow-y-auto mt-4"></div>
                 <div id="reply-popup" class="hidden fixed inset-0 bg-darkest-green bg-opacity-50 flex items-center justify-center z-50">
                     <div class="bg-dark-green p-6 rounded-lg w-full max-w-md">
                         <h2 class="text-lg font-semibold mb-4 text-light-cream">Paste Message to Reply To</h2>

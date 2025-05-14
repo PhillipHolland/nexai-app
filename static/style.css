@@ -195,7 +195,7 @@ body {
 }
 
 .pt-20 {
-    padding-top: 5rem; /* Adjusted for mobile to avoid overlap with restored banner height */
+    padding-top: 5rem; /* Adjusted for mobile to avoid overlap with header */
 }
 
 .p-4 {
@@ -1003,24 +1003,21 @@ textarea {
         height: 5rem; /* Restored banner height */
     }
     header .container {
-        padding: 0.25rem; /* Further reduce padding */
+        padding: 0.5rem; /* Reduced padding */
         max-width: 100%;
         width: 100%;
         box-sizing: border-box;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
     }
     header img {
-        height: 2rem; /* Keep logo size */
+        height: 2.5rem; /* Reduced logo size */
     }
     #toggle-sidebar svg,
     #collapse-sidebar svg {
-        width: 1rem;
-        height: 1rem;
+        width: 1.5rem; /* Smaller icons */
+        height: 1.5rem;
     }
     .pt-24 {
-        padding-top: 5.5rem; /* Adjust padding to account for restored header height plus buffer */
+        padding-top: 5rem; /* Adjust padding to account for header height */
     }
 
     /* Sidebar Adjustments */
@@ -1029,7 +1026,7 @@ textarea {
         max-width: 100%;
         padding: 0.5rem;
         box-sizing: border-box;
-        top: 5rem; /* Match restored header height */
+        top: 5rem; /* Match header height */
     }
     #sidebar h2 {
         font-size: 1rem; /* Smaller heading */
@@ -1037,7 +1034,7 @@ textarea {
     #sidebar .space-y-2 {
         width: 100%;
         padding: 0;
-        space-y: 1rem; /* Increased padding between elements */
+        space-y: 0.5rem;
     }
     #sidebar select,
     #sidebar input,
@@ -1045,7 +1042,7 @@ textarea {
     #sidebar button {
         width: 100%;
         max-width: 100%; /* Ensure fields don't exceed parent */
-        padding: 0.25rem;
+        padding: 0.5rem;
         font-size: 0.875rem;
         box-sizing: border-box;
         margin: 0;
@@ -1063,35 +1060,44 @@ textarea {
 
     /* Main Content */
     .flex-1 {
-        padding: 0.25rem;
+        padding: 0.5rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
     }
     .container.max-w-3xl {
         max-width: 100%;
-        padding: 0 0.25rem;
+        padding: 0 0.5rem;
         width: 100%;
         box-sizing: border-box;
     }
     .chat-container {
-        height: 20rem; /* Restore original height */
-        padding: 0.25rem;
+        padding: 0.5rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        margin-top: 0;
+        margin-bottom: 6rem; /* Space for fixed input container */
+        height: auto; /* Allow dynamic height */
+        min-height: 20rem; /* Minimum height for visibility */
     }
     .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         max-width: 100%;
         width: 100%;
-        gap: 0.25rem;
+        gap: 0.5rem;
         box-sizing: border-box;
-        padding: 0 0.25rem;
+        padding: 0.5rem;
+        background: #09332C; /* Match body background */
+        z-index: 20;
     }
     #message-input {
-        padding: 0.25rem;
-        padding-right: 1.5rem;
-        height: 2rem;
+        padding: 0.5rem;
+        padding-right: 2rem;
+        height: 2.5rem;
         font-size: 0.875rem;
         width: 100%;
         max-width: 100%;
@@ -1099,39 +1105,39 @@ textarea {
     }
     .refresh-button,
     #send-button {
-        width: 2rem;
-        height: 2rem;
+        width: 2.5rem;
+        height: 2.5rem;
     }
     .refresh-button svg,
     #send-button svg {
-        width: 1rem;
-        height: 1rem;
+        width: 1.25rem;
+        height: 1.25rem;
     }
 
     /* Prompt Starters */
     #prompt-starters {
-        gap: 0.25rem;
+        gap: 0.5rem;
         width: 100%;
         max-width: 100%;
-        padding: 0 0.25rem;
+        padding: 0 0.5rem;
         box-sizing: border-box;
     }
     .prompt-starter {
-        padding: 0.25rem 0.5rem;
-        max-width: 100px;
+        padding: 0.5rem 1rem;
+        max-width: 120px;
         font-size: 0.75rem;
         width: auto;
         flex: 0 0 auto;
     }
     .prompt-starter svg {
-        width: 0.875rem;
-        height: 0.875rem;
+        width: 1rem;
+        height: 1rem;
     }
 
     /* Popups */
     #reply-popup .bg-dark-green,
     #search-popup .bg-dark-green {
-        padding: 0.5rem;
+        padding: 1rem;
         width: 90%;
         max-width: 100%;
         box-sizing: border-box;
@@ -1148,5 +1154,52 @@ textarea {
     /* Markdown Content */
     .markdown-content {
         max-width: 80%; /* Ensure messages don't touch screen edges */
+    }
+}
+
+/* Desktop Responsiveness */
+@media (min-width: 769px) {
+    .chat-container {
+        height: 24rem; /* Restore original height for desktop */
+        padding: 1rem;
+        margin-top: 0;
+        margin-bottom: 1rem; /* Space for input below */
+    }
+    .input-container {
+        max-width: 48rem;
+        width: 100%;
+        gap: 1rem;
+        box-sizing: border-box;
+        padding: 0 1rem;
+    }
+    #message-input {
+        padding: 0.75rem;
+        padding-right: 3rem;
+        height: 3rem;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .refresh-button,
+    #send-button {
+        width: 3rem;
+        height: 3rem;
+    }
+    .refresh-button svg,
+    #send-button svg {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    .prompt-starter {
+        padding: 0.25rem 0.75rem;
+        max-width: 200px;
+        font-size: 0.875rem;
+        width: auto;
+        flex: 0 0 auto;
+    }
+    .prompt-starter svg {
+        width: 1.25rem;
+        height: 1.25rem;
     }
 }
