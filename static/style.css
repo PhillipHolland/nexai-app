@@ -613,7 +613,7 @@ textarea {
     #sidebar .space-y-2 {
         width: 100%;
         padding: 0;
-        space-y: 1rem; /* Increased padding between elements */
+        space-y: 0.5rem;
     }
     #sidebar select,
     #sidebar input,
@@ -621,7 +621,7 @@ textarea {
     #sidebar button {
         width: 100%;
         max-width: 100%; /* Ensure fields don't exceed parent */
-        padding: 0.25rem;
+        padding: 0.5rem;
         font-size: 0.875rem;
         box-sizing: border-box;
         margin: 0;
@@ -985,6 +985,19 @@ textarea {
     padding-right: 3rem; /* Space for send button */
     line-height: 1.5rem; /* Match SVG height for centering */
     height: 3rem; /* Match refresh button height */
+}
+
+/* Remove Safari focus border on desktop for bg-warm-orange buttons */
+@media not all and (pointer: coarse) {
+    /* Target desktop devices (not touch devices) */
+    @media (-webkit-min-device-pixel-ratio: 0) {
+        /* Target Safari */
+        .bg-warm-orange:focus {
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-appearance: none !important;
+        }
+    }
 }
 
 /* Mobile Responsiveness */
