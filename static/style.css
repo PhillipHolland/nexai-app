@@ -539,10 +539,13 @@ textarea {
     border-radius: 0.5rem;
     padding: 0.5rem;
     width: fit-content;
+    position: relative;
+    border: 1px solid #2E4B3C; /* Debug border to ensure visibility */
+    z-index: 10; /* Ensure it’s above other elements */
 }
 
 #loading-bar.active {
-    display: inline-block;
+    display: block; /* Changed to block for better compatibility */
 }
 
 #loading-bar .bar {
@@ -551,7 +554,7 @@ textarea {
     background: rgba(46, 75, 60, 0.3); /* Muted dark green background */
     border-radius: 2px;
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* Ensure segment isn’t clipped */
 }
 
 #loading-bar .bar .segment {
@@ -560,7 +563,7 @@ textarea {
     background: #FFA74F; /* Warm orange segment */
     border-radius: 2px;
     position: absolute;
-    animation: cylonSlide 1.5s infinite ease-in-out;
+    animation: cylonSlide 2s infinite ease-in-out; /* Increased duration to 2s for visibility */
 }
 
 .copy-button {

@@ -390,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 messages.appendChild(loadingBar);
+                console.log('Loading bar added');
                 messages.scrollTop = messages.scrollHeight;
 
                 const data = await chatResponse.json();
@@ -437,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Handle the non-streaming JSON response
+                console.log('Loading bar removed');
                 loadingBar.remove();
                 if (data.choices && data.choices.length > 0) {
                     messageContent = data.choices[0].delta.content || 'No content received';
@@ -456,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage.className = 'mb-2 text-left';
                 errorMessage.innerHTML = `<span class="inline-block p-2 rounded-lg bg-warm-cream text-dark-green">Error: ${error.message}</span>`;
                 messages.appendChild(errorMessage);
+                console.log('Loading bar removed due to error');
                 if (loadingBar) loadingBar.remove();
             }
         }
