@@ -1,4 +1,3 @@
-# Trigger Vercel rebuild to apply GROK_API_KEY environment variable - 2025-05-14
 import os
 import json
 import requests
@@ -15,9 +14,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Securely load API key from environment variable
-GROK_API_KEY = os.getenv("GROK_API_KEY")
-if not GROK_API_KEY:
-    raise ValueError("GROK_API_KEY environment variable not set")
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+if not XAI_API_KEY:
+    raise ValueError("XAI_API_KEY environment variable not set")
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
@@ -51,7 +50,9 @@ class Anonymizer:
         self.excluded_phrases = {
             "draft an", "email to", "meeting on", "about a", "to the",
             "for a", "on the", "at the", "with a", "in the",
-            "at john", "com about"
+            "at john", "com about",
+            "brief summary", "of the", "benefits of", "do list", "for productivity",
+            "legal advice", "with email"
         }
 
     def tokenize(self, text):
@@ -64,6 +65,7 @@ class Anonymizer:
             # Emails first to avoid interference from name tokenization
             (r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', 'EMAIL'),
             # Names: Match capitalized words, exclude email-like patterns and tokens
+            # Require both words to start with uppercase letters (proper nouns)
             (r'\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|[A-Z][a-z]+) [A-Z][a-z]+\b(?!\S*@\S*\.\S*\b)(?!(?:Person|Email|Phone|SSN|CreditCard)[A-Z])', 'NAME'),
             (r'\b\d{3}-\d{3}-\d{4}\b', 'PHONE'),  # Phone numbers (e.g., 555-123-4567)
             (r'\b\d{3}-\d{2}-\d{4}\b', 'SSN'),  # Social Security Numbers (e.g., 123-45-6789)
@@ -73,7 +75,7 @@ class Anonymizer:
         tokenized_text = text
         token_map = {}
         for pattern, token_prefix in patterns:
-            matches = re.finditer(pattern, tokenized_text, flags=re.IGNORECASE)
+            matches = re.finditer(pattern, tokenized_text)
             for match in matches:
                 original = match.group()
                 # Skip tokenization if the match is in excluded phrases (for names only)
@@ -297,7 +299,7 @@ def chat():
 
     try:
         headers = {
-            "Authorization": f"Bearer {GROK_API_KEY}",
+            "Authorization": f"Bearer {XAI_API_KEY}",
             "Content-Type": "application/json"
         }
         logger.info(f"Sending request to Grok API with payload: {json.dumps(payload)}")
@@ -316,22 +318,27 @@ def chat():
         detokenized_content = anonymizer.detokenize(assistant_content, combined_token_map)
 
         # Post-process the response to ensure the email address is included, but only if not already present
-        # Check for "To:" while ignoring markdown formatting (e.g., **To:**, *To:*)
-        if not re.search(r'(?:\*\*|\*)*To:(?:\*\*|\*)*', detokenized_content):
-            # Find the email token and its corresponding value
-            email_token = next(token for token, value in combined_token_map.items() if value == "john.doe@example.com")
-            person_token = next(token for token, value in combined_token_map.items() if value == "John Doe")
-            email_line = f"To: {combined_token_map[person_token]} <{combined_token_map[email_token]}>\n\n"
-            # Insert the "To:" line after the subject line or at the start
-            if "Subject: " in detokenized_content:
-                parts = detokenized_content.split("Subject: ", 1)
-                detokenized_content = f"Subject: {parts[1].split('\n\n', 1)[0]}\n\n{email_line}{parts[1].split('\n\n', 1)[1]}"
-                logger.info("Added To: line to response")
+        # Only run post-processing if an email token exists in the token map
+        email_token_exists = any(token.startswith("Email") for token in combined_token_map.keys())
+        if email_token_exists:
+            # Check for "To:" while ignoring markdown formatting (e.g., **To:**, *To:*)
+            if not re.search(r'(?:\*\*|\*)*To:(?:\*\*|\*)*', detokenized_content):
+                # Find the email token and its corresponding value
+                email_token = next(token for token, value in combined_token_map.items() if value == "john.doe@example.com")
+                person_token = next(token for token, value in combined_token_map.items() if value == "John Doe")
+                email_line = f"To: {combined_token_map[person_token]} <{combined_token_map[email_token]}>\n\n"
+                # Insert the "To:" line after the subject line or at the start
+                if "Subject: " in detokenized_content:
+                    parts = detokenized_content.split("Subject: ", 1)
+                    detokenized_content = f"Subject: {parts[1].split('\n\n', 1)[0]}\n\n{email_line}{parts[1].split('\n\n', 1)[1]}"
+                    logger.info("Added To: line to response")
+                else:
+                    detokenized_content = email_line + detokenized_content
+                    logger.info("Added To: line to response")
             else:
-                detokenized_content = email_line + detokenized_content
-                logger.info("Added To: line to response")
+                logger.info("To: line already present in response (possibly with markdown), skipping post-processing addition")
         else:
-            logger.info("To: line already present in response (possibly with markdown), skipping post-processing addition")
+            logger.info("No email token found in token map, skipping post-processing for To: line")
 
         # Add Grok's de-tokenized response to history
         assistant_message = {
