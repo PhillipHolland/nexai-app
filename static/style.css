@@ -80,6 +80,10 @@ body {
     top: 4rem; /* 16 * 0.25rem = 4rem */
 }
 
+.top-12 {
+    top: 3rem; /* Adjusted for mobile */
+}
+
 .bottom-0 {
     bottom: 0;
 }
@@ -146,6 +150,10 @@ body {
     width: 1.25rem; /* 5 * 0.25rem = 1.25rem */
 }
 
+.w-4 {
+    width: 1rem; /* Adjusted for mobile */
+}
+
 .h-96 {
     height: 24rem; /* 96 * 0.25rem = 24rem */
 }
@@ -180,6 +188,10 @@ body {
 
 .pt-16 {
     padding-top: 4rem; /* Adjusted for mobile */
+}
+
+.pt-12 {
+    padding-top: 3rem; /* Further adjusted for mobile */
 }
 
 .p-4 {
@@ -374,6 +386,10 @@ body {
 
 .max-w-\[200px\] {
     max-width: 200px;
+}
+
+.max-w-\[150px\] {
+    max-width: 150px; /* Adjusted for mobile */
 }
 
 .rounded-lg {
@@ -578,6 +594,22 @@ textarea {
 @media (max-width: 768px) {
     #sidebar {
         width: 80%;
+        max-width: 100%;
+        padding: 0.5rem;
+    }
+    #sidebar h2 {
+        font-size: 1.125rem; /* Smaller heading */
+    }
+    #sidebar select,
+    #sidebar input,
+    #sidebar textarea,
+    #sidebar button {
+        width: 100%;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    .max-h-64 {
+        max-height: 12rem; /* Reduce height for mobile */
     }
 }
 
@@ -927,34 +959,65 @@ textarea {
 
 /* Mobile Responsiveness */
 @media (max-width: 640px) {
+    /* Ensure full viewport width usage */
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
     /* Header Adjustments */
     header .container {
-        padding: 0.5rem 1rem; /* Reduce padding */
+        padding: 0.5rem; /* Reduce padding */
         max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
     }
     header img {
-        height: 3rem; /* Reduce logo size (from h-20) */
+        height: 2rem; /* Further reduce logo size (from 3rem) */
     }
     #toggle-sidebar svg,
-    #collapse-sidebar svg,
-    #logout-button {
-        width: 1.5rem; /* Adjust icon sizes */
-        height: 1.5rem;
+    #collapse-sidebar svg {
+        width: 1.25rem; /* Smaller icons */
+        height: 1.25rem;
     }
     #logout-button {
-        font-size: 0.875rem; /* Smaller text */
+        padding: 0;
+        margin: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #logout-button::before {
+        content: '';
+        display: block;
+        width: 1.25rem;
+        height: 1.25rem;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>') no-repeat center;
+        background-size: contain;
+        color: #F7EDDA;
+    }
+    #logout-button:hover::before {
+        color: #F0531C;
+    }
+    #logout-button span {
+        display: none; /* Hide text on mobile */
     }
     .pt-24 {
-        padding-top: 4rem; /* Adjust padding for smaller header */
+        padding-top: 3rem; /* Adjust padding for smaller header */
     }
 
     /* Sidebar Adjustments */
     #sidebar {
         width: 80%;
-        padding: 1rem;
+        max-width: 100%;
+        padding: 0.5rem;
+        box-sizing: border-box;
     }
     #sidebar h2 {
-        font-size: 1.125rem; /* Smaller heading */
+        font-size: 1rem; /* Smaller heading */
     }
     #sidebar select,
     #sidebar input,
@@ -970,25 +1033,37 @@ textarea {
 
     /* Main Content */
     .flex-1 {
-        padding: 0.5rem;
+        padding: 0.25rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     .container.max-w-3xl {
         max-width: 100%;
-        padding: 0 0.5rem;
+        padding: 0 0.25rem;
+        width: 100%;
+        box-sizing: border-box;
     }
     .chat-container {
         height: 20rem; /* Reduce height for mobile */
-        padding: 0.5rem;
+        padding: 0.25rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     .input-container {
         max-width: 100%;
+        width: 100%;
         gap: 0.25rem;
+        box-sizing: border-box;
     }
     #message-input {
         padding: 0.5rem;
         padding-right: 2rem;
         height: 2.5rem;
         font-size: 0.875rem;
+        width: 100%;
+        box-sizing: border-box;
     }
     .refresh-button,
     #send-button {
@@ -1004,11 +1079,17 @@ textarea {
     /* Prompt Starters */
     #prompt-starters {
         gap: 0.25rem;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 0.25rem;
+        box-sizing: border-box;
     }
     .prompt-starter {
         padding: 0.25rem 0.5rem;
-        max-width: 150px;
+        max-width: 120px;
         font-size: 0.75rem;
+        width: auto;
+        flex: 0 0 auto;
     }
     .prompt-starter svg {
         width: 1rem;
@@ -1018,13 +1099,21 @@ textarea {
     /* Popups */
     #reply-popup .bg-dark-green,
     #search-popup .bg-dark-green {
-        padding: 1rem;
+        padding: 0.5rem;
         width: 90%;
         max-width: 100%;
+        box-sizing: border-box;
     }
     #reply-input,
     #search-input {
         font-size: 0.875rem;
         padding: 0.5rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Markdown Content */
+    .markdown-content {
+        max-width: 80%; /* Ensure messages don't touch screen edges */
     }
 }
