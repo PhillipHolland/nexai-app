@@ -1,3 +1,4 @@
+# Trigger Vercel rebuild to apply GROK_API_KEY environment variable - 2025-05-14
 import os
 import json
 import requests
