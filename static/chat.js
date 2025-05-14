@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('client-info-tab').classList.add('active');
     clientInfo.classList.add('active');
 
-    // Client selection
+    // Client selection (optional)
     clientSelector.addEventListener('change', async () => {
         currentClientId = clientSelector.value;
         console.log('Selected client:', currentClientId);
@@ -94,11 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {
-                    'Accept': 'application/json', // Ensure server knows we expect JSON
+                    'Accept': 'application/json',
                 },
             });
             if (!response.ok) throw new Error(`Failed to fetch client data: ${response.status} ${response.statusText}`);
             const data = await response.json();
+            console.log('Client data received:', data);
             // Update client info
             document.getElementById('client-name').value = data.info.name || '';
             document.getElementById('client-case-number').value = data.info.case_number || '';
@@ -177,30 +178,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // New conversation
     newConversationButton.addEventListener('click', async () => {
         console.log('Starting new conversation');
-        if (!currentClientId) {
-            alert('Please select a client');
-            return;
-        }
-        try {
-            const response = await fetch(`/api/new_conversation/${currentClientId}`, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-            });
-            if (!response.ok) throw new Error(`Failed to start new conversation: ${response.status} ${response.statusText}`);
+        if (currentClientId) {
+            try {
+                const response = await fetch(`/api/new_conversation/${currentClientId}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                });
+                if (!response.ok) throw new Error(`Failed to start new conversation: ${response.status} ${response.statusText}`);
+                console.log('New conversation started');
+                messages.innerHTML = '';
+                historyCount = 0;
+                historyBadge.textContent = '0';
+                historyBadge.classList.remove('active');
+                clientSelector.dispatchEvent(new Event('change')); // Refresh history
+                messageInput.value = '';
+                sendButton.classList.add('hidden'); // Hide send button on new conversation
+            } catch (error) {
+                console.error('Error starting new conversation:', error);
+                alert('Failed to start new conversation');
+            }
+        } else {
+            // If no client is selected, just clear the UI
             messages.innerHTML = '';
             historyCount = 0;
             historyBadge.textContent = '0';
             historyBadge.classList.remove('active');
-            clientSelector.dispatchEvent(new Event('change')); // Refresh history
             messageInput.value = '';
             sendButton.classList.add('hidden'); // Hide send button on new conversation
-        } catch (error) {
-            console.error('Error starting new conversation:', error);
-            alert('Failed to start new conversation');
         }
     });
 
@@ -283,16 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = fileInput.files[0];
         console.log('Submitting - Raw Message:', rawMessage, 'Trimmed Message:', message, 'File:', file ? file.name : 'None', 'Client ID:', currentClientId);
 
-        if (!currentClientId) {
-            console.warn('No client selected');
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'mb-2 text-left';
-            errorMessage.innerHTML = `<span class="inline-block p-2 rounded-lg bg-warm-cream text-dark-green">Please select a client</span>`;
-            messages.appendChild(errorMessage);
-            messages.scrollTop = messages.scrollHeight;
-            return;
-        }
-
         if (!message && !file) {
             console.warn('No message or file provided, submission aborted');
             return;
@@ -320,7 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Uploading file:', file.name);
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('client_id', currentClientId);
+            // Use currentClientId if set, otherwise default to "default_client"
+            formData.append('client_id', currentClientId || "default_client");
             try {
                 const uploadResponse = await fetch('/api/upload', {
                     method: 'POST',
@@ -329,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (!uploadResponse.ok) throw new Error(`File upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
                 const uploadData = await uploadResponse.json();
+                console.log('File upload response:', uploadData);
                 fileContent = uploadData.text;
                 const fileMessage = document.createElement('div');
                 fileMessage.className = 'mb-2 text-right';
@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (message) {
             const payload = {
                 messages: [{ role: 'user', content: message + (fileContent ? `\n\nFile Content: ${fileContent}` : '') }],
-                client_id: currentClientId,
+                client_id: currentClientId || "default_client", // Default to "default_client" if none selected
             };
             try {
                 console.log('Sending chat request to /api/chat with payload:', JSON.stringify(payload));
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
+                        'Accept': 'application/json',  // Expecting a single JSON response
                     },
                     body: JSON.stringify(payload),
                     credentials: 'same-origin',
@@ -374,16 +374,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(`Chat API error: ${chatResponse.status} ${chatResponse.statusText} - ${errorText}`);
                 }
 
-                console.log('Chat response received, streaming');
-                const typingIndicator = document.createElement('div');
+                console.log('Chat response received, processing as JSON');
+                const data = await chatResponse.json();
+                console.log('API response data:', data);
+
+                let typingIndicator = document.createElement('div');
                 typingIndicator.id = 'typing-indicator';
                 typingIndicator.className = 'mb-2 text-left active';
                 typingIndicator.innerHTML = `<span class="inline-block p-2 rounded-lg bg-light-cream text-dark-green">Typing...</span>`;
                 messages.appendChild(typingIndicator);
                 messages.scrollTop = messages.scrollHeight;
 
-                const reader = chatResponse.body.getReader();
-                const decoder = new TextDecoder();
                 let assistantMessage = document.createElement('div');
                 assistantMessage.className = 'mb-2 text-left relative';
                 let messageContent = '';
@@ -425,35 +426,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        console.log('Chat response complete');
-                        typingIndicator.remove();
-                        followUpArea.classList.add('active');
-                        historyCount += 2; // User + assistant message
-                        historyBadge.textContent = historyCount;
-                        historyBadge.classList.add('active');
-                        clientSelector.dispatchEvent(new Event('change')); // Refresh history
-                        break;
-                    }
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n');
-                    for (const line of lines) {
-                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                            try {
-                                const data = JSON.parse(line.replace(/^data: /, ''));
-                                const content = data.choices[0].delta.content;
-                                if (content) {
-                                    messageContent += content;
-                                    contentDiv.innerHTML = marked.parse(messageContent);
-                                    messages.scrollTop = messages.scrollHeight;
-                                }
-                            } catch (error) {
-                                console.error('Error parsing chunk:', error, 'Chunk:', line);
-                            }
-                        }
-                    }
+                // Handle the non-streaming JSON response
+                typingIndicator.remove();
+                if (data.choices && data.choices.length > 0) {
+                    messageContent = data.choices[0].delta.content || 'No content received';
+                    contentDiv.innerHTML = marked.parse(messageContent);
+                    messages.scrollTop = messages.scrollHeight;
+                    followUpArea.classList.add('active');
+                    historyCount += 2; // User + assistant message
+                    historyBadge.textContent = historyCount;
+                    historyBadge.classList.add('active');
+                    clientSelector.dispatchEvent(new Event('change')); // Refresh history
+                } else {
+                    throw new Error('Invalid response format: No choices found');
                 }
             } catch (error) {
                 console.error('Chat submission failed:', error);
