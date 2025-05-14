@@ -88,6 +88,14 @@ body {
     bottom: 0;
 }
 
+.bottom-1 {
+    bottom: 0.25rem; /* Adjusted for mobile */
+}
+
+.bottom-3 {
+    bottom: 0.75rem; /* Adjusted for mobile */
+}
+
 .z-20 {
     z-index: 20;
 }
@@ -634,9 +642,6 @@ textarea {
         box-sizing: border-box;
         margin: 0;
     }
-    #export-history {
-        margin-top: 2rem; /* Increased spacing above Export History button */
-    }
     .max-h-64 {
         max-height: 12rem; /* Reduce height for mobile */
     }
@@ -998,6 +1003,15 @@ textarea {
     height: 3rem; /* Match refresh button height */
 }
 
+/* Center Logo on All Platforms */
+header .container {
+    justify-content: center; /* Center the content */
+}
+
+header .container .flex {
+    justify-content: center; /* Ensure logo and toggle are centered */
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 640px) {
     /* Ensure full viewport width usage */
@@ -1019,7 +1033,7 @@ textarea {
         width: 100%;
         box-sizing: border-box;
         display: flex;
-        justify-content: flex-start; /* Align items to the left */
+        justify-content: center; /* Center the content */
         align-items: center;
     }
     header img {
@@ -1061,9 +1075,6 @@ textarea {
         box-sizing: border-box;
         margin: 0;
     }
-    #export-history {
-        margin-top: 2.5rem; /* Further increased spacing above Export History button */
-    }
     .max-h-64 {
         max-height: 12rem; /* Reduce height for mobile */
     }
@@ -1081,7 +1092,7 @@ textarea {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        padding-bottom: 5rem; /* Space for fixed input area */
+        padding-bottom: 3rem; /* Reduced to account for adjusted input area height */
     }
     .container.max-w-3xl {
         max-width: 100%;
@@ -1090,13 +1101,13 @@ textarea {
         box-sizing: border-box;
     }
     .chat-container {
-        height: calc(100vh - 10.5rem); /* Adjust height: viewport - header (5rem) - input area (5rem) - buffer */
+        height: calc(100vh - 12rem); /* Adjust height: viewport - header (5.5rem) - prompt starters (2rem) - input area (2rem) - padding (2.5rem) */
         padding: 0.25rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        margin-top: 0; /* Remove extra margin since padding-top is adjusted */
-        margin-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 4rem; /* Ensure space for prompt starters */
     }
     .input-container {
         max-width: 100%;
@@ -1105,7 +1116,7 @@ textarea {
         box-sizing: border-box;
         padding: 0 0.25rem;
         position: fixed;
-        bottom: 0;
+        bottom: 0.5rem; /* Add padding from bottom for keyboard */
         left: 0;
         right: 0;
         background: #09332C; /* Match background */
@@ -1139,7 +1150,7 @@ textarea {
         padding: 0 0.25rem;
         box-sizing: border-box;
         position: fixed;
-        bottom: 2.5rem; /* Position above input area (height: 2rem + padding) */
+        bottom: 3rem; /* Position above input area (height: 2rem + padding: 0.5rem + extra: 0.5rem) */
         left: 0;
         right: 0;
         background: #09332C; /* Match background */
