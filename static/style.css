@@ -988,8 +988,8 @@ textarea {
 }
 
 /* Remove Safari focus border on desktop for bg-warm-orange buttons */
-@media not all and (pointer: coarse) {
-    /* Target desktop devices (not touch devices) */
+@media (min-width: 769px) {
+    /* Target larger screens (desktop) */
     @media (-webkit-min-device-pixel-ratio: 0) {
         /* Target Safari */
         .bg-warm-orange:focus {
