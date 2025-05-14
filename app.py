@@ -1,10 +1,11 @@
 from flask import Flask, request, render_template, jsonify, Response
 import requests
+import os
 
 app = Flask(__name__)
 
 # xAI API configuration
-XAI_API_KEY = "xai-9gYl6Y5hSjZRKEkvvH2VEWrjqezTDqTmOxAee0YSpj4WP41Yp7bLh2HAY8sCCWsJyuY9C8l00kNIG7wE"
+XAI_API_KEY = os.getenv("XAI_API_KEY", "default_key_if_not_set")
 XAI_API_URL = "https://api.x.ai/v1/chat/completions"
 
 # Simulated client data
