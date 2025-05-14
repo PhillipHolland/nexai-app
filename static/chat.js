@@ -381,10 +381,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 console.log('Chat response received, processing as JSON');
-                let typingIndicator = document.createElement('div');
-                typingIndicator.id = 'typing-indicator';
-                typingIndicator.className = 'mb-2 text-left active';
-                messages.appendChild(typingIndicator);
+                let loadingBar = document.createElement('div');
+                loadingBar.id = 'loading-bar';
+                loadingBar.className = 'mb-2 text-left active';
+                loadingBar.innerHTML = `
+                    <div class="bar">
+                        <div class="segment"></div>
+                    </div>
+                `;
+                messages.appendChild(loadingBar);
                 messages.scrollTop = messages.scrollHeight;
 
                 const data = await chatResponse.json();
@@ -432,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Handle the non-streaming JSON response
-                typingIndicator.remove();
+                loadingBar.remove();
                 if (data.choices && data.choices.length > 0) {
                     messageContent = data.choices[0].delta.content || 'No content received';
                     contentDiv.innerHTML = marked.parse(messageContent);
@@ -451,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage.className = 'mb-2 text-left';
                 errorMessage.innerHTML = `<span class="inline-block p-2 rounded-lg bg-warm-cream text-dark-green">Error: ${error.message}</span>`;
                 messages.appendChild(errorMessage);
-                if (typingIndicator) typingIndicator.remove();
+                if (loadingBar) loadingBar.remove();
             }
         }
 

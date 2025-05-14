@@ -514,10 +514,10 @@ textarea {
     to { transform: rotate(360deg); }
 }
 
-@keyframes dotPulse {
-    0% { opacity: 0.3; }
-    50% { opacity: 1; }
-    100% { opacity: 0.3; }
+@keyframes cylonSlide {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(80px); }
+    100% { transform: translateX(0); }
 }
 
 .chat-container > div,
@@ -533,47 +533,34 @@ textarea {
     transition: width 0.3s ease; /* Smooth width transition */
 }
 
-#typing-indicator {
+#loading-bar {
     display: none;
-    position: relative;
-    width: 40px;
-    height: 16px;
-    background: #F7EDDA; /* Light cream background */
+    background: #F7EDDA; /* Light cream background to match chat bubble */
     border-radius: 0.5rem;
     padding: 0.5rem;
+    width: fit-content;
 }
 
-#typing-indicator.active {
+#loading-bar.active {
     display: inline-block;
 }
 
-#typing-indicator::before,
-#typing-indicator::after,
-#typing-indicator .dot {
-    content: '';
+#loading-bar .bar {
+    width: 100px;
+    height: 4px;
+    background: rgba(46, 75, 60, 0.3); /* Muted dark green background */
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+#loading-bar .bar .segment {
+    width: 20px;
+    height: 100%;
+    background: #FFA74F; /* Warm orange segment */
+    border-radius: 2px;
     position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #2E4B3C; /* Dark green dots */
-    border-radius: 50%;
-    animation: dotPulse 1.5s infinite;
-}
-
-#typing-indicator .dot {
-    left: 16px;
-    top: 4px;
-}
-
-#typing-indicator::before {
-    left: 8px;
-    top: 4px;
-    animation-delay: 0.3s;
-}
-
-#typing-indicator::after {
-    left: 24px;
-    top: 4px;
-    animation-delay: 0.6s;
+    animation: cylonSlide 1.5s infinite ease-in-out;
 }
 
 .copy-button {
