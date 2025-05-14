@@ -147,7 +147,7 @@ body {
 }
 
 .w-5 {
-    width: 1.25rem; /* 5 * 0.25rem = 1.25rem */
+    width: 1.25rem; /* 5 * 0.25rem = 1.5rem */
 }
 
 .w-4 {
@@ -540,7 +540,7 @@ textarea {
     padding: 0.25rem; /* Reduced padding to fit the bar */
     width: 100px; /* Explicitly set to match the bar’s width */
     position: relative;
-    border: none;
+    border: 1px solid #F7EDDA; /* Debug border same as background for invisibility */
     z-index: 10; /* Ensure it’s above other elements */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for visibility */
 }
