@@ -88,14 +88,6 @@ body {
     bottom: 0;
 }
 
-.bottom-1 {
-    bottom: 0.25rem; /* Adjusted for mobile */
-}
-
-.bottom-3 {
-    bottom: 0.75rem; /* Adjusted for mobile */
-}
-
 .z-20 {
     z-index: 20;
 }
@@ -204,14 +196,6 @@ body {
 
 .pt-20 {
     padding-top: 5rem; /* Adjusted for mobile to avoid overlap with restored banner height */
-}
-
-.pt-0 {
-    padding-top: 0;
-}
-
-.pb-20 {
-    padding-bottom: 5rem; /* Space for fixed input area on mobile */
 }
 
 .p-4 {
@@ -358,10 +342,6 @@ body {
 
 .justify-end {
     justify-content: flex-end;
-}
-
-.justify-start {
-    justify-content: flex-start;
 }
 
 .flex-1 {
@@ -881,6 +861,10 @@ textarea {
     right: 0.25rem; /* Adjusted for mobile */
 }
 
+.right-0\.5 {
+    right: 0.125rem; /* Further adjusted for mobile */
+}
+
 .top-1\/2 {
     top: 50%;
 }
@@ -1003,28 +987,8 @@ textarea {
     height: 3rem; /* Match refresh button height */
 }
 
-/* Header Layout: Center Logo, Keep Menu Icon on Left */
-header .container {
-    position: relative; /* Allow absolute positioning of toggle */
-    display: flex;
-    justify-content: center; /* Center the logo */
-    align-items: center;
-}
-
-header .container .flex {
-    position: absolute;
-    left: 0.5rem; /* Position toggle on the left */
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-header .container img {
-    margin: 0 auto; /* Ensure logo is centered */
-}
-
 /* Mobile Responsiveness */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     /* Ensure full viewport width usage */
     body {
         width: 100%;
@@ -1044,18 +1008,10 @@ header .container img {
         width: 100%;
         box-sizing: border-box;
         display: flex;
-        justify-content: center; /* Center the logo */
+        justify-content: space-between;
         align-items: center;
     }
-    header .container .flex {
-        position: absolute;
-        left: 0.5rem; /* Keep toggle on the left */
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-    }
-    header .container img {
-        margin: 0 auto; /* Ensure logo is centered */
+    header img {
         height: 2rem; /* Keep logo size */
     }
     #toggle-sidebar svg,
@@ -1111,45 +1067,33 @@ header .container img {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        padding-bottom: 0; /* Remove padding-bottom since input area is fixed */
     }
     .container.max-w-3xl {
         max-width: 100%;
-        padding: 0;
+        padding: 0 0.25rem;
         width: 100%;
         box-sizing: border-box;
     }
-
-    /* Fixed Input Area Container */
-    .max-w-3xl.mx-auto {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #09332C; /* Match background */
-        z-index: 10;
-        padding: 0.25rem; /* Minimal padding */
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
     .chat-container {
-        height: calc(100vh - 9rem); /* Adjust height: viewport - header (5.5rem) - input area (3.5rem) */
         padding: 0.25rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
         margin-top: 0;
-        margin-bottom: 3.5rem; /* Match input area height */
+        margin-bottom: 6rem; /* Space for fixed input container */
     }
     .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         max-width: 100%;
         width: 100%;
         gap: 0.25rem;
         box-sizing: border-box;
-        padding: 0 0.25rem;
+        padding: 0.25rem;
+        background: #09332C; /* Match body background */
+        z-index: 20;
     }
     #message-input {
         padding: 0.25rem;

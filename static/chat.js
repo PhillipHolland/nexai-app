@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('send-button');
     const messages = document.getElementById('messages');
     const clientSelector = document.getElementById('client-selector');
-    const logoutButton = document.getElementById('logout-button');
     const promptStarters = document.querySelectorAll('.prompt-starter');
     const promptStartersContainer = document.getElementById('prompt-starters');
     const toggleSidebar = document.getElementById('toggle-sidebar');
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientDocuments = document.getElementById('client-documents');
     const clientInfo = document.getElementById('client-info');
     const saveClientInfo = document.getElementById('save-client-info');
-    const exportHistory = document.getElementById('export-history');
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
     const newConversationButton = document.getElementById('new-conversation');
@@ -132,9 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.innerHTML = `<span class="text-sm text-dark-green">${new Date(doc.upload_date).toLocaleString()}</span><br><strong>${doc.filename}</strong><br>${doc.text.substring(0, 100)}...`;
                 clientDocuments.appendChild(div);
             });
-
-            // Update export button
-            exportHistory.onclick = () => window.location.href = `/api/export/${currentClientId}`;
         } catch (error) {
             console.error('Error fetching client data:', error);
             const errorMessage = document.createElement('div');

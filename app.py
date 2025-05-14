@@ -78,15 +78,5 @@ def save_client(client_id):
     # Simulate saving client info
     return jsonify({'success': True}), 200
 
-@app.route('/api/export/<client_id>')
-def export_history(client_id):
-    # Simulate export
-    return jsonify({'history': []}), 200
-
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('login'))
-
 if __name__ == '__main__':
     app.run(debug=True)
