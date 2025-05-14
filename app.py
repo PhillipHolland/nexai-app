@@ -1,27 +1,14 @@
-from flask import Flask, request, render_template, redirect, url_for, session, jsonify
-import os
+from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Secure secret key for sessions
 
 # Simulated client data
 clients = ["jane_smith", "john_doe"]
 
 @app.route('/')
 def index():
-    # Removed login requirement
+    # Serve the main UI directly, no login required
     return render_template('index.html', clients=clients)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    # Keep the route for future use, but it's not enforced
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password == 'LexAI2025!':
-            session['logged_in'] = True
-            return redirect(url_for('index'))
-        return render_template('login.html', error='Invalid password')
-    return render_template('login.html')
 
 @app.route('/api/client/<client_id>', methods=['GET'])
 def get_client(client_id):
