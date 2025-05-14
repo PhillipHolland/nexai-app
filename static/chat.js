@@ -375,15 +375,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 console.log('Chat response received, processing as JSON');
-                const data = await chatResponse.json();
-                console.log('API response data:', data);
-
                 let typingIndicator = document.createElement('div');
                 typingIndicator.id = 'typing-indicator';
                 typingIndicator.className = 'mb-2 text-left active';
-                typingIndicator.innerHTML = `<span class="inline-block p-2 rounded-lg bg-light-cream text-dark-green">Typing...</span>`;
+                typingIndicator.innerHTML = `
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                `;
                 messages.appendChild(typingIndicator);
                 messages.scrollTop = messages.scrollHeight;
+
+                const data = await chatResponse.json();
+                console.log('API response data:', data);
 
                 let assistantMessage = document.createElement('div');
                 assistantMessage.className = 'mb-2 text-left relative';
