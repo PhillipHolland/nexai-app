@@ -4218,13 +4218,66 @@ def api_chat():
 
         logger.info(f"Sending request to Grok API for practice area: {practice_area}")
         
-        # Make API call (proven working pattern)
-        response = requests.post(
-            'https://api.x.ai/v1/chat/completions',
-            headers=headers,
-            json=payload,
-            timeout=30
-        )
+        # Make API call with fallback for API key issues
+        try:
+            response = requests.post(
+                'https://api.x.ai/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 403:
+                logger.warning("XAI API key access denied - using fallback response")
+                # Fallback response when API key has no access
+                return jsonify({
+                    "choices": [{
+                        "delta": {
+                            "content": f"""I'm LexAI, your advanced legal AI assistant. I notice there's an API access issue, but I'm here to help!
+
+**{PRACTICE_AREAS.get(practice_area, {}).get('name', 'Legal')} Analysis:**
+
+Based on your query: "{message}"
+
+**Key Considerations:**
+• This appears to involve {practice_area.replace('_', ' ').title()} law
+• I'd recommend reviewing relevant statutes and case law
+• Consider consulting with a qualified attorney for case-specific advice
+
+**Next Steps:**
+• Gather relevant documentation
+• Research applicable precedents  
+• Evaluate potential legal strategies
+
+*Note: This is general legal information, not specific legal advice. Please consult with a qualified attorney for your particular situation.*
+
+**System Status:** API access temporarily limited - full functionality will be restored once XAI API key is updated."""
+                        }
+                    }]
+                })
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request error: {e}")
+            # Fallback for network issues
+            return jsonify({
+                "choices": [{
+                    "delta": {
+                        "content": f"""I'm LexAI, your legal AI assistant. There's a temporary connection issue, but I can still provide general guidance.
+
+**Your Query:** "{message}"
+
+**General Legal Guidance:**
+• Document all relevant facts and evidence
+• Research applicable laws and regulations
+• Consider multiple legal strategies
+• Consult with qualified legal counsel
+
+**Practice Area:** {PRACTICE_AREAS.get(practice_area, {}).get('name', 'Legal')}
+
+I apologize for the technical issue. Please try again shortly, or contact support if this persists."""
+                    }
+                }]
+            })
         
         if response.status_code == 200:
             completion = response.json()
