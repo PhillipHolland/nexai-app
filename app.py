@@ -6,12 +6,29 @@ from werkzeug.utils import secure_filename
 import re
 from datetime import datetime, timezone
 import logging
+from database import db, init_db, get_client_data, update_client_info, add_conversation, clear_conversation_history, add_document, Client
 
 app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Handle Heroku/Vercel postgres:// URLs
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://') 
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    # Fallback to SQLite for local development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lexai.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize database
+init_db(app)
 
 # Securely load API key from environment variable
 XAI_API_KEY = os.getenv("XAI_API_KEY")
@@ -23,19 +40,7 @@ UPLOAD_FOLDER = '/tmp/uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Mock database for client data
-clients = {
-    "client1": {
-        "info": {"name": "John Doe", "case_number": "12345", "email": "john.doe@example.com", "phone": "555-1234", "case_type": "Divorce", "notes": "Initial consultation"},
-        "history": [],
-        "documents": []
-    },
-    "client2": {
-        "info": {"name": "Jane Smith", "case_number": "67890", "email": "jane.smith@example.com", "phone": "555-5678", "case_type": "Custody", "notes": "Follow-up meeting"},
-        "history": [],
-        "documents": []
-    }
-}
+# Database is now handled by database.py - no mock data needed
 
 # Class to manage tokenization and de-tokenization
 class Anonymizer:
@@ -146,30 +151,35 @@ def index():
 
 @app.route('/api/client/<client_id>', methods=['GET', 'POST'])
 def client_data(client_id):
-    if client_id not in clients:
-        return jsonify({"error": "Client not found"}), 404
-
     if request.method == 'POST':
         data = request.get_json()
-        clients[client_id]["info"] = data
+        updated_client = update_client_info(client_id, data)
         logger.info(f"Updated client info for {client_id}: {data}")
         return jsonify({"success": True})
 
+    # Get client data from database
+    client_data = get_client_data(client_id)
+    if not client_data:
+        return jsonify({"error": "Client not found"}), 404
+
     # Anonymize client info before sending
     anonymizer = Anonymizer()
-    anonymized_info, token_map = anonymize_client_info(clients[client_id]["info"], anonymizer)
+    anonymized_info, token_map = anonymize_client_info(client_data["info"], anonymizer)
     anonymized_history = []
     history_token_map = {}
-    for entry in clients[client_id]["history"]:
+    for entry in client_data["history"]:
         tokenized_content, entry_tokens = anonymizer.tokenize(entry["content"])
         history_token_map.update(entry_tokens)
         anonymized_history.append({"role": entry["role"], "content": tokenized_content, "timestamp": entry["timestamp"]})
 
     anonymized_documents = []
     documents_token_map = {}
-    for doc in clients[client_id]["documents"]:
-        tokenized_text, doc_tokens = anonymizer.tokenize(doc["text"])
-        documents_token_map.update(doc_tokens)
+    for doc in client_data["documents"]:
+        if doc["text"]:
+            tokenized_text, doc_tokens = anonymizer.tokenize(doc["text"])
+            documents_token_map.update(doc_tokens)
+        else:
+            tokenized_text = ""
         anonymized_documents.append({
             "filename": doc["filename"],
             "upload_date": doc["upload_date"],
@@ -202,9 +212,11 @@ def client_data(client_id):
 
 @app.route('/api/new_conversation/<client_id>', methods=['POST'])
 def new_conversation(client_id):
-    if client_id not in clients:
+    client = Client.query.filter_by(id=client_id).first()
+    if not client:
         return jsonify({"error": "Client not found"}), 404
-    clients[client_id]["history"] = []
+    
+    clear_conversation_history(client_id)
     logger.info(f"Started new conversation for client {client_id}")
     return jsonify({"success": True})
 
@@ -217,8 +229,14 @@ def upload_file():
         return jsonify({"error": "No selected file"}), 400
     if file and '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
         client_id = request.form.get('client_id', 'default_client')
-        if client_id not in clients:
-            clients[client_id] = {"info": {}, "history": [], "documents": []}
+        
+        # Ensure client exists in database
+        client = Client.query.filter_by(id=client_id).first()
+        if not client:
+            # Create client if it doesn't exist
+            client = Client(id=client_id, name=f"Client {client_id}")
+            db.session.add(client)
+            db.session.commit()
 
         filename = secure_filename(file.filename)
         # Create the uploads directory in /tmp if it doesn't exist
@@ -234,12 +252,8 @@ def upload_file():
         anonymizer = Anonymizer()
         tokenized_text, token_map = anonymizer.tokenize(text)
 
-        doc = {
-            "filename": filename,
-            "upload_date": datetime.now(timezone.utc).isoformat(),
-            "text": tokenized_text
-        }
-        clients[client_id]["documents"].append(doc)
+        # Add document to database
+        doc = add_document(client_id, filename, tokenized_text)
         logger.info(f"Uploaded and tokenized file for client {client_id}: {filename}")
 
         # De-tokenize before returning to the frontend
@@ -256,8 +270,13 @@ def chat():
     if not messages:
         return jsonify({"error": "No messages provided"}), 400
 
-    if client_id not in clients:
-        clients[client_id] = {"info": {}, "history": [], "documents": []}
+    # Ensure client exists in database
+    client = Client.query.filter_by(id=client_id).first()
+    if not client:
+        # Create client if it doesn't exist
+        client = Client(id=client_id, name=f"Client {client_id}")
+        db.session.add(client)
+        db.session.commit()
 
     # Tokenize messages before sending to Grok
     anonymizer = Anonymizer()
@@ -288,13 +307,12 @@ def chat():
             combined_token_map.update(token_map)
         tokenized_messages.append(tokenized_msg)
 
-    # Update client history with original message (before tokenization)
-    user_message = {"role": "user", "content": messages[-1]["content"], "timestamp": datetime.now(timezone.utc).isoformat()}
-    clients[client_id]["history"].append(user_message)
+    # Add user message to database
+    add_conversation(client_id, "user", messages[-1]["content"])
 
     # Prepare the payload for Grok with tokenized messages
     payload = {
-        "model": "grok-3",
+        "model": "grok-3-latest",
         "messages": tokenized_messages,
         "stream": False
     }
@@ -342,13 +360,8 @@ def chat():
         else:
             logger.info("No email token found in token map, skipping post-processing for To: line")
 
-        # Add Grok's de-tokenized response to history
-        assistant_message = {
-            "role": "assistant",
-            "content": detokenized_content,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        clients[client_id]["history"].append(assistant_message)
+        # Add Grok's de-tokenized response to database
+        add_conversation(client_id, "assistant", detokenized_content)
 
         # Log the final response sent to the frontend
         logger.info(f"Response sent to frontend: {detokenized_content}")
@@ -370,6 +383,9 @@ def chat():
             error_detail += f" - Response: {e.response.text}"
         logger.error(f"Error communicating with Grok API: {error_detail}")
         return jsonify({"error": f"Failed to get response from Grok: {str(e)}"}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in chat endpoint: {str(e)}")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
