@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.py": {
-      "runtime": "@vercel/python"
-    }
-  },
   "builds": [
     {
       "src": "api/index.py",
@@ -23,9 +18,5 @@
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
-  ],
-  "env": {
-    "XAI_API_KEY": "@xai_api_key",
-    "SECRET_KEY": "@secret_key"
-  }
+  ]
 }
