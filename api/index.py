@@ -8125,6 +8125,459 @@ def expense_tracking_page():
         logger.error(f"Expense tracking template error: {e}")
         return f"<h1>Expense Tracking</h1><p>Template error: {e}</p>", 500
 
+@app.route('/calendar')
+def calendar_page():
+    """Calendar and scheduling page"""
+    try:
+        from flask import render_template
+        return render_template('calendar.html')
+    except Exception as e:
+        logger.error(f"Calendar template error: {e}")
+        return f"<h1>Calendar</h1><p>Template error: {e}</p>", 500
+
+@app.route('/court-deadlines')
+def court_deadlines_page():
+    """Court dates and deadlines management page"""
+    try:
+        from flask import render_template
+        return render_template('court_deadlines.html')
+    except Exception as e:
+        logger.error(f"Court deadlines template error: {e}")
+        return f"<h1>Court Deadlines</h1><p>Template error: {e}</p>", 500
+
+@app.route('/api/calendar/events', methods=['GET'])
+@rate_limit_decorator
+def api_get_events():
+    """Get calendar events for a date range"""
+    try:
+        start_date = request.args.get('start', '')
+        end_date = request.args.get('end', '')
+        event_type = request.args.get('type', '')
+        
+        # Demo events data
+        demo_events = [
+            {
+                'id': 'court-1',
+                'title': 'Motion Hearing',
+                'type': 'court-date',
+                'date': '2025-01-15',
+                'time': '09:00',
+                'duration': 2,
+                'client': 'john-smith',
+                'location': 'Superior Court Room 3',
+                'description': 'Motion to dismiss hearing for Smith v. Jones case',
+                'reminder': True
+            },
+            {
+                'id': 'client-1',
+                'title': 'Client Meeting',
+                'type': 'client-meeting',
+                'date': '2025-01-16',
+                'time': '14:00',
+                'duration': 1.5,
+                'client': 'abc-corp',
+                'location': 'Conference Room A',
+                'description': 'Quarterly legal review meeting',
+                'reminder': True
+            },
+            {
+                'id': 'deadline-1',
+                'title': 'Discovery Deadline',
+                'type': 'deadline',
+                'date': '2025-01-20',
+                'time': '17:00',
+                'duration': 0,
+                'client': 'jane-doe',
+                'location': '',
+                'description': 'Final deadline for discovery responses in Johnson case',
+                'reminder': True
+            }
+        ]
+        
+        # Filter by type if specified
+        if event_type:
+            demo_events = [e for e in demo_events if e['type'] == event_type]
+        
+        logger.info(f"Retrieved {len(demo_events)} calendar events")
+        
+        return jsonify({
+            'success': True,
+            'events': demo_events,
+            'count': len(demo_events)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get events API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve events'
+        }), 500
+
+@app.route('/api/calendar/events', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['title', 'type', 'date', 'time'])
+def api_create_event():
+    """Create a new calendar event"""
+    try:
+        data = g.validated_data
+        title = data.get('title', '')
+        event_type = data.get('type', '')
+        date = data.get('date', '')
+        time = data.get('time', '')
+        duration = float(data.get('duration', 1))
+        client = data.get('client', '')
+        location = data.get('location', '')
+        description = data.get('description', '')
+        reminder = data.get('reminder', False)
+        
+        # Validate event type
+        valid_types = ['court-date', 'client-meeting', 'deadline', 'deposition', 
+                      'mediation', 'consultation', 'personal', 'other']
+        if event_type not in valid_types:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid event type. Must be one of: {", ".join(valid_types)}'
+            }), 400
+        
+        # Generate event ID
+        event_id = f"EVT-{datetime.now().strftime('%Y%m%d')}-{len(title)%100:03d}"
+        
+        # Demo event data structure
+        event_data = {
+            'id': event_id,
+            'title': title,
+            'type': event_type,
+            'date': date,
+            'time': time,
+            'duration': duration,
+            'client': client,
+            'location': location,
+            'description': description,
+            'reminder': reminder,
+            'created_at': datetime.now().isoformat(),
+            'status': 'scheduled'
+        }
+        
+        logger.info(f"Event created: {event_id} - {title} on {date} at {time}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Event created successfully',
+            'event_id': event_id,
+            'event_data': event_data
+        })
+        
+    except ValueError as e:
+        logger.error(f"Event creation validation error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Invalid duration value'
+        }), 400
+    except Exception as e:
+        logger.error(f"Event creation API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create event'
+        }), 500
+
+@app.route('/api/calendar/events/<event_id>', methods=['PUT'])
+@rate_limit_decorator
+@validate_json_input(['title', 'type', 'date', 'time'])
+def api_update_event(event_id):
+    """Update an existing calendar event"""
+    try:
+        data = g.validated_data
+        
+        # Demo update logic
+        updated_event = {
+            'id': event_id,
+            'title': data.get('title', ''),
+            'type': data.get('type', ''),
+            'date': data.get('date', ''),
+            'time': data.get('time', ''),
+            'duration': float(data.get('duration', 1)),
+            'client': data.get('client', ''),
+            'location': data.get('location', ''),
+            'description': data.get('description', ''),
+            'reminder': data.get('reminder', False),
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        logger.info(f"Event updated: {event_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Event updated successfully',
+            'event_data': updated_event
+        })
+        
+    except Exception as e:
+        logger.error(f"Event update API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update event'
+        }), 500
+
+@app.route('/api/calendar/events/<event_id>', methods=['DELETE'])
+@rate_limit_decorator
+def api_delete_event(event_id):
+    """Delete a calendar event"""
+    try:
+        # Demo deletion logic
+        logger.info(f"Event deleted: {event_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Event deleted successfully',
+            'event_id': event_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Event deletion API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to delete event'
+        }), 500
+
+@app.route('/api/calendar/deadlines', methods=['GET'])
+@rate_limit_decorator
+def api_get_deadlines():
+    """Get court dates and legal deadlines"""
+    try:
+        deadline_type = request.args.get('type', '')
+        urgency = request.args.get('urgency', '')
+        days_ahead = int(request.args.get('days', 30))
+        
+        # Demo deadlines data
+        demo_deadlines = [
+            {
+                'id': 'filing-1',
+                'title': 'Motion to Dismiss Filing',
+                'type': 'filing',
+                'case': 'Smith v. Jones',
+                'case_number': '2024-CV-1234',
+                'date': '2025-01-12',
+                'time': '17:00',
+                'urgency': 'critical',
+                'description': 'Final deadline to file motion to dismiss',
+                'client': 'john-smith',
+                'location': 'Superior Court',
+                'reminder_sent': False
+            },
+            {
+                'id': 'discovery-1',
+                'title': 'Discovery Response Due',
+                'type': 'discovery',
+                'case': 'Johnson Case',
+                'case_number': '2024-CV-5678',
+                'date': '2025-01-13',
+                'time': '17:00',
+                'urgency': 'critical',
+                'description': 'Respond to plaintiff\'s discovery requests',
+                'client': 'jane-doe',
+                'location': '',
+                'reminder_sent': True
+            },
+            {
+                'id': 'court-1',
+                'title': 'Motion Hearing',
+                'type': 'court',
+                'case': 'Smith v. Jones',
+                'case_number': '2024-CV-1234',
+                'date': '2025-01-15',
+                'time': '09:00',
+                'urgency': 'high',
+                'description': 'Hearing on motion to dismiss',
+                'client': 'john-smith',
+                'location': 'Superior Court Room 3',
+                'reminder_sent': True
+            },
+            {
+                'id': 'statute-1',
+                'title': 'Personal Injury Statute',
+                'type': 'statute',
+                'case': 'Potential PI Claim',
+                'case_number': 'PROSPECT-2025-001',
+                'date': '2025-03-15',
+                'time': '23:59',
+                'urgency': 'medium',
+                'description': 'Statute of limitations for personal injury claim',
+                'client': 'potential-client',
+                'location': '',
+                'reminder_sent': False
+            }
+        ]
+        
+        # Filter by type if specified
+        if deadline_type:
+            demo_deadlines = [d for d in demo_deadlines if d['type'] == deadline_type]
+        
+        # Filter by urgency if specified
+        if urgency:
+            demo_deadlines = [d for d in demo_deadlines if d['urgency'] == urgency]
+        
+        logger.info(f"Retrieved {len(demo_deadlines)} deadlines")
+        
+        return jsonify({
+            'success': True,
+            'deadlines': demo_deadlines,
+            'count': len(demo_deadlines),
+            'critical_count': len([d for d in demo_deadlines if d['urgency'] == 'critical']),
+            'high_count': len([d for d in demo_deadlines if d['urgency'] == 'high'])
+        })
+        
+    except Exception as e:
+        logger.error(f"Get deadlines API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve deadlines'
+        }), 500
+
+@app.route('/api/calendar/deadlines', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['title', 'type', 'date', 'case'])
+def api_create_deadline():
+    """Create a new legal deadline"""
+    try:
+        data = g.validated_data
+        title = data.get('title', '')
+        deadline_type = data.get('type', '')
+        date = data.get('date', '')
+        time = data.get('time', '17:00')
+        case = data.get('case', '')
+        case_number = data.get('case_number', '')
+        description = data.get('description', '')
+        client = data.get('client', '')
+        location = data.get('location', '')
+        
+        # Validate deadline type
+        valid_types = ['court', 'filing', 'discovery', 'statute', 'appeal', 'compliance', 'other']
+        if deadline_type not in valid_types:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid deadline type. Must be one of: {", ".join(valid_types)}'
+            }), 400
+        
+        # Calculate urgency based on date
+        from datetime import datetime, date as date_module
+        deadline_date = datetime.strptime(date, '%Y-%m-%d').date()
+        today = date_module.today()
+        days_until = (deadline_date - today).days
+        
+        if days_until <= 2:
+            urgency = 'critical'
+        elif days_until <= 7:
+            urgency = 'high'
+        elif days_until <= 30:
+            urgency = 'medium'
+        else:
+            urgency = 'low'
+        
+        # Generate deadline ID
+        deadline_id = f"DL-{datetime.now().strftime('%Y%m%d')}-{len(title)%100:03d}"
+        
+        # Demo deadline data structure
+        deadline_data = {
+            'id': deadline_id,
+            'title': title,
+            'type': deadline_type,
+            'case': case,
+            'case_number': case_number,
+            'date': date,
+            'time': time,
+            'urgency': urgency,
+            'description': description,
+            'client': client,
+            'location': location,
+            'reminder_sent': False,
+            'created_at': datetime.now().isoformat(),
+            'status': 'active'
+        }
+        
+        logger.info(f"Deadline created: {deadline_id} - {title} on {date}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Deadline created successfully',
+            'deadline_id': deadline_id,
+            'deadline_data': deadline_data,
+            'urgency': urgency
+        })
+        
+    except Exception as e:
+        logger.error(f"Deadline creation API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create deadline'
+        }), 500
+
+@app.route('/api/calendar/deadlines/<deadline_id>/reminder', methods=['POST'])
+@rate_limit_decorator
+def api_send_deadline_reminder(deadline_id):
+    """Send reminder for a specific deadline"""
+    try:
+        # Demo reminder logic
+        logger.info(f"Reminder sent for deadline: {deadline_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Reminder sent successfully',
+            'deadline_id': deadline_id,
+            'reminder_sent_at': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Deadline reminder API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to send reminder'
+        }), 500
+
+@app.route('/api/calendar/conflicts', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['date', 'time', 'duration'])
+def api_check_conflicts():
+    """Check for scheduling conflicts"""
+    try:
+        data = g.validated_data
+        date = data.get('date', '')
+        time = data.get('time', '')
+        duration = float(data.get('duration', 1))
+        exclude_event = data.get('exclude_event', '')
+        
+        # Demo conflict checking
+        conflicts = []
+        
+        # Sample conflicting event
+        if date == '2025-01-15' and time == '09:00':
+            conflicts.append({
+                'id': 'court-1',
+                'title': 'Motion Hearing',
+                'time': '09:00',
+                'duration': 2,
+                'type': 'court-date'
+            })
+        
+        has_conflicts = len(conflicts) > 0
+        
+        logger.info(f"Conflict check for {date} {time}: {len(conflicts)} conflicts found")
+        
+        return jsonify({
+            'success': True,
+            'has_conflicts': has_conflicts,
+            'conflicts': conflicts,
+            'suggested_times': [
+                '10:00', '11:00', '14:00', '15:00'
+            ] if has_conflicts else []
+        })
+        
+    except Exception as e:
+        logger.error(f"Conflict check API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check conflicts'
+        }), 500
+
 @app.route('/api/expenses/create', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['date', 'description', 'category', 'amount'])

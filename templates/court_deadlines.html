@@ -1,0 +1,836 @@
+{% extends "base.html" %}
+
+{% block title %}Court Dates & Deadlines - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Court Deadlines Specific Styles */
+        .deadlines-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .deadlines-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .deadlines-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .deadlines-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .deadlines-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Priority Alert Banner */
+        .priority-alerts {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-icon {
+            width: 2rem;
+            height: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .alert-items {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+        }
+
+        /* Dashboard Cards */
+        .deadline-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .dashboard-card.court-dates::before {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .dashboard-card.discovery::before {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        }
+
+        .dashboard-card.filing::before {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .dashboard-card.statute::before {
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .card-count {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .card-items {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .deadline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .deadline-item:hover {
+            background: #f3f4f6;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-case {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-date {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .urgency-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .urgency-critical {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .urgency-high {
+            background-color: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .urgency-medium {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .urgency-low {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* Detailed Lists */
+        .deadline-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        /* Timeline View */
+        .timeline-container {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 0.75rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e5e7eb;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-left: 1rem;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -2.25rem;
+            top: 1.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e5e7eb;
+        }
+
+        .timeline-marker.court {
+            background: #dc2626;
+            box-shadow: 0 0 0 2px #dc2626;
+        }
+
+        .timeline-marker.deadline {
+            background: #f59e0b;
+            box-shadow: 0 0 0 2px #f59e0b;
+        }
+
+        .timeline-marker.filing {
+            background: #2563eb;
+            box-shadow: 0 0 0 2px #2563eb;
+        }
+
+        .timeline-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .timeline-info {
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-case {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-description {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .timeline-date {
+            text-align: right;
+            min-width: 120px;
+        }
+
+        .date-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .days-until {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Filters */
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            color: #374151;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .deadlines-title {
+                font-size: 2rem;
+            }
+
+            .deadline-dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .section-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .timeline-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .timeline-date {
+                text-align: left;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="deadlines-container">
+    <!-- Header -->
+    <div class="deadlines-header">
+        <h1 class="deadlines-title">Court Dates & Deadlines</h1>
+        <p class="deadlines-subtitle">Track critical dates, court appearances, and filing deadlines</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="deadlines-main">
+        <!-- Priority Alerts -->
+        <div class="priority-alerts">
+            <div class="alert-header">
+                <div class="alert-icon">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="alert-title">Critical Deadlines - Next 7 Days</div>
+            </div>
+            <div class="alert-items">
+                <div class="alert-item">
+                    <span>Motion Filing - Smith v. Jones</span>
+                    <span>Today, 5:00 PM</span>
+                </div>
+                <div class="alert-item">
+                    <span>Discovery Response - Johnson Case</span>
+                    <span>Tomorrow</span>
+                </div>
+                <div class="alert-item">
+                    <span>Court Hearing - ABC Corp</span>
+                    <span>Jan 15, 9:00 AM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="deadline-dashboard">
+            <div class="dashboard-card court-dates">
+                <div class="card-header">
+                    <div class="card-title">Court Dates</div>
+                    <div class="card-count">8</div>
+                </div>
+                <div class="card-items">
+                    <div class="deadline-item" onclick="viewDeadline('court-1')">
+                        <div class="item-info">
+                            <div class="item-title">Motion Hearing</div>
+                            <div class="item-case">Smith v. Jones</div>
+                            <div class="item-date">Jan 15, 9:00 AM</div>
+                        </div>
+                        <div class="urgency-badge urgency-high">3 days</div>
+                    </div>
+                    <div class="deadline-item" onclick="viewDeadline('court-2')">
+                        <div class="item-info">
+                            <div class="item-title">Trial - Day 1</div>
+                            <div class="item-case">Tech Startup Inc.</div>
+                            <div class="item-date">Jan 22, 9:30 AM</div>
+                        </div>
+                        <div class="urgency-badge urgency-medium">10 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card discovery">
+                <div class="card-header">
+                    <div class="card-title">Discovery Deadlines</div>
+                    <div class="card-count">5</div>
+                </div>
+                <div class="card-items">
+                    <div class="deadline-item" onclick="viewDeadline('discovery-1')">
+                        <div class="item-info">
+                            <div class="item-title">Document Production</div>
+                            <div class="item-case">Johnson Case</div>
+                            <div class="item-date">Tomorrow, 5:00 PM</div>
+                        </div>
+                        <div class="urgency-badge urgency-critical">1 day</div>
+                    </div>
+                    <div class="deadline-item" onclick="viewDeadline('discovery-2')">
+                        <div class="item-info">
+                            <div class="item-title">Interrogatories</div>
+                            <div class="item-case">Williams v. State</div>
+                            <div class="item-date">Jan 18, 5:00 PM</div>
+                        </div>
+                        <div class="urgency-badge urgency-high">6 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card filing">
+                <div class="card-header">
+                    <div class="card-title">Filing Deadlines</div>
+                    <div class="card-count">12</div>
+                </div>
+                <div class="card-items">
+                    <div class="deadline-item" onclick="viewDeadline('filing-1')">
+                        <div class="item-info">
+                            <div class="item-title">Motion to Dismiss</div>
+                            <div class="item-case">Smith v. Jones</div>
+                            <div class="item-date">Today, 5:00 PM</div>
+                        </div>
+                        <div class="urgency-badge urgency-critical">Today</div>
+                    </div>
+                    <div class="deadline-item" onclick="viewDeadline('filing-2')">
+                        <div class="item-info">
+                            <div class="item-title">Summary Judgment</div>
+                            <div class="item-case">Corporate Matter</div>
+                            <div class="item-date">Jan 25, 5:00 PM</div>
+                        </div>
+                        <div class="urgency-badge urgency-low">13 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card statute">
+                <div class="card-header">
+                    <div class="card-title">Statute of Limitations</div>
+                    <div class="card-count">3</div>
+                </div>
+                <div class="card-items">
+                    <div class="deadline-item" onclick="viewDeadline('statute-1')">
+                        <div class="item-info">
+                            <div class="item-title">Personal Injury Claim</div>
+                            <div class="item-case">Potential Client</div>
+                            <div class="item-date">Mar 15, 2025</div>
+                        </div>
+                        <div class="urgency-badge urgency-medium">68 days</div>
+                    </div>
+                    <div class="deadline-item" onclick="viewDeadline('statute-2')">
+                        <div class="item-info">
+                            <div class="item-title">Contract Dispute</div>
+                            <div class="item-case">Business Client</div>
+                            <div class="item-date">Apr 2, 2025</div>
+                        </div>
+                        <div class="urgency-badge urgency-low">86 days</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Timeline -->
+        <div class="deadline-section">
+            <div class="section-header">
+                <h2 class="section-title">Upcoming Timeline</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="exportDeadlines()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Export
+                    </button>
+                    <button class="btn btn-primary" onclick="addDeadline()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Deadline
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-bar">
+                <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+                    <option value="">All Types</option>
+                    <option value="court">Court Dates</option>
+                    <option value="filing">Filing Deadlines</option>
+                    <option value="discovery">Discovery</option>
+                    <option value="statute">Statute of Limitations</option>
+                </select>
+
+                <select class="filter-select" id="urgencyFilter" onchange="applyFilters()">
+                    <option value="">All Urgency</option>
+                    <option value="critical">Critical (1-2 days)</option>
+                    <option value="high">High (3-7 days)</option>
+                    <option value="medium">Medium (1-4 weeks)</option>
+                    <option value="low">Low (1+ months)</option>
+                </select>
+
+                <select class="filter-select" id="clientFilter" onchange="applyFilters()">
+                    <option value="">All Clients</option>
+                    <option value="smith-jones">Smith v. Jones</option>
+                    <option value="johnson">Johnson Case</option>
+                    <option value="abc-corp">ABC Corporation</option>
+                    <option value="tech-startup">Tech Startup Inc.</option>
+                </select>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-container" id="deadlineTimeline">
+                <div class="timeline-line"></div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-marker filing"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-info">
+                            <div class="timeline-title">Motion to Dismiss Filing</div>
+                            <div class="timeline-case">Smith v. Jones - Case #2024-CV-1234</div>
+                            <div class="timeline-description">Final deadline to file motion to dismiss. All supporting documents must be included.</div>
+                        </div>
+                        <div class="timeline-date">
+                            <div class="date-display">Today</div>
+                            <div class="days-until">5:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker deadline"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-info">
+                            <div class="timeline-title">Discovery Response Due</div>
+                            <div class="timeline-case">Johnson Case - Case #2024-CV-5678</div>
+                            <div class="timeline-description">Respond to plaintiff's discovery requests. Document production and interrogatories.</div>
+                        </div>
+                        <div class="timeline-date">
+                            <div class="date-display">Jan 13</div>
+                            <div class="days-until">1 day</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker court"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-info">
+                            <div class="timeline-title">Motion Hearing</div>
+                            <div class="timeline-case">Smith v. Jones - Superior Court Room 3</div>
+                            <div class="timeline-description">Hearing on motion to dismiss. Prepare oral arguments and bring case law binders.</div>
+                        </div>
+                        <div class="timeline-date">
+                            <div class="date-display">Jan 15</div>
+                            <div class="days-until">3 days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker deadline"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-info">
+                            <div class="timeline-title">Interrogatory Responses</div>
+                            <div class="timeline-case">Williams v. State - Case #2024-CR-9012</div>
+                            <div class="timeline-description">Submit written responses to prosecution's interrogatories.</div>
+                        </div>
+                        <div class="timeline-date">
+                            <div class="date-display">Jan 18</div>
+                            <div class="days-until">6 days</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker court"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-info">
+                            <div class="timeline-title">Contract Dispute Trial - Day 1</div>
+                            <div class="timeline-case">Tech Startup Inc. - Federal Court Room 5</div>
+                            <div class="timeline-description">Opening statements and witness examination. Expected 3-day trial.</div>
+                        </div>
+                        <div class="timeline-date">
+                            <div class="date-display">Jan 22</div>
+                            <div class="days-until">10 days</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDeadlines();
+});
+
+// Sample deadlines data
+let deadlines = [
+    {
+        id: 'filing-1',
+        title: 'Motion to Dismiss Filing',
+        type: 'filing',
+        case: 'Smith v. Jones',
+        date: '2025-01-12',
+        time: '17:00',
+        urgency: 'critical',
+        description: 'Final deadline to file motion to dismiss'
+    },
+    {
+        id: 'discovery-1', 
+        title: 'Discovery Response Due',
+        type: 'discovery',
+        case: 'Johnson Case',
+        date: '2025-01-13',
+        time: '17:00',
+        urgency: 'critical',
+        description: 'Respond to plaintiff\'s discovery requests'
+    },
+    {
+        id: 'court-1',
+        title: 'Motion Hearing',
+        type: 'court',
+        case: 'Smith v. Jones',
+        date: '2025-01-15',
+        time: '09:00',
+        urgency: 'high',
+        description: 'Hearing on motion to dismiss'
+    }
+];
+
+// Load deadlines from API
+async function loadDeadlines() {
+    try {
+        // In a real app, this would call the API
+        console.log('Loading deadlines...');
+        updateDeadlineDisplay();
+    } catch (error) {
+        console.error('Error loading deadlines:', error);
+    }
+}
+
+// Update deadline display
+function updateDeadlineDisplay() {
+    // Update dashboard counts and timeline
+    console.log('Updating deadline display...');
+}
+
+// Action functions
+window.viewDeadline = function(deadlineId) {
+    const deadline = deadlines.find(d => d.id === deadlineId);
+    if (deadline) {
+        alert(`Deadline: ${deadline.title}\nCase: ${deadline.case}\nDate: ${deadline.date}\nDescription: ${deadline.description}`);
+    }
+};
+
+window.addDeadline = function() {
+    // This would open a modal to add a new deadline
+    // For now, redirect to calendar
+    window.location.href = '/calendar';
+};
+
+window.exportDeadlines = function() {
+    alert('Export functionality coming soon!');
+};
+
+window.applyFilters = function() {
+    const typeFilter = document.getElementById('typeFilter').value;
+    const urgencyFilter = document.getElementById('urgencyFilter').value;
+    const clientFilter = document.getElementById('clientFilter').value;
+    
+    console.log('Applying filters:', { typeFilter, urgencyFilter, clientFilter });
+    // Filter and update display
+};
+
+// Calculate days until deadline
+function calculateDaysUntil(dateString) {
+    const deadline = new Date(dateString);
+    const today = new Date();
+    const diffTime = deadline - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 day';
+    if (diffDays < 0) return 'Overdue';
+    return `${diffDays} days`;
+}
+
+// Get urgency level based on days until deadline
+function getUrgencyLevel(dateString) {
+    const deadline = new Date(dateString);
+    const today = new Date();
+    const diffTime = deadline - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 2) return 'critical';
+    if (diffDays <= 7) return 'high';
+    if (diffDays <= 30) return 'medium';
+    return 'low';
+}
+</script>
+{% endblock %}
