@@ -1,15 +1,31 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.py": {
+      "runtime": "@vercel/python"
+    }
+  },
   "builds": [
     {
-      "src": "app.py",
-      "use": "@vercel/python"
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
     }
   ],
   "routes": [
     {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "app.py"
+      "dest": "/api/index.py"
     }
-  ]
+  ],
+  "env": {
+    "XAI_API_KEY": "@xai_api_key",
+    "SECRET_KEY": "@secret_key"
+  }
 }
