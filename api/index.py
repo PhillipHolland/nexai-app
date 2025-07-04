@@ -1755,23 +1755,14 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
 """
 
 @app.route('/')
-def dashboard():
-    """Enhanced dashboard matching localhost:5002 version"""
+def landing_page():
+    """Clean landing page with Clio-inspired design"""
     try:
-        # Get stats and data
-        stats = get_mock_stats()
-        recent_clients = get_mock_clients()[:3]  # Show last 3 clients
-        
-        # Use external template file with traditional navigation
+        # Use the new landing page template
         from flask import render_template
-        return render_template('dashboard.html', 
-                             practice_areas=PRACTICE_AREAS,
-                             stats=stats,
-                             recent_clients=recent_clients,
-                             recent_activity=None,
-                             total_clients=stats['total_clients'])
+        return render_template('landing.html')
     except Exception as e:
-        logger.error(f"Dashboard error: {e}")
+        logger.error(f"Landing page error: {e}")
         # Minimal fallback
         return f"""<!DOCTYPE html>
 <html><head><title>LexAI Dashboard</title></head>
