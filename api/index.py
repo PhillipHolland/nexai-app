@@ -3576,6 +3576,7 @@ def case_timeline(case_id):
         logger.error(f"Case timeline error: {e}")
         return jsonify({'error': 'Failed to retrieve case timeline'}), 500
 
+@app.route('/analytics')
 def analytics_dashboard():
     """Analytics dashboard page"""
     try:
