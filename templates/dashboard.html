@@ -93,230 +93,135 @@
         }
 
         .page-header {
-            margin-bottom: 48px;
+            margin-bottom: 64px;
             text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .page-title {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 700;
             color: #1d1d1f;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             letter-spacing: -0.025em;
+            line-height: 1.1;
         }
 
         .page-subtitle {
-            font-size: 21px;
+            font-size: 24px;
             color: #86868b;
             font-weight: 400;
             letter-spacing: -0.01em;
+            line-height: 1.4;
         }
 
-        /* Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 32px;
-            margin-bottom: 64px;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid #e5e5e7;
-            border-radius: 16px;
-            padding: 32px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-        }
-
-        .card:hover {
-            border-color: #d1d1d6;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .card-header {
-            margin-bottom: 24px;
-        }
-
-        .card-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-        }
-
-        .card-subtitle {
-            font-size: 17px;
-            color: #86868b;
-            font-weight: 400;
-        }
-
-        /* Quick Actions */
-        .action-grid {
+        /* Main Actions - Hero Section */
+        .hero-actions {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 24px;
+            margin-bottom: 80px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .action-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 20px;
+        .hero-action {
+            background: white;
             border: 1px solid #e5e5e7;
-            border-radius: 12px;
+            border-radius: 20px;
+            padding: 40px 32px;
+            text-align: center;
             text-decoration: none;
             color: #1d1d1f;
-            transition: all 0.2s ease;
-            background: #fafafa;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        .action-item:hover {
+        .hero-action:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
             border-color: #2E4B3C;
-            background: white;
-            transform: translateY(-1px);
         }
 
-        .action-icon {
-            width: 48px;
-            height: 48px;
+        .hero-icon {
+            width: 80px;
+            height: 80px;
             background: #2E4B3C;
-            border-radius: 12px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0 auto 24px;
             color: white;
         }
 
-        .action-text h4 {
-            font-size: 17px;
+        .hero-title {
+            font-size: 24px;
             font-weight: 600;
-            margin-bottom: 4px;
-            letter-spacing: -0.01em;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
         }
 
-        .action-text p {
-            font-size: 15px;
+        .hero-desc {
+            font-size: 17px;
             color: #86868b;
+            line-height: 1.5;
         }
+
+        /* Stats Section */
+        .stats-section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1d1d1f;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: -0.02em;
+        }
+
 
         /* Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .stat-item {
             text-align: center;
-            padding: 24px 16px;
+            padding: 32px 24px;
             border: 1px solid #e5e5e7;
-            border-radius: 12px;
+            border-radius: 16px;
             background: white;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
 
         .stat-item:hover {
             border-color: #d1d1d6;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
         .stat-number {
-            font-size: 32px;
+            font-size: 40px;
             font-weight: 700;
             color: #2E4B3C;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             letter-spacing: -0.02em;
         }
 
         .stat-label {
-            font-size: 15px;
+            font-size: 17px;
             color: #86868b;
             font-weight: 500;
-        }
-
-        /* Practice Areas */
-        .practice-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .practice-item {
-            padding: 24px;
-            border: 1px solid #e5e5e7;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            color: #1d1d1f;
-            background: white;
-        }
-
-        .practice-item:hover {
-            border-color: #2E4B3C;
-            background: #fafafa;
-            transform: translateY(-1px);
-        }
-
-        .practice-icon {
-            font-size: 36px;
-            margin-bottom: 16px;
-        }
-
-        .practice-name {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            letter-spacing: -0.01em;
-        }
-
-        .practice-desc {
-            font-size: 15px;
-            color: #86868b;
-        }
-
-        /* Recent Activity */
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid #f5f5f7;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            background: #f5f5f7;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #86868b;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-size: 17px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            letter-spacing: -0.01em;
-        }
-
-        .activity-time {
-            font-size: 15px;
-            color: #86868b;
         }
 
         /* Responsive */
@@ -335,25 +240,21 @@
             }
 
             .page-title {
-                font-size: 36px;
-                margin-bottom: 12px;
+                font-size: 40px;
+                margin-bottom: 16px;
             }
 
             .page-subtitle {
-                font-size: 19px;
+                font-size: 21px;
             }
 
-            .dashboard-grid {
+            .hero-actions {
                 grid-template-columns: 1fr;
-                gap: 24px;
+                gap: 20px;
             }
 
-            .card {
-                padding: 24px;
-            }
-
-            .action-grid {
-                grid-template-columns: 1fr;
+            .hero-action {
+                padding: 32px 24px;
             }
 
             .stats-grid {
@@ -361,8 +262,12 @@
                 gap: 16px;
             }
 
-            .practice-grid {
-                grid-template-columns: 1fr;
+            .stat-item {
+                padding: 24px 16px;
+            }
+
+            .stat-number {
+                font-size: 32px;
             }
         }
     </style>
@@ -391,163 +296,52 @@
     <div class="main-content">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Your AI-powered legal practice overview</p>
+            <h1 class="page-title">Welcome to LexAI</h1>
+            <p class="page-subtitle">Your AI-powered legal practice partner</p>
         </div>
 
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Quick Actions Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Quick Actions</h3>
-                    <p class="card-subtitle">Get started with common tasks</p>
+        <!-- Hero Actions -->
+        <div class="hero-actions">
+            <a href="/chat" class="hero-action">
+                <div class="hero-icon">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
                 </div>
-                
-                <div class="action-grid">
-                    <a href="/chat" class="action-item">
-                        <div class="action-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <div class="action-text">
-                            <h4>Start Chat</h4>
-                            <p>AI consultation</p>
-                        </div>
-                    </a>
-                    
-                    <a href="/search" class="action-item">
-                        <div class="action-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <div class="action-text">
-                            <h4>Research</h4>
-                            <p>Legal database</p>
-                        </div>
-                    </a>
-                    
-                    <a href="/documents" class="action-item">
-                        <div class="action-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="action-text">
-                            <h4>Documents</h4>
-                            <p>Analyze files</p>
-                        </div>
-                    </a>
-                    
-                    <a href="/clients" class="action-item">
-                        <div class="action-icon">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                        </div>
-                        <div class="action-text">
-                            <h4>Clients</h4>
-                            <p>Manage cases</p>
-                        </div>
-                    </a>
+                <h3 class="hero-title">AI Assistant</h3>
+                <p class="hero-desc">Get instant legal guidance and document analysis</p>
+            </a>
+            
+            <a href="/search" class="hero-action">
+                <div class="hero-icon">
+                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
                 </div>
-            </div>
+                <h3 class="hero-title">Legal Research</h3>
+                <p class="hero-desc">Search case law, statutes, and legal precedents</p>
+            </a>
+        </div>
 
-            <!-- Stats Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Usage Overview</h3>
-                    <p class="card-subtitle">Your platform activity</p>
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <h2 class="section-title">Your Practice Overview</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_chats or '24' }}</div>
+                    <div class="stat-label">Consultations</div>
                 </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_chats or '24' }}</div>
-                        <div class="stat-label">Chats</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_documents or '8' }}</div>
-                        <div class="stat-label">Documents</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.research_queries or '15' }}</div>
-                        <div class="stat-label">Searches</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_clients or '3' }}</div>
-                        <div class="stat-label">Clients</div>
-                    </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_documents or '8' }}</div>
+                    <div class="stat-label">Documents</div>
                 </div>
-            </div>
-
-            <!-- Practice Areas Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Practice Areas</h3>
-                    <p class="card-subtitle">Specialized AI assistance</p>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.research_queries or '15' }}</div>
+                    <div class="stat-label">Research Queries</div>
                 </div>
-                
-                <div class="practice-grid">
-                    {% for area_id, area in practice_areas.items() %}
-                    <a href="/chat?practice_area={{ area_id }}" class="practice-item">
-                        <div class="practice-icon">
-                            {% if area_id == 'family' %}👨‍👩‍👧‍👦{% endif %}
-                            {% if area_id == 'personal_injury' %}🩹{% endif %}
-                            {% if area_id == 'corporate' %}🏢{% endif %}
-                            {% if area_id == 'criminal' %}⚖️{% endif %}
-                            {% if area_id == 'real_estate' %}🏠{% endif %}
-                            {% if area_id == 'immigration' %}🌍{% endif %}
-                        </div>
-                        <div class="practice-name">{{ area.name }}</div>
-                        <div class="practice-desc">{{ area.description[:30] }}...</div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Recent Activity Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Recent Activity</h3>
-                    <p class="card-subtitle">Latest actions and updates</p>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">AI consultation completed</div>
-                        <div class="activity-time">2 hours ago</div>
-                    </div>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Document analysis finished</div>
-                        <div class="activity-time">5 hours ago</div>
-                    </div>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Legal research query processed</div>
-                        <div class="activity-time">1 day ago</div>
-                    </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.total_clients or '3' }}</div>
+                    <div class="stat-label">Active Clients</div>
                 </div>
             </div>
         </div>
