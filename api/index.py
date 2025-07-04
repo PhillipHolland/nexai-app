@@ -2904,6 +2904,20 @@ def document_analysis_page():
 <p>Page loading error: {e}</p>
 <a href="/dashboard">Back to Dashboard</a></body></html>"""
 
+@app.route('/legal-research')
+def legal_research_page():
+    """Legal research page with AI-powered case law and statute search"""
+    try:
+        from flask import render_template
+        return render_template('legal_research.html')
+    except Exception as e:
+        logger.error(f"Legal research page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Legal Research</title></head>
+<body><h1>🏛️ LexAI Legal Research</h1>
+<p>Page loading error: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
+
 @app.route('/documents')
 def documents_list():
     """Document management system with upload and analysis capabilities"""
@@ -3293,6 +3307,245 @@ def delete_document(doc_id):
     except Exception as e:
         logger.error(f"Document deletion error: {e}")
         return jsonify({'error': 'Failed to delete document'}), 500
+
+@app.route('/api/legal-research/search', methods=['POST'])
+@rate_limit_decorator
+def legal_research_search():
+    """AI-powered legal research search across case law and statutes"""
+    try:
+        data = g.validated_data
+        query = data.get('query', '').strip()
+        filters = data.get('filters', {})
+        
+        if not query:
+            return jsonify({'error': 'Search query is required'}), 400
+        
+        # Security validation
+        validation_result = SecurityValidator.validate_message(query)
+        if not validation_result['valid']:
+            logger.warning(f"Invalid legal research query: {validation_result['errors']}")
+            return jsonify({
+                "error": "Invalid search query: " + "; ".join(validation_result['errors'])
+            }), 400
+        
+        # Use sanitized query
+        query = validation_result['sanitized']
+        
+        # Build legal research prompt
+        jurisdiction = filters.get('jurisdiction', '')
+        court = filters.get('court', '')
+        date_range = filters.get('dateRange', '')
+        practice_area = filters.get('practiceArea', '')
+        
+        research_prompt = f"""
+You are an expert legal research AI assistant. Search for relevant case law, statutes, and legal precedents for the following query:
+
+SEARCH QUERY: "{query}"
+
+SEARCH PARAMETERS:
+- Jurisdiction: {jurisdiction or 'All jurisdictions'}
+- Court Level: {court or 'All courts'}
+- Date Range: {date_range or 'All dates'}
+- Practice Area: {practice_area or 'All practice areas'}
+
+Please provide a comprehensive legal research response that includes:
+
+1. AI INSIGHTS: Brief analysis of the legal question and key considerations (2-3 sentences)
+
+2. RELEVANT CASES: Find 3-5 most relevant cases with:
+   - Case name and citation
+   - Court and year
+   - Brief summary of relevance (2-3 sentences)
+   - Relevance score (1-5)
+
+3. APPLICABLE STATUTES: Relevant statutory provisions if applicable
+
+4. LEGAL PRINCIPLES: Key legal principles and precedents
+
+Format your response as JSON with this structure:
+{{
+    "ai_insights": "Brief analysis of the legal question...",
+    "results": [
+        {{
+            "id": "case_1",
+            "title": "Case Name v. Defendant",
+            "citation": "123 F.3d 456 (2nd Cir. 2020)",
+            "type": "Case Law",
+            "summary": "This case established that...",
+            "relevance": 4,
+            "court": "2nd Circuit Court of Appeals",
+            "year": "2020",
+            "jurisdiction": "Federal"
+        }}
+    ]
+}}
+
+Ensure all cases are real and properly cited. If you cannot find sufficient real cases, clearly indicate which results are examples for demonstration purposes.
+"""
+        
+        # Try XAI API if available
+        if XAI_API_KEY:
+            try:
+                payload = {
+                    "model": "grok-3-latest",
+                    "messages": [
+                        {"role": "system", "content": "You are an expert legal research assistant with access to comprehensive legal databases."},
+                        {"role": "user", "content": research_prompt}
+                    ],
+                    "stream": False,
+                    "temperature": 0.3
+                }
+
+                headers = {
+                    "Authorization": f"Bearer {XAI_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+
+                response = requests.post(
+                    'https://api.x.ai/v1/chat/completions',
+                    headers=headers,
+                    json=payload,
+                    timeout=30
+                )
+
+                if response.status_code == 200:
+                    completion = response.json()
+                    if 'choices' in completion and len(completion['choices']) > 0:
+                        ai_response = completion['choices'][0]['message']['content'].strip()
+                        
+                        # Try to parse JSON response
+                        try:
+                            import json
+                            research_data = json.loads(ai_response)
+                            return jsonify(research_data)
+                        except json.JSONDecodeError:
+                            # If JSON parsing fails, use fallback
+                            logger.warning("Failed to parse AI research response as JSON, using fallback")
+                            return jsonify(get_fallback_research_results(query, filters, ai_response))
+                else:
+                    logger.warning(f"XAI API error: {response.status_code}")
+                    return jsonify(get_fallback_research_results(query, filters))
+                    
+            except Exception as e:
+                logger.error(f"XAI API request error: {e}")
+                return jsonify(get_fallback_research_results(query, filters))
+        else:
+            return jsonify(get_fallback_research_results(query, filters))
+    
+    except Exception as e:
+        logger.error(f"Legal research search error: {e}")
+        return jsonify({'error': 'Legal research search failed'}), 500
+
+def get_fallback_research_results(query, filters, ai_response=None):
+    """Generate fallback legal research results when API is unavailable"""
+    
+    # Determine practice area context
+    query_lower = query.lower()
+    practice_context = "general"
+    
+    if any(term in query_lower for term in ['contract', 'agreement', 'breach', 'consideration']):
+        practice_context = "contract"
+    elif any(term in query_lower for term in ['negligence', 'tort', 'liability', 'damages']):
+        practice_context = "tort"
+    elif any(term in query_lower for term in ['constitutional', 'amendment', 'rights', 'due process']):
+        practice_context = "constitutional"
+    elif any(term in query_lower for term in ['employment', 'discrimination', 'workplace', 'labor']):
+        practice_context = "employment"
+    elif any(term in query_lower for term in ['criminal', 'prosecution', 'defense', 'sentence']):
+        practice_context = "criminal"
+    
+    # Mock legal research results based on context
+    fallback_results = {
+        "contract": [
+            {
+                "id": "contract_1",
+                "title": "Hadley v. Baxendale",
+                "citation": "9 Ex. 341, 156 Eng. Rep. 145 (1854)",
+                "type": "Case Law",
+                "summary": "Established the foundational rule for consequential damages in contract law, limiting recovery to damages that were reasonably foreseeable at the time of contract formation.",
+                "relevance": 5,
+                "court": "Court of Exchequer",
+                "year": "1854",
+                "jurisdiction": "English Common Law"
+            },
+            {
+                "id": "contract_2", 
+                "title": "Lucy v. Zehmer",
+                "citation": "196 Va. 493, 84 S.E.2d 516 (1954)",
+                "type": "Case Law",
+                "summary": "Established that the test for contract formation is objective, based on outward expressions rather than subjective intent.",
+                "relevance": 4,
+                "court": "Supreme Court of Virginia",
+                "year": "1954",
+                "jurisdiction": "Virginia"
+            }
+        ],
+        "tort": [
+            {
+                "id": "tort_1",
+                "title": "Palsgraf v. Long Island Railroad Co.",
+                "citation": "248 N.Y. 339, 162 N.E. 99 (1928)",
+                "type": "Case Law", 
+                "summary": "Landmark negligence case establishing the requirement of proximate cause and duty of care to foreseeable plaintiffs.",
+                "relevance": 5,
+                "court": "New York Court of Appeals",
+                "year": "1928",
+                "jurisdiction": "New York"
+            }
+        ],
+        "constitutional": [
+            {
+                "id": "const_1",
+                "title": "Miranda v. Arizona",
+                "citation": "384 U.S. 436 (1966)",
+                "type": "Case Law",
+                "summary": "Established the requirement for law enforcement to inform suspects of their constitutional rights before custodial interrogation.",
+                "relevance": 5,
+                "court": "U.S. Supreme Court",
+                "year": "1966", 
+                "jurisdiction": "Federal"
+            }
+        ],
+        "employment": [
+            {
+                "id": "emp_1",
+                "title": "McDonnell Douglas Corp. v. Green",
+                "citation": "411 U.S. 792 (1973)",
+                "type": "Case Law",
+                "summary": "Established the burden-shifting framework for proving employment discrimination under Title VII.",
+                "relevance": 5,
+                "court": "U.S. Supreme Court", 
+                "year": "1973",
+                "jurisdiction": "Federal"
+            }
+        ]
+    }
+    
+    # Get relevant results or use general examples
+    results = fallback_results.get(practice_context, fallback_results["contract"])
+    
+    # Add some general legal research insights
+    ai_insights = f"Your search for '{query}' relates to {practice_context} law. "
+    if practice_context == "contract":
+        ai_insights += "Key considerations include contract formation, performance, breach, and remedies. Focus on precedents establishing fundamental principles of offer, acceptance, and consideration."
+    elif practice_context == "tort":
+        ai_insights += "Key considerations include duty of care, breach of duty, causation, and damages. Focus on precedents establishing negligence standards and liability limitations."
+    elif practice_context == "constitutional":
+        ai_insights += "Key considerations include constitutional interpretation, individual rights, and government power limitations. Focus on Supreme Court precedents and constitutional amendments."
+    elif practice_context == "employment":
+        ai_insights += "Key considerations include discrimination laws, workplace rights, and employment relationships. Focus on federal statutes like Title VII and relevant court interpretations."
+    else:
+        ai_insights += "Consider reviewing relevant statutes, case law precedents, and jurisdictional variations that may apply to your specific legal question."
+    
+    # If we have AI response but couldn't parse it, include it
+    if ai_response:
+        ai_insights += f" AI Analysis: {ai_response[:500]}..."
+    
+    return {
+        "ai_insights": ai_insights,
+        "results": results,
+        "disclaimer": "These are example results for demonstration. In production, this would search real legal databases."
+    }
 
 
 @app.route('/api/cases/<case_id>/timeline', methods=['GET'])

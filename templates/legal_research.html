@@ -1,0 +1,770 @@
+{% extends "base.html" %}
+
+{% block title %}Legal Research - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Legal Research Specific Styles */
+        .research-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .research-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .research-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .research-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .research-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .research-main {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        /* Search Panel */
+        .search-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .search-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .search-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: white;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .search-btn {
+            width: 100%;
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            background-color: #09332C;
+            transform: translateY(-1px);
+        }
+
+        .search-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .quick-searches {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quick-search-btn {
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .quick-search-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #2E4B3C;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        .results-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-meta {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .results-content {
+            flex: 1;
+            padding: 1.5rem 2rem;
+        }
+
+        /* Result Items */
+        .result-item {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 1.5rem 0;
+            transition: all 0.2s ease;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item:hover {
+            background-color: #f9fafb;
+            margin: 0 -1rem;
+            padding: 1.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            flex: 1;
+        }
+
+        .result-type {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .result-citation {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 0.75rem;
+        }
+
+        .result-summary {
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .result-relevance {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .relevance-score {
+            display: flex;
+            gap: 0.125rem;
+        }
+
+        .relevance-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background-color: #d1d5db;
+        }
+
+        .relevance-dot.active {
+            background-color: #2E4B3C;
+        }
+
+        .relevance-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .result-action {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: white;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        .result-action:hover {
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+            text-decoration: none;
+        }
+
+        .result-action.primary {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            border-color: #2E4B3C;
+        }
+
+        .result-action.primary:hover {
+            background-color: #09332C;
+            color: #F7EDDA;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.5rem;
+            color: #9ca3af;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .loading-state.visible {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #2E4B3C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* AI Insights Panel */
+        .ai-insights {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-insights-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-insights-title {
+            font-weight: 600;
+            color: #16a34a;
+        }
+
+        .ai-insights-content {
+            font-size: 0.875rem;
+            color: #15803d;
+            line-height: 1.5;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1023px) {
+            .research-main {
+                grid-template-columns: 1fr;
+            }
+
+            .search-panel {
+                order: 2;
+            }
+
+            .results-panel {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .research-title {
+                font-size: 2rem;
+            }
+
+            .research-container {
+                padding: 1rem 0;
+            }
+
+            .search-panel, .results-panel {
+                margin: 0 0.5rem;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: start;
+                gap: 0.5rem;
+            }
+
+            .result-actions {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="research-container">
+    <!-- Research Header -->
+    <div class="research-header">
+        <h1 class="research-title">Legal Research</h1>
+        <p class="research-subtitle">AI-powered search across case law, statutes, and legal precedents</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="research-main">
+        <!-- Search Panel -->
+        <div class="search-panel">
+            <!-- Search Query -->
+            <div class="search-section">
+                <h3>Search Query</h3>
+                <textarea 
+                    id="search-query" 
+                    class="search-input" 
+                    placeholder="Enter your legal question or search terms..."
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <!-- Search Filters -->
+            <div class="search-section">
+                <h3>Filters</h3>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Jurisdiction</label>
+                    <select class="filter-select" id="jurisdiction-filter">
+                        <option value="">All Jurisdictions</option>
+                        <option value="federal">Federal</option>
+                        <option value="california">California</option>
+                        <option value="new-york">New York</option>
+                        <option value="texas">Texas</option>
+                        <option value="florida">Florida</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Court Level</label>
+                    <select class="filter-select" id="court-filter">
+                        <option value="">All Courts</option>
+                        <option value="supreme">Supreme Court</option>
+                        <option value="appellate">Appellate Courts</option>
+                        <option value="district">District Courts</option>
+                        <option value="state-supreme">State Supreme Courts</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="date-filter">
+                        <option value="">All Dates</option>
+                        <option value="last-year">Last Year</option>
+                        <option value="last-5-years">Last 5 Years</option>
+                        <option value="last-10-years">Last 10 Years</option>
+                        <option value="since-2000">Since 2000</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Practice Area</label>
+                    <select class="filter-select" id="practice-area-filter">
+                        <option value="">All Practice Areas</option>
+                        <option value="constitutional">Constitutional Law</option>
+                        <option value="contract">Contract Law</option>
+                        <option value="tort">Tort Law</option>
+                        <option value="criminal">Criminal Law</option>
+                        <option value="family">Family Law</option>
+                        <option value="corporate">Corporate Law</option>
+                        <option value="employment">Employment Law</option>
+                        <option value="intellectual-property">Intellectual Property</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Search Button -->
+            <button class="search-btn" id="search-btn" onclick="performSearch()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Search Legal Database
+            </button>
+
+            <!-- Quick Searches -->
+            <div class="search-section">
+                <h3>Quick Searches</h3>
+                <div class="quick-searches">
+                    <button class="quick-search-btn" onclick="quickSearch('contract formation elements')">
+                        Contract Formation Elements
+                    </button>
+                    <button class="quick-search-btn" onclick="quickSearch('negligence liability standards')">
+                        Negligence Liability Standards
+                    </button>
+                    <button class="quick-search-btn" onclick="quickSearch('constitutional due process')">
+                        Constitutional Due Process
+                    </button>
+                    <button class="quick-search-btn" onclick="quickSearch('employment discrimination laws')">
+                        Employment Discrimination
+                    </button>
+                    <button class="quick-search-btn" onclick="quickSearch('intellectual property infringement')">
+                        IP Infringement Cases
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="results-panel">
+            <!-- Results Header -->
+            <div class="results-header">
+                <h2 class="results-title">Search Results</h2>
+                <p class="results-meta" id="results-meta">Enter a search query to find relevant legal precedents</p>
+            </div>
+
+            <!-- Results Content -->
+            <div class="results-content" id="results-content">
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <h3>Ready to Search</h3>
+                    <p>Enter your legal question or use one of the quick search options to get started</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loading-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Searching Legal Database</h3>
+                    <p>AI is analyzing millions of legal documents to find the most relevant results</p>
+                </div>
+
+                <!-- Results will be dynamically inserted here -->
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchQuery = document.getElementById('search-query');
+    const searchBtn = document.getElementById('search-btn');
+    const resultsMeta = document.getElementById('results-meta');
+    const resultsContent = document.getElementById('results-content');
+    const emptyState = document.getElementById('empty-state');
+    const loadingState = document.getElementById('loading-state');
+    const searchResults = document.getElementById('search-results');
+
+    // Auto-resize textarea
+    searchQuery.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+
+    // Quick search function
+    window.quickSearch = function(query) {
+        searchQuery.value = query;
+        performSearch();
+    };
+
+    // Main search function
+    window.performSearch = function() {
+        const query = searchQuery.value.trim();
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+
+        // Show loading state
+        emptyState.style.display = 'none';
+        loadingState.classList.add('visible');
+        searchResults.innerHTML = '';
+        searchBtn.disabled = true;
+
+        // Get filter values
+        const filters = {
+            jurisdiction: document.getElementById('jurisdiction-filter').value,
+            court: document.getElementById('court-filter').value,
+            dateRange: document.getElementById('date-filter').value,
+            practiceArea: document.getElementById('practice-area-filter').value
+        };
+
+        // Perform search
+        fetch('/api/legal-research/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: query,
+                filters: filters
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayResults(data);
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            displayError('An error occurred while searching. Please try again.');
+        })
+        .finally(() => {
+            loadingState.classList.remove('visible');
+            searchBtn.disabled = false;
+        });
+    };
+
+    function displayResults(data) {
+        if (data.error) {
+            displayError(data.error);
+            return;
+        }
+
+        const results = data.results || [];
+        const aiInsights = data.ai_insights || '';
+        
+        // Update results meta
+        resultsMeta.textContent = `Found ${results.length} relevant cases and statutes`;
+
+        if (results.length === 0) {
+            searchResults.innerHTML = `
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <h3>No Results Found</h3>
+                    <p>Try broadening your search terms or adjusting the filters</p>
+                </div>
+            `;
+            return;
+        }
+
+        let resultsHTML = '';
+
+        // Add AI insights if available
+        if (aiInsights) {
+            resultsHTML += `
+                <div class="ai-insights">
+                    <div class="ai-insights-header">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <span class="ai-insights-title">AI Legal Insights</span>
+                    </div>
+                    <div class="ai-insights-content">${aiInsights}</div>
+                </div>
+            `;
+        }
+
+        // Add search results
+        results.forEach(result => {
+            const relevanceScore = Math.min(5, Math.max(1, result.relevance || 3));
+            const relevanceDots = Array.from({length: 5}, (_, i) => 
+                `<div class="relevance-dot ${i < relevanceScore ? 'active' : ''}"></div>`
+            ).join('');
+
+            resultsHTML += `
+                <div class="result-item">
+                    <div class="result-header">
+                        <div class="result-title">${result.title}</div>
+                        <div class="result-type">${result.type}</div>
+                    </div>
+                    <div class="result-citation">${result.citation}</div>
+                    <div class="result-relevance">
+                        <div class="relevance-score">${relevanceDots}</div>
+                        <span class="relevance-label">Relevance Score</span>
+                    </div>
+                    <div class="result-summary">${result.summary}</div>
+                    <div class="result-actions">
+                        <a href="#" class="result-action primary" onclick="viewFullCase('${result.id}')">View Full Text</a>
+                        <a href="#" class="result-action" onclick="citationHelper('${result.citation}')">Get Citation</a>
+                        <a href="#" class="result-action" onclick="findSimilar('${result.id}')">Find Similar</a>
+                        <a href="#" class="result-action" onclick="addToResearch('${result.id}')">Save to Research</a>
+                    </div>
+                </div>
+            `;
+        });
+
+        searchResults.innerHTML = resultsHTML;
+    }
+
+    function displayError(message) {
+        searchResults.innerHTML = `
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <h3>Search Error</h3>
+                <p>${message}</p>
+            </div>
+        `;
+        resultsMeta.textContent = 'Search encountered an error';
+    }
+
+    // Result action functions
+    window.viewFullCase = function(caseId) {
+        alert(`Opening full case text for case ${caseId}. Full text viewer coming soon!`);
+    };
+
+    window.citationHelper = function(citation) {
+        navigator.clipboard.writeText(citation).then(() => {
+            alert(`Citation copied to clipboard: ${citation}`);
+        }).catch(() => {
+            alert(`Citation: ${citation}`);
+        });
+    };
+
+    window.findSimilar = function(caseId) {
+        alert(`Finding similar cases to ${caseId}. Similar case analysis coming soon!`);
+    };
+
+    window.addToResearch = function(caseId) {
+        alert(`Added case ${caseId} to your research folder. Research management coming soon!`);
+    };
+
+    // Handle Enter key in search
+    searchQuery.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            performSearch();
+        }
+    });
+});
+</script>
+{% endblock %}
