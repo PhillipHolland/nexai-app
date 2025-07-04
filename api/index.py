@@ -351,9 +351,23 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #1e40af;
-            --primary-blue-light: #3b82f6;
-            --secondary-gold: #f59e0b;
+            /* Logo-compatible colors (maintain for navbar) */
+            --lexai-darkest-green: #09332C;
+            --lexai-dark-green: #2E4B3C;
+            --lexai-light-cream: #F7EDDA;
+            --lexai-warm-cream: #F7DFBA;
+            --lexai-warm-orange: #FFA74F;
+            --lexai-bright-coral: #F0531C;
+
+            /* Primary palette using LexAI colors */
+            --primary-green: #2E4B3C;
+            --primary-green-light: #4A6B57;
+            --primary-green-dark: #09332C;
+            --secondary-cream: #F7EDDA;
+            --secondary-orange: #FFA74F;
+            --accent-coral: #F0531C;
+            
+            /* Extended professional palette */
             --white: #ffffff;
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
@@ -364,13 +378,21 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             --success: #10b981;
             --warning: #f59e0b;
             --error: #ef4444;
+            
+            /* Practice area colors matching local version */
+            --family-law: #8b5cf6;
+            --personal-injury: #ef4444;
+            --corporate: #3b82f6;
+            --criminal: #f59e0b;
+            --real-estate: #10b981;
+            --immigration: #6366f1;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            background: linear-gradient(135deg, var(--secondary-cream) 0%, var(--lexai-warm-cream) 100%);
             min-height: 100vh;
             color: var(--gray-900);
         }
@@ -395,7 +417,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .sidebar-header h2 {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary-blue);
+            color: var(--primary-green);
         }
 
         .sidebar-nav {
@@ -428,12 +450,12 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         }
 
         .nav-link:hover {
-            background: var(--gray-50);
-            color: var(--primary-blue);
+            background: var(--secondary-cream);
+            color: var(--primary-green);
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
             color: var(--white);
         }
 
@@ -450,7 +472,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         }
 
         .navbar {
-            background: var(--white);
+            background: linear-gradient(135deg, var(--lexai-dark-green) 0%, var(--primary-green) 100%);
             padding: 16px 32px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -482,7 +504,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             position: absolute;
             height: 3px;
             width: 100%;
-            background: var(--gray-700);
+            background: var(--secondary-cream);
             border-radius: 1.5px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -494,6 +516,13 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .navbar-logo {
             height: 40px;
             width: auto;
+            margin-right: 12px;
+        }
+        
+        .navbar-text {
+            color: var(--secondary-cream);
+            font-weight: 600;
+            font-size: 1.125rem;
         }
 
         .content-area {
@@ -509,13 +538,13 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .page-title {
             font-size: 2.25rem;
             font-weight: 700;
-            color: var(--white);
+            color: var(--primary-green-dark);
             margin-bottom: 8px;
         }
 
         .page-subtitle {
             font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--primary-green);
         }
 
         .stats-grid {
@@ -553,7 +582,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .stat-icon {
             width: 24px;
             height: 24px;
-            color: var(--primary-blue);
+            color: var(--primary-green);
         }
 
         .stat-value {
@@ -592,7 +621,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--practice-color, var(--primary-blue));
+            background: var(--practice-color, var(--primary-green));
         }
 
         .practice-header {
@@ -609,7 +638,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             align-items: center;
             justify-content: center;
             margin-right: 16px;
-            background: var(--practice-bg, rgba(30, 64, 175, 0.1));
+            background: var(--practice-bg, rgba(46, 75, 60, 0.1));
         }
 
         .practice-title {
@@ -643,13 +672,13 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-light));
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
             color: var(--white);
         }
 
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
         }
 
         .recent-section {
@@ -796,11 +825,15 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                             <span></span>
                         </div>
                     </button>
-                    <span style="font-weight: 600; color: var(--primary-blue);">LexAI Practice Partner</span>
+                    <!-- Logo will be embedded as base64 or external link -->
+                    <div style="width: 40px; height: 40px; background: var(--secondary-cream); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-green);">⚖️</span>
+                    </div>
+                    <span class="navbar-text">LexAI Practice Partner</span>
                 </div>
                 
                 <div style="display: flex; gap: 12px; align-items: center;">
-                    <div style="padding: 6px 12px; background: #e7f3ff; border-radius: 6px; font-size: 0.875rem;">
+                    <div style="padding: 6px 12px; background: var(--secondary-cream); border-radius: 6px; font-size: 0.875rem; color: var(--primary-green); font-weight: 500;">
                         ✅ {{ "API Connected" if api_status else "Demo Mode" }}
                     </div>
                 </div>
@@ -989,7 +1022,7 @@ def chat_interface(client_id=None):
                 <style>
                     body {
                         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-                        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                        background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
                         margin: 0;
                         padding: 20px;
                         min-height: 100vh;
@@ -1007,7 +1040,7 @@ def chat_interface(client_id=None):
                         height: 80vh;
                     }
                     .chat-header {
-                        background: linear-gradient(135deg, {{ selected_practice['color'] }}, #3b82f6);
+                        background: linear-gradient(135deg, #2E4B3C, #4A6B57);
                         color: white;
                         padding: 20px 24px;
                         border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -1038,7 +1071,7 @@ def chat_interface(client_id=None):
                         justify-content: flex-end;
                     }
                     .message.user .message-content {
-                        background: linear-gradient(135deg, #1e40af, #3b82f6);
+                        background: linear-gradient(135deg, #2E4B3C, #4A6B57);
                         color: white;
                     }
                     .message-avatar {
@@ -1054,7 +1087,7 @@ def chat_interface(client_id=None):
                         color: #6b7280;
                     }
                     .message.user .message-avatar {
-                        background: #1e40af;
+                        background: #2E4B3C;
                         color: white;
                     }
                     .message-content {
@@ -1089,11 +1122,11 @@ def chat_interface(client_id=None):
                     }
                     .message-input:focus {
                         outline: none;
-                        border-color: #1e40af;
+                        border-color: #2E4B3C;
                     }
                     .send-button {
                         padding: 12px 24px;
-                        background: linear-gradient(135deg, #1e40af, #3b82f6);
+                        background: linear-gradient(135deg, #2E4B3C, #4A6B57);
                         color: white;
                         border: none;
                         border-radius: 12px;
@@ -1103,7 +1136,7 @@ def chat_interface(client_id=None):
                     }
                     .send-button:hover {
                         transform: translateY(-1px);
-                        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+                        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
                     }
                     .send-button:disabled {
                         opacity: 0.6;
