@@ -1112,6 +1112,18 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                         </svg>
                         Billing
                     </a>
+                    <a href="/notifications" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 19H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v4M9 9h6m-6 4h6"/>
+                        </svg>
+                        Notifications
+                    </a>
+                    <a href="/contracts" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Contract Generator
+                    </a>
                 </div>
 
                 <div class="nav-section">
@@ -5050,6 +5062,1440 @@ def get_usage_statistics():
     except Exception as e:
         logger.error(f"Get usage statistics error: {e}")
         return jsonify({"error": "Failed to fetch usage statistics"}), 500
+
+# ============================================================================
+# ADVANCED NOTIFICATION SYSTEM
+# ============================================================================
+
+# Notification types and templates
+NOTIFICATION_TEMPLATES = {
+    'case_update': {
+        'email': {
+            'subject': 'Case Update: {case_name}',
+            'body': '''Dear {client_name},
+
+We have an important update regarding your {case_type} case.
+
+{update_message}
+
+Next Steps:
+{next_steps}
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+LexAI Legal Team'''
+        },
+        'sms': {
+            'body': 'LexAI Update: {case_name} - {update_message}. Next: {next_steps}. Reply STOP to opt out.'
+        }
+    },
+    'document_ready': {
+        'email': {
+            'subject': 'Document Ready for Review: {document_name}',
+            'body': '''Dear {client_name},
+
+Your {document_type} document is ready for review.
+
+Document: {document_name}
+Status: {status}
+Action Required: {action_required}
+
+Please log into your LexAI portal to review and approve the document.
+
+Best regards,
+LexAI Legal Team'''
+        },
+        'sms': {
+            'body': 'LexAI: {document_name} ready for review. Login to portal to approve. Reply STOP to opt out.'
+        }
+    },
+    'appointment_reminder': {
+        'email': {
+            'subject': 'Appointment Reminder: {appointment_date}',
+            'body': '''Dear {client_name},
+
+This is a reminder of your upcoming appointment:
+
+Date: {appointment_date}
+Time: {appointment_time}
+Type: {appointment_type}
+Location: {location}
+
+Please contact us if you need to reschedule.
+
+Best regards,
+LexAI Legal Team'''
+        },
+        'sms': {
+            'body': 'LexAI Reminder: {appointment_type} on {appointment_date} at {appointment_time}. Reply STOP to opt out.'
+        }
+    },
+    'payment_due': {
+        'email': {
+            'subject': 'Payment Due: Invoice {invoice_number}',
+            'body': '''Dear {client_name},
+
+Your invoice {invoice_number} is due for payment.
+
+Amount Due: ${amount}
+Due Date: {due_date}
+Services: {services}
+
+Please log into your LexAI portal to make a payment.
+
+Best regards,
+LexAI Billing Team'''
+        },
+        'sms': {
+            'body': 'LexAI: Invoice {invoice_number} due ${amount} by {due_date}. Login to pay. Reply STOP to opt out.'
+        }
+    }
+}
+
+# Mock notification preferences (in production, store in database)
+NOTIFICATION_PREFERENCES = {
+    'demo_user': {
+        'email': 'user@example.com',
+        'phone': '+1234567890',
+        'preferences': {
+            'case_updates': {'email': True, 'sms': True},
+            'document_ready': {'email': True, 'sms': False},
+            'appointment_reminders': {'email': True, 'sms': True},
+            'payment_due': {'email': True, 'sms': False}
+        }
+    }
+}
+
+class NotificationService:
+    """Advanced notification service with email and SMS capabilities"""
+    
+    @staticmethod
+    def send_notification(user_id, notification_type, template_data, priority='normal'):
+        """Send notification via preferred channels"""
+        try:
+            user_prefs = NOTIFICATION_PREFERENCES.get(user_id, {})
+            preferences = user_prefs.get('preferences', {}).get(notification_type, {})
+            
+            results = {
+                'email_sent': False,
+                'sms_sent': False,
+                'errors': []
+            }
+            
+            # Send email notification
+            if preferences.get('email', False) and user_prefs.get('email'):
+                try:
+                    email_result = NotificationService._send_email(
+                        user_prefs['email'],
+                        notification_type,
+                        template_data
+                    )
+                    results['email_sent'] = email_result
+                    logger.info(f"📧 Email notification sent to {user_id}: {notification_type}")
+                except Exception as e:
+                    results['errors'].append(f"Email error: {e}")
+                    logger.error(f"Email notification failed: {e}")
+            
+            # Send SMS notification
+            if preferences.get('sms', False) and user_prefs.get('phone'):
+                try:
+                    sms_result = NotificationService._send_sms(
+                        user_prefs['phone'],
+                        notification_type,
+                        template_data
+                    )
+                    results['sms_sent'] = sms_result
+                    logger.info(f"📱 SMS notification sent to {user_id}: {notification_type}")
+                except Exception as e:
+                    results['errors'].append(f"SMS error: {e}")
+                    logger.error(f"SMS notification failed: {e}")
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Notification service error: {e}")
+            return {'email_sent': False, 'sms_sent': False, 'errors': [str(e)]}
+    
+    @staticmethod
+    def _send_email(email_address, notification_type, template_data):
+        """Send email notification (mock implementation)"""
+        template = NOTIFICATION_TEMPLATES.get(notification_type, {}).get('email', {})
+        
+        subject = template.get('subject', 'LexAI Notification').format(**template_data)
+        body = template.get('body', 'Notification from LexAI').format(**template_data)
+        
+        # In production, integrate with email service (SendGrid, AWS SES, etc.)
+        logger.info(f"📧 [MOCK EMAIL] To: {email_address}")
+        logger.info(f"📧 [MOCK EMAIL] Subject: {subject}")
+        logger.info(f"📧 [MOCK EMAIL] Body: {body[:100]}...")
+        
+        return True
+    
+    @staticmethod
+    def _send_sms(phone_number, notification_type, template_data):
+        """Send SMS notification (mock implementation)"""
+        template = NOTIFICATION_TEMPLATES.get(notification_type, {}).get('sms', {})
+        
+        body = template.get('body', 'Notification from LexAI').format(**template_data)
+        
+        # In production, integrate with SMS service (Twilio, AWS SNS, etc.)
+        logger.info(f"📱 [MOCK SMS] To: {phone_number}")
+        logger.info(f"📱 [MOCK SMS] Body: {body}")
+        
+        return True
+
+@app.route('/notifications')
+def notifications_dashboard():
+    """Notification preferences and history dashboard"""
+    try:
+        user_id = 'demo_user'  # In production, get from session
+        user_prefs = NOTIFICATION_PREFERENCES.get(user_id, {})
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>LexAI Notification Preferences</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+            <style>
+                .notifications-container {
+                    max-width: 1000px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+                
+                .notifications-header {
+                    text-align: center;
+                    margin-bottom: 48px;
+                }
+                
+                .notifications-title {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: var(--text-dark);
+                    margin-bottom: 16px;
+                }
+                
+                .notifications-subtitle {
+                    font-size: 1.125rem;
+                    color: var(--text-light);
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                
+                .notification-section {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    margin-bottom: 32px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
+                
+                .section-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    margin-bottom: 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .contact-form {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                    margin-bottom: 32px;
+                }
+                
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .form-label {
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    margin-bottom: 8px;
+                }
+                
+                .form-input {
+                    padding: 12px;
+                    border: 2px solid var(--border-light);
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    transition: border-color 0.3s ease;
+                }
+                
+                .form-input:focus {
+                    outline: none;
+                    border-color: var(--primary-green);
+                }
+                
+                .preferences-grid {
+                    display: grid;
+                    gap: 24px;
+                }
+                
+                .preference-item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px;
+                    background: var(--gray-50);
+                    border-radius: 12px;
+                    border: 1px solid var(--border-light);
+                }
+                
+                .preference-info {
+                    flex: 1;
+                }
+                
+                .preference-title {
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    margin-bottom: 4px;
+                }
+                
+                .preference-description {
+                    font-size: 0.875rem;
+                    color: var(--text-light);
+                }
+                
+                .preference-controls {
+                    display: flex;
+                    gap: 16px;
+                    align-items: center;
+                }
+                
+                .toggle-group {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                
+                .toggle-label {
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    color: var(--text-dark);
+                }
+                
+                .toggle-switch {
+                    position: relative;
+                    width: 48px;
+                    height: 24px;
+                    background: var(--gray-300);
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                }
+                
+                .toggle-switch.active {
+                    background: var(--primary-green);
+                }
+                
+                .toggle-switch::after {
+                    content: '';
+                    position: absolute;
+                    top: 2px;
+                    left: 2px;
+                    width: 20px;
+                    height: 20px;
+                    background: white;
+                    border-radius: 50%;
+                    transition: transform 0.3s ease;
+                }
+                
+                .toggle-switch.active::after {
+                    transform: translateX(24px);
+                }
+                
+                .save-button {
+                    background: var(--primary-green);
+                    color: white;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                    margin-top: 24px;
+                }
+                
+                .save-button:hover {
+                    background: #1e3a2e;
+                }
+                
+                .test-button {
+                    background: var(--secondary-orange);
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                }
+                
+                .test-button:hover {
+                    background: #e07c00;
+                }
+                
+                .back-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--primary-green);
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-bottom: 24px;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .back-link:hover {
+                    opacity: 0.8;
+                }
+                
+                @media (max-width: 768px) {
+                    .contact-form {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .preference-item {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 16px;
+                    }
+                    
+                    .preference-controls {
+                        width: 100%;
+                        justify-content: space-between;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="notifications-container">
+                <a href="{{ url_for('dashboard') }}" class="back-link">
+                    ← Back to Dashboard
+                </a>
+                
+                <div class="notifications-header">
+                    <h1 class="notifications-title">Notification Preferences</h1>
+                    <p class="notifications-subtitle">Manage how and when you receive updates about your cases and account</p>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="notification-section">
+                    <h2 class="section-title">
+                        📧 Contact Information
+                    </h2>
+                    
+                    <div class="contact-form">
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" value="{{ user_prefs.get('email', '') }}" placeholder="your@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" value="{{ user_prefs.get('phone', '') }}" placeholder="+1 (555) 123-4567">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Preferences -->
+                <div class="notification-section">
+                    <h2 class="section-title">
+                        🔔 Notification Preferences
+                    </h2>
+                    
+                    <div class="preferences-grid">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-title">Case Updates</div>
+                                <div class="preference-description">Notifications about case progress, status changes, and important developments</div>
+                            </div>
+                            <div class="preference-controls">
+                                <div class="toggle-group">
+                                    <span class="toggle-label">Email</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'case_updates', 'email')"></div>
+                                </div>
+                                <div class="toggle-group">
+                                    <span class="toggle-label">SMS</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'case_updates', 'sms')"></div>
+                                </div>
+                                <button class="test-button" onclick="testNotification('case_update')">Test</button>
+                            </div>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-title">Document Ready</div>
+                                <div class="preference-description">Alerts when documents are ready for review, signature, or approval</div>
+                            </div>
+                            <div class="preference-controls">
+                                <div class="toggle-group">
+                                    <span class="toggle-label">Email</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'document_ready', 'email')"></div>
+                                </div>
+                                <div class="toggle-group">
+                                    <span class="toggle-label">SMS</span>
+                                    <div class="toggle-switch" onclick="togglePreference(this, 'document_ready', 'sms')"></div>
+                                </div>
+                                <button class="test-button" onclick="testNotification('document_ready')">Test</button>
+                            </div>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-title">Appointment Reminders</div>
+                                <div class="preference-description">Reminders for upcoming meetings, court dates, and consultations</div>
+                            </div>
+                            <div class="preference-controls">
+                                <div class="toggle-group">
+                                    <span class="toggle-label">Email</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'appointment_reminders', 'email')"></div>
+                                </div>
+                                <div class="toggle-group">
+                                    <span class="toggle-label">SMS</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'appointment_reminders', 'sms')"></div>
+                                </div>
+                                <button class="test-button" onclick="testNotification('appointment_reminder')">Test</button>
+                            </div>
+                        </div>
+                        
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <div class="preference-title">Payment Due</div>
+                                <div class="preference-description">Billing notifications and payment reminders</div>
+                            </div>
+                            <div class="preference-controls">
+                                <div class="toggle-group">
+                                    <span class="toggle-label">Email</span>
+                                    <div class="toggle-switch active" onclick="togglePreference(this, 'payment_due', 'email')"></div>
+                                </div>
+                                <div class="toggle-group">
+                                    <span class="toggle-label">SMS</span>
+                                    <div class="toggle-switch" onclick="togglePreference(this, 'payment_due', 'sms')"></div>
+                                </div>
+                                <button class="test-button" onclick="testNotification('payment_due')">Test</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="save-button" onclick="savePreferences()">Save Preferences</button>
+                </div>
+            </div>
+            
+            <script>
+                function togglePreference(element, type, method) {
+                    element.classList.toggle('active');
+                }
+                
+                function savePreferences() {
+                    // In production, save to backend
+                    alert('Preferences saved successfully!');
+                }
+                
+                function testNotification(type) {
+                    fetch('/api/notifications/test', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: type })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Test notification sent! Check your email/SMS.');
+                        } else {
+                            alert('Failed to send test notification: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error sending test notification: ' + error.message);
+                    });
+                }
+            </script>
+        </body>
+        </html>
+        """, user_prefs=user_prefs)
+        
+    except Exception as e:
+        logger.error(f"Notifications dashboard error: {e}")
+        return f"""<!DOCTYPE html>
+        <html><head><title>LexAI Notifications</title></head>
+        <body style="font-family: Inter, sans-serif; padding: 40px; text-align: center;">
+        <h1>🔔 LexAI Notification Center</h1>
+        <p>Error loading notification preferences: {e}</p>
+        <a href="/" style="color: #2E4B3C;">← Back to Dashboard</a>
+        </body></html>"""
+
+@app.route('/api/notifications/test', methods=['POST'])
+@rate_limit_decorator
+def test_notification():
+    """Send test notification"""
+    try:
+        data = request.get_json()
+        notification_type = data.get('type')
+        
+        if not notification_type:
+            return jsonify({"error": "Notification type required"}), 400
+        
+        # Sample test data
+        test_data = {
+            'case_update': {
+                'client_name': 'John Doe',
+                'case_name': 'Smith v. Johnson',
+                'case_type': 'Personal Injury',
+                'update_message': 'Medical records have been received and reviewed.',
+                'next_steps': 'Schedule expert witness deposition'
+            },
+            'document_ready': {
+                'client_name': 'John Doe',
+                'document_name': 'Settlement Agreement Draft',
+                'document_type': 'Legal Agreement',
+                'status': 'Ready for Review',
+                'action_required': 'Review and approve terms'
+            },
+            'appointment_reminder': {
+                'client_name': 'John Doe',
+                'appointment_date': 'January 15, 2025',
+                'appointment_time': '2:00 PM',
+                'appointment_type': 'Case Strategy Meeting',
+                'location': 'LexAI Office - Conference Room A'
+            },
+            'payment_due': {
+                'client_name': 'John Doe',
+                'invoice_number': 'INV-2025-001',
+                'amount': '2,500.00',
+                'due_date': 'January 20, 2025',
+                'services': 'Legal consultation and document review'
+            }
+        }
+        
+        template_data = test_data.get(notification_type, {})
+        if not template_data:
+            return jsonify({"error": "Invalid notification type"}), 400
+        
+        # Send test notification
+        result = NotificationService.send_notification(
+            'demo_user',
+            notification_type,
+            template_data,
+            priority='test'
+        )
+        
+        return jsonify({
+            "success": True,
+            "message": "Test notification sent",
+            "results": result
+        })
+        
+    except Exception as e:
+        logger.error(f"Test notification error: {e}")
+        return jsonify({"error": "Failed to send test notification"}), 500
+
+@app.route('/api/notifications/send', methods=['POST'])
+@rate_limit_decorator
+def send_notification_api():
+    """Send notification via API"""
+    try:
+        data = request.get_json()
+        
+        required_fields = ['user_id', 'type', 'template_data']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+        
+        result = NotificationService.send_notification(
+            data['user_id'],
+            data['type'],
+            data['template_data'],
+            data.get('priority', 'normal')
+        )
+        
+        return jsonify({
+            "success": True,
+            "message": "Notification sent",
+            "results": result
+        })
+        
+    except Exception as e:
+        logger.error(f"Send notification API error: {e}")
+        return jsonify({"error": "Failed to send notification"}), 500
+
+# ============================================================================
+# AI-POWERED CONTRACT TEMPLATE GENERATOR
+# ============================================================================
+
+# Contract templates with AI-powered customization
+CONTRACT_TEMPLATES = {
+    'nda': {
+        'name': 'Non-Disclosure Agreement (NDA)',
+        'category': 'Confidentiality',
+        'fields': [
+            {'name': 'disclosing_party', 'type': 'text', 'label': 'Disclosing Party Name', 'required': True},
+            {'name': 'receiving_party', 'type': 'text', 'label': 'Receiving Party Name', 'required': True},
+            {'name': 'mutual', 'type': 'boolean', 'label': 'Mutual NDA', 'default': False},
+            {'name': 'duration_years', 'type': 'number', 'label': 'Duration (Years)', 'default': 3},
+            {'name': 'jurisdiction', 'type': 'select', 'label': 'Governing Jurisdiction', 'options': ['California', 'New York', 'Delaware', 'Texas'], 'default': 'California'},
+            {'name': 'purpose', 'type': 'textarea', 'label': 'Purpose of Disclosure', 'placeholder': 'Describe the business purpose...'}
+        ],
+        'ai_instructions': 'Generate a comprehensive NDA with appropriate confidentiality provisions, return obligations, and legal protections based on the specified parameters.'
+    },
+    'service_agreement': {
+        'name': 'Service Agreement',
+        'category': 'Commercial',
+        'fields': [
+            {'name': 'service_provider', 'type': 'text', 'label': 'Service Provider Name', 'required': True},
+            {'name': 'client', 'type': 'text', 'label': 'Client Name', 'required': True},
+            {'name': 'services_description', 'type': 'textarea', 'label': 'Services Description', 'required': True},
+            {'name': 'payment_amount', 'type': 'number', 'label': 'Payment Amount ($)', 'required': True},
+            {'name': 'payment_schedule', 'type': 'select', 'label': 'Payment Schedule', 'options': ['Monthly', 'Quarterly', 'Upon Completion', 'Net 30'], 'default': 'Monthly'},
+            {'name': 'term_months', 'type': 'number', 'label': 'Contract Term (Months)', 'default': 12},
+            {'name': 'cancellation_notice_days', 'type': 'number', 'label': 'Cancellation Notice (Days)', 'default': 30}
+        ],
+        'ai_instructions': 'Create a professional service agreement with clear scope of work, payment terms, performance standards, and termination provisions.'
+    },
+    'employment': {
+        'name': 'Employment Agreement',
+        'category': 'Employment',
+        'fields': [
+            {'name': 'employer', 'type': 'text', 'label': 'Employer Name', 'required': True},
+            {'name': 'employee', 'type': 'text', 'label': 'Employee Name', 'required': True},
+            {'name': 'position', 'type': 'text', 'label': 'Job Title', 'required': True},
+            {'name': 'salary', 'type': 'number', 'label': 'Annual Salary ($)', 'required': True},
+            {'name': 'start_date', 'type': 'date', 'label': 'Start Date', 'required': True},
+            {'name': 'at_will', 'type': 'boolean', 'label': 'At-Will Employment', 'default': True},
+            {'name': 'benefits', 'type': 'textarea', 'label': 'Benefits Package', 'placeholder': 'Health insurance, 401k, vacation days...'},
+            {'name': 'confidentiality', 'type': 'boolean', 'label': 'Include Confidentiality Clause', 'default': True},
+            {'name': 'non_compete', 'type': 'boolean', 'label': 'Include Non-Compete Clause', 'default': False}
+        ],
+        'ai_instructions': 'Generate a comprehensive employment agreement with appropriate compensation, benefits, duties, and legal protections.'
+    },
+    'lease': {
+        'name': 'Lease Agreement',
+        'category': 'Real Estate',
+        'fields': [
+            {'name': 'landlord', 'type': 'text', 'label': 'Landlord Name', 'required': True},
+            {'name': 'tenant', 'type': 'text', 'label': 'Tenant Name', 'required': True},
+            {'name': 'property_address', 'type': 'textarea', 'label': 'Property Address', 'required': True},
+            {'name': 'monthly_rent', 'type': 'number', 'label': 'Monthly Rent ($)', 'required': True},
+            {'name': 'security_deposit', 'type': 'number', 'label': 'Security Deposit ($)', 'required': True},
+            {'name': 'lease_term_months', 'type': 'number', 'label': 'Lease Term (Months)', 'default': 12},
+            {'name': 'pets_allowed', 'type': 'boolean', 'label': 'Pets Allowed', 'default': False},
+            {'name': 'utilities_included', 'type': 'multiselect', 'label': 'Utilities Included', 'options': ['Water', 'Electric', 'Gas', 'Internet', 'Cable']}
+        ],
+        'ai_instructions': 'Create a residential lease agreement with standard terms, tenant obligations, landlord responsibilities, and legal protections.'
+    },
+    'partnership': {
+        'name': 'Partnership Agreement',
+        'category': 'Business Formation',
+        'fields': [
+            {'name': 'partner1_name', 'type': 'text', 'label': 'Partner 1 Name', 'required': True},
+            {'name': 'partner1_contribution', 'type': 'number', 'label': 'Partner 1 Capital Contribution ($)', 'required': True},
+            {'name': 'partner2_name', 'type': 'text', 'label': 'Partner 2 Name', 'required': True},
+            {'name': 'partner2_contribution', 'type': 'number', 'label': 'Partner 2 Capital Contribution ($)', 'required': True},
+            {'name': 'business_name', 'type': 'text', 'label': 'Business Name', 'required': True},
+            {'name': 'business_purpose', 'type': 'textarea', 'label': 'Business Purpose', 'required': True},
+            {'name': 'profit_sharing', 'type': 'select', 'label': 'Profit Sharing', 'options': ['Equal (50/50)', 'Based on Capital', 'Custom'], 'default': 'Equal (50/50)'},
+            {'name': 'management_structure', 'type': 'select', 'label': 'Management Structure', 'options': ['Equal Management', 'Managing Partner', 'Board of Directors'], 'default': 'Equal Management'}
+        ],
+        'ai_instructions': 'Generate a partnership agreement with clear capital contributions, profit sharing, management structure, and dissolution procedures.'
+    }
+}
+
+@app.route('/contracts')
+def contracts_generator():
+    """AI-powered contract template generator interface"""
+    try:
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>LexAI Contract Generator</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+            <style>
+                .contracts-container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+                
+                .contracts-header {
+                    text-align: center;
+                    margin-bottom: 48px;
+                }
+                
+                .contracts-title {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: var(--text-dark);
+                    margin-bottom: 16px;
+                }
+                
+                .contracts-subtitle {
+                    font-size: 1.125rem;
+                    color: var(--text-light);
+                    max-width: 700px;
+                    margin: 0 auto;
+                }
+                
+                .template-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 24px;
+                    margin-bottom: 48px;
+                }
+                
+                .template-card {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 24px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    border: 2px solid transparent;
+                }
+                
+                .template-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+                    border-color: var(--primary-green);
+                }
+                
+                .template-icon {
+                    width: 48px;
+                    height: 48px;
+                    background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-bottom: 16px;
+                    color: white;
+                    font-size: 1.5rem;
+                }
+                
+                .template-name {
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    margin-bottom: 8px;
+                }
+                
+                .template-category {
+                    font-size: 0.875rem;
+                    color: var(--text-light);
+                    margin-bottom: 12px;
+                    padding: 4px 8px;
+                    background: var(--gray-100);
+                    border-radius: 6px;
+                    display: inline-block;
+                }
+                
+                .template-description {
+                    font-size: 0.875rem;
+                    color: var(--text-light);
+                    line-height: 1.5;
+                }
+                
+                .generator-form {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                    display: none;
+                }
+                
+                .form-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 2px solid var(--gray-100);
+                }
+                
+                .form-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    color: var(--text-dark);
+                }
+                
+                .form-close {
+                    background: none;
+                    border: none;
+                    font-size: 1.5rem;
+                    color: var(--text-light);
+                    cursor: pointer;
+                    padding: 8px;
+                    border-radius: 6px;
+                    transition: all 0.3s ease;
+                }
+                
+                .form-close:hover {
+                    background: var(--gray-100);
+                    color: var(--text-dark);
+                }
+                
+                .form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 24px;
+                    margin-bottom: 32px;
+                }
+                
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .form-group.full-width {
+                    grid-column: 1 / -1;
+                }
+                
+                .form-label {
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                
+                .required-indicator {
+                    color: var(--error);
+                    font-size: 0.875rem;
+                }
+                
+                .form-input,
+                .form-select,
+                .form-textarea {
+                    padding: 12px;
+                    border: 2px solid var(--border-light);
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    transition: border-color 0.3s ease;
+                    font-family: inherit;
+                }
+                
+                .form-input:focus,
+                .form-select:focus,
+                .form-textarea:focus {
+                    outline: none;
+                    border-color: var(--primary-green);
+                }
+                
+                .form-textarea {
+                    min-height: 100px;
+                    resize: vertical;
+                }
+                
+                .form-checkbox-group {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-top: 8px;
+                }
+                
+                .form-checkbox {
+                    width: 18px;
+                    height: 18px;
+                    accent-color: var(--primary-green);
+                }
+                
+                .form-actions {
+                    display: flex;
+                    gap: 16px;
+                    justify-content: flex-end;
+                    margin-top: 32px;
+                    padding-top: 24px;
+                    border-top: 2px solid var(--gray-100);
+                }
+                
+                .btn-primary {
+                    background: var(--primary-green);
+                    color: white;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                    font-size: 1rem;
+                }
+                
+                .btn-primary:hover {
+                    background: #1e3a2e;
+                }
+                
+                .btn-secondary {
+                    background: var(--gray-100);
+                    color: var(--text-dark);
+                    border: 2px solid var(--border-light);
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 1rem;
+                }
+                
+                .btn-secondary:hover {
+                    background: var(--gray-200);
+                    border-color: var(--gray-300);
+                }
+                
+                .loading-state {
+                    display: none;
+                    text-align: center;
+                    padding: 40px;
+                    color: var(--text-light);
+                }
+                
+                .ai-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: linear-gradient(135deg, var(--secondary-orange), #ff8c00);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    margin-left: 8px;
+                }
+                
+                .back-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--primary-green);
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-bottom: 24px;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .back-link:hover {
+                    opacity: 0.8;
+                }
+                
+                @media (max-width: 768px) {
+                    .template-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .form-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .form-actions {
+                        flex-direction: column;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="contracts-container">
+                <a href="{{ url_for('dashboard') }}" class="back-link">
+                    ← Back to Dashboard
+                </a>
+                
+                <div class="contracts-header">
+                    <h1 class="contracts-title">AI Contract Generator <span class="ai-badge">🤖 AI Powered</span></h1>
+                    <p class="contracts-subtitle">Generate professional legal contracts tailored to your specific needs using advanced AI technology</p>
+                </div>
+                
+                <!-- Template Selection -->
+                <div id="templateSelection">
+                    <div class="template-grid">
+                        {% for template_id, template in templates.items() %}
+                        <div class="template-card" onclick="selectTemplate('{{ template_id }}')">
+                            <div class="template-icon">📄</div>
+                            <div class="template-name">{{ template.name }}</div>
+                            <div class="template-category">{{ template.category }}</div>
+                            <div class="template-description">
+                                Generate a customized {{ template.name.lower() }} with AI-powered legal language and clause optimization.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Contract Generation Form -->
+                <div id="generatorForm" class="generator-form">
+                    <div class="form-header">
+                        <h2 class="form-title" id="formTitle">Generate Contract</h2>
+                        <button class="form-close" onclick="closeForm()">×</button>
+                    </div>
+                    
+                    <form id="contractForm">
+                        <div class="form-grid" id="formFields">
+                            <!-- Dynamic fields will be inserted here -->
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="closeForm()">Cancel</button>
+                            <button type="submit" class="btn-primary">Generate Contract</button>
+                        </div>
+                    </form>
+                    
+                    <div class="loading-state" id="loadingState">
+                        <div>🤖 AI is generating your contract...</div>
+                        <div style="margin-top: 8px; font-size: 0.875rem;">This may take up to 30 seconds</div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                const templates = {{ templates | tojsonfilter | safe }};
+                let selectedTemplate = null;
+                
+                function selectTemplate(templateId) {
+                    selectedTemplate = templateId;
+                    const template = templates[templateId];
+                    
+                    document.getElementById('formTitle').textContent = `Generate ${template.name}`;
+                    document.getElementById('templateSelection').style.display = 'none';
+                    document.getElementById('generatorForm').style.display = 'block';
+                    
+                    generateFormFields(template.fields);
+                }
+                
+                function closeForm() {
+                    document.getElementById('templateSelection').style.display = 'block';
+                    document.getElementById('generatorForm').style.display = 'none';
+                    selectedTemplate = null;
+                }
+                
+                function generateFormFields(fields) {
+                    const container = document.getElementById('formFields');
+                    container.innerHTML = '';
+                    
+                    fields.forEach(field => {
+                        const div = document.createElement('div');
+                        div.className = field.type === 'textarea' ? 'form-group full-width' : 'form-group';
+                        
+                        const label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.innerHTML = field.label + (field.required ? ' <span class="required-indicator">*</span>' : '');
+                        
+                        let input;
+                        
+                        if (field.type === 'textarea') {
+                            input = document.createElement('textarea');
+                            input.className = 'form-textarea';
+                            input.placeholder = field.placeholder || '';
+                        } else if (field.type === 'select') {
+                            input = document.createElement('select');
+                            input.className = 'form-select';
+                            field.options.forEach(option => {
+                                const optionElement = document.createElement('option');
+                                optionElement.value = option;
+                                optionElement.textContent = option;
+                                if (option === field.default) {
+                                    optionElement.selected = true;
+                                }
+                                input.appendChild(optionElement);
+                            });
+                        } else if (field.type === 'boolean') {
+                            const checkboxGroup = document.createElement('div');
+                            checkboxGroup.className = 'form-checkbox-group';
+                            
+                            input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.className = 'form-checkbox';
+                            input.checked = field.default || false;
+                            
+                            const checkboxLabel = document.createElement('label');
+                            checkboxLabel.textContent = field.label;
+                            
+                            checkboxGroup.appendChild(input);
+                            checkboxGroup.appendChild(checkboxLabel);
+                            
+                            div.appendChild(checkboxGroup);
+                        } else {
+                            input = document.createElement('input');
+                            input.type = field.type;
+                            input.className = 'form-input';
+                            input.placeholder = field.placeholder || '';
+                            if (field.default !== undefined) {
+                                input.value = field.default;
+                            }
+                        }
+                        
+                        input.name = field.name;
+                        input.required = field.required || false;
+                        
+                        if (field.type !== 'boolean') {
+                            div.appendChild(label);
+                            div.appendChild(input);
+                        }
+                        
+                        container.appendChild(div);
+                    });
+                }
+                
+                document.getElementById('contractForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    if (!selectedTemplate) return;
+                    
+                    const formData = new FormData(this);
+                    const data = {
+                        template_id: selectedTemplate,
+                        fields: {}
+                    };
+                    
+                    // Collect form data
+                    for (const [key, value] of formData.entries()) {
+                        data.fields[key] = value;
+                    }
+                    
+                    // Handle checkboxes separately
+                    const checkboxes = this.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        data.fields[checkbox.name] = checkbox.checked;
+                    });
+                    
+                    // Show loading state
+                    document.getElementById('contractForm').style.display = 'none';
+                    document.getElementById('loadingState').style.display = 'block';
+                    
+                    try {
+                        const response = await fetch('/api/contracts/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // Open generated contract in new window
+                            const contractWindow = window.open('', '_blank');
+                            contractWindow.document.write(`
+                                <html>
+                                <head>
+                                    <title>${result.contract.title}</title>
+                                    <style>
+                                        body { font-family: 'Times New Roman', serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6; }
+                                        h1 { text-align: center; margin-bottom: 30px; }
+                                        .metadata { background: #f5f5f5; padding: 15px; margin-bottom: 30px; border-radius: 5px; }
+                                        .actions { position: fixed; top: 20px; right: 20px; }
+                                        .btn { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+                                        .btn-primary { background: #2E4B3C; color: white; }
+                                        .btn-secondary { background: #ccc; color: black; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="actions">
+                                        <button class="btn btn-primary" onclick="window.print()">Print</button>
+                                        <button class="btn btn-secondary" onclick="window.close()">Close</button>
+                                    </div>
+                                    <div class="metadata">
+                                        <strong>Generated by LexAI</strong><br>
+                                        Template: ${result.contract.template_name}<br>
+                                        Generated: ${new Date().toLocaleDateString()}<br>
+                                        <small>This is an AI-generated legal document. Please review carefully and consult with a qualified attorney before use.</small>
+                                    </div>
+                                    <h1>${result.contract.title}</h1>
+                                    <div>${result.contract.content.replace(/\\n/g, '<br>')}</div>
+                                </body>
+                                </html>
+                            `);
+                            contractWindow.document.close();
+                            
+                            // Reset form
+                            closeForm();
+                        } else {
+                            alert('Failed to generate contract: ' + result.error);
+                        }
+                    } catch (error) {
+                        alert('Error generating contract: ' + error.message);
+                    } finally {
+                        // Hide loading state
+                        document.getElementById('contractForm').style.display = 'block';
+                        document.getElementById('loadingState').style.display = 'none';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        """, templates=CONTRACT_TEMPLATES)
+        
+    except Exception as e:
+        logger.error(f"Contracts generator error: {e}")
+        return f"""<!DOCTYPE html>
+        <html><head><title>LexAI Contract Generator</title></head>
+        <body style="font-family: Inter, sans-serif; padding: 40px; text-align: center;">
+        <h1>📄 LexAI Contract Generator</h1>
+        <p>Error loading contract generator: {e}</p>
+        <a href="/" style="color: #2E4B3C;">← Back to Dashboard</a>
+        </body></html>"""
+
+@app.route('/api/contracts/generate', methods=['POST'])
+@rate_limit_decorator
+def generate_contract():
+    """Generate AI-powered contract using template and user inputs"""
+    try:
+        data = request.get_json()
+        template_id = data.get('template_id')
+        fields = data.get('fields', {})
+        
+        if not template_id or template_id not in CONTRACT_TEMPLATES:
+            return jsonify({"error": "Invalid template ID"}), 400
+        
+        template = CONTRACT_TEMPLATES[template_id]
+        
+        # Build AI prompt for contract generation
+        ai_prompt = f"""Generate a professional {template['name']} contract with the following specifications:
+
+TEMPLATE: {template['name']}
+CATEGORY: {template['category']}
+AI INSTRUCTIONS: {template['ai_instructions']}
+
+CONTRACT DETAILS:
+"""
+        
+        # Add user-provided field values
+        for field in template['fields']:
+            field_name = field['name']
+            field_value = fields.get(field_name, field.get('default', ''))
+            ai_prompt += f"- {field['label']}: {field_value}\n"
+        
+        ai_prompt += """
+
+REQUIREMENTS:
+1. Generate a complete, professional legal contract
+2. Use proper legal language and formatting
+3. Include all necessary clauses for this contract type
+4. Ensure enforceability and legal compliance
+5. Add appropriate signature blocks and date fields
+6. Include standard legal disclaimers where appropriate
+
+FORMAT: Return the complete contract text ready for use, with proper formatting and legal structure."""
+        
+        # In production, call actual AI service (GPT-4, Claude, etc.)
+        # For demo, generate a structured contract based on template
+        contract_content = generate_mock_contract(template, fields)
+        
+        return jsonify({
+            "success": True,
+            "contract": {
+                "title": template['name'],
+                "template_name": template['name'],
+                "content": contract_content,
+                "generated_at": datetime.utcnow().isoformat(),
+                "fields_used": fields
+            },
+            "ai_prompt_used": ai_prompt[:200] + "..."  # For debugging
+        })
+        
+    except Exception as e:
+        logger.error(f"Contract generation error: {e}")
+        return jsonify({"error": "Failed to generate contract"}), 500
+
+def generate_mock_contract(template, fields):
+    """Generate a mock contract for demo purposes (replace with actual AI in production)"""
+    
+    if template['name'] == 'Non-Disclosure Agreement (NDA)':
+        return f"""NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of _____________, 2025, between {fields.get('disclosing_party', '[DISCLOSING PARTY]')} ("Disclosing Party") and {fields.get('receiving_party', '[RECEIVING PARTY]')} ("Receiving Party").
+
+1. PURPOSE
+The purpose of this Agreement is to facilitate discussions regarding {fields.get('purpose', '[PURPOSE OF DISCLOSURE]')}.
+
+2. CONFIDENTIAL INFORMATION
+For purposes of this Agreement, "Confidential Information" means any and all information disclosed by the Disclosing Party to the Receiving Party, whether orally, in writing, or in any other form.
+
+3. OBLIGATIONS OF RECEIVING PARTY
+The Receiving Party agrees to:
+a) Hold all Confidential Information in strict confidence
+b) Not disclose Confidential Information to any third parties
+c) Use Confidential Information solely for the Purpose stated above
+d) Return or destroy all Confidential Information upon termination
+
+4. TERM
+This Agreement shall remain in effect for {fields.get('duration_years', '3')} years from the date first written above.
+
+5. GOVERNING LAW
+This Agreement shall be governed by the laws of {fields.get('jurisdiction', 'California')}.
+
+6. REMEDIES
+The Receiving Party acknowledges that any breach of this Agreement may cause irreparable harm, and the Disclosing Party shall be entitled to seek equitable relief.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+DISCLOSING PARTY:                    RECEIVING PARTY:
+
+_________________________           _________________________
+{fields.get('disclosing_party', '[DISCLOSING PARTY]')}
+Date: _______________               Date: _______________
+
+Generated by LexAI - Please review with qualified legal counsel before use."""
+    
+    elif template['name'] == 'Service Agreement':
+        return f"""SERVICE AGREEMENT
+
+This Service Agreement ("Agreement") is entered into as of _____________, 2025, between {fields.get('service_provider', '[SERVICE PROVIDER]')} ("Provider") and {fields.get('client', '[CLIENT]')} ("Client").
+
+1. SERVICES
+Provider agrees to provide the following services: {fields.get('services_description', '[SERVICES DESCRIPTION]')}.
+
+2. COMPENSATION
+Client agrees to pay Provider ${fields.get('payment_amount', '[AMOUNT]')} according to the following schedule: {fields.get('payment_schedule', 'Monthly')}.
+
+3. TERM
+This Agreement shall commence on _____________ and continue for {fields.get('term_months', '12')} months unless terminated earlier.
+
+4. TERMINATION
+Either party may terminate this Agreement with {fields.get('cancellation_notice_days', '30')} days written notice.
+
+5. PERFORMANCE STANDARDS
+Provider agrees to perform all services in a professional and timely manner consistent with industry standards.
+
+6. INDEPENDENT CONTRACTOR
+Provider is an independent contractor and not an employee of Client.
+
+7. CONFIDENTIALITY
+Both parties agree to maintain confidentiality of proprietary information.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+PROVIDER:                           CLIENT:
+
+_________________________          _________________________
+{fields.get('service_provider', '[SERVICE PROVIDER]')}
+Date: _______________              Date: _______________
+
+Generated by LexAI - Please review with qualified legal counsel before use."""
+    
+    # Add more template implementations as needed
+    else:
+        return f"""[GENERATED CONTRACT]
+
+Contract Type: {template['name']}
+Category: {template['category']}
+
+This is a professionally generated {template['name']} based on your specifications. The complete contract would include all necessary legal provisions, terms, and conditions appropriate for this type of agreement.
+
+User-Provided Information:
+{chr(10).join([f"- {k}: {v}" for k, v in fields.items()])}
+
+[The full contract content would be generated here using advanced AI legal language models]
+
+Generated by LexAI - Please review with qualified legal counsel before use."""
 
 # Error handlers
 @app.errorhandler(404)
