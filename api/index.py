@@ -707,10 +707,33 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             border-bottom: 1px solid var(--gray-200);
         }
 
-        .sidebar-header h2 {
-            font-size: 1.5rem;
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            flex: 1;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--primary-green);
+            line-height: 1.2;
+        }
+
+        .brand-tagline {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .sidebar-nav {
@@ -1070,7 +1093,24 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>🏛️ LexAI Platform</h2>
+                <div class="brand-container">
+                    <div class="brand-logo">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+                            <path d="M8 12h16M8 16h12M8 20h16M12 8v16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea"/>
+                                    <stop offset="100%" style="stop-color:#764ba2"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <div class="brand-name">LexAI</div>
+                        <div class="brand-tagline">Practice Partner</div>
+                    </div>
+                </div>
             </div>
             
             <nav class="sidebar-nav">
@@ -9124,10 +9164,12 @@ def system_health_check():
 # Apply performance monitoring to key endpoints
 app.before_request_funcs.setdefault(None, []).append(lambda: None)
 
-# Add monitoring navigation link
-def add_monitoring_link():
-    """Add monitoring link to navigation"""
-    pass
+# Redirect routes for compatibility
+@app.route('/research')
+def research_redirect():
+    """Redirect /research to /search for compatibility"""
+    from flask import redirect
+    return redirect('/search', code=301)
 
 # Error handlers
 @app.errorhandler(404)
