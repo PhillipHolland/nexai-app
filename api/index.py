@@ -4089,10 +4089,7 @@ def get_protected_fallback_response(message, practice_area):
     """Generate intelligent fallback response with core functionality protection"""
     practice_info = PRACTICE_AREAS.get(practice_area, PRACTICE_AREAS['corporate'])
     
-    return {
-        "choices": [{
-            "delta": {
-                "content": f"""I'm LexAI, your {practice_info['name']} AI assistant. I'm here to help with your legal question.
+    fallback_content = f"""I'm LexAI, your {practice_info['name']} AI assistant. I'm here to help with your legal question.
 
 **Your Question:** "{message}"
 
@@ -4121,8 +4118,9 @@ def get_protected_fallback_response(message, practice_area):
 **Important Disclaimer:** This is general legal information, not specific legal advice. Every legal situation is unique and requires professional evaluation by a qualified attorney licensed in your jurisdiction.
 
 How else can I assist you with your {practice_info['name'].lower()} matter?"""
-            }
-        }],
+    
+    return {
+        "response": fallback_content,
         "client_id": f"protected_{int(time.time())}",
         "practice_area": practice_area,
         "fallback_mode": "protected_core_functionality"
@@ -4200,10 +4198,7 @@ def api_chat():
             if response.status_code == 403:
                 logger.warning("XAI API key access denied - using fallback response")
                 # Fallback response when API key has no access
-                return jsonify({
-                    "choices": [{
-                        "delta": {
-                            "content": f"""I'm LexAI, your advanced legal AI assistant. I notice there's an API access issue, but I'm here to help!
+                fallback_content = f"""I'm LexAI, your advanced legal AI assistant. I notice there's an API access issue, but I'm here to help!
 
 **{PRACTICE_AREAS.get(practice_area, {}).get('name', 'Legal')} Analysis:**
 
@@ -4222,17 +4217,17 @@ Based on your query: "{message}"
 *Note: This is general legal information, not specific legal advice. Please consult with a qualified attorney for your particular situation.*
 
 **System Status:** API access temporarily limited - full functionality will be restored once XAI API key is updated."""
-                        }
-                    }]
+                
+                return jsonify({
+                    "response": fallback_content,
+                    "client_id": client_id,
+                    "practice_area": practice_area
                 })
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error: {e}")
             # Fallback for network issues
-            return jsonify({
-                "choices": [{
-                    "delta": {
-                        "content": f"""I'm LexAI, your legal AI assistant. There's a temporary connection issue, but I can still provide general guidance.
+            fallback_content = f"""I'm LexAI, your legal AI assistant. There's a temporary connection issue, but I can still provide general guidance.
 
 **Your Query:** "{message}"
 
@@ -4245,8 +4240,11 @@ Based on your query: "{message}"
 **Practice Area:** {PRACTICE_AREAS.get(practice_area, {}).get('name', 'Legal')}
 
 I apologize for the technical issue. Please try again shortly, or contact support if this persists."""
-                    }
-                }]
+            
+            return jsonify({
+                "response": fallback_content,
+                "client_id": client_id,
+                "practice_area": practice_area
             })
         
         if response.status_code == 200:
@@ -4287,7 +4285,7 @@ I apologize for the technical issue. Please try again shortly, or contact suppor
                     logger.error(f"Conversation logging error: {e}")
                 
                 return jsonify({
-                    "choices": [{"delta": {"content": assistant_content}}],
+                    "response": assistant_content,
                     "client_id": client_id,
                     "practice_area": practice_area,
                     "conversation_summary": conversation_manager.get_conversation_summary(client_id, practice_area)
