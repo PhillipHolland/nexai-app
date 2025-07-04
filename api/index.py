@@ -1119,30 +1119,13 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .brand-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
         }
 
         .brand-logo {
-            flex-shrink: 0;
-        }
-
-        .brand-text {
-            flex: 1;
-        }
-
-        .brand-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-green);
-            line-height: 1.2;
-        }
-
-        .brand-tagline {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--gray-600);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .sidebar-nav {
@@ -1514,10 +1497,6 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                                 </linearGradient>
                             </defs>
                         </svg>
-                    </div>
-                    <div class="brand-text">
-                        <div class="brand-name">LexAI</div>
-                        <div class="brand-tagline">Practice Partner</div>
                     </div>
                 </div>
             </div>
