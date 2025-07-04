@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDemoEntries();
 
     // Update timer display every second if running
-    if (timerState.isRunning) {
+    if (timerState.isRunning && !timerInterval) {
         startTimerInterval();
     }
 
@@ -681,7 +681,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         timerState.isRunning = true;
         timerState.isPaused = false;
-        timerState.startTime = Date.now() - timerState.pausedTime;
+        
+        // If resuming from pause, use existing pausedTime, otherwise start fresh
+        if (timerState.pausedTime > 0) {
+            timerState.startTime = Date.now() - timerState.pausedTime;
+        } else {
+            timerState.startTime = Date.now();
+            timerState.currentSeconds = 0;
+        }
         
         document.getElementById('startBtn').disabled = true;
         document.getElementById('pauseBtn').disabled = false;
@@ -696,7 +703,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.pauseTimer = function() {
         timerState.isRunning = false;
         timerState.isPaused = true;
-        timerState.pausedTime = timerState.currentSeconds * 1000;
+        // Store the elapsed time for resuming
+        timerState.pausedTime = Date.now() - timerState.startTime;
         
         document.getElementById('startBtn').disabled = false;
         document.getElementById('pauseBtn').disabled = true;
@@ -742,6 +750,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function startTimerInterval() {
+        // Clear any existing interval first
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        
         timerInterval = setInterval(function() {
             const now = Date.now();
             timerState.currentSeconds = Math.floor((now - timerState.startTime) / 1000);
@@ -811,28 +824,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadTimerState() {
         const savedState = localStorage.getItem('lexai_timer_state');
         if (savedState) {
-            const state = JSON.parse(savedState);
-            if (state.isRunning) {
-                // Restore running timer
-                timerState = state;
-                const now = Date.now();
-                timerState.currentSeconds = Math.floor((now - timerState.startTime) / 1000);
-                
-                document.getElementById('startBtn').disabled = true;
-                document.getElementById('pauseBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('timerStatus').textContent = 'Timer running...';
-                document.getElementById('timerStatus').classList.add('running');
-                
-                updateTimerDisplay();
-            } else if (state.isPaused && state.currentSeconds > 0) {
-                // Restore paused timer
-                timerState = state;
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('pauseBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('timerStatus').textContent = 'Timer paused';
-                updateTimerDisplay();
+            try {
+                const state = JSON.parse(savedState);
+                if (state.isRunning) {
+                    // Restore running timer
+                    timerState = state;
+                    const now = Date.now();
+                    timerState.currentSeconds = Math.floor((now - timerState.startTime) / 1000);
+                    
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('pauseBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('timerStatus').textContent = 'Timer running...';
+                    document.getElementById('timerStatus').classList.add('running');
+                    
+                    updateTimerDisplay();
+                } else if (state.isPaused && state.pausedTime > 0) {
+                    // Restore paused timer
+                    timerState = state;
+                    timerState.currentSeconds = Math.floor(state.pausedTime / 1000);
+                    
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('pauseBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('timerStatus').textContent = 'Timer paused';
+                    updateTimerDisplay();
+                }
+            } catch (e) {
+                console.error('Error loading timer state:', e);
+                // Reset to default state
+                localStorage.removeItem('lexai_timer_state');
             }
         }
     }
@@ -957,9 +978,61 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshEntries();
     };
 
-    // Other functions
+    // Manual entry function
     window.addManualEntry = function() {
-        alert('Manual entry form coming soon!');
+        // Create a simple prompt-based manual entry for now
+        const client = prompt('Client:');
+        if (!client) return;
+        
+        const project = prompt('Project:');
+        if (!project) return;
+        
+        const task = prompt('Task:');
+        if (!task) return;
+        
+        const description = prompt('Description:');
+        if (!description) return;
+        
+        const hours = parseFloat(prompt('Hours worked:'));
+        if (!hours || hours <= 0) {
+            alert('Please enter a valid number of hours');
+            return;
+        }
+        
+        const rate = parseFloat(prompt('Hourly rate:', '350'));
+        if (!rate || rate <= 0) {
+            alert('Please enter a valid hourly rate');
+            return;
+        }
+        
+        // Create manual entry
+        const entry = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            client: client,
+            clientId: 'manual-' + Date.now(),
+            project: project,
+            projectId: 'manual-project',
+            task: task,
+            taskId: 'manual-task',
+            description: description,
+            duration: hours,
+            rate: rate,
+            amount: hours * rate,
+            status: 'completed',
+            timestamp: new Date().toISOString()
+        };
+        
+        // Save to localStorage
+        const entries = getTimeEntries();
+        entries.unshift(entry);
+        localStorage.setItem('lexai_time_entries', JSON.stringify(entries));
+        
+        // Refresh display
+        refreshEntries();
+        updateSummaryCards();
+        
+        alert('Manual time entry added successfully!');
     };
 
     window.exportTimesheet = function() {
