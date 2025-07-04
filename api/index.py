@@ -7872,6 +7872,262 @@ def system_health_check():
 # Apply performance monitoring to key endpoints
 app.before_request_funcs.setdefault(None, []).append(lambda: None)
 
+# Authentication Routes
+@app.route('/auth/login')
+def auth_login():
+    """Login page"""
+    try:
+        from flask import render_template
+        return render_template('auth_login.html')
+    except Exception as e:
+        logger.error(f"Login template error: {e}")
+        return f"<h1>Login</h1><p>Template error: {e}</p>", 500
+
+@app.route('/auth/register')
+def auth_register():
+    """Registration page"""
+    try:
+        from flask import render_template
+        return render_template('auth_register.html')
+    except Exception as e:
+        logger.error(f"Register template error: {e}")
+        return f"<h1>Register</h1><p>Template error: {e}</p>", 500
+
+@app.route('/profile')
+def user_profile():
+    """User profile page"""
+    try:
+        from flask import render_template
+        # Demo user data
+        demo_user = {
+            'first_name': 'Demo',
+            'last_name': 'User',
+            'email': 'demo@lexai.com',
+            'phone': '(555) 123-4567',
+            'firm_name': 'Demo Law Firm',
+            'job_title': 'Senior Partner',
+            'bar_number': 'CA123456',
+            'bio': 'Experienced attorney specializing in corporate law with over 10 years of practice.',
+            'role': 'Legal Professional'
+        }
+        return render_template('user_profile.html', user=demo_user, next_billing_date='February 15, 2025')
+    except Exception as e:
+        logger.error(f"Profile template error: {e}")
+        return f"<h1>Profile</h1><p>Template error: {e}</p>", 500
+
+@app.route('/api/auth/login', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['email', 'password'])
+def api_login():
+    """Handle login API requests"""
+    try:
+        data = g.validated_data
+        email = SecurityValidator.sanitize_input(data.get('email', ''))
+        password = data.get('password', '')
+        remember = data.get('remember', False)
+        
+        # Demo credentials validation
+        demo_credentials = {
+            'demo@lexai.com': 'demo123',
+            'admin@lexai.com': 'admin123',
+            'user@lexai.com': 'password'
+        }
+        
+        if email in demo_credentials and demo_credentials[email] == password:
+            # Successful login - return user data
+            user_data = {
+                'email': email,
+                'first_name': 'Demo',
+                'last_name': 'User',
+                'firm_name': 'Demo Law Firm',
+                'role': 'Legal Professional',
+                'login_time': datetime.utcnow().isoformat()
+            }
+            
+            logger.info(f"Successful login: {email}")
+            return jsonify({
+                'success': True,
+                'message': 'Login successful',
+                'user': user_data,
+                'redirect': '/dashboard'
+            })
+        else:
+            logger.warning(f"Failed login attempt: {email}")
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email or password. Try demo@lexai.com / demo123'
+            }), 401
+            
+    except Exception as e:
+        logger.error(f"Login API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Login failed. Please try again.'
+        }), 500
+
+@app.route('/api/auth/register', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['firstName', 'lastName', 'email', 'password', 'firmName', 'practiceArea'])
+def api_register():
+    """Handle registration API requests"""
+    try:
+        data = g.validated_data
+        
+        # Validate required fields
+        required_fields = ['firstName', 'lastName', 'email', 'password', 'firmName', 'practiceArea']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({
+                    'success': False,
+                    'error': f'{field} is required'
+                }), 400
+        
+        # Sanitize inputs
+        first_name = SecurityValidator.sanitize_input(data.get('firstName', ''))
+        last_name = SecurityValidator.sanitize_input(data.get('lastName', ''))
+        email = SecurityValidator.sanitize_input(data.get('email', ''))
+        password = data.get('password', '')
+        firm_name = SecurityValidator.sanitize_input(data.get('firmName', ''))
+        practice_area = SecurityValidator.sanitize_input(data.get('practiceArea', ''))
+        selected_plan = data.get('selectedPlan', 'professional')
+        
+        # Validate email format
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email):
+            return jsonify({
+                'success': False,
+                'error': 'Please enter a valid email address'
+            }), 400
+        
+        # Validate password strength
+        if len(password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'Password must be at least 8 characters long'
+            }), 400
+        
+        # For demo purposes, simulate successful registration
+        # In production, this would create a user account in the database
+        user_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'firm_name': firm_name,
+            'practice_area': practice_area,
+            'plan': selected_plan,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"New user registration: {email} - {firm_name}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully! Please check your email to verify your account.',
+            'user': user_data,
+            'redirect': '/auth/login?message=Please check your email to verify your account'
+        })
+        
+    except Exception as e:
+        logger.error(f"Registration API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Registration failed. Please try again.'
+        }), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    """Handle logout API requests"""
+    try:
+        # In a real implementation, this would invalidate the session/token
+        logger.info("User logout")
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully',
+            'redirect': '/auth/login'
+        })
+        
+    except Exception as e:
+        logger.error(f"Logout API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Logout failed'
+        }), 500
+
+@app.route('/api/profile/update', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['firstName', 'lastName', 'email'])
+def api_update_profile():
+    """Handle profile update requests"""
+    try:
+        data = g.validated_data
+        
+        # Sanitize inputs
+        updates = {}
+        for field in ['firstName', 'lastName', 'email', 'phone', 'firmName', 'jobTitle', 'practiceArea', 'barNumber', 'bio']:
+            if field in data:
+                updates[field] = SecurityValidator.sanitize_input(str(data[field]))
+        
+        # Validate email if provided
+        if 'email' in updates:
+            import re
+            email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+            if not re.match(email_pattern, updates['email']):
+                return jsonify({
+                    'success': False,
+                    'error': 'Please enter a valid email address'
+                }), 400
+        
+        # For demo purposes, simulate successful update
+        # In production, this would update the user record in the database
+        logger.info(f"Profile updated: {updates.get('email', 'unknown')}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Profile updated successfully',
+            'updated_fields': list(updates.keys())
+        })
+        
+    except Exception as e:
+        logger.error(f"Profile update API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Profile update failed. Please try again.'
+        }), 500
+
+@app.route('/api/auth/change-password', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['currentPassword', 'newPassword'])
+def api_change_password():
+    """Handle password change requests"""
+    try:
+        data = g.validated_data
+        current_password = data.get('currentPassword', '')
+        new_password = data.get('newPassword', '')
+        
+        # Validate new password strength
+        if len(new_password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'New password must be at least 8 characters long'
+            }), 400
+        
+        # For demo purposes, simulate successful password change
+        # In production, this would verify the current password and update the hash
+        logger.info("Password changed successfully")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Password change API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Password change failed. Please try again.'
+        }), 500
+
 # Redirect routes for compatibility
 @app.route('/research')
 def research_redirect():

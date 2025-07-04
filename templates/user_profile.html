@@ -1,0 +1,919 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* User Profile Specific Styles */
+        .profile-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .profile-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .profile-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .profile-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .profile-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .profile-main {
+                grid-template-columns: 300px 1fr;
+            }
+        }
+
+        /* Sidebar Navigation */
+        .profile-sidebar {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .avatar-image {
+            width: 5rem;
+            height: 5rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #F7EDDA;
+            margin: 0 auto 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .avatar-image:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .avatar-role {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            text-decoration: none;
+        }
+
+        .sidebar-nav a.active {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+        }
+
+        .sidebar-nav svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        /* Content Area */
+        .profile-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .content-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .content-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .content-body {
+            padding: 2rem;
+        }
+
+        /* Forms */
+        .profile-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .profile-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .form-group {
+            grid-column: span 1;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 767px) {
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-input:disabled {
+            background-color: #f9fafb;
+            color: #6b7280;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(46, 75, 60, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Settings Cards */
+        .settings-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .settings-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .settings-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .settings-card-title {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .settings-card-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 3rem;
+            height: 1.5rem;
+            background-color: #d1d5db;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            background-color: #2E4B3C;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 0.125rem;
+            left: 0.125rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(1.5rem);
+        }
+
+        /* Subscription Info */
+        .subscription-card {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 1px solid #bbf7d0;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .subscription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .subscription-plan {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #16a34a;
+        }
+
+        .subscription-status {
+            background-color: #16a34a;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .subscription-details {
+            color: #15803d;
+            font-size: 0.875rem;
+        }
+
+        /* Activity Log */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1023px) {
+            .profile-main {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-sidebar {
+                order: 2;
+            }
+
+            .profile-content {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-title {
+                font-size: 2rem;
+            }
+
+            .profile-container {
+                padding: 1rem 0;
+            }
+
+            .content-header,
+            .content-body {
+                padding: 1.5rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .subscription-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <h1 class="profile-title">Account Settings</h1>
+        <p class="profile-subtitle">Manage your profile, preferences, and account security</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="profile-main">
+        <!-- Sidebar -->
+        <div class="profile-sidebar">
+            <div class="profile-avatar">
+                <div class="avatar-image" onclick="document.getElementById('avatarInput').click()">
+                    {{ user.first_name[0] if user.first_name else 'U' }}{{ user.last_name[0] if user.last_name else '' }}
+                </div>
+                <div class="avatar-name">{{ user.first_name or 'Demo' }} {{ user.last_name or 'User' }}</div>
+                <div class="avatar-role">{{ user.role or 'Legal Professional' }}</div>
+                <input type="file" id="avatarInput" style="display: none;" accept="image/*">
+            </div>
+
+            <nav>
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="#profile" class="nav-link active" onclick="showSection('profile')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Profile Information
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#security" class="nav-link" onclick="showSection('security')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Security
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#preferences" class="nav-link" onclick="showSection('preferences')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Preferences
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#subscription" class="nav-link" onclick="showSection('subscription')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                            </svg>
+                            Subscription
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#activity" class="nav-link" onclick="showSection('activity')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Activity Log
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <div class="profile-content">
+            <!-- Profile Information Section -->
+            <div id="profileSection" class="content-section">
+                <div class="content-header">
+                    <h2 class="content-title">Profile Information</h2>
+                    <p class="content-description">Update your personal and professional information</p>
+                </div>
+                <div class="content-body">
+                    <form class="profile-form" id="profileForm">
+                        <div class="form-group">
+                            <label class="form-label" for="firstName">First Name</label>
+                            <input type="text" id="firstName" class="form-input" value="{{ user.first_name or 'Demo' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name</label>
+                            <input type="text" id="lastName" class="form-input" value="{{ user.last_name or 'User' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-input" value="{{ user.email or 'demo@lexai.com' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-input" value="{{ user.phone or '(555) 123-4567' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="firmName">Firm Name</label>
+                            <input type="text" id="firmName" class="form-input" value="{{ user.firm_name or 'Demo Law Firm' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="jobTitle">Job Title</label>
+                            <input type="text" id="jobTitle" class="form-input" value="{{ user.job_title or 'Senior Partner' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="practiceArea">Primary Practice Area</label>
+                            <select id="practiceArea" class="form-input">
+                                <option value="family">Family Law</option>
+                                <option value="corporate" selected>Corporate Law</option>
+                                <option value="personal-injury">Personal Injury</option>
+                                <option value="criminal">Criminal Defense</option>
+                                <option value="real-estate">Real Estate</option>
+                                <option value="immigration">Immigration</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="barNumber">Bar Number</label>
+                            <input type="text" id="barNumber" class="form-input" value="{{ user.bar_number or 'CA123456' }}">
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label" for="bio">Professional Bio</label>
+                            <textarea id="bio" class="form-input" rows="4" placeholder="Tell us about your legal practice and experience...">{{ user.bio or 'Experienced attorney specializing in corporate law with over 10 years of practice.' }}</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div id="securitySection" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">Security Settings</h2>
+                    <p class="content-description">Manage your password and security preferences</p>
+                </div>
+                <div class="content-body">
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Change Password</h3>
+                            </div>
+                            <p class="settings-card-description">Update your password to keep your account secure</p>
+                            <form class="profile-form" id="passwordForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" class="form-input">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
+                                    <input type="password" id="confirmNewPassword" class="form-input">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Update Password</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Two-Factor Authentication</h3>
+                                <div class="toggle-switch" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Add an extra layer of security to your account</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Login Notifications</h3>
+                                <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Get notified when someone logs into your account</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Section -->
+            <div id="preferencesSection" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">Preferences</h2>
+                    <p class="content-description">Customize your LexAI experience</p>
+                </div>
+                <div class="content-body">
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Email Notifications</h3>
+                                <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Receive email updates about your cases and activities</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">AI Suggestions</h3>
+                                <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Enable AI-powered suggestions and recommendations</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Dark Mode</h3>
+                                <div class="toggle-switch" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Switch to dark theme for better viewing in low light</p>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Auto-Save Drafts</h3>
+                                <div class="toggle-switch active" onclick="toggleSetting(this)"></div>
+                            </div>
+                            <p class="settings-card-description">Automatically save your work as you type</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Section -->
+            <div id="subscriptionSection" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">Subscription & Billing</h2>
+                    <p class="content-description">Manage your subscription and billing information</p>
+                </div>
+                <div class="content-body">
+                    <div class="subscription-card">
+                        <div class="subscription-header">
+                            <div class="subscription-plan">Professional Plan</div>
+                            <div class="subscription-status">Active</div>
+                        </div>
+                        <div class="subscription-details">
+                            <p>$99/month • Next billing date: {{ next_billing_date or 'February 15, 2025' }}</p>
+                            <p>Includes: AI Chat, Document Analysis, Legal Research, Contract Generator, Analytics</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Payment Method</h3>
+                            </div>
+                            <p class="settings-card-description">
+                                **** **** **** 4242 • Expires 12/26
+                            </p>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary">Update Payment</button>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <h3 class="settings-card-title">Billing History</h3>
+                            </div>
+                            <p class="settings-card-description">
+                                View and download your billing history and invoices
+                            </p>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary">View History</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log Section -->
+            <div id="activitySection" class="content-section" style="display: none;">
+                <div class="content-header">
+                    <h2 class="content-title">Recent Activity</h2>
+                    <p class="content-description">Track your recent actions and account activity</p>
+                </div>
+                <div class="content-body">
+                    <ul class="activity-list">
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2v20m9-9H3"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Generated contract template</div>
+                                <div class="activity-description">Service Agreement for ABC Corporation</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Legal research query</div>
+                                <div class="activity-description">Searched for contract formation elements</div>
+                                <div class="activity-time">4 hours ago</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Added new client</div>
+                                <div class="activity-description">John Smith - Family Law case</div>
+                                <div class="activity-time">Yesterday</div>
+                            </div>
+                        </li>
+                        <li class="activity-item">
+                            <div class="activity-icon">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Document analysis completed</div>
+                                <div class="activity-description">Analyzed merger agreement (45 pages)</div>
+                                <div class="activity-time">2 days ago</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Section navigation
+    window.showSection = function(sectionName) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show selected section
+        document.getElementById(sectionName + 'Section').style.display = 'block';
+        
+        // Update nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    };
+
+    // Toggle settings
+    window.toggleSetting = function(element) {
+        element.classList.toggle('active');
+    };
+
+    // Form submission
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Collect form data
+        const formData = {
+            firstName: document.getElementById('firstName').value.trim(),
+            lastName: document.getElementById('lastName').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            firmName: document.getElementById('firmName').value.trim(),
+            jobTitle: document.getElementById('jobTitle').value.trim(),
+            practiceArea: document.getElementById('practiceArea').value,
+            barNumber: document.getElementById('barNumber').value.trim(),
+            bio: document.getElementById('bio').value.trim()
+        };
+
+        try {
+            // Call backend API
+            const response = await fetch('/api/profile/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Profile updated successfully!');
+            } else {
+                alert('Profile update failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Profile update error:', error);
+            alert('Profile update failed. Please try again.');
+        }
+    });
+
+    // Password change form submission
+    document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmNewPassword = document.getElementById('confirmNewPassword').value.trim();
+        
+        // Validate inputs
+        if (!currentPassword) {
+            alert('Please enter your current password');
+            return;
+        }
+        
+        if (!newPassword) {
+            alert('Please enter a new password');
+            return;
+        }
+        
+        if (newPassword.length < 8) {
+            alert('New password must be at least 8 characters long');
+            return;
+        }
+        
+        if (newPassword !== confirmNewPassword) {
+            alert('New passwords do not match');
+            return;
+        }
+
+        try {
+            // Call backend API
+            const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Password changed successfully!');
+                // Clear form
+                document.getElementById('passwordForm').reset();
+            } else {
+                alert('Password change failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Password change error:', error);
+            alert('Password change failed. Please try again.');
+        }
+    });
+
+    // Avatar upload
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            alert('Avatar upload functionality coming soon!');
+        }
+    });
+});
+</script>
+{% endblock %}
