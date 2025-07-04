@@ -849,29 +849,40 @@ PRACTICE_AREAS = {
 def get_mock_clients():
     return [
         {
-            'id': 1, 'name': 'John Smith', 'practice_area': 'family', 'status': 'active', 
-            'last_contact': '2025-01-03', 'case_type': 'Divorce', 'priority': 'high',
+            'id': 1, 'name': 'John Smith', 'email': 'john.smith@email.com', 'phone': '(555) 123-4567',
+            'practice_area': 'family', 'status': 'active', 'last_contact': 'Jan 3, 2025',
+            'cases': ['Divorce Proceedings', 'Child Custody'], 'case_type': 'Divorce', 'priority': 'high',
             'messages': 12, 'documents': 5, 'value': 15000, 'next_action': 'File custody motion'
         },
         {
-            'id': 2, 'name': 'Sarah Johnson', 'practice_area': 'corporate', 'status': 'active',
-            'last_contact': '2025-01-02', 'case_type': 'M&A Due Diligence', 'priority': 'high',
+            'id': 2, 'name': 'Sarah Johnson', 'email': 'sarah.johnson@techcorp.com', 'phone': '(555) 234-5678',
+            'practice_area': 'corporate', 'status': 'active', 'last_contact': 'Jan 2, 2025',
+            'cases': ['M&A Due Diligence', 'Contract Review'], 'case_type': 'M&A Due Diligence', 'priority': 'high',
             'messages': 28, 'documents': 15, 'value': 125000, 'next_action': 'Review contracts'
         },
         {
-            'id': 3, 'name': 'Mike Davis', 'practice_area': 'personal_injury', 'status': 'pending',
-            'last_contact': '2025-01-01', 'case_type': 'Auto Accident', 'priority': 'medium',
+            'id': 3, 'name': 'Mike Davis', 'email': 'mike.davis@email.com', 'phone': '(555) 345-6789',
+            'practice_area': 'personal-injury', 'status': 'prospect', 'last_contact': 'Jan 1, 2025',
+            'cases': ['Auto Accident Case'], 'case_type': 'Auto Accident', 'priority': 'medium',
             'messages': 8, 'documents': 3, 'value': 45000, 'next_action': 'Medical records review'
         },
         {
-            'id': 4, 'name': 'Lisa Chen', 'practice_area': 'immigration', 'status': 'active',
-            'last_contact': '2024-12-28', 'case_type': 'Green Card Application', 'priority': 'medium',
+            'id': 4, 'name': 'Lisa Chen', 'email': 'lisa.chen@email.com', 'phone': '(555) 456-7890',
+            'practice_area': 'family', 'status': 'active', 'last_contact': 'Dec 28, 2024',
+            'cases': ['Green Card Application'], 'case_type': 'Green Card Application', 'priority': 'medium',
             'messages': 15, 'documents': 8, 'value': 8500, 'next_action': 'USCIS filing'
         },
         {
-            'id': 5, 'name': 'Robert Wilson', 'practice_area': 'real_estate', 'status': 'completed',
-            'last_contact': '2024-12-20', 'case_type': 'Commercial Purchase', 'priority': 'low',
+            'id': 5, 'name': 'Robert Wilson', 'email': 'robert.wilson@realty.com', 'phone': '(555) 567-8901',
+            'practice_area': 'real-estate', 'status': 'inactive', 'last_contact': 'Dec 20, 2024',
+            'cases': ['Commercial Purchase'], 'case_type': 'Commercial Purchase', 'priority': 'low',
             'messages': 22, 'documents': 12, 'value': 75000, 'next_action': 'Closing complete'
+        },
+        {
+            'id': 6, 'name': 'Emma Thompson', 'email': 'emma.thompson@email.com', 'phone': '(555) 678-9012',
+            'practice_area': 'corporate', 'status': 'active', 'last_contact': 'Dec 30, 2024',
+            'cases': ['Employment Contract', 'NDA Review'], 'case_type': 'Employment Law', 'priority': 'medium',
+            'messages': 9, 'documents': 4, 'value': 12000, 'next_action': 'Draft settlement agreement'
         }
     ]
 
@@ -2166,290 +2177,26 @@ def chat_interface(client_id=None):
 def clients_page():
     """Comprehensive client management page"""
     try:
+        from flask import render_template
         clients = get_mock_clients()
-        analytics = get_analytics_data()
         
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Client Management - LexAI</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                :root {
-                    --primary-green: #2E4B3C;
-                    --primary-green-light: #4A6B57;
-                    --secondary-cream: #F7EDDA;
-                    --white: #ffffff;
-                    --gray-50: #f9fafb;
-                    --gray-100: #f3f4f6;
-                    --gray-600: #4b5563;
-                    --gray-900: #111827;
-                    --success: #10b981;
-                    --warning: #f59e0b;
-                    --error: #ef4444;
-                }
-                
-                body {
-                    font-family: 'Inter', system-ui, sans-serif;
-                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
-                    margin: 0;
-                    padding: 20px;
-                    min-height: 100vh;
-                    color: var(--gray-900);
-                }
-                
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    background: white;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                
-                .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 32px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid var(--gray-100);
-                }
-                
-                .back-link {
-                    background: var(--primary-green);
-                    color: var(--secondary-cream);
-                    padding: 8px 16px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                }
-                
-                .stats-row {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 16px;
-                    margin-bottom: 32px;
-                }
-                
-                .stat-card {
-                    background: var(--gray-50);
-                    padding: 20px;
-                    border-radius: 12px;
-                    text-align: center;
-                }
-                
-                .stat-value {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    color: var(--primary-green);
-                }
-                
-                .stat-label {
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                    margin-top: 4px;
-                }
-                
-                .filters {
-                    display: flex;
-                    gap: 16px;
-                    margin-bottom: 24px;
-                    flex-wrap: wrap;
-                }
-                
-                .filter-btn {
-                    padding: 8px 16px;
-                    border: 1px solid var(--gray-100);
-                    border-radius: 8px;
-                    background: white;
-                    cursor: pointer;
-                    font-size: 0.875rem;
-                    transition: all 0.2s ease;
-                }
-                
-                .filter-btn.active {
-                    background: var(--primary-green);
-                    color: white;
-                    border-color: var(--primary-green);
-                }
-                
-                .clients-grid {
-                    display: grid;
-                    gap: 16px;
-                }
-                
-                .client-card {
-                    background: white;
-                    border: 1px solid var(--gray-100);
-                    border-radius: 12px;
-                    padding: 24px;
-                    transition: all 0.2s ease;
-                    cursor: pointer;
-                }
-                
-                .client-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-                }
-                
-                .client-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 16px;
-                }
-                
-                .client-name {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: var(--gray-900);
-                }
-                
-                .client-type {
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                    margin-top: 4px;
-                }
-                
-                .status-badge {
-                    padding: 4px 12px;
-                    border-radius: 6px;
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                }
-                
-                .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-                .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-                .status-completed { background: rgba(107, 114, 128, 0.1); color: var(--gray-600); }
-                
-                .client-metrics {
-                    display: flex;
-                    gap: 24px;
-                    margin-top: 16px;
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                }
-                
-                .metric {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                
-                .priority-high { color: var(--error); }
-                .priority-medium { color: var(--warning); }
-                .priority-low { color: var(--gray-600); }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div>
-                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Client Management</h1>
-                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Manage cases, track progress, and analyze performance</p>
-                    </div>
-                    <a href="/" class="back-link">← Dashboard</a>
-                </div>
-                
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <div class="stat-value">{{ analytics.cases.total }}</div>
-                        <div class="stat-label">Total Cases</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">{{ analytics.cases.active }}</div>
-                        <div class="stat-label">Active</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${{ "{:,}".format(analytics.revenue.total_ytd) }}</div>
-                        <div class="stat-label">Revenue YTD</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}</div>
-                        <div class="stat-label">Satisfaction</div>
-                    </div>
-                </div>
-                
-                <div class="filters">
-                    <button class="filter-btn active" onclick="filterClients('all')">All Clients</button>
-                    <button class="filter-btn" onclick="filterClients('active')">Active</button>
-                    <button class="filter-btn" onclick="filterClients('pending')">Pending</button>
-                    <button class="filter-btn" onclick="filterClients('completed')">Completed</button>
-                </div>
-                
-                <div class="clients-grid" id="clientsGrid">
-                    {% for client in clients %}
-                    <div class="client-card" data-status="{{ client.status }}" onclick="window.location.href='/clients/{{ client.id }}'">
-                        <div class="client-header">
-                            <div>
-                                <div class="client-name">{{ client.name }}</div>
-                                <div class="client-type">{{ client.case_type }} • {{ practice_areas[client.practice_area].name }}</div>
-                            </div>
-                            <span class="status-badge status-{{ client.status }}">{{ client.status.title() }}</span>
-                        </div>
-                        
-                        <div class="client-metrics">
-                            <div class="metric">
-                                <span>💬</span>
-                                <span>{{ client.messages }} messages</span>
-                            </div>
-                            <div class="metric">
-                                <span>📄</span>
-                                <span>{{ client.documents }} docs</span>
-                            </div>
-                            <div class="metric">
-                                <span>💰</span>
-                                <span>${{ "{:,}".format(client.value) }}</span>
-                            </div>
-                            <div class="metric priority-{{ client.priority }}">
-                                <span>🔥</span>
-                                <span>{{ client.priority.title() }}</span>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 12px; font-size: 0.875rem; color: var(--gray-600);">
-                            <strong>Next:</strong> {{ client.next_action }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <script>
-                function filterClients(status) {
-                    const cards = document.querySelectorAll('.client-card');
-                    const buttons = document.querySelectorAll('.filter-btn');
-                    
-                    // Update button states
-                    buttons.forEach(btn => btn.classList.remove('active'));
-                    event.target.classList.add('active');
-                    
-                    // Filter cards
-                    cards.forEach(card => {
-                        if (status === 'all' || card.dataset.status === status) {
-                            card.style.display = 'block';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                }
-            </script>
-        </body>
-        </html>
-        """, clients=clients, analytics=analytics, practice_areas=PRACTICE_AREAS)
+        # Calculate stats
+        active_count = len([c for c in clients if c['status'] == 'active'])
+        total_cases = sum(len(c.get('cases', [])) for c in clients)
+        pending_tasks = 12  # Mock data
         
+        return render_template('clients_list.html',
+                             clients=clients,
+                             active_count=active_count,
+                             total_cases=total_cases,
+                             pending_tasks=pending_tasks)
     except Exception as e:
         logger.error(f"Clients page error: {e}")
         return f"""<!DOCTYPE html>
-<html><head><title>LexAI Clients</title></head>
+<html><head><title>LexAI Client Management</title></head>
 <body><h1>🏛️ LexAI Client Management</h1>
-<p>Error loading clients: {e}</p>
-<a href="/">← Back to Dashboard</a></body></html>"""
+<p>Page loading error: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
 
 @app.route('/clients/<client_id>')
 def client_detail(client_id):
@@ -4029,6 +3776,62 @@ def get_clients():
             "status": "error",
             "error": str(e)
         }), 500
+
+@app.route('/api/clients', methods=['POST'])
+@rate_limit_decorator
+def add_client():
+    """Add a new client to the system"""
+    try:
+        # Get request data
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # Validate required fields
+        required_fields = ['name', 'email']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        # Basic validation
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        practice_area = data.get('practice_area', 'family')
+        status = data.get('status', 'prospect')
+        notes = data.get('notes', '').strip()
+        
+        if len(name) < 2:
+            return jsonify({'error': 'Name must be at least 2 characters'}), 400
+            
+        # Basic email validation
+        if '@' not in email or '.' not in email:
+            return jsonify({'error': 'Invalid email format'}), 400
+        
+        # In production, this would save to database
+        # For now, we'll simulate success
+        new_client_id = 100 + len(get_mock_clients())  # Generate mock ID
+        
+        logger.info(f"New client added: {name} ({email})")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Client added successfully',
+            'client_id': new_client_id,
+            'client': {
+                'id': new_client_id,
+                'name': name,
+                'email': email,
+                'phone': phone,
+                'practice_area': practice_area,
+                'status': status,
+                'notes': notes
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error adding client: {e}")
+        return jsonify({'error': 'Failed to add client'}), 500
 
 @app.route('/api/clients/<int:client_id>')
 @rate_limit_decorator
