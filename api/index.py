@@ -2890,6 +2890,20 @@ def clients_list():
     """Client list route alias for compatibility"""
     return clients_page()
 
+@app.route('/documents/analyze')
+def document_analysis_page():
+    """Document analysis page"""
+    try:
+        from flask import render_template
+        return render_template('document_analysis.html')
+    except Exception as e:
+        logger.error(f"Document analysis page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Document Analysis</title></head>
+<body><h1>🏛️ LexAI Document Analysis</h1>
+<p>Page loading error: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
+
 @app.route('/documents')
 def documents_list():
     """Document management system with upload and analysis capabilities"""
@@ -3388,6 +3402,168 @@ def upload_document():
     except Exception as e:
         logger.error(f"Document upload error: {e}")
         return jsonify({'error': 'Document upload failed'}), 500
+
+@app.route('/api/documents/analyze', methods=['POST'])
+@rate_limit_decorator
+def analyze_document_upload():
+    """Analyze uploaded document with AI"""
+    try:
+        # Check if file was uploaded
+        if 'document' not in request.files:
+            return jsonify({'error': 'No document file provided'}), 400
+        
+        file = request.files['document']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file type
+        allowed_extensions = {'.pdf', '.doc', '.docx', '.txt'}
+        file_ext = '.' + file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+        
+        if file_ext not in allowed_extensions:
+            return jsonify({'error': 'Unsupported file type. Please upload PDF, DOC, DOCX, or TXT files.'}), 400
+        
+        # Read file content
+        try:
+            if file_ext == '.txt':
+                content = file.read().decode('utf-8')
+            else:
+                # For PDF/DOC files, we'll extract text (simplified version)
+                content = file.read().decode('utf-8', errors='ignore')
+        except Exception as e:
+            return jsonify({'error': f'Error reading file: {str(e)}'}), 400
+        
+        # Limit content length for API
+        if len(content) > 10000:
+            content = content[:10000] + "... [truncated]"
+        
+        if not XAI_API_KEY:
+            # Fallback analysis when API is not available
+            return jsonify({
+                'analysis': get_fallback_document_analysis(file.filename, content)
+            })
+        
+        # Create analysis prompt
+        analysis_prompt = f"""You are a legal AI assistant specializing in document analysis. Analyze the following document and provide a comprehensive legal analysis.
+
+Document: {file.filename}
+Content: {content}
+
+Please provide your analysis in the following JSON format:
+{{
+    "summary": "Brief summary of the document",
+    "key_terms": [
+        {{"term": "Contract Party", "type": "Entity"}},
+        {{"term": "Effective Date", "type": "Date"}}
+    ],
+    "important_dates": [
+        {{"description": "Contract Effective Date", "date": "2024-01-01"}},
+        {{"description": "Expiration Date", "date": "2025-01-01"}}
+    ],
+    "risks": [
+        {{"description": "Unlimited liability clause", "level": "High"}},
+        {{"description": "Unclear termination terms", "level": "Medium"}}
+    ],
+    "recommendations": "Specific recommendations for this document"
+}}
+
+Focus on legal terminology, important dates, potential risks, contractual obligations, and actionable recommendations."""
+
+        # Make API call to XAI
+        try:
+            payload = {
+                "model": "grok-3-latest",
+                "messages": [
+                    {"role": "system", "content": "You are a legal AI assistant providing document analysis. Always respond with valid JSON containing the requested analysis fields."},
+                    {"role": "user", "content": analysis_prompt}
+                ],
+                "stream": False,
+                "temperature": 0.3
+            }
+
+            headers = {
+                "Authorization": f"Bearer {XAI_API_KEY}",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(
+                'https://api.x.ai/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                completion = response.json()
+                if 'choices' in completion and len(completion['choices']) > 0:
+                    ai_response = completion['choices'][0]['message']['content'].strip()
+                    
+                    # Try to parse JSON response
+                    try:
+                        import json
+                        analysis_data = json.loads(ai_response)
+                        return jsonify({'analysis': analysis_data})
+                    except json.JSONDecodeError:
+                        # If JSON parsing fails, use fallback
+                        logger.warning("Failed to parse AI response as JSON, using fallback")
+                        return jsonify({
+                            'analysis': get_fallback_document_analysis(file.filename, content, ai_response)
+                        })
+            else:
+                logger.warning(f"XAI API error: {response.status_code}")
+                return jsonify({
+                    'analysis': get_fallback_document_analysis(file.filename, content)
+                })
+                
+        except Exception as e:
+            logger.error(f"XAI API request error: {e}")
+            return jsonify({
+                'analysis': get_fallback_document_analysis(file.filename, content)
+            })
+    
+    except Exception as e:
+        logger.error(f"Document analysis error: {e}")
+        return jsonify({'error': 'Internal server error during document analysis'}), 500
+
+def get_fallback_document_analysis(filename, content, ai_response=None):
+    """Generate fallback document analysis when API is unavailable"""
+    
+    # Extract some basic insights from content
+    word_count = len(content.split())
+    has_dates = any(word in content.lower() for word in ['date', 'effective', 'expires', 'term'])
+    has_parties = any(word in content.lower() for word in ['party', 'parties', 'agreement', 'contract'])
+    has_obligations = any(word in content.lower() for word in ['shall', 'must', 'required', 'obligation'])
+    
+    return {
+        "summary": f"This {filename} appears to be a legal document with approximately {word_count} words. " + 
+                  ("It contains date references, " if has_dates else "") +
+                  ("party information, " if has_parties else "") +
+                  ("and legal obligations." if has_obligations else ""),
+        
+        "key_terms": [
+            {"term": "Legal Document", "type": "Document Type"},
+            {"term": "Parties Involved", "type": "Entity"} if has_parties else None,
+            {"term": "Effective Dates", "type": "Temporal"} if has_dates else None,
+            {"term": "Legal Obligations", "type": "Obligation"} if has_obligations else None
+        ],
+        
+        "important_dates": [
+            {"description": "Document contains date references", "date": "Review Required"}
+        ] if has_dates else [
+            {"description": "No specific dates identified", "date": "N/A"}
+        ],
+        
+        "risks": [
+            {"description": "Unable to perform full AI analysis - manual review recommended", "level": "Medium"},
+            {"description": "Document contains legal obligations requiring attorney review", "level": "Medium"} if has_obligations else None
+        ],
+        
+        "recommendations": ai_response if ai_response else 
+            "This document requires professional legal review. Key areas to examine include: " +
+            "1) All dates and deadlines, 2) Party obligations and responsibilities, " +
+            "3) Termination and renewal clauses, 4) Liability and indemnification provisions. " +
+            "Consider having a qualified attorney review this document for completeness and compliance."
+    }
 
 @app.route('/api/documents/<doc_id>/analyze', methods=['POST'])
 @rate_limit_decorator

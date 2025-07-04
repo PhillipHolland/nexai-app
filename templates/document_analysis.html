@@ -1,0 +1,675 @@
+{% extends "base.html" %}
+
+{% block title %}Document Analysis - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Document Analysis Specific Styles */
+        .doc-analysis-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .doc-header {
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .doc-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .doc-subtitle {
+            color: #6b7280;
+            font-size: 1.125rem;
+        }
+
+        .doc-main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .doc-main {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+
+        /* Upload Area */
+        .upload-section {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            order: 1;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: #f9fafb;
+        }
+
+        .upload-area:hover {
+            border-color: #2E4B3C; /* dark-green */
+            background-color: #f0fdf4;
+        }
+
+        .upload-area.dragover {
+            border-color: #FFA74F; /* warm-orange */
+            background-color: #fef3cd;
+        }
+
+        .upload-icon {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            color: #6b7280;
+        }
+
+        .upload-text {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-button {
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-button:hover {
+            background-color: #09332C; /* darkest-green */
+            transform: translateY(-1px);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Document Display */
+        .document-display {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            min-height: 400px;
+            display: none;
+        }
+
+        .document-display.visible {
+            display: block;
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .document-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .document-meta {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .analyze-button {
+            background-color: #FFA74F; /* warm-orange */
+            color: #2E4B3C; /* dark-green */
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .analyze-button:hover {
+            background-color: #F0531C; /* bright-coral */
+        }
+
+        .analyze-button:disabled {
+            background-color: #9ca3af;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .document-content {
+            background-color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        /* Analysis Panel */
+        .analysis-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            order: 2;
+            height: fit-content;
+        }
+
+        .analysis-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .analysis-content {
+            display: none;
+        }
+
+        .analysis-content.visible {
+            display: block;
+        }
+
+        .analysis-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .analysis-section h4 {
+            font-weight: 600;
+            color: #2E4B3C; /* dark-green */
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .analysis-section p {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .analysis-section li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .analysis-section li:last-child {
+            border-bottom: none;
+        }
+
+        .key-term {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .term-type {
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .risk-level {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .risk-level.high {
+            background-color: #fecaca;
+            color: #dc2626;
+        }
+
+        .risk-level.medium {
+            background-color: #fef3cd;
+            color: #d97706;
+        }
+
+        .risk-level.low {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner.visible {
+            display: block;
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #2E4B3C; /* dark-green */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 3rem;
+            height: 3rem;
+            margin: 0 auto 1rem;
+            color: #9ca3af;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .doc-main {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+            
+            .analysis-panel {
+                order: 1;
+            }
+            
+            .upload-section {
+                order: 2;
+            }
+        }
+
+        /* Supported file types */
+        .supported-types {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .file-type {
+            background-color: #f3f4f6;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-analysis-container">
+    <!-- Document Analysis Header -->
+    <div class="doc-header">
+        <h1 class="doc-title">Document Analysis</h1>
+        <p class="doc-subtitle">Upload legal documents for AI-powered analysis and insights</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="doc-main">
+        <!-- Upload and Document Display -->
+        <div>
+            <!-- Upload Section -->
+            <div class="upload-section" id="upload-section">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">Drop your document here</div>
+                    <div class="upload-subtext">or click to browse files</div>
+                    <button class="upload-button" onclick="document.getElementById('file-input').click()">
+                        Choose File
+                    </button>
+                    <input type="file" id="file-input" class="file-input" accept=".pdf,.doc,.docx,.txt">
+                    
+                    <div class="supported-types">
+                        <span class="file-type">PDF</span>
+                        <span class="file-type">DOC</span>
+                        <span class="file-type">DOCX</span>
+                        <span class="file-type">TXT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Display -->
+            <div class="document-display" id="document-display">
+                <div class="document-header">
+                    <div>
+                        <div class="document-name" id="document-name"></div>
+                        <div class="document-meta" id="document-meta"></div>
+                    </div>
+                    <button class="analyze-button" id="analyze-button" onclick="analyzeDocument()">
+                        Analyze Document
+                    </button>
+                </div>
+                <div class="document-content" id="document-content"></div>
+            </div>
+        </div>
+
+        <!-- Analysis Panel -->
+        <div class="analysis-panel">
+            <div class="analysis-title">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                AI Analysis
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="analysis-empty">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <h3>Upload a document to start</h3>
+                <p>AI analysis will appear here after document upload</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-spinner" id="analysis-loading">
+                <div class="spinner"></div>
+                <p>Analyzing document...</p>
+                <p style="font-size: 0.875rem; color: #6b7280;">This may take a few moments</p>
+            </div>
+
+            <!-- Analysis Content -->
+            <div class="analysis-content" id="analysis-content">
+                <!-- Document Summary -->
+                <div class="analysis-section">
+                    <h4>Document Summary</h4>
+                    <p id="document-summary"></p>
+                </div>
+
+                <!-- Key Terms -->
+                <div class="analysis-section">
+                    <h4>Key Terms & Entities</h4>
+                    <ul id="key-terms"></ul>
+                </div>
+
+                <!-- Important Dates -->
+                <div class="analysis-section">
+                    <h4>Important Dates</h4>
+                    <ul id="important-dates"></ul>
+                </div>
+
+                <!-- Risk Assessment -->
+                <div class="analysis-section">
+                    <h4>Risk Assessment</h4>
+                    <ul id="risk-assessment"></ul>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="analysis-section">
+                    <h4>Recommendations</h4>
+                    <p id="recommendations"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('file-input');
+    const uploadSection = document.getElementById('upload-section');
+    const documentDisplay = document.getElementById('document-display');
+    const analysisEmpty = document.getElementById('analysis-empty');
+    const analysisLoading = document.getElementById('analysis-loading');
+    const analysisContent = document.getElementById('analysis-content');
+
+    let currentFile = null;
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'application/msword', 
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                            'text/plain'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please upload a PDF, DOC, DOCX, or TXT file.');
+            return;
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        currentFile = file;
+        displayDocument(file);
+    }
+
+    function displayDocument(file) {
+        // Update document info
+        document.getElementById('document-name').textContent = file.name;
+        document.getElementById('document-meta').textContent = 
+            `${(file.size / 1024).toFixed(1)} KB • ${file.type.split('/')[1].toUpperCase()}`;
+
+        // Show document display
+        uploadSection.style.display = 'none';
+        documentDisplay.classList.add('visible');
+
+        // Read file content for preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            const preview = content.length > 1000 ? content.substring(0, 1000) + '...' : content;
+            document.getElementById('document-content').textContent = preview;
+        };
+        reader.readAsText(file);
+    }
+
+    // Global function for analyze button
+    window.analyzeDocument = function() {
+        if (!currentFile) return;
+
+        // Show loading state
+        analysisEmpty.style.display = 'none';
+        analysisLoading.classList.add('visible');
+        analysisContent.classList.remove('visible');
+
+        // Disable analyze button
+        const analyzeBtn = document.getElementById('analyze-button');
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = 'Analyzing...';
+
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('document', currentFile);
+
+        // Call analysis API
+        fetch('/api/documents/analyze', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.analysis) {
+                displayAnalysis(data.analysis);
+            } else if (data.error) {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Analysis error:', error);
+            alert('Error analyzing document: ' + error.message);
+        })
+        .finally(() => {
+            // Re-enable analyze button
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Analyze Document';
+            analysisLoading.classList.remove('visible');
+        });
+    };
+
+    function displayAnalysis(analysis) {
+        // Hide loading and show content
+        analysisLoading.classList.remove('visible');
+        analysisContent.classList.add('visible');
+
+        // Populate analysis sections
+        document.getElementById('document-summary').textContent = 
+            analysis.summary || 'No summary available.';
+
+        // Key terms
+        const keyTermsList = document.getElementById('key-terms');
+        keyTermsList.innerHTML = '';
+        if (analysis.key_terms && analysis.key_terms.length > 0) {
+            analysis.key_terms.forEach(term => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="key-term">${term.term}</span>
+                    <span class="term-type">${term.type || 'Term'}</span>
+                `;
+                keyTermsList.appendChild(li);
+            });
+        } else {
+            keyTermsList.innerHTML = '<li><span class="key-term">No key terms identified</span></li>';
+        }
+
+        // Important dates
+        const datesList = document.getElementById('important-dates');
+        datesList.innerHTML = '';
+        if (analysis.important_dates && analysis.important_dates.length > 0) {
+            analysis.important_dates.forEach(date => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="key-term">${date.description}</span>
+                    <span class="term-type">${date.date}</span>
+                `;
+                datesList.appendChild(li);
+            });
+        } else {
+            datesList.innerHTML = '<li><span class="key-term">No important dates found</span></li>';
+        }
+
+        // Risk assessment
+        const risksList = document.getElementById('risk-assessment');
+        risksList.innerHTML = '';
+        if (analysis.risks && analysis.risks.length > 0) {
+            analysis.risks.forEach(risk => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="key-term">${risk.description}</span>
+                    <span class="risk-level ${risk.level.toLowerCase()}">${risk.level}</span>
+                `;
+                risksList.appendChild(li);
+            });
+        } else {
+            risksList.innerHTML = '<li><span class="key-term">No specific risks identified</span></li>';
+        }
+
+        // Recommendations
+        document.getElementById('recommendations').textContent = 
+            analysis.recommendations || 'No specific recommendations at this time.';
+    }
+
+    // Reset function for new document
+    window.resetDocument = function() {
+        currentFile = null;
+        uploadSection.style.display = 'block';
+        documentDisplay.classList.remove('visible');
+        analysisEmpty.style.display = 'block';
+        analysisLoading.classList.remove('visible');
+        analysisContent.classList.remove('visible');
+        fileInput.value = '';
+    };
+});
+</script>
+{% endblock %}
