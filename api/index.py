@@ -349,6 +349,415 @@ class ConversationManager:
 # Initialize conversation manager
 conversation_manager = ConversationManager(redis_client)
 
+# Template constants for search page
+SEARCH_TEMPLATE = '''
+<div class="content-area">
+    <div class="page-header">
+        <div class="page-title-section">
+            <h1 class="page-title">Advanced Legal Search</h1>
+            <p class="page-subtitle">AI-powered legal research across multiple databases</p>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <div class="search-form">
+            <input type="text" class="search-input" id="searchQuery" placeholder="Enter your legal research query...">
+            <div class="search-filters">
+                <select class="filter-select" id="practiceArea">
+                    <option value="">All Practice Areas</option>
+                    <option value="contract">Contract Law</option>
+                    <option value="tort">Tort Law</option>
+                    <option value="criminal">Criminal Law</option>
+                    <option value="family">Family Law</option>
+                    <option value="employment">Employment Law</option>
+                    <option value="property">Property Law</option>
+                </select>
+                <select class="filter-select" id="jurisdiction">
+                    <option value="">All Jurisdictions</option>
+                    <option value="federal">Federal</option>
+                    <option value="state">State</option>
+                    <option value="local">Local</option>
+                </select>
+                <select class="filter-select" id="dateRange">
+                    <option value="">All Dates</option>
+                    <option value="last_year">Last Year</option>
+                    <option value="last_5_years">Last 5 Years</option>
+                    <option value="last_10_years">Last 10 Years</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="performSearch()">Search</button>
+        </div>
+        
+        <div class="databases-grid">
+            <div class="database-card" onclick="toggleDatabase('cases')">
+                <div class="database-icon">⚖️</div>
+                <div class="database-name">Case Law Database</div>
+                <div class="database-description">Federal and state court decisions, precedents, and rulings</div>
+            </div>
+            <div class="database-card" onclick="toggleDatabase('statutes')">
+                <div class="database-icon">📚</div>
+                <div class="database-name">Statutory Database</div>
+                <div class="database-description">Federal and state statutes, codes, and regulations</div>
+            </div>
+            <div class="database-card" onclick="toggleDatabase('regulations')">
+                <div class="database-icon">📋</div>
+                <div class="database-name">Regulatory Database</div>
+                <div class="database-description">Federal and state regulations, administrative rules</div>
+            </div>
+            <div class="database-card" onclick="toggleDatabase('secondary')">
+                <div class="database-icon">📖</div>
+                <div class="database-name">Secondary Sources</div>
+                <div class="database-description">Law reviews, treatises, legal encyclopedias</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="results-header">
+            <h2 class="results-title">Search Results</h2>
+            <div class="results-count" id="resultsCount">0 results found</div>
+        </div>
+        
+        <div id="aiAnalysis" class="ai-analysis" style="display: none;">
+            <h3>AI Analysis</h3>
+            <p id="aiAnalysisText">Loading AI analysis...</p>
+        </div>
+        
+        <div id="searchResults"></div>
+    </div>
+</div>
+
+<script>
+    let selectedDatabases = new Set(['cases', 'statutes']);
+    
+    function toggleDatabase(database) {
+        const card = event.currentTarget;
+        if (selectedDatabases.has(database)) {
+            selectedDatabases.delete(database);
+            card.classList.remove('selected');
+        } else {
+            selectedDatabases.add(database);
+            card.classList.add('selected');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        selectedDatabases.forEach(db => {
+            const cards = document.querySelectorAll('.database-card');
+            cards.forEach(card => {
+                if (card.onclick.toString().includes(db)) {
+                    card.classList.add('selected');
+                }
+            });
+        });
+    });
+    
+    async function performSearch() {
+        const query = document.getElementById('searchQuery').value.trim();
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+        
+        const practiceArea = document.getElementById('practiceArea').value;
+        const jurisdiction = document.getElementById('jurisdiction').value;
+        const dateRange = document.getElementById('dateRange').value;
+        
+        const resultsSection = document.getElementById('resultsSection');
+        const searchResults = document.getElementById('searchResults');
+        const aiAnalysis = document.getElementById('aiAnalysis');
+        const aiAnalysisText = document.getElementById('aiAnalysisText');
+        const resultsCount = document.getElementById('resultsCount');
+        
+        resultsSection.style.display = 'block';
+        searchResults.innerHTML = '<div class="loading">Searching legal databases...</div>';
+        aiAnalysis.style.display = 'block';
+        aiAnalysisText.textContent = 'Analyzing your query with AI...';
+        
+        try {
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query,
+                    databases: Array.from(selectedDatabases),
+                    practice_area: practiceArea,
+                    jurisdiction,
+                    date_range: dateRange
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                displayResults(data.results, data.ai_analysis);
+                resultsCount.textContent = `${data.total_results} results found`;
+            } else {
+                searchResults.innerHTML = '<div class="error">Search failed: ' + data.error + '</div>';
+            }
+        } catch (error) {
+            searchResults.innerHTML = '<div class="error">Search failed: ' + error.message + '</div>';
+        }
+    }
+    
+    function displayResults(results, aiAnalysis) {
+        const searchResults = document.getElementById('searchResults');
+        const aiAnalysisText = document.getElementById('aiAnalysisText');
+        
+        aiAnalysisText.textContent = aiAnalysis.search_strategy;
+        
+        let html = '';
+        results.forEach(result => {
+            html += `
+                <div class="result-item">
+                    <div class="result-title">${result.title}</div>
+                    <div class="result-citation">${result.citation}</div>
+                    <div class="result-summary">${result.summary}</div>
+                    <div class="result-tags">
+                        ${result.key_holdings ? result.key_holdings.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
+                        ${result.key_provisions ? result.key_provisions.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
+                        ${result.key_topics ? result.key_topics.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        searchResults.innerHTML = html || '<div class="no-results">No results found for your query.</div>';
+    }
+    
+    document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+</script>
+
+<style>
+.search-container {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-form {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 300px;
+    padding: 16px 20px;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.search-filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 12px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-green);
+}
+
+.databases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.database-card {
+    background: var(--white);
+    border: 2px solid var(--gray-100);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.database-card:hover {
+    border-color: var(--primary-green);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.database-card.selected {
+    border-color: var(--primary-green);
+    background: var(--secondary-cream);
+}
+
+.database-icon {
+    font-size: 32px;
+    margin-bottom: 16px;
+}
+
+.database-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--gray-900);
+}
+
+.database-description {
+    color: var(--gray-600);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.results-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.results-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.results-count {
+    color: var(--gray-600);
+    font-size: 14px;
+}
+
+.result-item {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border-left: 4px solid var(--primary-green);
+    transition: all 0.2s ease;
+}
+
+.result-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+}
+
+.result-citation {
+    color: var(--primary-green);
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.result-summary {
+    color: var(--gray-700);
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.result-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.result-tag {
+    background: var(--primary-green);
+    color: var(--white);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.ai-analysis {
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+    color: var(--white);
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.ai-analysis h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.ai-analysis p {
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-600);
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-600);
+    font-style: italic;
+}
+
+.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    padding: 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+}
+
+@media (max-width: 768px) {
+    .databases-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-filters {
+        flex-direction: column;
+    }
+    
+    .search-form {
+        flex-direction: column;
+    }
+}
+</style>
+'''
+
 # Register security headers middleware
 @app.after_request
 def apply_security_headers(response):
@@ -5628,7 +6037,7 @@ def contracts_generator():
             </div>
             
             <script>
-                const templates = {{ templates | tojsonfilter | safe }};
+                const templates = {{ templates | tojson | safe }};
                 let selectedTemplate = null;
                 
                 function selectTemplate(templateId) {
@@ -7458,504 +7867,20 @@ Please analyze this legal research query and provide comprehensive search guidan
 @app.route('/search')
 def search_interface():
     """Advanced legal search interface"""
-    return render_template_string('''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Legal Search - LexAI</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            padding: 30px 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .search-section {
-            padding: 40px;
-            background: #f8f9fa;
-        }
-        
-        .search-form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .search-input {
-            flex: 1;
-            min-width: 300px;
-            padding: 15px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-        }
-        
-        .search-filters {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-select {
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-select:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-        
-        .search-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-        }
-        
-        .databases-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .database-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        
-        .database-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border-color: #3498db;
-        }
-        
-        .database-card.selected {
-            border-color: #3498db;
-            background: #f8f9ff;
-        }
-        
-        .database-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .database-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #2c3e50;
-        }
-        
-        .database-description {
-            color: #7f8c8d;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        
-        .results-section {
-            padding: 40px;
-            background: white;
-        }
-        
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        
-        .results-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        
-        .results-count {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        
-        .result-item {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-            transition: all 0.3s ease;
-        }
-        
-        .result-item:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .result-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-        }
-        
-        .result-citation {
-            color: #3498db;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-        
-        .result-summary {
-            color: #7f8c8d;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-        
-        .result-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .result-tag {
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .ai-analysis {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .ai-analysis h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .ai-analysis p {
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-        }
-        
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #3498db;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-left: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .navigation {
-            background: #2c3e50;
-            padding: 15px 40px;
-            color: white;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 30px;
-        }
-        
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .nav-link:hover {
-            color: #3498db;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="navigation">
-            <div class="nav-links">
-                <a href="/" class="nav-link">← Back to Dashboard</a>
-                <a href="/chat" class="nav-link">AI Assistant</a>
-                <a href="/clients" class="nav-link">Clients</a>
-                <a href="/documents" class="nav-link">Documents</a>
-            </div>
-        </div>
-        
-        <div class="header">
-            <h1>Advanced Legal Search</h1>
-            <p>AI-powered legal research across multiple databases</p>
-        </div>
-        
-        <div class="search-section">
-            <div class="search-form">
-                <input type="text" class="search-input" id="searchQuery" placeholder="Enter your legal research query... (e.g., 'contract breach remedies in employment law')">
-                <div class="search-filters">
-                    <select class="filter-select" id="practiceArea">
-                        <option value="">All Practice Areas</option>
-                        <option value="contract">Contract Law</option>
-                        <option value="tort">Tort Law</option>
-                        <option value="criminal">Criminal Law</option>
-                        <option value="family">Family Law</option>
-                        <option value="employment">Employment Law</option>
-                        <option value="property">Property Law</option>
-                    </select>
-                    <select class="filter-select" id="jurisdiction">
-                        <option value="">All Jurisdictions</option>
-                        <option value="federal">Federal</option>
-                        <option value="state">State</option>
-                        <option value="local">Local</option>
-                    </select>
-                    <select class="filter-select" id="dateRange">
-                        <option value="">All Dates</option>
-                        <option value="last_year">Last Year</option>
-                        <option value="last_5_years">Last 5 Years</option>
-                        <option value="last_10_years">Last 10 Years</option>
-                    </select>
-                </div>
-                <button class="search-btn" onclick="performSearch()">Search</button>
-            </div>
-            
-            <div class="databases-grid">
-                <div class="database-card" onclick="toggleDatabase('cases')">
-                    <div class="database-icon">⚖️</div>
-                    <div class="database-name">Case Law Database</div>
-                    <div class="database-description">Federal and state court decisions, precedents, and rulings</div>
-                </div>
-                <div class="database-card" onclick="toggleDatabase('statutes')">
-                    <div class="database-icon">📚</div>
-                    <div class="database-name">Statutory Database</div>
-                    <div class="database-description">Federal and state statutes, codes, and regulations</div>
-                </div>
-                <div class="database-card" onclick="toggleDatabase('regulations')">
-                    <div class="database-icon">📋</div>
-                    <div class="database-name">Regulatory Database</div>
-                    <div class="database-description">Federal and state regulations, administrative rules</div>
-                </div>
-                <div class="database-card" onclick="toggleDatabase('secondary')">
-                    <div class="database-icon">📖</div>
-                    <div class="database-name">Secondary Sources</div>
-                    <div class="database-description">Law reviews, treatises, legal encyclopedias</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="results-section" id="resultsSection" style="display: none;">
-            <div class="results-header">
-                <h2 class="results-title">Search Results</h2>
-                <div class="results-count" id="resultsCount">0 results found</div>
-            </div>
-            
-            <div id="aiAnalysis" class="ai-analysis" style="display: none;">
-                <h3>AI Analysis</h3>
-                <p id="aiAnalysisText">Loading AI analysis...</p>
-            </div>
-            
-            <div id="searchResults"></div>
-        </div>
-    </div>
-
-    <script>
-        let selectedDatabases = new Set(['cases', 'statutes']);
-        
-        function toggleDatabase(database) {
-            const card = event.currentTarget;
-            if (selectedDatabases.has(database)) {
-                selectedDatabases.delete(database);
-                card.classList.remove('selected');
-            } else {
-                selectedDatabases.add(database);
-                card.classList.add('selected');
-            }
-        }
-        
-        // Initialize selected databases
-        document.addEventListener('DOMContentLoaded', function() {
-            selectedDatabases.forEach(db => {
-                const cards = document.querySelectorAll('.database-card');
-                cards.forEach(card => {
-                    if (card.onclick.toString().includes(db)) {
-                        card.classList.add('selected');
-                    }
-                });
-            });
-        });
-        
-        async function performSearch() {
-            const query = document.getElementById('searchQuery').value.trim();
-            if (!query) {
-                alert('Please enter a search query');
-                return;
-            }
-            
-            const practiceArea = document.getElementById('practiceArea').value;
-            const jurisdiction = document.getElementById('jurisdiction').value;
-            const dateRange = document.getElementById('dateRange').value;
-            
-            const resultsSection = document.getElementById('resultsSection');
-            const searchResults = document.getElementById('searchResults');
-            const aiAnalysis = document.getElementById('aiAnalysis');
-            const aiAnalysisText = document.getElementById('aiAnalysisText');
-            const resultsCount = document.getElementById('resultsCount');
-            
-            resultsSection.style.display = 'block';
-            searchResults.innerHTML = '<div class="loading">Searching legal databases...</div>';
-            aiAnalysis.style.display = 'block';
-            aiAnalysisText.textContent = 'Analyzing your query with AI...';
-            
-            try {
-                const response = await fetch('/api/search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        query,
-                        databases: Array.from(selectedDatabases),
-                        practice_area: practiceArea,
-                        jurisdiction,
-                        date_range: dateRange
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayResults(data.results, data.ai_analysis);
-                    resultsCount.textContent = `${data.total_results} results found`;
-                } else {
-                    searchResults.innerHTML = '<div class="error">Search failed: ' + data.error + '</div>';
-                }
-            } catch (error) {
-                searchResults.innerHTML = '<div class="error">Search failed: ' + error.message + '</div>';
-            }
-        }
-        
-        function displayResults(results, aiAnalysis) {
-            const searchResults = document.getElementById('searchResults');
-            const aiAnalysisText = document.getElementById('aiAnalysisText');
-            
-            // Display AI analysis
-            aiAnalysisText.textContent = aiAnalysis.search_strategy;
-            
-            // Display results
-            let html = '';
-            results.forEach(result => {
-                html += `
-                    <div class="result-item">
-                        <div class="result-title">${result.title}</div>
-                        <div class="result-citation">${result.citation}</div>
-                        <div class="result-summary">${result.summary}</div>
-                        <div class="result-tags">
-                            ${result.key_holdings ? result.key_holdings.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
-                            ${result.key_provisions ? result.key_provisions.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
-                            ${result.key_topics ? result.key_topics.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            searchResults.innerHTML = html || '<div class="no-results">No results found for your query.</div>';
-        }
-        
-        // Enter key support
-        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    </script>
-</body>
-</html>
-''')
+    practice_areas = {
+        'family': {'name': 'Family Law', 'color': '#8B5CF6'},
+        'personal_injury': {'name': 'Personal Injury', 'color': '#EF4444'},
+        'corporate': {'name': 'Corporate Law', 'color': '#3B82F6'},
+        'criminal': {'name': 'Criminal Defense', 'color': '#F59E0B'},
+        'real_estate': {'name': 'Real Estate', 'color': '#10B981'},
+        'immigration': {'name': 'Immigration', 'color': '#6366F1'}
+    }
+    from flask import render_template
+    try:
+        return render_template('search.html', practice_areas=practice_areas, SEARCH_TEMPLATE=SEARCH_TEMPLATE)
+    except:
+        # Fallback to inline template if file doesn't exist
+        return render_template_string(SEARCH_TEMPLATE, practice_areas=practice_areas)
 
 @app.route('/api/search', methods=['POST'])
 @rate_limit_decorator
