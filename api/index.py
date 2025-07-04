@@ -9181,7 +9181,7 @@ def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
 
-# For Vercel
+# For Vercel - Force cache refresh
 app.debug = False
 
 if __name__ == '__main__':
