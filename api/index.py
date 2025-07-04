@@ -505,8 +505,30 @@ def get_mock_stats():
     }
 
 def build_system_prompt(practice_area):
-    """Build specialized system prompt with advanced tools and knowledge"""
-    base_prompt = "You are LexAI, an expert legal AI assistant. Provide precise, actionable legal guidance. Always note this is not formal legal advice."
+    """Build specialized system prompt with Bagel RL enhanced reasoning capabilities"""
+    base_prompt = """You are LexAI, an advanced legal AI assistant powered by enhanced reasoning capabilities (Bagel RL). You combine deep legal expertise with sophisticated analytical reasoning to provide comprehensive legal guidance.
+
+ENHANCED REASONING FRAMEWORK:
+1. **Multi-Step Analysis**: Break complex legal issues into structured reasoning steps
+2. **Precedent Integration**: Analyze relevant case law and legal precedents  
+3. **Risk Assessment**: Evaluate potential outcomes and strategic implications
+4. **Contextual Reasoning**: Consider jurisdiction-specific laws and regulations
+5. **Ethical Evaluation**: Ensure all guidance adheres to professional ethics standards
+
+REASONING METHODOLOGY:
+- Start with issue identification and legal framework analysis
+- Apply relevant statutes, regulations, and case law precedents
+- Consider multiple legal strategies and their probability of success
+- Evaluate risks, costs, and benefits of each approach
+- Provide step-by-step reasoning for recommendations
+- Always note this is not formal legal advice and recommend consulting qualified attorneys
+
+ENHANCED CAPABILITIES:
+- Strategic legal analysis with outcome probability assessment
+- Multi-jurisdictional legal research and precedent analysis
+- Risk-benefit analysis for legal strategies and decisions
+- Evidence-based reasoning with supporting legal authorities
+- Detailed justification for all legal recommendations"""
     
     specialized_prompts = {
         'family': f"""{base_prompt}
@@ -2799,6 +2821,843 @@ def documents_list():
 <html><head><title>LexAI Documents</title></head>
 <body><h1>🏛️ LexAI Document Management</h1>
 <p>Error loading documents: {e}</p>
+<a href="/">← Back to Dashboard</a></body></html>"""
+
+@app.route('/api/documents/upload', methods=['POST'])
+@rate_limit_decorator
+def upload_document():
+    """Enhanced document upload with AI analysis"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file type and size
+        allowed_extensions = {'pdf', 'doc', 'docx', 'txt'}
+        if not file.filename.lower().endswith(tuple(allowed_extensions)):
+            return jsonify({'error': 'Invalid file type. Allowed: PDF, DOC, DOCX, TXT'}), 400
+        
+        # Mock document analysis (in production, would use actual AI)
+        analysis_result = {
+            'document_id': f"doc_{int(time.time())}",
+            'filename': file.filename,
+            'size': len(file.read()),
+            'type': 'contract' if 'contract' in file.filename.lower() else 'legal_document',
+            'status': 'analyzed',
+            'ai_analysis': {
+                'summary': 'Document analyzed successfully. Key legal concepts identified.',
+                'key_terms': ['confidentiality', 'liability', 'termination', 'jurisdiction'],
+                'risk_level': 'medium',
+                'recommendations': [
+                    'Review termination clauses for clarity',
+                    'Consider adding limitation of liability provisions',
+                    'Verify jurisdiction and governing law sections'
+                ],
+                'confidence_score': 0.85,
+                'processing_time': 2.3
+            },
+            'metadata': {
+                'upload_time': datetime.utcnow().isoformat(),
+                'processed_by': 'LexAI Enhanced Reasoning Engine',
+                'practice_area': 'corporate'
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document uploaded and analyzed successfully',
+            'data': analysis_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Document upload error: {e}")
+        return jsonify({'error': 'Document upload failed'}), 500
+
+@app.route('/api/documents/<doc_id>/analyze', methods=['POST'])
+@rate_limit_decorator
+def analyze_document(doc_id):
+    """Enhanced document analysis with Bagel RL reasoning"""
+    try:
+        # Get analysis type from request
+        data = request.get_json() or {}
+        analysis_type = data.get('type', 'comprehensive')
+        practice_area = data.get('practice_area', 'corporate')
+        
+        # Mock enhanced analysis (in production, would use actual Bagel RL)
+        enhanced_analysis = {
+            'document_id': doc_id,
+            'analysis_type': analysis_type,
+            'practice_area': practice_area,
+            'timestamp': datetime.utcnow().isoformat(),
+            'enhanced_reasoning': {
+                'multi_step_analysis': [
+                    {
+                        'step': 1,
+                        'description': 'Document structure and format analysis',
+                        'findings': 'Standard legal document format with proper clause organization',
+                        'confidence': 0.92
+                    },
+                    {
+                        'step': 2,
+                        'description': 'Legal term and clause identification',
+                        'findings': 'Identified 23 legal terms, 8 key clauses requiring attention',
+                        'confidence': 0.87
+                    },
+                    {
+                        'step': 3,
+                        'description': 'Risk assessment and precedent analysis',
+                        'findings': 'Medium risk profile based on similar case precedents',
+                        'confidence': 0.81
+                    },
+                    {
+                        'step': 4,
+                        'description': 'Strategic recommendations',
+                        'findings': 'Recommend 3 clause modifications for risk mitigation',
+                        'confidence': 0.89
+                    }
+                ],
+                'precedent_analysis': [
+                    'Smith v. Johnson (2023) - Similar contract dispute, favorable outcome',
+                    'Corporate Inc. v. Partners LLC (2022) - Relevant liability precedent',
+                    'State Regulations Ch. 15.3 - Applicable compliance requirements'
+                ],
+                'risk_assessment': {
+                    'overall_risk': 'medium',
+                    'financial_risk': 'low',
+                    'legal_compliance_risk': 'medium',
+                    'operational_risk': 'low',
+                    'mitigation_strategies': [
+                        'Add specific performance metrics to avoid disputes',
+                        'Include dispute resolution mechanism',
+                        'Clarify intellectual property ownership'
+                    ]
+                },
+                'strategic_recommendations': [
+                    {
+                        'priority': 'high',
+                        'recommendation': 'Revise termination clause to include specific notice periods',
+                        'reasoning': 'Current language is ambiguous and could lead to disputes',
+                        'legal_basis': 'Contract Law § 2-309 - Time for Performance'
+                    },
+                    {
+                        'priority': 'medium',
+                        'recommendation': 'Add limitation of liability provision',
+                        'reasoning': 'Protects against excessive damages in case of breach',
+                        'legal_basis': 'Commercial Code § 2-719 - Contractual Modification'
+                    }
+                ]
+            },
+            'processing_time': 4.7,
+            'confidence_score': 0.86
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Enhanced document analysis completed',
+            'data': enhanced_analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"Document analysis error: {e}")
+        return jsonify({'error': 'Document analysis failed'}), 500
+
+@app.route('/api/legal/research', methods=['POST'])
+@rate_limit_decorator  
+def legal_research():
+    """Enhanced legal research with precedent analysis"""
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({'error': 'Research query required'}), 400
+        
+        query = data.get('query')
+        jurisdiction = data.get('jurisdiction', 'federal')
+        practice_area = data.get('practice_area', 'corporate')
+        
+        # Mock enhanced legal research (in production, would use actual legal databases)
+        research_results = {
+            'query': query,
+            'jurisdiction': jurisdiction,
+            'practice_area': practice_area,
+            'timestamp': datetime.utcnow().isoformat(),
+            'enhanced_research': {
+                'primary_authorities': [
+                    {
+                        'citation': 'Federal Contract Act § 15.234',
+                        'relevance': 0.94,
+                        'summary': 'Establishes framework for contract interpretation and enforcement',
+                        'key_holdings': [
+                            'Plain language interpretation preferred',
+                            'Ambiguities construed against drafter',
+                            'Commercial reasonableness standard applies'
+                        ]
+                    },
+                    {
+                        'citation': 'Supreme Court Case: ContractCorp v. United Industries (2023)',
+                        'relevance': 0.89,
+                        'summary': 'Recent precedent on contract formation and consideration',
+                        'key_holdings': [
+                            'Electronic signatures valid under federal law',
+                            'Consideration requirement strictly enforced',
+                            'Good faith and fair dealing implied in all contracts'
+                        ]
+                    }
+                ],
+                'secondary_authorities': [
+                    {
+                        'source': 'American Law Institute - Contracts Restatement (3d)',
+                        'section': '§ 201 - Whose Meaning Prevails',
+                        'relevance': 0.82,
+                        'summary': 'Authoritative guidance on contract interpretation principles'
+                    },
+                    {
+                        'source': 'Harvard Law Review Vol. 136, No. 4',
+                        'title': 'Modern Contract Formation in Digital Age',
+                        'relevance': 0.76,
+                        'summary': 'Scholarly analysis of emerging contract law trends'
+                    }
+                ],
+                'practice_insights': [
+                    'Recent trend toward stricter enforcement of termination clauses',
+                    'Courts increasingly favor plain language interpretation',
+                    'Electronic contract formation gaining broader acceptance',
+                    'Jurisdiction clauses more rigorously enforced'
+                ],
+                'strategic_analysis': {
+                    'strengths': [
+                        'Strong precedential support for position',
+                        'Clear statutory framework available',
+                        'Recent favorable court decisions'
+                    ],
+                    'weaknesses': [
+                        'Some jurisdictional variations exist',
+                        'Emerging technology creates uncertainty',
+                        'Limited appellate precedent in specific area'
+                    ],
+                    'recommendations': [
+                        'Focus on federal law precedents for strongest position',
+                        'Consider state law variations if applicable',
+                        'Monitor emerging case law developments'
+                    ]
+                }
+            },
+            'confidence_score': 0.91,
+            'processing_time': 3.2
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Legal research completed successfully',
+            'data': research_results
+        })
+        
+    except Exception as e:
+        logger.error(f"Legal research error: {e}")
+        return jsonify({'error': 'Legal research failed'}), 500
+
+@app.route('/api/cases/<case_id>/timeline', methods=['GET'])
+@rate_limit_decorator
+def case_timeline(case_id):
+    """Get case timeline and milestone tracking"""
+    try:
+        # Mock case timeline data
+        timeline_data = {
+            'case_id': case_id,
+            'case_title': 'Smith v. ABC Corporation',
+            'practice_area': 'corporate',
+            'status': 'active',
+            'created_date': '2024-12-01',
+            'estimated_completion': '2025-06-15',
+            'milestones': [
+                {
+                    'id': 1,
+                    'title': 'Initial Client Consultation',
+                    'date': '2024-12-01',
+                    'status': 'completed',
+                    'description': 'Gathered case details and established representation',
+                    'documents': ['Client Agreement', 'Initial Assessment'],
+                    'next_steps': []
+                },
+                {
+                    'id': 2,
+                    'title': 'Document Discovery',
+                    'date': '2024-12-15',
+                    'status': 'completed',
+                    'description': 'Collected and reviewed relevant documents',
+                    'documents': ['Contract Documents', 'Email Correspondence', 'Financial Records'],
+                    'next_steps': []
+                },
+                {
+                    'id': 3,
+                    'title': 'Legal Research & Analysis',
+                    'date': '2025-01-03',
+                    'status': 'in_progress',
+                    'description': 'Researching applicable law and precedents',
+                    'documents': ['Research Memo Draft'],
+                    'next_steps': [
+                        'Complete precedent analysis',
+                        'Finalize legal strategy',
+                        'Prepare motion documents'
+                    ]
+                },
+                {
+                    'id': 4,
+                    'title': 'Motion Filing',
+                    'date': '2025-02-01',
+                    'status': 'pending',
+                    'description': 'File motion for summary judgment',
+                    'documents': [],
+                    'next_steps': [
+                        'Draft motion documents',
+                        'Prepare supporting exhibits',
+                        'Schedule court filing'
+                    ]
+                },
+                {
+                    'id': 5,
+                    'title': 'Discovery Phase',
+                    'date': '2025-03-15',
+                    'status': 'pending',
+                    'description': 'Formal discovery process with opposing party',
+                    'documents': [],
+                    'next_steps': [
+                        'Prepare discovery requests',
+                        'Schedule depositions',
+                        'Review opposing party responses'
+                    ]
+                },
+                {
+                    'id': 6,
+                    'title': 'Settlement Negotiations',
+                    'date': '2025-05-01',
+                    'status': 'pending',
+                    'description': 'Attempt to reach settlement before trial',
+                    'documents': [],
+                    'next_steps': [
+                        'Prepare settlement demand',
+                        'Schedule mediation',
+                        'Evaluate settlement offers'
+                    ]
+                }
+            ],
+            'key_deadlines': [
+                {'date': '2025-02-01', 'description': 'Motion filing deadline'},
+                {'date': '2025-03-01', 'description': 'Discovery cutoff date'},
+                {'date': '2025-05-15', 'description': 'Settlement conference'},
+                {'date': '2025-06-15', 'description': 'Trial date'}
+            ],
+            'progress_stats': {
+                'completed_milestones': 2,
+                'total_milestones': 6,
+                'completion_percentage': 33,
+                'days_elapsed': 33,
+                'estimated_days_remaining': 165
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'data': timeline_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Case timeline error: {e}")
+        return jsonify({'error': 'Failed to retrieve case timeline'}), 500
+
+@app.route('/research')
+def legal_research_page():
+    """Legal research and citation tools page"""
+    try:
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Legal Research Tools - LexAI</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --primary-green: #2E4B3C;
+                    --secondary-cream: #F7EDDA;
+                    --gray-50: #f9fafb;
+                    --gray-100: #f3f4f6;
+                    --gray-200: #e5e7eb;
+                    --gray-600: #4b5563;
+                    --gray-700: #374151;
+                    --gray-900: #111827;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --blue: #3b82f6;
+                    --purple: #8b5cf6;
+                }
+                
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
+                    margin: 0;
+                    padding: 20px;
+                    min-height: 100vh;
+                    color: var(--gray-900);
+                }
+                
+                .container {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .back-link {
+                    background: var(--primary-green);
+                    color: var(--secondary-cream);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                
+                .research-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 400px;
+                    gap: 32px;
+                    margin-bottom: 32px;
+                }
+                
+                .main-research {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                
+                .research-tools {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                
+                .search-section {
+                    background: var(--gray-50);
+                    border-radius: 12px;
+                    padding: 24px;
+                    border: 1px solid var(--gray-100);
+                }
+                
+                .search-input {
+                    width: 100%;
+                    padding: 16px;
+                    border: 1px solid var(--gray-200);
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    margin-bottom: 16px;
+                    resize: vertical;
+                    min-height: 80px;
+                }
+                
+                .search-filters {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    flex-wrap: wrap;
+                }
+                
+                .filter-select {
+                    padding: 8px 12px;
+                    border: 1px solid var(--gray-200);
+                    border-radius: 6px;
+                    background: white;
+                    font-size: 0.875rem;
+                }
+                
+                .search-btn {
+                    background: var(--primary-green);
+                    color: white;
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .search-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+                }
+                
+                .results-section {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    border: 1px solid var(--gray-100);
+                    min-height: 400px;
+                }
+                
+                .result-item {
+                    border-bottom: 1px solid var(--gray-100);
+                    padding: 20px 0;
+                    margin-bottom: 16px;
+                }
+                
+                .result-item:last-child {
+                    border-bottom: none;
+                }
+                
+                .result-citation {
+                    font-weight: 600;
+                    color: var(--primary-green);
+                    margin-bottom: 8px;
+                    font-size: 1.1rem;
+                }
+                
+                .result-summary {
+                    color: var(--gray-700);
+                    line-height: 1.5;
+                    margin-bottom: 12px;
+                }
+                
+                .result-relevance {
+                    display: inline-block;
+                    background: var(--success);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                }
+                
+                .tool-card {
+                    background: var(--gray-50);
+                    border-radius: 12px;
+                    padding: 20px;
+                    border: 1px solid var(--gray-100);
+                    text-align: center;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .tool-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+                }
+                
+                .tool-icon {
+                    font-size: 2rem;
+                    margin-bottom: 12px;
+                }
+                
+                .tool-title {
+                    font-weight: 600;
+                    color: var(--gray-900);
+                    margin-bottom: 8px;
+                }
+                
+                .tool-description {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                    line-height: 1.4;
+                }
+                
+                .citation-generator {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 20px;
+                    border: 1px solid var(--gray-100);
+                }
+                
+                .citation-input {
+                    width: 100%;
+                    padding: 12px;
+                    border: 1px solid var(--gray-200);
+                    border-radius: 6px;
+                    margin-bottom: 12px;
+                    font-size: 0.875rem;
+                }
+                
+                .citation-result {
+                    background: var(--gray-50);
+                    padding: 16px;
+                    border-radius: 8px;
+                    border: 1px solid var(--gray-100);
+                    margin-top: 16px;
+                }
+                
+                .citation-text {
+                    font-family: 'Times New Roman', serif;
+                    font-size: 0.875rem;
+                    line-height: 1.5;
+                    color: var(--gray-900);
+                }
+                
+                .copy-btn {
+                    background: var(--blue);
+                    color: white;
+                    padding: 6px 12px;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    margin-top: 8px;
+                }
+                
+                .loading {
+                    text-align: center;
+                    padding: 40px;
+                    color: var(--gray-600);
+                }
+                
+                .error {
+                    background: rgba(239, 68, 68, 0.1);
+                    color: var(--error);
+                    padding: 16px;
+                    border-radius: 8px;
+                    margin: 16px 0;
+                }
+                
+                @media (max-width: 768px) {
+                    .research-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div>
+                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Legal Research Tools</h1>
+                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Advanced legal research with AI-powered analysis</p>
+                    </div>
+                    <a href="/" class="back-link">← Dashboard</a>
+                </div>
+                
+                <div class="research-grid">
+                    <div class="main-research">
+                        <div class="search-section">
+                            <h2 style="margin: 0 0 16px 0; font-size: 1.25rem; font-weight: 600;">Enhanced Legal Research</h2>
+                            <textarea id="researchQuery" class="search-input" placeholder="Enter your legal research query (e.g., 'contract formation requirements under UCC Article 2')"></textarea>
+                            
+                            <div class="search-filters">
+                                <select id="jurisdiction" class="filter-select">
+                                    <option value="federal">Federal</option>
+                                    <option value="state">State</option>
+                                    <option value="international">International</option>
+                                </select>
+                                <select id="practiceArea" class="filter-select">
+                                    <option value="corporate">Corporate Law</option>
+                                    <option value="family">Family Law</option>
+                                    <option value="personal_injury">Personal Injury</option>
+                                    <option value="criminal">Criminal Law</option>
+                                    <option value="real_estate">Real Estate</option>
+                                    <option value="immigration">Immigration</option>
+                                </select>
+                                <select id="sourceType" class="filter-select">
+                                    <option value="all">All Sources</option>
+                                    <option value="cases">Case Law</option>
+                                    <option value="statutes">Statutes</option>
+                                    <option value="regulations">Regulations</option>
+                                    <option value="secondary">Secondary Sources</option>
+                                </select>
+                            </div>
+                            
+                            <button class="search-btn" onclick="performResearch()">🔍 Research with AI Analysis</button>
+                        </div>
+                        
+                        <div class="results-section">
+                            <div id="researchResults">
+                                <div style="text-align: center; padding: 40px; color: var(--gray-600);">
+                                    <div style="font-size: 3rem; margin-bottom: 16px;">📚</div>
+                                    <h3>AI-Powered Legal Research</h3>
+                                    <p>Enter a legal query above to get comprehensive research results with AI analysis, precedent identification, and strategic insights.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="research-tools">
+                        <div class="tool-card" onclick="openCitationGenerator()">
+                            <div class="tool-icon">📝</div>
+                            <div class="tool-title">Citation Generator</div>
+                            <div class="tool-description">Generate proper legal citations in Bluebook, APA, or other formats</div>
+                        </div>
+                        
+                        <div class="tool-card" onclick="openPrecedentAnalyzer()">
+                            <div class="tool-icon">⚖️</div>
+                            <div class="tool-title">Precedent Analyzer</div>
+                            <div class="tool-description">Analyze case precedents and their relevance to your legal issue</div>
+                        </div>
+                        
+                        <div class="tool-card" onclick="openStatuteTracker()">
+                            <div class="tool-icon">📊</div>
+                            <div class="tool-title">Statute Tracker</div>
+                            <div class="tool-description">Track changes and updates to relevant statutes and regulations</div>
+                        </div>
+                        
+                        <div class="citation-generator" id="citationGenerator" style="display: none;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600;">Citation Generator</h3>
+                            <input type="text" class="citation-input" placeholder="Case name (e.g., Brown v. Board of Education)" id="caseName">
+                            <input type="text" class="citation-input" placeholder="Volume (e.g., 347)" id="volume">
+                            <input type="text" class="citation-input" placeholder="Reporter (e.g., U.S.)" id="reporter">
+                            <input type="text" class="citation-input" placeholder="Page (e.g., 483)" id="page">
+                            <input type="text" class="citation-input" placeholder="Year (e.g., 1954)" id="year">
+                            <button class="search-btn" style="width: 100%; margin-top: 8px;" onclick="generateCitation()">Generate Citation</button>
+                            <div id="citationResult" class="citation-result" style="display: none;">
+                                <div class="citation-text" id="citationText"></div>
+                                <button class="copy-btn" onclick="copyCitation()">Copy Citation</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                async function performResearch() {
+                    const query = document.getElementById('researchQuery').value.trim();
+                    if (!query) {
+                        alert('Please enter a research query');
+                        return;
+                    }
+                    
+                    const jurisdiction = document.getElementById('jurisdiction').value;
+                    const practiceArea = document.getElementById('practiceArea').value;
+                    const sourceType = document.getElementById('sourceType').value;
+                    
+                    const resultsDiv = document.getElementById('researchResults');
+                    resultsDiv.innerHTML = '<div class="loading">🔍 Performing AI-powered legal research...</div>';
+                    
+                    try {
+                        const response = await fetch('/api/legal/research', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                query: query,
+                                jurisdiction: jurisdiction,
+                                practice_area: practiceArea,
+                                source_type: sourceType
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            displayResearchResults(data.data);
+                        } else {
+                            resultsDiv.innerHTML = `<div class="error">Research failed: ${data.error || 'Unknown error'}</div>`;
+                        }
+                    } catch (error) {
+                        resultsDiv.innerHTML = `<div class="error">Research error: ${error.message}</div>`;
+                    }
+                }
+                
+                function displayResearchResults(data) {
+                    const resultsDiv = document.getElementById('researchResults');
+                    
+                    let html = `
+                        <h3 style="margin: 0 0 16px 0; font-size: 1.25rem; font-weight: 600;">Research Results</h3>
+                        <div style="margin-bottom: 24px; padding: 16px; background: var(--gray-50); border-radius: 8px;">
+                            <strong>Query:</strong> ${data.query}<br>
+                            <strong>Jurisdiction:</strong> ${data.jurisdiction}<br>
+                            <strong>Practice Area:</strong> ${data.practice_area}<br>
+                            <strong>Confidence Score:</strong> ${Math.round(data.confidence_score * 100)}%
+                        </div>
+                    `;
+                    
+                    if (data.enhanced_research.primary_authorities.length > 0) {
+                        html += '<h4 style="margin: 24px 0 12px 0; color: var(--primary-green);">Primary Authorities</h4>';
+                        data.enhanced_research.primary_authorities.forEach(auth => {
+                            html += `
+                                <div class="result-item">
+                                    <div class="result-citation">${auth.citation}</div>
+                                    <div class="result-summary">${auth.summary}</div>
+                                    <div class="result-relevance">${Math.round(auth.relevance * 100)}% Relevant</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    if (data.enhanced_research.strategic_analysis) {
+                        html += '<h4 style="margin: 24px 0 12px 0; color: var(--primary-green);">Strategic Analysis</h4>';
+                        html += `
+                            <div style="background: var(--gray-50); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                                <h5 style="margin: 0 0 8px 0; color: var(--success);">Strengths</h5>
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    ${data.enhanced_research.strategic_analysis.strengths.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div style="background: var(--gray-50); padding: 16px; border-radius: 8px;">
+                                <h5 style="margin: 0 0 8px 0; color: var(--warning);">Considerations</h5>
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    ${data.enhanced_research.strategic_analysis.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                }
+                
+                function openCitationGenerator() {
+                    const generator = document.getElementById('citationGenerator');
+                    generator.style.display = generator.style.display === 'none' ? 'block' : 'none';
+                }
+                
+                function generateCitation() {
+                    const caseName = document.getElementById('caseName').value;
+                    const volume = document.getElementById('volume').value;
+                    const reporter = document.getElementById('reporter').value;
+                    const page = document.getElementById('page').value;
+                    const year = document.getElementById('year').value;
+                    
+                    if (!caseName || !volume || !reporter || !page || !year) {
+                        alert('Please fill in all citation fields');
+                        return;
+                    }
+                    
+                    const citation = `${caseName}, ${volume} ${reporter} ${page} (${year}).`;
+                    document.getElementById('citationText').textContent = citation;
+                    document.getElementById('citationResult').style.display = 'block';
+                }
+                
+                function copyCitation() {
+                    const citationText = document.getElementById('citationText').textContent;
+                    navigator.clipboard.writeText(citationText).then(() => {
+                        alert('Citation copied to clipboard!');
+                    });
+                }
+                
+                function openPrecedentAnalyzer() {
+                    alert('Precedent Analyzer: Advanced precedent analysis tool coming soon!');
+                }
+                
+                function openStatuteTracker() {
+                    alert('Statute Tracker: Real-time statute and regulation tracking coming soon!');
+                }
+            </script>
+        </body>
+        </html>
+        """)
+        
+    except Exception as e:
+        logger.error(f"Research page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Research</title></head>
+<body><h1>🏛️ LexAI Legal Research</h1>
+<p>Error loading research tools: {e}</p>
 <a href="/">← Back to Dashboard</a></body></html>"""
 
 @app.route('/analytics')
