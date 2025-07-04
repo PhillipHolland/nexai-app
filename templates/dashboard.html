@@ -1,91 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexAI Practice Partner</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        body {
-            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #fafafa;
-            color: #1d1d1f;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Top Navigation - Apple-inspired with green brand */
-        .navbar {
-            background: #2E4B3C;
-            padding: 0 32px;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .logo img {
-            height: 32px;
-            width: auto;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 400;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            letter-spacing: -0.01em;
-        }
-
-        .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-link.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Main Content */
         .main-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -271,26 +190,9 @@
             }
         }
     </style>
-</head>
-<body>
-    <!-- Clean Top Navigation -->
-    <nav class="navbar">
-        <div class="nav-left">
-            <a href="/" class="logo">
-                <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI">
-                <span class="logo-text">LexAI Practice Partner</span>
-            </a>
-            
-            <div class="nav-links">
-                <a href="/" class="nav-link active">Dashboard</a>
-                <a href="/chat" class="nav-link">AI Assistant</a>
-                <a href="/clients" class="nav-link">Clients</a>
-                <a href="/documents" class="nav-link">Documents</a>
-                <a href="/search" class="nav-link">Research</a>
-                <a href="/analytics" class="nav-link">Analytics</a>
-            </div>
-        </div>
-    </nav>
+{% endblock %}
+
+{% block content %}
 
     <!-- Main Content -->
     <div class="main-content">
@@ -302,7 +204,7 @@
 
         <!-- Hero Actions -->
         <div class="hero-actions">
-            <a href="/chat" class="hero-action">
+            <a href="{{ url_for('chat') }}" class="hero-action">
                 <div class="hero-icon">
                     <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -312,14 +214,14 @@
                 <p class="hero-desc">Get instant legal guidance and document analysis</p>
             </a>
             
-            <a href="/search" class="hero-action">
+            <a href="{{ url_for('documents') }}" class="hero-action">
                 <div class="hero-icon">
                     <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
-                <h3 class="hero-title">Legal Research</h3>
-                <p class="hero-desc">Search case law, statutes, and legal precedents</p>
+                <h3 class="hero-title">Document Management</h3>
+                <p class="hero-desc">Upload, analyze, and manage case documents</p>
             </a>
         </div>
 
@@ -346,5 +248,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}
