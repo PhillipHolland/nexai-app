@@ -190,10 +190,11 @@ def security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; "
-        "connect-src 'self' https://api.x.ai"
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://api.x.ai https://fonts.googleapis.com https://fonts.gstatic.com"
     )
     return response
 

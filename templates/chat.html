@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LexAI Practice Partner - AI Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="layout-container">
@@ -567,9 +563,10 @@
             messageContent.className = 'message-content';
             
             if (role === 'assistant') {
-                // Enhanced message with actions
+                // Enhanced message with actions  
                 const contentWrapper = document.createElement('div');
-                contentWrapper.innerHTML = marked.parse(content);
+                // Simple text formatting instead of markdown
+                contentWrapper.innerHTML = content.replace(/\n/g, '<br>');
                 messageContent.appendChild(contentWrapper);
                 
                 // Add message actions

@@ -189,9 +189,10 @@ def security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " 
         "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "img-src 'self' data: https:; "
         "connect-src 'self' https://api.x.ai"
     )
     return response
@@ -1316,7 +1317,6 @@ def chat_interface(client_id=None):
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>LexAI Chat - {{ selected_practice['name'] }}</title>
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
                 <style>
                     body {
                         font-family: 'Inter', system-ui, -apple-system, sans-serif;
