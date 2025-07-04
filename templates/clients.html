@@ -14,18 +14,21 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="brand-container" style="display: flex; align-items: center; justify-content: center;">
+                <div class="brand-container" style="display: flex; align-items: center; gap: 12px;">
                     <div class="brand-logo">
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                             <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
                             <path d="M8 12h16M8 16h12M8 20h16M12 8v16" stroke="white" stroke-width="2" stroke-linecap="round"/>
                             <defs>
                                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#667eea"/>
-                                    <stop offset="100%" style="stop-color:#764ba2"/>
+                                    <stop offset="0%" style="stop-color:#16a34a"/>
+                                    <stop offset="100%" style="stop-color:#059669"/>
                                 </linearGradient>
                             </defs>
                         </svg>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name" style="font-size: 1.25rem; font-weight: 700; color: #2E4B3C;">LexAI</span>
                     </div>
                 </div>
             </div>
@@ -77,6 +80,12 @@
             <!-- Top Navigation -->
             <header class="navbar">
                 <div class="navbar-brand">
+                    <a href="{{ url_for('dashboard') }}" class="dashboard-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #059669; font-weight: 600; margin-right: 20px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Dashboard
+                    </a>
                     <button id="sidebarToggle" class="menu-toggle">
                         <div class="hamburger">
                             <span></span>
@@ -84,7 +93,6 @@
                             <span></span>
                         </div>
                     </button>
-                    <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI" class="navbar-logo">
                     <span class="navbar-text">Client Management</span>
                 </div>
                 

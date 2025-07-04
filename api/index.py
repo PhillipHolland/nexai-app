@@ -1119,13 +1119,22 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
         .brand-container {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
         }
 
         .brand-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            flex: 1;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-green);
+            line-height: 1.2;
         }
 
         .sidebar-nav {
@@ -1492,11 +1501,14 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                             <path d="M8 12h16M8 16h12M8 20h16M12 8v16" stroke="white" stroke-width="2" stroke-linecap="round"/>
                             <defs>
                                 <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#667eea"/>
-                                    <stop offset="100%" style="stop-color:#764ba2"/>
+                                    <stop offset="0%" style="stop-color:#16a34a"/>
+                                    <stop offset="100%" style="stop-color:#059669"/>
                                 </linearGradient>
                             </defs>
                         </svg>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name">LexAI</span>
                     </div>
                 </div>
             </div>
