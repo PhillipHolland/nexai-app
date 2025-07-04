@@ -1,141 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexAI Practice Partner - AI Assistant</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block title %}AI Assistant - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #fafafa;
-            color: #1d1d1f;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Top Navigation - Consistent with dashboard */
-        .navbar {
-            background: #2E4B3C;
-            padding: 0 32px;
-            height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .logo img {
-            height: 32px;
-            width: auto;
-        }
-
-        .logo-text {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 400;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            letter-spacing: -0.01em;
-        }
-
-        .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-link.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Chat Interface */
+        /* Chat-specific styles */
         .chat-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 32px;
-            height: calc(100vh - 72px);
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem); /* Account for navbar */
             display: flex;
             flex-direction: column;
         }
 
         .chat-header {
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
             text-align: center;
-            margin-bottom: 40px;
         }
 
         .chat-title {
-            font-size: 32px;
+            font-size: 2rem;
             font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
         }
 
         .chat-subtitle {
-            font-size: 17px;
-            color: #86868b;
+            color: #6b7280;
+            font-size: 1.125rem;
         }
 
-        .chat-area {
+        .chat-main {
             flex: 1;
-            background: white;
-            border: 1px solid #e5e5e7;
-            border-radius: 16px;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .practice-areas {
+            width: 250px;
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .practice-areas h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .practice-area {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .practice-area:hover {
+            background-color: #F7EDDA; /* light-cream */
+        }
+
+        .practice-area.active {
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
+            border-color: #FFA74F; /* warm-orange */
+        }
+
+        .practice-area-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .practice-area-desc {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .chat-interface {
+            flex: 1;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            height: calc(100vh - 12rem);
         }
 
-        .messages {
+        .chat-messages {
             flex: 1;
-            padding: 32px;
+            padding: 1.5rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 1rem;
         }
 
         .message {
             display: flex;
-            gap: 16px;
+            gap: 1rem;
             max-width: 80%;
         }
 
@@ -144,275 +117,463 @@
             flex-direction: row-reverse;
         }
 
+        .message.assistant {
+            align-self: flex-start;
+        }
+
         .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 600;
             flex-shrink: 0;
         }
 
         .message.user .message-avatar {
-            background: #2E4B3C;
-            color: white;
+            background-color: #FFA74F; /* warm-orange */
+            color: #2E4B3C; /* dark-green */
         }
 
         .message.assistant .message-avatar {
-            background: #f5f5f7;
-            color: #86868b;
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
         }
 
         .message-content {
-            background: #f5f5f7;
-            padding: 16px 20px;
-            border-radius: 16px;
-            font-size: 15px;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 1rem;
             line-height: 1.5;
         }
 
         .message.user .message-content {
-            background: #2E4B3C;
-            color: white;
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
         }
 
-        .input-area {
-            padding: 24px 32px;
-            border-top: 1px solid #f5f5f7;
+        .message.assistant .message-content {
+            background-color: #f9fafb;
+            color: #1f2937;
         }
 
-        .input-container {
+        .chat-input-container {
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem;
+        }
+
+        .chat-input-form {
             display: flex;
-            gap: 12px;
+            gap: 1rem;
             align-items: flex-end;
         }
 
-        .message-input {
+        .chat-input {
             flex: 1;
-            border: 1px solid #e5e5e7;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 15px;
+            min-height: 2.5rem;
+            max-height: 8rem;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
             font-family: inherit;
-            background: white;
+            font-size: 1rem;
+            line-height: 1.5;
             resize: none;
-            min-height: 48px;
-            max-height: 120px;
+            transition: border-color 0.2s ease;
         }
 
-        .message-input:focus {
+        .chat-input:focus {
             outline: none;
-            border-color: #2E4B3C;
+            border-color: #2E4B3C; /* dark-green */
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
         }
 
-        .send-button {
-            background: #2E4B3C;
-            color: white;
+        .chat-send-btn {
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 10px;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border-radius: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .send-button:hover {
-            background: #1d2f23;
+        .chat-send-btn:hover {
+            background-color: #09332C; /* darkest-green */
+            transform: translateY(-1px);
         }
 
-        .send-button:disabled {
-            background: #e5e5e7;
-            color: #86868b;
+        .chat-send-btn:disabled {
+            background-color: #9ca3af;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: #6b7280;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
         }
 
         .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
             text-align: center;
-            color: #86868b;
+            padding: 3rem;
+            color: #6b7280;
         }
 
-        .empty-icon {
-            width: 64px;
-            height: 64px;
-            background: #f5f5f7;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            color: #9ca3af;
         }
 
-        .empty-title {
-            font-size: 19px;
+        .suggested-prompts {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .suggested-prompts {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .suggested-prompt {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .suggested-prompt:hover {
+            border-color: #2E4B3C;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggested-prompt-title {
             font-weight: 600;
-            color: #1d1d1f;
-            margin-bottom: 8px;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
         }
 
-        .empty-desc {
-            font-size: 15px;
-            color: #86868b;
+        .suggested-prompt-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
         }
 
-        /* Responsive */
+        /* Mobile responsiveness */
         @media (max-width: 768px) {
-            .navbar {
-                padding: 0 20px;
-                height: 64px;
+            .chat-main {
+                flex-direction: column;
+                padding: 0.5rem;
             }
 
-            .nav-links {
-                display: none;
+            .practice-areas {
+                width: 100%;
+                order: 2;
             }
 
-            .chat-container {
-                padding: 24px 20px;
-                height: calc(100vh - 64px);
-            }
-
-            .chat-title {
-                font-size: 28px;
-            }
-
-            .messages {
-                padding: 20px;
-            }
-
-            .input-area {
-                padding: 20px;
+            .chat-interface {
+                height: 60vh;
+                order: 1;
             }
 
             .message {
-                max-width: 90%;
+                max-width: 95%;
             }
         }
     </style>
-</head>
-<body>
-    <!-- Consistent Top Navigation -->
-    <nav class="navbar">
-        <div class="nav-left">
-            <a href="/" class="logo">
-                <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI">
-                <span class="logo-text">LexAI Practice Partner</span>
-            </a>
-            
-            <div class="nav-links">
-                <a href="/" class="nav-link">Dashboard</a>
-                <a href="/chat" class="nav-link active">AI Assistant</a>
-                <a href="/clients" class="nav-link">Clients</a>
-                <a href="/documents" class="nav-link">Documents</a>
-                <a href="/search" class="nav-link">Research</a>
-                <a href="/analytics" class="nav-link">Analytics</a>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <h1 class="chat-title">AI Legal Assistant</h1>
+        <p class="chat-subtitle">Get instant legal guidance, document analysis, and research assistance</p>
+    </div>
+
+    <!-- Main Chat Interface -->
+    <div class="chat-main">
+        <!-- Practice Areas Sidebar -->
+        <div class="practice-areas">
+            <h3>Practice Areas</h3>
+            <div class="practice-area active" data-area="general">
+                <div class="practice-area-name">General Legal</div>
+                <div class="practice-area-desc">General legal questions and guidance</div>
+            </div>
+            <div class="practice-area" data-area="family">
+                <div class="practice-area-name">Family Law</div>
+                <div class="practice-area-desc">Divorce, custody, and family matters</div>
+            </div>
+            <div class="practice-area" data-area="corporate">
+                <div class="practice-area-name">Corporate Law</div>
+                <div class="practice-area-desc">Business formation and contracts</div>
+            </div>
+            <div class="practice-area" data-area="real-estate">
+                <div class="practice-area-name">Real Estate</div>
+                <div class="practice-area-desc">Property transactions and disputes</div>
+            </div>
+            <div class="practice-area" data-area="personal-injury">
+                <div class="practice-area-name">Personal Injury</div>
+                <div class="practice-area-desc">Accident claims and compensation</div>
+            </div>
+            <div class="practice-area" data-area="criminal">
+                <div class="practice-area-name">Criminal Defense</div>
+                <div class="practice-area-desc">Criminal law and defense strategies</div>
             </div>
         </div>
-    </nav>
 
-    <!-- Chat Interface -->
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1 class="chat-title">AI Legal Assistant</h1>
-            <p class="chat-subtitle">Get instant legal guidance and document analysis</p>
-        </div>
+        <!-- Chat Interface -->
+        <div class="chat-interface">
+            <!-- Messages Container -->
+            <div class="chat-messages" id="chat-messages">
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <h3>Start a conversation</h3>
+                    <p>Ask any legal question or try one of the suggestions below</p>
 
-        <div class="chat-area">
-            <div class="messages" id="chatMessages">
-                <div class="empty-state">
-                    <div class="empty-icon">
-                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
+                    <!-- Suggested Prompts -->
+                    <div class="suggested-prompts">
+                        <div class="suggested-prompt" data-prompt="Help me understand the key clauses I should include in a service agreement for my consulting business.">
+                            <div class="suggested-prompt-title">Draft Contract Clauses</div>
+                            <div class="suggested-prompt-desc">Get help with essential contract terms</div>
+                        </div>
+                        <div class="suggested-prompt" data-prompt="What are the legal requirements for forming an LLC in California?">
+                            <div class="suggested-prompt-title">Business Formation</div>
+                            <div class="suggested-prompt-desc">Learn about entity formation requirements</div>
+                        </div>
+                        <div class="suggested-prompt" data-prompt="Analyze this employment contract for potential issues and areas of concern.">
+                            <div class="suggested-prompt-title">Document Review</div>
+                            <div class="suggested-prompt-desc">Get document analysis and feedback</div>
+                        </div>
+                        <div class="suggested-prompt" data-prompt="What are my rights as a tenant if my landlord wants to raise the rent?">
+                            <div class="suggested-prompt-title">Legal Rights</div>
+                            <div class="suggested-prompt-desc">Understand your legal rights and options</div>
+                        </div>
                     </div>
-                    <h3 class="empty-title">Start a conversation</h3>
-                    <p class="empty-desc">Ask questions about legal matters, analyze documents, or get guidance on your cases.</p>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="message-avatar">
+                        <span>AI</span>
+                    </div>
+                    <div>
+                        LexAI is typing
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="input-area">
-                <div class="input-container">
+            <!-- Input Container -->
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chat-form">
                     <textarea 
-                        id="messageInput" 
-                        class="message-input" 
-                        placeholder="Ask a legal question or describe your situation..."
-                        rows="1"></textarea>
-                    <button id="sendButton" class="send-button">
+                        id="chat-input" 
+                        class="chat-input" 
+                        placeholder="Ask your legal question..."
+                        rows="1"
+                        maxlength="2000"
+                    ></textarea>
+                    <button type="submit" class="chat-send-btn" id="send-btn">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                         </svg>
+                        Send
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Auto-resize textarea
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const chatMessages = document.getElementById('chatMessages');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const emptyState = document.getElementById('empty-state');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const practiceAreas = document.querySelectorAll('.practice-area');
+    const suggestedPrompts = document.querySelectorAll('.suggested-prompt');
 
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    let currentPracticeArea = 'general';
+    let conversationHistory = [];
+
+    // Practice area selection
+    practiceAreas.forEach(area => {
+        area.addEventListener('click', function() {
+            practiceAreas.forEach(a => a.classList.remove('active'));
+            this.classList.add('active');
+            currentPracticeArea = this.dataset.area;
         });
+    });
 
-        // Send message functionality
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
+    // Suggested prompts
+    suggestedPrompts.forEach(prompt => {
+        prompt.addEventListener('click', function() {
+            const promptText = this.dataset.prompt;
+            chatInput.value = promptText;
+            hideEmptyState();
+            sendMessage(promptText);
+        });
+    });
 
-            // Hide empty state
-            const emptyState = chatMessages.querySelector('.empty-state');
-            if (emptyState) {
-                emptyState.style.display = 'none';
+    // Auto-resize textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+    });
+
+    // Handle Enter key (send on Enter, new line on Shift+Enter)
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const message = this.value.trim();
+            if (message) {
+                hideEmptyState();
+                sendMessage(message);
             }
-
-            // Add user message
-            addMessage(message, 'user');
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-
-            // Simulate AI response (replace with actual API call)
-            setTimeout(() => {
-                addMessage('I understand your legal question. Let me analyze this and provide you with guidance...', 'assistant');
-            }, 1000);
         }
+    });
 
-        function addMessage(content, type) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            
-            messageDiv.innerHTML = `
-                <div class="message-avatar">
-                    ${type === 'user' ? 
-                        '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' :
-                        '<svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
-                    }
-                </div>
-                <div class="message-content">${content}</div>
-            `;
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Form submission
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (message) {
+            hideEmptyState();
+            sendMessage(message);
         }
+    });
 
-        sendButton.addEventListener('click', sendMessage);
+    function hideEmptyState() {
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+    }
+
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
         
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <span>${isUser ? 'U' : 'AI'}</span>
+            </div>
+            <div class="message-content">
+                ${content.replace(/\n/g, '<br>')}
+            </div>
+        `;
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        return messageDiv;
+    }
+
+    function showTyping() {
+        typingIndicator.style.display = 'flex';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+        typingIndicator.style.display = 'none';
+    }
+
+    async function sendMessage(message) {
+        // Clear input
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        
+        // Add user message
+        addMessage(message, true);
+        conversationHistory.push({role: 'user', content: message});
+        
+        // Disable send button and show typing
+        sendBtn.disabled = true;
+        showTyping();
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    practice_area: currentPracticeArea,
+                    conversation_history: conversationHistory.slice(-10) // Keep last 10 messages
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        });
-    </script>
-</body>
-</html>
+
+            const data = await response.json();
+            
+            hideTyping();
+            
+            if (data.response) {
+                addMessage(data.response);
+                conversationHistory.push({role: 'assistant', content: data.response});
+            } else if (data.error) {
+                addMessage(`Sorry, I encountered an error: ${data.error}`, false);
+            }
+
+        } catch (error) {
+            hideTyping();
+            console.error('Chat error:', error);
+            addMessage('Sorry, I\'m having trouble connecting right now. Please try again in a moment.', false);
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+});
+</script>
+{% endblock %}
