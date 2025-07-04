@@ -360,11 +360,11 @@ PRACTICE_AREAS = {
         'icon': 'family',
         'color': '#8B5CF6',
         'prompts': [
-            'Draft a custody agreement',
+            'Draft custody agreement',
             'Calculate child support',
-            'Prepare divorce petition',
-            'Analyze property division',
-            'Draft prenuptial agreement'
+            'Property division analysis',
+            'Spousal support guidelines',
+            'Divorce petition checklist'
         ]
     },
     'personal_injury': {
@@ -372,11 +372,11 @@ PRACTICE_AREAS = {
         'icon': 'shield',
         'color': '#EF4444',
         'prompts': [
-            'Calculate damages',
+            'Calculate damages worksheet',
             'Draft demand letter',
-            'Analyze medical records',
-            'Prepare settlement agreement',
-            'Research similar cases'
+            'Medical record analysis',
+            'Settlement strategies',
+            'Liability assessment'
         ]
     },
     'corporate': {
@@ -384,11 +384,11 @@ PRACTICE_AREAS = {
         'icon': 'building',
         'color': '#3B82F6',
         'prompts': [
-            'Draft contract terms',
-            'Review agreement',
-            'Analyze compliance',
-            'Prepare entity documents',
-            'Research regulations'
+            'Contract risk analysis',
+            'Entity formation guide',
+            'Compliance checklist',
+            'M&A due diligence',
+            'Employment policies'
         ]
     },
     'criminal': {
@@ -396,11 +396,11 @@ PRACTICE_AREAS = {
         'icon': 'scale',
         'color': '#F59E0B',
         'prompts': [
-            'Research precedents',
-            'Draft motion',
-            'Analyze evidence',
-            'Prepare defense strategy',
-            'Review plea options'
+            'Motion to suppress',
+            'Sentencing guidelines',
+            'Evidence analysis',
+            'Plea negotiation strategy',
+            'Constitutional rights review'
         ]
     },
     'real_estate': {
@@ -408,11 +408,11 @@ PRACTICE_AREAS = {
         'icon': 'home',
         'color': '#10B981',
         'prompts': [
-            'Review purchase agreement',
-            'Analyze title issues',
-            'Draft lease terms',
-            'Check zoning compliance',
-            'Prepare closing documents'
+            'Purchase agreement review',
+            'Title examination checklist',
+            'Zoning compliance analysis',
+            'Lease negotiation guide',
+            'Closing preparation'
         ]
     },
     'immigration': {
@@ -420,11 +420,11 @@ PRACTICE_AREAS = {
         'icon': 'globe',
         'color': '#6366F1',
         'prompts': [
-            'Prepare visa application',
-            'Analyze eligibility',
-            'Draft petition',
-            'Review documentation',
-            'Check status updates'
+            'Visa eligibility assessment',
+            'Green card process guide',
+            'Naturalization checklist',
+            'Removal defense strategy',
+            'Family petition preparation'
         ]
     }
 }
@@ -449,23 +449,108 @@ def get_mock_stats():
     }
 
 def build_system_prompt(practice_area):
-    """Build specialized system prompt for practice area"""
-    base_prompt = "You are LexAI, a professional legal AI assistant. Provide accurate, practical legal guidance while noting this is not formal legal advice. Keep responses concise and professional."
+    """Build specialized system prompt with advanced tools and knowledge"""
+    base_prompt = "You are LexAI, an expert legal AI assistant. Provide precise, actionable legal guidance. Always note this is not formal legal advice."
     
-    if practice_area == 'family':
-        return f"{base_prompt} You specialize in family law matters including divorce, custody, child support, and domestic relations."
-    elif practice_area == 'personal_injury':
-        return f"{base_prompt} You specialize in personal injury law including accidents, medical malpractice, and insurance claims."
-    elif practice_area == 'corporate':
-        return f"{base_prompt} You specialize in corporate law including contracts, compliance, business formation, and commercial transactions."
-    elif practice_area == 'criminal':
-        return f"{base_prompt} You specialize in criminal defense including charges, procedures, rights, and court processes."
-    elif practice_area == 'real_estate':
-        return f"{base_prompt} You specialize in real estate law including transactions, contracts, zoning, and property disputes."
-    elif practice_area == 'immigration':
-        return f"{base_prompt} You specialize in immigration law including visas, citizenship, deportation defense, and family reunification."
+    specialized_prompts = {
+        'family': f"""{base_prompt}
+        
+FAMILY LAW EXPERTISE:
+- Divorce proceedings, asset division, spousal support calculations
+- Child custody arrangements, parenting plans, support guidelines
+- Domestic relations, protective orders, adoption procedures
+- Mediation strategies, settlement negotiations
+
+TOOLS AVAILABLE:
+- Child support calculators for all states
+- Custody schedule templates and best practices
+- Asset valuation methods and division strategies
+- Form libraries for petitions, motions, agreements
+
+Focus on practical solutions, precedent analysis, and client-centered approaches.""",
+
+        'personal_injury': f"""{base_prompt}
+        
+PERSONAL INJURY EXPERTISE:
+- Accident reconstruction, liability assessment, damages calculation
+- Medical record analysis, expert witness coordination
+- Insurance claim negotiation, settlement strategies
+- Trial preparation, jury psychology, case presentation
+
+TOOLS AVAILABLE:
+- Damages calculation worksheets (economic/non-economic)
+- Medical terminology and injury assessment guides
+- Insurance policy analysis and coverage determination
+- Settlement demand letter templates and negotiation tactics
+
+Emphasize evidence preservation, thorough documentation, and maximum recovery.""",
+
+        'corporate': f"""{base_prompt}
+        
+CORPORATE LAW EXPERTISE:
+- Contract drafting, negotiation, risk assessment
+- Business formation, governance, compliance frameworks
+- M&A transactions, due diligence, regulatory filings
+- Employment law, intellectual property, securities
+
+TOOLS AVAILABLE:
+- Contract clause libraries and red-flag analysis
+- Entity formation guides and tax implications
+- Compliance checklists for various industries
+- Deal structure templates and term sheets
+
+Focus on business objectives, risk mitigation, and strategic legal counsel.""",
+
+        'criminal': f"""{base_prompt}
+        
+CRIMINAL DEFENSE EXPERTISE:
+- Constitutional rights, evidence suppression, plea negotiations
+- Sentencing guidelines, mitigation strategies, appeals
+- Jury selection, trial advocacy, cross-examination
+- White-collar defense, regulatory investigations
+
+TOOLS AVAILABLE:
+- Evidence analysis and admissibility rules
+- Sentencing calculation worksheets
+- Motion templates and precedent research
+- Client interview guides and defense strategies
+
+Prioritize constitutional protections, thorough investigation, and zealous advocacy.""",
+
+        'real_estate': f"""{base_prompt}
+        
+REAL ESTATE EXPERTISE:
+- Transaction structuring, due diligence, title examination
+- Zoning compliance, land use, environmental issues
+- Financing arrangements, escrow procedures, closing coordination
+- Landlord-tenant law, property disputes, construction contracts
+
+TOOLS AVAILABLE:
+- Contract review checklists and standard clauses
+- Title examination procedures and issue resolution
+- Zoning analysis and variance applications
+- Lease negotiation strategies and tenant rights
+
+Focus on transaction security, risk identification, and practical solutions.""",
+
+        'immigration': f"""{base_prompt}
+        
+IMMIGRATION LAW EXPERTISE:
+- Visa applications, status adjustments, naturalization
+- Removal defense, asylum claims, family reunification
+- Employment authorization, investor visas, compliance
+- Appeals, waivers, complex case strategies
+
+TOOLS AVAILABLE:
+- Form preparation guides and filing requirements
+- Eligibility assessment worksheets
+- Evidence compilation strategies
+- Timeline management and deadline tracking
+
+Emphasize accuracy, documentation, and client advocacy within complex regulations."""
+    }
     
-    return base_prompt
+    return specialized_prompts.get(practice_area, base_prompt)
 
 # Enhanced embedded dashboard template matching local version
 EMBEDDED_DASHBOARD_TEMPLATE = """
@@ -969,7 +1054,6 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
             <div class="content-area">
                 <div class="page-header">
                     <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Professional AI-powered legal practice management</p>
                 </div>
 
                 <!-- Stats Grid -->
@@ -1031,7 +1115,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                             </div>
                         </div>
                         <p class="practice-description">
-                            Specialized AI assistance for {{ area.name.lower() }} matters with expert guidance and document automation.
+                            Specialized AI for {{ area.name.lower() }} matters.
                         </p>
                     </div>
                     {% endfor %}
@@ -1039,8 +1123,7 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <a href="/chat" class="btn btn-primary">Start AI Consultation</a>
-                    <a href="/health" class="btn" style="background: var(--gray-100); color: var(--gray-700);">System Health</a>
+                    <a href="/chat" class="btn btn-primary">Start Chat</a>
                 </div>
 
                 <!-- Recent Clients -->
@@ -1135,7 +1218,11 @@ def chat_interface(client_id=None):
         except Exception as template_error:
             logger.warning(f"Chat template render failed: {template_error}, using embedded template")
             # Enhanced fallback chat interface with modern styling
-            selected_practice = PRACTICE_AREAS.get(practice_area, {'name': 'General Legal', 'color': '#1e40af'})
+            selected_practice = PRACTICE_AREAS.get(practice_area, {
+                'name': 'General Legal', 
+                'color': '#2E4B3C',
+                'prompts': ['Legal research', 'Document review', 'Case analysis']
+            })
             
             return render_template_string("""
             <!DOCTYPE html>
@@ -1294,6 +1381,22 @@ def chat_interface(client_id=None):
                         font-style: italic;
                         font-size: 0.875rem;
                     }
+                    .quick-prompt {
+                        padding: 6px 12px;
+                        background: #F7EDDA;
+                        color: #2E4B3C;
+                        border: 1px solid #2E4B3C;
+                        border-radius: 6px;
+                        font-size: 0.75rem;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        font-weight: 500;
+                    }
+                    .quick-prompt:hover {
+                        background: #2E4B3C;
+                        color: #F7EDDA;
+                        transform: translateY(-1px);
+                    }
                 </style>
             </head>
             <body>
@@ -1305,17 +1408,22 @@ def chat_interface(client_id=None):
                             <img src="/static/lexAI.png" alt="LexAI" style="height: 32px; width: auto; margin-right: 12px;">
                             <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600;">LexAI - {{ selected_practice['name'] }}</h1>
                         </div>
-                        <p style="margin: 0; opacity: 0.9; font-size: 0.875rem;">Professional AI legal assistant specialized in {{ selected_practice['name'].lower() }}</p>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.875rem;">{{ selected_practice['name'] }} AI Assistant</p>
                     </div>
                     
                     <div class="chat-messages" id="chatMessages">
                         <div class="message assistant">
                             <div class="message-avatar">LA</div>
                             <div class="message-content">
-                                Welcome to LexAI! I'm your AI legal assistant specializing in {{ selected_practice['name'].lower() }}. 
-                                I can help with legal research, document analysis, and provide professional guidance. 
-                                Please note this is not formal legal advice. How can I assist you today?
+                                I'm your {{ selected_practice['name'].lower() }} AI assistant. I can help with legal research, document analysis, and guidance. Note: This is not formal legal advice. How can I help?
                             </div>
+                        </div>
+                        
+                        <!-- Quick Prompts -->
+                        <div style="margin: 16px 0; display: flex; flex-wrap: wrap; gap: 8px;">
+                            <button class="quick-prompt" onclick="useQuickPrompt('{{ selected_practice.prompts[0] }}')">{{ selected_practice.prompts[0] }}</button>
+                            <button class="quick-prompt" onclick="useQuickPrompt('{{ selected_practice.prompts[1] }}')">{{ selected_practice.prompts[1] }}</button>
+                            <button class="quick-prompt" onclick="useQuickPrompt('{{ selected_practice.prompts[2] }}')">{{ selected_practice.prompts[2] }}</button>
                         </div>
                     </div>
                     
@@ -1428,6 +1536,16 @@ def chat_interface(client_id=None):
                         
                         chatMessages.appendChild(messageDiv);
                         chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                    
+                    // Quick prompt function
+                    function useQuickPrompt(promptText) {
+                        const input = document.getElementById('messageInput');
+                        input.value = promptText;
+                        input.focus();
+                        // Auto-resize textarea
+                        input.style.height = 'auto';
+                        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
                     }
                     
                     // Focus input on load
