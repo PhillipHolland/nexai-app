@@ -7843,7 +7843,7 @@ MOCK_LEGAL_RESULTS = {
             'citation': '347 U.S. 483 (1954)',
             'court': 'Supreme Court of the United States',
             'date': '1954-05-17',
-            'summary': 'Landmark decision declaring racial segregation in public schools unconstitutional',
+            'summary': 'Landmark decision declaring racial segregation in public schools unconstitutional under Equal Protection Clause',
             'key_holdings': ['Separate educational facilities are inherently unequal', 'Violated Equal Protection Clause'],
             'relevance_score': 0.95
         },
@@ -7853,9 +7853,39 @@ MOCK_LEGAL_RESULTS = {
             'citation': '384 U.S. 436 (1966)',
             'court': 'Supreme Court of the United States',
             'date': '1966-06-13',
-            'summary': 'Established the requirement for police to inform suspects of their rights',
+            'summary': 'Established the requirement for police to inform suspects of their constitutional rights during arrest and interrogation',
             'key_holdings': ['Fifth Amendment protection against self-incrimination', 'Sixth Amendment right to counsel'],
             'relevance_score': 0.88
+        },
+        {
+            'id': 'case_003',
+            'title': 'Roe v. Wade',
+            'citation': '410 U.S. 113 (1973)',
+            'court': 'Supreme Court of the United States',
+            'date': '1973-01-22',
+            'summary': 'Constitutional protection for abortion rights under privacy and due process rights',
+            'key_holdings': ['Right to privacy', 'Due process protection', 'State regulation limitations'],
+            'relevance_score': 0.90
+        },
+        {
+            'id': 'case_004',
+            'title': 'Contract Breach Case - Smith v. Johnson Construction',
+            'citation': '245 F.3d 567 (7th Cir. 2001)',
+            'court': '7th Circuit Court of Appeals',
+            'date': '2001-03-15',
+            'summary': 'Contract dispute involving breach of construction agreement, damages calculation, and remedy determination',
+            'key_holdings': ['Material breach standard', 'Expectation damages', 'Mitigation of damages duty'],
+            'relevance_score': 0.85
+        },
+        {
+            'id': 'case_005',
+            'title': 'Employment Discrimination - Williams v. TechCorp',
+            'citation': '189 F. Supp. 2d 445 (S.D.N.Y. 2002)',
+            'court': 'Southern District of New York',
+            'date': '2002-06-10',
+            'summary': 'Employment discrimination case involving workplace harassment, hostile work environment, and employer liability',
+            'key_holdings': ['Hostile work environment', 'Employer vicarious liability', 'Reasonable care defense'],
+            'relevance_score': 0.82
         }
     ],
     'statutes': [
@@ -7865,9 +7895,53 @@ MOCK_LEGAL_RESULTS = {
             'citation': '42 U.S.C. § 12101',
             'jurisdiction': 'Federal',
             'effective_date': '1990-07-26',
-            'summary': 'Civil rights law prohibiting discrimination based on disability',
+            'summary': 'Civil rights law prohibiting discrimination based on disability in employment, public accommodations, and services',
             'key_provisions': ['Employment discrimination', 'Public accommodations', 'Transportation'],
             'relevance_score': 0.92
+        },
+        {
+            'id': 'statute_002',
+            'title': 'Fair Labor Standards Act',
+            'citation': '29 U.S.C. § 201',
+            'jurisdiction': 'Federal',
+            'effective_date': '1938-06-25',
+            'summary': 'Federal law establishing minimum wage, overtime pay, and child labor standards for employment',
+            'key_provisions': ['Minimum wage requirements', 'Overtime compensation', 'Child labor protections'],
+            'relevance_score': 0.88
+        },
+        {
+            'id': 'statute_003',
+            'title': 'Uniform Commercial Code Article 2',
+            'citation': 'U.C.C. § 2-101',
+            'jurisdiction': 'State',
+            'effective_date': '1952-01-01',
+            'summary': 'Commercial law governing sales of goods, contracts, warranties, and remedies for breach',
+            'key_provisions': ['Sales contract formation', 'Warranty provisions', 'Breach remedies'],
+            'relevance_score': 0.90
+        }
+    ],
+    'regulations': [
+        {
+            'id': 'reg_001',
+            'title': 'OSHA Workplace Safety Standards',
+            'citation': '29 C.F.R. § 1910',
+            'agency': 'Occupational Safety and Health Administration',
+            'effective_date': '1971-04-28',
+            'summary': 'Federal regulations establishing workplace safety and health standards for employers and employees',
+            'key_requirements': ['Hazard communication', 'Personal protective equipment', 'Emergency procedures'],
+            'relevance_score': 0.85
+        }
+    ],
+    'secondary': [
+        {
+            'id': 'secondary_001',
+            'title': 'Contract Law Treatise - Williston on Contracts',
+            'citation': 'Williston on Contracts § 4:1 (4th ed. 2020)',
+            'author': 'Richard A. Lord',
+            'publication': 'West Academic Publishing',
+            'summary': 'Comprehensive analysis of contract formation, performance, breach, and remedies in modern commercial law',
+            'key_topics': ['Contract formation', 'Performance standards', 'Damage calculations'],
+            'relevance_score': 0.87
         }
     ]
 }
@@ -8449,6 +8523,8 @@ def search_interface():
                         <div class="result-summary">${result.summary}</div>
                         <div class="result-tags">
                             ${result.key_holdings ? result.key_holdings.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
+                            ${result.key_provisions ? result.key_provisions.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
+                            ${result.key_topics ? result.key_topics.map(tag => `<span class="result-tag">${tag}</span>`).join('') : ''}
                         </div>
                     </div>
                 `;
@@ -8501,7 +8577,7 @@ def api_advanced_search():
                 for result in db_results:
                     # Simple relevance scoring based on query match
                     relevance = calculate_relevance(query, result)
-                    if relevance > 0.3:  # Minimum relevance threshold
+                    if relevance > 0.05:  # Lower threshold to show more results
                         result['relevance_score'] = relevance
                         result['database'] = database
                         filtered_results.append(result)
@@ -8534,18 +8610,50 @@ def api_advanced_search():
 
 def calculate_relevance(query, result):
     """Calculate relevance score for search result"""
+    if not query:
+        return 0.5  # Default relevance for empty queries
+    
     query_words = set(query.lower().split())
-    result_text = f"{result.get('title', '')} {result.get('summary', '')}".lower()
-    result_words = set(result_text.split())
+    
+    # Combine all searchable text from result
+    searchable_text = " ".join([
+        result.get('title', ''),
+        result.get('summary', ''),
+        result.get('citation', ''),
+        " ".join(result.get('key_holdings', [])),
+        " ".join(result.get('key_provisions', [])),
+        " ".join(result.get('key_topics', [])),
+    ]).lower()
+    
+    result_words = set(searchable_text.split())
     
     # Calculate word overlap
     overlap = len(query_words.intersection(result_words))
-    total_words = len(query_words)
+    total_query_words = len(query_words)
     
-    if total_words == 0:
-        return 0
+    if total_query_words == 0:
+        return 0.5
     
-    return overlap / total_words
+    # Base relevance from word overlap
+    base_relevance = overlap / total_query_words
+    
+    # Boost for partial word matches
+    partial_matches = 0
+    for query_word in query_words:
+        if len(query_word) > 3:  # Only check longer words
+            for result_word in result_words:
+                if query_word in result_word or result_word in query_word:
+                    partial_matches += 0.5
+                    break
+    
+    # Add partial match bonus
+    partial_bonus = min(partial_matches / total_query_words, 0.3)
+    
+    # Final relevance score
+    final_relevance = min(base_relevance + partial_bonus, 1.0)
+    
+    # Always return at least 0.1 for any result (ensures some results show)
+    return max(final_relevance, 0.1)
 
 def enhance_results_with_ai(results, ai_analysis):
     """Enhance search results with AI-powered insights"""
