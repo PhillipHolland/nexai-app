@@ -3424,232 +3424,26 @@ def case_timeline(case_id):
 
 @app.route('/analytics')
 def analytics_dashboard():
-    """Analytics dashboard page"""
+    """Comprehensive analytics dashboard page"""
     try:
+        from flask import render_template
         analytics = get_analytics_data()
         
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Analytics Dashboard - LexAI</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                :root {
-                    --primary-green: #2E4B3C;
-                    --secondary-cream: #F7EDDA;
-                    --gray-50: #f9fafb;
-                    --gray-100: #f3f4f6;
-                    --gray-600: #4b5563;
-                    --gray-900: #111827;
-                    --success: #10b981;
-                    --warning: #f59e0b;
-                    --blue: #3b82f6;
-                }
-                
-                body {
-                    font-family: 'Inter', system-ui, sans-serif;
-                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
-                    margin: 0;
-                    padding: 20px;
-                    min-height: 100vh;
-                    color: var(--gray-900);
-                }
-                
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    background: white;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                
-                .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 32px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid var(--gray-100);
-                }
-                
-                .back-link {
-                    background: var(--primary-green);
-                    color: var(--secondary-cream);
-                    padding: 8px 16px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                }
-                
-                .stats-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 20px;
-                    margin-bottom: 32px;
-                }
-                
-                .stat-card {
-                    background: var(--gray-50);
-                    padding: 24px;
-                    border-radius: 12px;
-                    border: 1px solid var(--gray-100);
-                }
-                
-                .stat-title {
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                    margin: 0 0 8px 0;
-                    font-weight: 500;
-                }
-                
-                .stat-value {
-                    font-size: 2rem;
-                    font-weight: 700;
-                    color: var(--primary-green);
-                    margin: 0;
-                }
-                
-                .stat-change {
-                    font-size: 0.875rem;
-                    color: var(--success);
-                    margin: 4px 0 0 0;
-                }
-                
-                .section {
-                    background: var(--gray-50);
-                    border-radius: 12px;
-                    padding: 24px;
-                    margin-bottom: 24px;
-                    border: 1px solid var(--gray-100);
-                }
-                
-                .section-title {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    color: var(--gray-900);
-                    margin: 0 0 16px 0;
-                }
-                
-                .metric-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 12px 0;
-                    border-bottom: 1px solid var(--gray-100);
-                }
-                
-                .metric-row:last-child {
-                    border-bottom: none;
-                }
-                
-                .metric-label {
-                    font-weight: 500;
-                    color: var(--gray-700);
-                }
-                
-                .metric-value {
-                    color: var(--gray-900);
-                    font-weight: 600;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div>
-                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Analytics Dashboard</h1>
-                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Performance metrics and insights</p>
-                    </div>
-                    <a href="/" class="back-link">← Dashboard</a>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">Total Revenue YTD</div>
-                        <div class="stat-value">${{ "{:,}".format(analytics.revenue.total_ytd) }}</div>
-                        <div class="stat-change">+15.2% from last quarter</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Active Cases</div>
-                        <div class="stat-value">{{ analytics.cases.active }}</div>
-                        <div class="stat-change">{{ analytics.cases.pending }} pending review</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">AI Interactions</div>
-                        <div class="stat-value">{{ analytics.ai_usage.total_interactions }}</div>
-                        <div class="stat-change">+{{ "%.1f"|format(analytics.ai_usage.monthly_growth) }}% this month</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Client Satisfaction</div>
-                        <div class="stat-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}</div>
-                        <div class="stat-change">{{ "%.1f"|format(analytics.efficiency.resolution_rate) }}% resolution rate</div>
-                    </div>
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">Revenue by Practice Area</h2>
-                    {% for area, revenue in analytics.revenue.by_practice.items() %}
-                    <div class="metric-row">
-                        <span class="metric-label">{{ area.replace('_', ' ').title() }}</span>
-                        <span class="metric-value">${{ "{:,}".format(revenue) }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">Case Distribution</h2>
-                    {% for status, count in analytics.cases.by_status.items() %}
-                    <div class="metric-row">
-                        <span class="metric-label">{{ status.title() }} Cases</span>
-                        <span class="metric-value">{{ count }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">AI Usage Insights</h2>
-                    <div class="metric-row">
-                        <span class="metric-label">Average Interactions per Case</span>
-                        <span class="metric-value">{{ "%.1f"|format(analytics.ai_usage.avg_per_case) }}</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Most Used Features</span>
-                        <span class="metric-value">{{ ', '.join(analytics.ai_usage.top_areas) }}</span>
-                    </div>
-                </div>
-                
-                <div class="section">
-                    <h2 class="section-title">Efficiency Metrics</h2>
-                    <div class="metric-row">
-                        <span class="metric-label">Average Case Duration</span>
-                        <span class="metric-value">{{ analytics.efficiency.avg_case_duration }} days</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Resolution Rate</span>
-                        <span class="metric-value">{{ "%.1f"|format(analytics.efficiency.resolution_rate) }}%</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label">Client Satisfaction Score</span>
-                        <span class="metric-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}/5.0</span>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """, analytics=analytics)
+        # Get recent activity for the table
+        clients = get_mock_clients()
+        recent_activity = clients[:6]  # Show top 6 recent activities
+        
+        return render_template('analytics_dashboard.html',
+                             analytics=analytics,
+                             recent_activity=recent_activity)
         
     except Exception as e:
-        logger.error(f"Analytics page error: {e}")
+        logger.error(f"Analytics dashboard error: {e}")
         return f"""<!DOCTYPE html>
-<html><head><title>LexAI Analytics</title></head>
-<body><h1>🏛️ LexAI Analytics</h1>
-<p>Error loading analytics: {e}</p>
-<a href="/">← Back to Dashboard</a></body></html>"""
+<html><head><title>LexAI Analytics Dashboard</title></head>
+<body><h1>🏛️ LexAI Analytics Dashboard</h1>
+<p>Error loading analytics dashboard: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
 
 @app.route('/contract-generator')
 def contract_generator_page():
