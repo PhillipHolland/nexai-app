@@ -53,20 +53,20 @@
                        class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'dashboard' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
                         Dashboard
                     </a>
-                    <a href="{{ url_for('clients') }}" 
-                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'clients' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
+                    <a href="{{ url_for('clients_list') }}" 
+                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'clients_list' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
                         Clients
                     </a>
-                    <a href="{{ url_for('chat') }}" 
-                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'chat' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
+                    <a href="{{ url_for('chat_interface') }}" 
+                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'chat_interface' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
                         AI Assistant
                     </a>
-                    <a href="{{ url_for('documents') }}" 
-                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'documents' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
+                    <a href="{{ url_for('documents_list') }}" 
+                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'documents_list' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
                         Documents
                     </a>
-                    <a href="{{ url_for('analytics') }}" 
-                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'analytics' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
+                    <a href="{{ url_for('analytics_dashboard') }}" 
+                       class="nav-link text-light-cream hover:text-warm-orange px-3 py-2 text-sm font-medium transition-colors duration-200 {% if request.endpoint == 'analytics_dashboard' %}text-warm-orange border-b-2 border-warm-orange{% endif %}">
                         Analytics
                     </a>
                 </nav>
@@ -107,20 +107,20 @@
                    class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'dashboard' %}text-warm-orange bg-dark-green{% endif %}">
                     Dashboard
                 </a>
-                <a href="{{ url_for('clients') }}" 
-                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'clients' %}text-warm-orange bg-dark-green{% endif %}">
+                <a href="{{ url_for('clients_list') }}" 
+                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'clients_list' %}text-warm-orange bg-dark-green{% endif %}">
                     Clients
                 </a>
-                <a href="{{ url_for('chat') }}" 
-                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'chat' %}text-warm-orange bg-dark-green{% endif %}">
+                <a href="{{ url_for('chat_interface') }}" 
+                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'chat_interface' %}text-warm-orange bg-dark-green{% endif %}">
                     AI Assistant
                 </a>
-                <a href="{{ url_for('documents') }}" 
-                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'documents' %}text-warm-orange bg-dark-green{% endif %}">
+                <a href="{{ url_for('documents_list') }}" 
+                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'documents_list' %}text-warm-orange bg-dark-green{% endif %}">
                     Documents
                 </a>
-                <a href="{{ url_for('analytics') }}" 
-                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'analytics' %}text-warm-orange bg-dark-green{% endif %}">
+                <a href="{{ url_for('analytics_dashboard') }}" 
+                   class="block px-3 py-2 text-base font-medium text-light-cream hover:text-warm-orange hover:bg-dark-green rounded-lg {% if request.endpoint == 'analytics_dashboard' %}text-warm-orange bg-dark-green{% endif %}">
                     Analytics
                 </a>
             </div>
