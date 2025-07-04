@@ -1,0 +1,987 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Tracking - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Expense Tracking Specific Styles */
+        .expense-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .expense-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .expense-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .expense-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .expense-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Quick Stats Cards */
+        .expense-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2E4B3C;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 2rem;
+            height: 2rem;
+            background-color: #2E4B3C;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F7EDDA;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .stat-change.positive {
+            color: #16a34a;
+        }
+
+        .stat-change.negative {
+            color: #dc2626;
+        }
+
+        /* Action Buttons */
+        .expense-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #2E4B3C;
+        }
+
+        .action-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: #F7EDDA;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-card:hover .action-icon {
+            transform: scale(1.1);
+        }
+
+        .action-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Expense Section */
+        .expense-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        /* Expense Table */
+        .expense-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .expense-table th {
+            text-align: left;
+            padding: 1rem 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .expense-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .expense-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status and Category Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-submitted {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-approved {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-reimbursed {
+            background-color: #f0f9ff;
+            color: #0369a1;
+        }
+
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .category-badge {
+            background-color: #e5e7eb;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Expense Form */
+        .expense-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .expense-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-section {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: #2E4B3C;
+            background-color: #f9fafb;
+        }
+
+        .file-upload-area.drag-over {
+            border-color: #2E4B3C;
+            background-color: #f0fdf4;
+        }
+
+        .upload-icon {
+            width: 3rem;
+            height: 3rem;
+            color: #6b7280;
+            margin: 0 auto 1rem;
+        }
+
+        .upload-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .uploaded-files {
+            margin-top: 1rem;
+        }
+
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f3f4f6;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-remove {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .file-remove:hover {
+            background-color: #fee2e2;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .expense-title {
+                font-size: 2rem;
+            }
+
+            .expense-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .expense-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .section-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .expense-table {
+                font-size: 0.875rem;
+            }
+
+            .expense-table th,
+            .expense-table td {
+                padding: 0.5rem 0.25rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="expense-container">
+    <!-- Expense Header -->
+    <div class="expense-header">
+        <h1 class="expense-title">Expense Tracking</h1>
+        <p class="expense-subtitle">Track expenses, manage receipts, and handle reimbursements</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="expense-main">
+        <!-- Quick Stats -->
+        <div class="expense-stats">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">This Month</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2v20m9-9H3"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$3,420</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    +15% from last month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Pending</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$1,280</div>
+                <div class="stat-change">
+                    8 expenses awaiting approval
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Reimbursed</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$2,140</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    Last payment: Jan 15
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Avg. Approval</div>
+                    <div class="stat-icon">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">3.2 days</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    1 day improvement
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="expense-actions">
+            <div class="action-card" onclick="addNewExpense()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+                <div class="action-title">Add Expense</div>
+                <div class="action-description">Record new expense with receipt</div>
+            </div>
+
+            <div class="action-card" onclick="bulkUpload()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <div class="action-title">Bulk Upload</div>
+                <div class="action-description">Upload multiple receipts at once</div>
+            </div>
+
+            <div class="action-card" onclick="submitExpenses()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="action-title">Submit Report</div>
+                <div class="action-description">Submit expenses for approval</div>
+            </div>
+
+            <div class="action-card" onclick="exportExpenses()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div class="action-title">Export Data</div>
+                <div class="action-description">Download expense reports</div>
+            </div>
+        </div>
+
+        <!-- Recent Expenses -->
+        <div class="expense-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Expenses</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="refreshExpenses()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="addNewExpense()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Expense
+                    </button>
+                </div>
+            </div>
+
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Client</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="expensesTableBody">
+                    <tr>
+                        <td>Jan 10, 2025</td>
+                        <td>
+                            <div style="font-weight: 500;">Client Meeting Lunch</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Business meal with ABC Corp</div>
+                        </td>
+                        <td><span class="category-badge">Meals</span></td>
+                        <td>ABC Corporation</td>
+                        <td><strong>$85.50</strong></td>
+                        <td><span class="status-badge status-submitted">Submitted</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewExpense(1)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Jan 8, 2025</td>
+                        <td>
+                            <div style="font-weight: 500;">Parking Fee</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Courthouse parking</div>
+                        </td>
+                        <td><span class="category-badge">Transportation</span></td>
+                        <td>John Smith</td>
+                        <td><strong>$12.00</strong></td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewExpense(2)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Jan 5, 2025</td>
+                        <td>
+                            <div style="font-weight: 500;">Office Supplies</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Pens, paper, folders</div>
+                        </td>
+                        <td><span class="category-badge">Office</span></td>
+                        <td>-</td>
+                        <td><strong>$45.75</strong></td>
+                        <td><span class="status-badge status-reimbursed">Reimbursed</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewExpense(3)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Jan 3, 2025</td>
+                        <td>
+                            <div style="font-weight: 500;">Travel - Flight</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">Client visit to Chicago</div>
+                        </td>
+                        <td><span class="category-badge">Travel</span></td>
+                        <td>Tech Startup Inc.</td>
+                        <td><strong>$425.00</strong></td>
+                        <td><span class="status-badge status-draft">Draft</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewExpense(4)">View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Expense Creator (Initially Hidden) -->
+        <div class="expense-section" id="expenseCreator" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Add New Expense</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="cancelExpense()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveExpense()">Save Expense</button>
+                </div>
+            </div>
+
+            <form class="expense-form" id="newExpenseForm">
+                <!-- Expense Details -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Expense Details</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseDate">Date</label>
+                        <input type="date" id="expenseDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseDescription">Description</label>
+                        <input type="text" id="expenseDescription" class="form-input" placeholder="Brief description of the expense" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseCategory">Category</label>
+                        <select id="expenseCategory" class="form-select" required>
+                            <option value="">Select Category</option>
+                            <option value="meals">Meals & Entertainment</option>
+                            <option value="transportation">Transportation</option>
+                            <option value="travel">Travel</option>
+                            <option value="office">Office Supplies</option>
+                            <option value="professional">Professional Services</option>
+                            <option value="technology">Technology</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseAmount">Amount</label>
+                        <input type="number" id="expenseAmount" class="form-input" step="0.01" min="0" placeholder="0.00" required>
+                    </div>
+                </div>
+
+                <!-- Client & Project Information -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Client & Project</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseClient">Client</label>
+                        <select id="expenseClient" class="form-select">
+                            <option value="">Select Client (Optional)</option>
+                            <option value="abc-corp">ABC Corporation</option>
+                            <option value="john-smith">John Smith</option>
+                            <option value="jane-doe">Jane Doe</option>
+                            <option value="tech-startup">Tech Startup Inc.</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseProject">Project/Case</label>
+                        <input type="text" id="expenseProject" class="form-input" placeholder="Project or case reference">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseReimbursable">Reimbursable</label>
+                        <select id="expenseReimbursable" class="form-select">
+                            <option value="yes">Yes - Client Reimbursable</option>
+                            <option value="no">No - Firm Expense</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseNotes">Notes</label>
+                        <textarea id="expenseNotes" class="form-textarea" placeholder="Additional notes about this expense..."></textarea>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Receipt Upload -->
+            <div style="grid-column: 1 / -1; margin-top: 2rem;">
+                <h3 class="form-section-title" style="margin-bottom: 1rem;">Receipt Upload</h3>
+                <div class="file-upload-area" id="fileUploadArea">
+                    <input type="file" id="receiptUpload" multiple accept="image/*,application/pdf" style="display: none;">
+                    <div class="upload-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">
+                        <strong>Click to upload</strong> or drag and drop<br>
+                        <small>PNG, JPG, PDF up to 10MB</small>
+                    </div>
+                </div>
+                <div class="uploaded-files" id="uploadedFiles"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+
+    // File upload functionality
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const receiptUpload = document.getElementById('receiptUpload');
+    const uploadedFiles = document.getElementById('uploadedFiles');
+    let uploadedFilesList = [];
+
+    // Click to upload
+    fileUploadArea.addEventListener('click', function() {
+        receiptUpload.click();
+    });
+
+    // Drag and drop functionality
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.add('drag-over');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('drag-over');
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        fileUploadArea.classList.remove('drag-over');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // File input change
+    receiptUpload.addEventListener('change', function(e) {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                return;
+            }
+            
+            uploadedFilesList.push(file);
+            displayUploadedFile(file);
+        });
+    }
+
+    function displayUploadedFile(file) {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'uploaded-file';
+        fileDiv.innerHTML = `
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span>${file.name}</span>
+            <button type="button" class="file-remove" onclick="removeFile('${file.name}')">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        `;
+        uploadedFiles.appendChild(fileDiv);
+    }
+
+    window.removeFile = function(fileName) {
+        uploadedFilesList = uploadedFilesList.filter(file => file.name !== fileName);
+        // Remove from display
+        Array.from(uploadedFiles.children).forEach(child => {
+            if (child.textContent.includes(fileName)) {
+                child.remove();
+            }
+        });
+    };
+});
+
+// Action functions
+window.addNewExpense = function() {
+    document.getElementById('expenseCreator').style.display = 'block';
+    document.getElementById('expenseCreator').scrollIntoView({ behavior: 'smooth' });
+};
+
+window.bulkUpload = function() {
+    alert('Bulk upload functionality coming soon!');
+};
+
+window.submitExpenses = async function() {
+    // Get selected expenses (for demo, we'll use sample IDs)
+    const selectedExpenseIds = ['EXP-001', 'EXP-002', 'EXP-003'];
+    
+    try {
+        const response = await fetch('/api/expenses/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                expense_ids: selectedExpenseIds
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`${data.submitted_count} expenses submitted for approval!`);
+        } else {
+            alert('Failed to submit expenses: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Expense submission error:', error);
+        alert('Failed to submit expenses. Please try again.');
+    }
+};
+
+window.exportExpenses = async function() {
+    try {
+        const response = await fetch('/api/expenses/export', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                format: 'csv',
+                date_range: '30'
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`Expense report exported! ${data.export_data.expenses_count} expenses for the last ${data.export_data.date_range}`);
+        } else {
+            alert('Failed to export expenses: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Expense export error:', error);
+        alert('Failed to export expenses. Please try again.');
+    }
+};
+
+window.refreshExpenses = function() {
+    alert('Expense list refreshed!');
+};
+
+window.viewExpense = function(id) {
+    alert(`Viewing expense ${id} - detailed view coming soon!`);
+};
+
+window.cancelExpense = function() {
+    if (confirm('Cancel adding this expense? All data will be lost.')) {
+        document.getElementById('expenseCreator').style.display = 'none';
+        document.getElementById('newExpenseForm').reset();
+        document.getElementById('uploadedFiles').innerHTML = '';
+        uploadedFilesList = [];
+    }
+};
+
+window.saveExpense = async function() {
+    // Validate form
+    const date = document.getElementById('expenseDate').value;
+    const description = document.getElementById('expenseDescription').value;
+    const category = document.getElementById('expenseCategory').value;
+    const amount = document.getElementById('expenseAmount').value;
+    
+    if (!date || !description || !category || !amount) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    if (parseFloat(amount) <= 0) {
+        alert('Amount must be greater than 0');
+        return;
+    }
+    
+    try {
+        // Save expense via API
+        const response = await fetch('/api/expenses/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                date: date,
+                description: description,
+                category: category,
+                amount: parseFloat(amount),
+                client: document.getElementById('expenseClient').value,
+                project: document.getElementById('expenseProject').value,
+                reimbursable: document.getElementById('expenseReimbursable').value,
+                notes: document.getElementById('expenseNotes').value
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`Expense saved successfully! ID: ${data.expense_id}`);
+            document.getElementById('expenseCreator').style.display = 'none';
+            document.getElementById('newExpenseForm').reset();
+            document.getElementById('uploadedFiles').innerHTML = '';
+            uploadedFilesList = [];
+            
+            // Refresh the expense list
+            refreshExpenses();
+        } else {
+            alert('Failed to save expense: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Expense save error:', error);
+        alert('Failed to save expense. Please try again.');
+    }
+};
+</script>
+{% endblock %}

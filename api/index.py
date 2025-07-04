@@ -8115,6 +8115,230 @@ def billing_page():
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
 
+@app.route('/expenses')
+def expense_tracking_page():
+    """Expense tracking and reimbursement page"""
+    try:
+        from flask import render_template
+        return render_template('expense_tracking.html')
+    except Exception as e:
+        logger.error(f"Expense tracking template error: {e}")
+        return f"<h1>Expense Tracking</h1><p>Template error: {e}</p>", 500
+
+@app.route('/api/expenses/create', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['date', 'description', 'category', 'amount'])
+def api_create_expense():
+    """Create a new expense entry"""
+    try:
+        data = g.validated_data
+        date = data.get('date', '')
+        description = data.get('description', '')
+        category = data.get('category', '')
+        amount = float(data.get('amount', 0))
+        client = data.get('client', '')
+        project = data.get('project', '')
+        reimbursable = data.get('reimbursable', 'no')
+        notes = data.get('notes', '')
+        
+        # Validate amount
+        if amount <= 0:
+            return jsonify({
+                'success': False,
+                'error': 'Amount must be greater than 0'
+            }), 400
+        
+        # Generate expense ID
+        expense_id = f"EXP-{datetime.now().strftime('%Y%m%d')}-{len(description)%100:03d}"
+        
+        # Demo expense data structure
+        expense_data = {
+            'id': expense_id,
+            'date': date,
+            'description': description,
+            'category': category,
+            'amount': amount,
+            'client': client,
+            'project': project,
+            'reimbursable': reimbursable == 'yes',
+            'notes': notes,
+            'status': 'draft',
+            'created_at': datetime.now().isoformat(),
+            'receipts': []
+        }
+        
+        logger.info(f"Expense created: {expense_id} - {description} - ${amount:.2f}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Expense created successfully',
+            'expense_id': expense_id,
+            'expense_data': expense_data
+        })
+        
+    except ValueError as e:
+        logger.error(f"Expense creation validation error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Invalid amount value'
+        }), 400
+    except Exception as e:
+        logger.error(f"Expense creation API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create expense'
+        }), 500
+
+@app.route('/api/expenses/submit', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['expense_ids'])
+def api_submit_expenses():
+    """Submit expenses for approval"""
+    try:
+        data = g.validated_data
+        expense_ids = data.get('expense_ids', [])
+        
+        if not expense_ids:
+            return jsonify({
+                'success': False,
+                'error': 'No expenses selected for submission'
+            }), 400
+        
+        # Demo submission logic
+        submitted_count = len(expense_ids)
+        
+        logger.info(f"Submitted {submitted_count} expenses for approval")
+        
+        return jsonify({
+            'success': True,
+            'message': f'{submitted_count} expenses submitted for approval',
+            'submitted_count': submitted_count,
+            'status_update': 'submitted'
+        })
+        
+    except Exception as e:
+        logger.error(f"Expense submission API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to submit expenses'
+        }), 500
+
+@app.route('/api/expenses/approve', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['expense_id', 'action'])
+def api_approve_expense():
+    """Approve or reject an expense"""
+    try:
+        data = g.validated_data
+        expense_id = data.get('expense_id', '')
+        action = data.get('action', '')  # 'approve' or 'reject'
+        notes = data.get('notes', '')
+        
+        if action not in ['approve', 'reject']:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid action. Must be "approve" or "reject"'
+            }), 400
+        
+        # Demo approval logic
+        status = 'approved' if action == 'approve' else 'rejected'
+        
+        logger.info(f"Expense {expense_id} {status}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Expense {status} successfully',
+            'expense_id': expense_id,
+            'status': status,
+            'notes': notes
+        })
+        
+    except Exception as e:
+        logger.error(f"Expense approval API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process expense approval'
+        }), 500
+
+@app.route('/api/expenses/export', methods=['POST'])
+@rate_limit_decorator
+def api_export_expenses():
+    """Export expenses to CSV or PDF"""
+    try:
+        data = request.get_json() or {}
+        format_type = data.get('format', 'csv')  # 'csv' or 'pdf'
+        date_range = data.get('date_range', '30')  # days
+        
+        # Demo export data
+        export_data = {
+            'format': format_type,
+            'date_range': f"Last {date_range} days",
+            'expenses_count': 15,
+            'total_amount': 3420.50,
+            'export_url': f'/downloads/expenses_export_{datetime.now().strftime("%Y%m%d")}.{format_type}',
+            'generated_at': datetime.now().isoformat()
+        }
+        
+        logger.info(f"Expense export generated: {format_type} format, {date_range} days")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Expense report exported as {format_type.upper()}',
+            'export_data': export_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Expense export API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to export expenses'
+        }), 500
+
+@app.route('/api/expenses/upload-receipt', methods=['POST'])
+@rate_limit_decorator
+def api_upload_receipt():
+    """Handle receipt file uploads"""
+    try:
+        # Demo file upload handling
+        # In production, this would handle multipart/form-data and store files
+        expense_id = request.form.get('expense_id', '')
+        
+        if 'receipt' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No receipt file uploaded'
+            }), 400
+        
+        file = request.files['receipt']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+        
+        # Demo file processing
+        file_info = {
+            'filename': file.filename,
+            'size': len(file.read()) if hasattr(file, 'read') else 0,
+            'upload_url': f'/uploads/receipts/{expense_id}_{file.filename}',
+            'uploaded_at': datetime.now().isoformat()
+        }
+        
+        logger.info(f"Receipt uploaded for expense {expense_id}: {file.filename}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Receipt uploaded successfully',
+            'file_info': file_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Receipt upload API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to upload receipt'
+        }), 500
+
 @app.route('/api/auth/change-password', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['currentPassword', 'newPassword'])

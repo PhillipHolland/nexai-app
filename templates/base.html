@@ -201,7 +201,7 @@
                         <div class="base-dropdown-menu hidden">
                             <a href="{{ url_for('time_tracking_page') }}" class="base-dropdown-item">Time Tracking</a>
                             <a href="{{ url_for('billing_page') }}" class="base-dropdown-item">Billing & Invoices</a>
-                            <a href="#" class="base-dropdown-item">Expense Tracking</a>
+                            <a href="{{ url_for('expense_tracking_page') }}" class="base-dropdown-item">Expense Tracking</a>
                             <a href="#" class="base-dropdown-item">Payment Management</a>
                             <a href="#" class="base-dropdown-item">Time Reports</a>
                         </div>
@@ -306,6 +306,10 @@
                 <a href="{{ url_for('time_tracking_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
                     Time Tracking
+                </a>
+                <a href="{{ url_for('expense_tracking_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'expense_tracking_page' %}active{% endif %}">
+                    Expenses
                 </a>
                 <a href="{{ url_for('analytics_dashboard') }}" 
                    class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
