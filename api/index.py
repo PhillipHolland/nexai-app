@@ -825,10 +825,8 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                             <span></span>
                         </div>
                     </button>
-                    <!-- Logo will be embedded as base64 or external link -->
-                    <div style="width: 40px; height: 40px; background: var(--secondary-cream); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-                        <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-green);">⚖️</span>
-                    </div>
+                    <!-- LexAI Logo -->
+                    <img src="/static/lexAI.png" alt="LexAI" class="navbar-logo">
                     <span class="navbar-text">LexAI Practice Partner</span>
                 </div>
                 
@@ -1147,16 +1145,20 @@ def chat_interface(client_id=None):
                         position: absolute;
                         top: 20px;
                         left: 20px;
-                        background: rgba(255,255,255,0.2);
-                        color: white;
+                        background: #2E4B3C;
+                        color: #F7EDDA;
                         padding: 8px 16px;
                         border-radius: 8px;
                         text-decoration: none;
                         font-size: 0.875rem;
-                        backdrop-filter: blur(10px);
+                        font-weight: 600;
+                        box-shadow: 0 2px 8px rgba(46, 75, 60, 0.3);
+                        border: 1px solid rgba(46, 75, 60, 0.2);
                     }
                     .back-link:hover {
-                        background: rgba(255,255,255,0.3);
+                        background: #4A6B57;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.4);
                     }
                     .typing-indicator {
                         display: none;
@@ -1171,8 +1173,11 @@ def chat_interface(client_id=None):
                 
                 <div class="chat-container">
                     <div class="chat-header">
-                        <h1>🏛️ LexAI - {{ selected_practice['name'] }}</h1>
-                        <p>Professional AI legal assistant specialized in {{ selected_practice['name'].lower() }}</p>
+                        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                            <img src="/static/lexAI.png" alt="LexAI" style="height: 32px; width: auto; margin-right: 12px;">
+                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600;">LexAI - {{ selected_practice['name'] }}</h1>
+                        </div>
+                        <p style="margin: 0; opacity: 0.9; font-size: 0.875rem;">Professional AI legal assistant specialized in {{ selected_practice['name'].lower() }}</p>
                     </div>
                     
                     <div class="chat-messages" id="chatMessages">
