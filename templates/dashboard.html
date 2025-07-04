@@ -3,249 +3,284 @@
 {% block title %}Dashboard - LexAI Practice Partner{% endblock %}
 
 {% block extra_head %}
+    <!-- Use landing page CSS for consistent styling -->
+    <link rel="stylesheet" href="/static/landing.css">
     <style>
+        /* Additional dashboard-specific styles */
+        .dashboard-main {
+            background-color: #F7EDDA; /* light-cream background like landing page */
+            min-height: calc(100vh - 4rem); /* Account for navbar height */
+            padding: 0;
+        }
 
-        .main-content {
-            max-width: 1200px;
+        .dashboard-container {
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 64px 32px;
+            padding: 3rem 1rem;
         }
 
-        .page-header {
-            margin-bottom: 64px;
+        .dashboard-header {
             text-align: center;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-bottom: 3rem;
         }
 
-        .page-title {
-            font-size: 56px;
+        .dashboard-title {
+            font-size: 3rem;
             font-weight: 700;
-            color: #1d1d1f;
-            margin-bottom: 20px;
-            letter-spacing: -0.025em;
+            color: #1f2937;
+            margin-bottom: 1rem;
             line-height: 1.1;
         }
 
-        .page-subtitle {
-            font-size: 24px;
-            color: #86868b;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-            line-height: 1.4;
-        }
-
-        /* Main Actions - Hero Section */
-        .hero-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            margin-bottom: 80px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .hero-action {
-            background: white;
-            border: 1px solid #e5e5e7;
-            border-radius: 20px;
-            padding: 40px 32px;
-            text-align: center;
-            text-decoration: none;
-            color: #1d1d1f;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .hero-action:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-            border-color: #2E4B3C;
-        }
-
-        .hero-icon {
-            width: 80px;
-            height: 80px;
-            background: #2E4B3C;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            color: white;
-        }
-
-        .hero-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-desc {
-            font-size: 17px;
-            color: #86868b;
-            line-height: 1.5;
-        }
-
-        /* Stats Section */
-        .stats-section {
-            margin-bottom: 80px;
-        }
-
-        .section-title {
-            font-size: 32px;
-            font-weight: 600;
-            color: #1d1d1f;
-            text-align: center;
-            margin-bottom: 40px;
-            letter-spacing: -0.02em;
-        }
-
-
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            max-width: 800px;
+        .dashboard-subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            max-width: 32rem;
             margin: 0 auto;
         }
 
-        .stat-item {
+        .dashboard-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-actions {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .dashboard-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .dashboard-card-icon {
+            width: 3rem;
+            height: 3rem;
+            background-color: #2E4B3C; /* dark-green */
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-card-icon svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #F7EDDA; /* light-cream */
+        }
+
+        .dashboard-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-card-desc {
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .stats-section {
+            margin-bottom: 3rem;
+        }
+
+        .stats-header {
             text-align: center;
-            padding: 32px 24px;
-            border: 1px solid #e5e5e7;
-            border-radius: 16px;
-            background: white;
+            margin-bottom: 2rem;
+        }
+
+        .stats-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
 
-        .stat-item:hover {
-            border-color: #d1d1d6;
+        .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .stat-number {
-            font-size: 40px;
+            font-size: 2.5rem;
             font-weight: 700;
-            color: #2E4B3C;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
+            color: #2E4B3C; /* dark-green */
+            margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            font-size: 17px;
-            color: #86868b;
+            color: #6b7280;
             font-weight: 500;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 0 20px;
-                height: 64px;
+        /* Mobile responsiveness */
+        @media (max-width: 767px) {
+            .dashboard-title {
+                font-size: 2.5rem;
             }
-
-            .nav-links {
-                display: none;
+            
+            .dashboard-subtitle {
+                font-size: 1.125rem;
             }
-
-            .main-content {
-                padding: 48px 20px;
+            
+            .stats-title {
+                font-size: 1.75rem;
             }
-
-            .page-title {
-                font-size: 40px;
-                margin-bottom: 16px;
-            }
-
-            .page-subtitle {
-                font-size: 21px;
-            }
-
-            .hero-actions {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .hero-action {
-                padding: 32px 24px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-            }
-
-            .stat-item {
-                padding: 24px 16px;
-            }
-
-            .stat-number {
-                font-size: 32px;
+            
+            .dashboard-container {
+                padding: 2rem 1rem;
             }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Welcome to LexAI</h1>
-            <p class="page-subtitle">Your AI-powered legal practice partner</p>
+<div class="dashboard-main">
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Welcome to LexAI</h1>
+            <p class="dashboard-subtitle">Your comprehensive AI-powered legal practice platform</p>
         </div>
 
-        <!-- Hero Actions -->
-        <div class="hero-actions">
-            <a href="{{ url_for('chat_interface') }}" class="hero-action">
-                <div class="hero-icon">
-                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        <!-- Quick Actions -->
+        <div class="dashboard-actions">
+            <a href="{{ url_for('chat_interface') }}" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
                 </div>
-                <h3 class="hero-title">AI Assistant</h3>
-                <p class="hero-desc">Get instant legal guidance and document analysis</p>
+                <h3 class="dashboard-card-title">AI Assistant</h3>
+                <p class="dashboard-card-desc">Get instant legal guidance, research, and document analysis</p>
             </a>
             
-            <a href="{{ url_for('documents_list') }}" class="hero-action">
-                <div class="hero-icon">
-                    <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            <a href="{{ url_for('clients_list') }}" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
                     </svg>
                 </div>
-                <h3 class="hero-title">Document Management</h3>
-                <p class="hero-desc">Upload, analyze, and manage case documents</p>
+                <h3 class="dashboard-card-title">Client Management</h3>
+                <p class="dashboard-card-desc">Manage clients, cases, and communications in one place</p>
+            </a>
+
+            <a href="{{ url_for('documents_list') }}" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="dashboard-card-title">Document Library</h3>
+                <p class="dashboard-card-desc">Upload, analyze, and organize all case documents</p>
+            </a>
+
+            <a href="#" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                    </svg>
+                </div>
+                <h3 class="dashboard-card-title">Legal Research</h3>
+                <p class="dashboard-card-desc">AI-powered research across case law, statutes, and regulations</p>
+            </a>
+
+            <a href="#" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                </div>
+                <h3 class="dashboard-card-title">Contract Drafting</h3>
+                <p class="dashboard-card-desc">Generate and review contracts with AI assistance</p>
+            </a>
+
+            <a href="{{ url_for('analytics_dashboard') }}" class="dashboard-card">
+                <div class="dashboard-card-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <h3 class="dashboard-card-title">Analytics & Reports</h3>
+                <p class="dashboard-card-desc">Track performance, revenue, and practice insights</p>
             </a>
         </div>
 
-        <!-- Stats Section -->
+        <!-- Practice Overview Stats -->
         <div class="stats-section">
-            <h2 class="section-title">Your Practice Overview</h2>
+            <div class="stats-header">
+                <h2 class="stats-title">Your Practice Overview</h2>
+            </div>
             <div class="stats-grid">
-                <div class="stat-item">
+                <div class="stat-card">
                     <div class="stat-number">{{ stats.total_chats or '24' }}</div>
-                    <div class="stat-label">Consultations</div>
+                    <div class="stat-label">AI Consultations</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-card">
                     <div class="stat-number">{{ stats.total_documents or '8' }}</div>
-                    <div class="stat-label">Documents</div>
+                    <div class="stat-label">Documents Analyzed</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-card">
                     <div class="stat-number">{{ stats.research_queries or '15' }}</div>
                     <div class="stat-label">Research Queries</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-card">
                     <div class="stat-number">{{ stats.total_clients or '3' }}</div>
                     <div class="stat-label">Active Clients</div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
