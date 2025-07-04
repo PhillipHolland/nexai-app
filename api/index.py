@@ -1770,6 +1770,26 @@ def landing_page():
 <p>Dashboard loading error: {e}</p>
 <a href="/chat">Continue to Chat</a></body></html>"""
 
+@app.route('/dashboard')
+def dashboard():
+    """Main dashboard with comprehensive navigation"""
+    try:
+        from flask import render_template
+        
+        # Get mock stats for dashboard
+        stats = get_mock_stats()
+        
+        return render_template('dashboard.html', 
+                             stats=stats,
+                             user_name="Demo User")
+    except Exception as e:
+        logger.error(f"Dashboard error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Dashboard</title></head>
+<body><h1>🏛️ LexAI Practice Partner</h1>
+<p>Dashboard loading error: {e}</p>
+<a href="/chat">Continue to Chat</a></body></html>"""
+
 @app.route('/chat')
 @app.route('/chat/<client_id>')
 def chat_interface(client_id=None):
