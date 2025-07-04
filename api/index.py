@@ -429,23 +429,79 @@ PRACTICE_AREAS = {
     }
 }
 
-# Mock data for serverless version
+# Enhanced mock data for production demo
 def get_mock_clients():
     return [
-        {'id': 1, 'name': 'John Smith', 'practice_area': 'family', 'status': 'active', 'last_contact': '2025-01-03'},
-        {'id': 2, 'name': 'Sarah Johnson', 'practice_area': 'corporate', 'status': 'active', 'last_contact': '2025-01-02'},
-        {'id': 3, 'name': 'Mike Davis', 'practice_area': 'personal_injury', 'status': 'pending', 'last_contact': '2025-01-01'},
+        {
+            'id': 1, 'name': 'John Smith', 'practice_area': 'family', 'status': 'active', 
+            'last_contact': '2025-01-03', 'case_type': 'Divorce', 'priority': 'high',
+            'messages': 12, 'documents': 5, 'value': 15000, 'next_action': 'File custody motion'
+        },
+        {
+            'id': 2, 'name': 'Sarah Johnson', 'practice_area': 'corporate', 'status': 'active',
+            'last_contact': '2025-01-02', 'case_type': 'M&A Due Diligence', 'priority': 'high',
+            'messages': 28, 'documents': 15, 'value': 125000, 'next_action': 'Review contracts'
+        },
+        {
+            'id': 3, 'name': 'Mike Davis', 'practice_area': 'personal_injury', 'status': 'pending',
+            'last_contact': '2025-01-01', 'case_type': 'Auto Accident', 'priority': 'medium',
+            'messages': 8, 'documents': 3, 'value': 45000, 'next_action': 'Medical records review'
+        },
+        {
+            'id': 4, 'name': 'Lisa Chen', 'practice_area': 'immigration', 'status': 'active',
+            'last_contact': '2024-12-28', 'case_type': 'Green Card Application', 'priority': 'medium',
+            'messages': 15, 'documents': 8, 'value': 8500, 'next_action': 'USCIS filing'
+        },
+        {
+            'id': 5, 'name': 'Robert Wilson', 'practice_area': 'real_estate', 'status': 'completed',
+            'last_contact': '2024-12-20', 'case_type': 'Commercial Purchase', 'priority': 'low',
+            'messages': 22, 'documents': 12, 'value': 75000, 'next_action': 'Closing complete'
+        }
     ]
 
-def get_mock_stats():
+def get_analytics_data():
     return {
-        'total_clients': 3,
-        'active_cases': 2,
-        'pending_cases': 1,
-        'completed_cases': 5,
-        'revenue_ytd': 125000,
-        'ai_interactions': 47,
-        'documents_processed': 23
+        'revenue': {
+            'total_ytd': 268500,
+            'monthly': [22000, 25000, 28000, 32000, 35000, 38000],
+            'by_practice': {
+                'corporate': 125000,
+                'real_estate': 75000,
+                'personal_injury': 45000,
+                'family': 15000,
+                'immigration': 8500
+            }
+        },
+        'cases': {
+            'total': 47,
+            'active': 15,
+            'pending': 8,
+            'completed': 24,
+            'by_status': {'active': 15, 'pending': 8, 'completed': 24}
+        },
+        'ai_usage': {
+            'total_interactions': 234,
+            'monthly_growth': 15.2,
+            'avg_per_case': 5.8,
+            'top_areas': ['contract_analysis', 'legal_research', 'document_drafting']
+        },
+        'efficiency': {
+            'avg_case_duration': 45,
+            'resolution_rate': 89.3,
+            'client_satisfaction': 4.7
+        }
+    }
+
+def get_mock_stats():
+    analytics = get_analytics_data()
+    return {
+        'total_clients': len(get_mock_clients()),
+        'active_cases': analytics['cases']['active'],
+        'pending_cases': analytics['cases']['pending'],
+        'completed_cases': analytics['cases']['completed'],
+        'revenue_ytd': analytics['revenue']['total_ytd'],
+        'ai_interactions': analytics['ai_usage']['total_interactions'],
+        'documents_processed': 67
     }
 
 def build_system_prompt(practice_area):
@@ -1128,15 +1184,22 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
 
                 <!-- Recent Clients -->
                 <div class="recent-section">
-                    <h2 class="section-title">Recent Client Activity</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="section-title">Recent Client Activity</h2>
+                        <a href="/clients" class="btn" style="background: var(--primary-green); color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 0.875rem;">View All</a>
+                    </div>
                     <div class="client-list">
                         {% for client in recent_clients %}
-                        <div class="client-item">
+                        <div class="client-item" onclick="window.location.href='/clients/{{ client.id }}'" style="cursor: pointer;">
                             <div class="client-info">
                                 <div class="client-name">{{ client.name }}</div>
-                                <div class="client-meta">{{ practice_areas[client.practice_area].name }} • Last contact: {{ client.last_contact }}</div>
+                                <div class="client-meta">{{ practice_areas[client.practice_area].name }} • {{ client.case_type }} • ${{ "{:,}".format(client.value) }}</div>
+                                <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 4px;">{{ client.messages }} messages • {{ client.documents }} docs • Next: {{ client.next_action }}</div>
                             </div>
-                            <span class="status-badge status-{{ client.status }}">{{ client.status.title() }}</span>
+                            <div style="text-align: right;">
+                                <span class="status-badge status-{{ client.status }}">{{ client.status.title() }}</span>
+                                <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 4px;">{{ client.priority.title() }} Priority</div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -1564,6 +1627,1409 @@ def chat_interface(client_id=None):
 <p>Chat loading error: {e}</p>
 <a href="/">← Back to Dashboard</a></body></html>"""
 
+@app.route('/clients')
+def clients_page():
+    """Comprehensive client management page"""
+    try:
+        clients = get_mock_clients()
+        analytics = get_analytics_data()
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Client Management - LexAI</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --primary-green: #2E4B3C;
+                    --primary-green-light: #4A6B57;
+                    --secondary-cream: #F7EDDA;
+                    --white: #ffffff;
+                    --gray-50: #f9fafb;
+                    --gray-100: #f3f4f6;
+                    --gray-600: #4b5563;
+                    --gray-900: #111827;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --error: #ef4444;
+                }
+                
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
+                    margin: 0;
+                    padding: 20px;
+                    min-height: 100vh;
+                    color: var(--gray-900);
+                }
+                
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .back-link {
+                    background: var(--primary-green);
+                    color: var(--secondary-cream);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                
+                .stats-row {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 16px;
+                    margin-bottom: 32px;
+                }
+                
+                .stat-card {
+                    background: var(--gray-50);
+                    padding: 20px;
+                    border-radius: 12px;
+                    text-align: center;
+                }
+                
+                .stat-value {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                }
+                
+                .stat-label {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                    margin-top: 4px;
+                }
+                
+                .filters {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 24px;
+                    flex-wrap: wrap;
+                }
+                
+                .filter-btn {
+                    padding: 8px 16px;
+                    border: 1px solid var(--gray-100);
+                    border-radius: 8px;
+                    background: white;
+                    cursor: pointer;
+                    font-size: 0.875rem;
+                    transition: all 0.2s ease;
+                }
+                
+                .filter-btn.active {
+                    background: var(--primary-green);
+                    color: white;
+                    border-color: var(--primary-green);
+                }
+                
+                .clients-grid {
+                    display: grid;
+                    gap: 16px;
+                }
+                
+                .client-card {
+                    background: white;
+                    border: 1px solid var(--gray-100);
+                    border-radius: 12px;
+                    padding: 24px;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                }
+                
+                .client-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+                }
+                
+                .client-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 16px;
+                }
+                
+                .client-name {
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--gray-900);
+                }
+                
+                .client-type {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                    margin-top: 4px;
+                }
+                
+                .status-badge {
+                    padding: 4px 12px;
+                    border-radius: 6px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                }
+                
+                .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+                .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+                .status-completed { background: rgba(107, 114, 128, 0.1); color: var(--gray-600); }
+                
+                .client-metrics {
+                    display: flex;
+                    gap: 24px;
+                    margin-top: 16px;
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                }
+                
+                .metric {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                
+                .priority-high { color: var(--error); }
+                .priority-medium { color: var(--warning); }
+                .priority-low { color: var(--gray-600); }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div>
+                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Client Management</h1>
+                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Manage cases, track progress, and analyze performance</p>
+                    </div>
+                    <a href="/" class="back-link">← Dashboard</a>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ analytics.cases.total }}</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ analytics.cases.active }}</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${{ "{:,}".format(analytics.revenue.total_ytd) }}</div>
+                        <div class="stat-label">Revenue YTD</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}</div>
+                        <div class="stat-label">Satisfaction</div>
+                    </div>
+                </div>
+                
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterClients('all')">All Clients</button>
+                    <button class="filter-btn" onclick="filterClients('active')">Active</button>
+                    <button class="filter-btn" onclick="filterClients('pending')">Pending</button>
+                    <button class="filter-btn" onclick="filterClients('completed')">Completed</button>
+                </div>
+                
+                <div class="clients-grid" id="clientsGrid">
+                    {% for client in clients %}
+                    <div class="client-card" data-status="{{ client.status }}" onclick="window.location.href='/clients/{{ client.id }}'">
+                        <div class="client-header">
+                            <div>
+                                <div class="client-name">{{ client.name }}</div>
+                                <div class="client-type">{{ client.case_type }} • {{ practice_areas[client.practice_area].name }}</div>
+                            </div>
+                            <span class="status-badge status-{{ client.status }}">{{ client.status.title() }}</span>
+                        </div>
+                        
+                        <div class="client-metrics">
+                            <div class="metric">
+                                <span>💬</span>
+                                <span>{{ client.messages }} messages</span>
+                            </div>
+                            <div class="metric">
+                                <span>📄</span>
+                                <span>{{ client.documents }} docs</span>
+                            </div>
+                            <div class="metric">
+                                <span>💰</span>
+                                <span>${{ "{:,}".format(client.value) }}</span>
+                            </div>
+                            <div class="metric priority-{{ client.priority }}">
+                                <span>🔥</span>
+                                <span>{{ client.priority.title() }}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 12px; font-size: 0.875rem; color: var(--gray-600);">
+                            <strong>Next:</strong> {{ client.next_action }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <script>
+                function filterClients(status) {
+                    const cards = document.querySelectorAll('.client-card');
+                    const buttons = document.querySelectorAll('.filter-btn');
+                    
+                    // Update button states
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    event.target.classList.add('active');
+                    
+                    // Filter cards
+                    cards.forEach(card => {
+                        if (status === 'all' || card.dataset.status === status) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+            </script>
+        </body>
+        </html>
+        """, clients=clients, analytics=analytics, practice_areas=PRACTICE_AREAS)
+        
+    except Exception as e:
+        logger.error(f"Clients page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Clients</title></head>
+<body><h1>🏛️ LexAI Client Management</h1>
+<p>Error loading clients: {e}</p>
+<a href="/">← Back to Dashboard</a></body></html>"""
+
+@app.route('/clients/<client_id>')
+def client_detail(client_id):
+    """Individual client detail page with conversation history and analytics"""
+    try:
+        # Get client data
+        clients = get_mock_clients()
+        client = None
+        for c in clients:
+            if str(c['id']) == str(client_id):
+                client = c
+                break
+        
+        if not client:
+            return f"""<!DOCTYPE html>
+<html><head><title>Client Not Found</title></head>
+<body><h1>Client Not Found</h1>
+<a href="/clients">← Back to Clients</a></body></html>""", 404
+        
+        # Get practice area info
+        practice_area = PRACTICE_AREAS.get(client['practice_area'], PRACTICE_AREAS['corporate'])
+        
+        # Mock conversation history
+        conversation_history = [
+            {"timestamp": "2025-01-03 14:30", "type": "user", "content": "I need help with my divorce proceedings"},
+            {"timestamp": "2025-01-03 14:31", "type": "assistant", "content": "I understand you're going through divorce proceedings. Let me help you understand the process and your options."},
+            {"timestamp": "2025-01-03 14:35", "type": "user", "content": "What about custody arrangements for our children?"},
+            {"timestamp": "2025-01-03 14:36", "type": "assistant", "content": "Child custody is determined based on the best interests of the child. Factors include stability, parenting ability, and the child's preferences if they're old enough."},
+            {"timestamp": "2025-01-02 09:15", "type": "user", "content": "Can you review this custody agreement draft?"},
+            {"timestamp": "2025-01-02 09:16", "type": "assistant", "content": "I've reviewed the custody agreement. Here are some key points to consider..."}
+        ]
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>{{ client.name }} - Client Details</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --primary-green: #2E4B3C;
+                    --primary-green-light: #4A6B57;
+                    --secondary-cream: #F7EDDA;
+                    --white: #ffffff;
+                    --gray-50: #f9fafb;
+                    --gray-100: #f3f4f6;
+                    --gray-200: #e5e7eb;
+                    --gray-600: #4b5563;
+                    --gray-700: #374151;
+                    --gray-900: #111827;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --error: #ef4444;
+                    --blue: #3b82f6;
+                }
+                
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
+                    margin: 0;
+                    padding: 20px;
+                    min-height: 100vh;
+                    color: var(--gray-900);
+                }
+                
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .client-info {
+                    flex: 1;
+                }
+                
+                .client-name {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                    margin: 0 0 8px 0;
+                }
+                
+                .client-subtitle {
+                    font-size: 1.1rem;
+                    color: var(--gray-600);
+                    margin: 0 0 16px 0;
+                }
+                
+                .status-priority {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                }
+                
+                .status-badge {
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                
+                .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+                .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+                .status-completed { background: rgba(107, 114, 128, 0.1); color: var(--gray-600); }
+                
+                .priority-badge {
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                
+                .priority-high { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+                .priority-medium { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+                .priority-low { background: rgba(107, 114, 128, 0.1); color: var(--gray-600); }
+                
+                .actions {
+                    display: flex;
+                    gap: 12px;
+                    align-items: center;
+                }
+                
+                .back-link, .action-btn {
+                    background: var(--primary-green);
+                    color: var(--secondary-cream);
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .action-btn.secondary {
+                    background: var(--blue);
+                }
+                
+                .back-link:hover, .action-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                }
+                
+                .content-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 400px;
+                    gap: 32px;
+                    margin-bottom: 32px;
+                }
+                
+                .main-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                
+                .sidebar {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 24px;
+                }
+                
+                .card {
+                    background: var(--gray-50);
+                    border-radius: 12px;
+                    padding: 24px;
+                    border: 1px solid var(--gray-100);
+                }
+                
+                .card-title {
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--gray-900);
+                    margin: 0 0 16px 0;
+                }
+                
+                .metrics-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 16px;
+                }
+                
+                .metric-item {
+                    text-align: center;
+                    padding: 16px;
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid var(--gray-200);
+                }
+                
+                .metric-value {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                    margin: 0;
+                }
+                
+                .metric-label {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                    margin: 4px 0 0 0;
+                }
+                
+                .info-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 0;
+                    border-bottom: 1px solid var(--gray-200);
+                }
+                
+                .info-row:last-child {
+                    border-bottom: none;
+                }
+                
+                .info-label {
+                    font-weight: 500;
+                    color: var(--gray-700);
+                }
+                
+                .info-value {
+                    color: var(--gray-900);
+                }
+                
+                .conversation-history {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-height: 600px;
+                    overflow-y: auto;
+                }
+                
+                .message {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 16px;
+                    padding: 16px;
+                    border-radius: 12px;
+                    background: var(--gray-50);
+                }
+                
+                .message.user {
+                    background: rgba(46, 75, 60, 0.1);
+                }
+                
+                .message.assistant {
+                    background: rgba(59, 130, 246, 0.1);
+                }
+                
+                .message-avatar {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    flex-shrink: 0;
+                }
+                
+                .message.user .message-avatar {
+                    background: var(--primary-green);
+                    color: white;
+                }
+                
+                .message.assistant .message-avatar {
+                    background: var(--blue);
+                    color: white;
+                }
+                
+                .message-content {
+                    flex: 1;
+                }
+                
+                .message-time {
+                    font-size: 0.75rem;
+                    color: var(--gray-600);
+                    margin-bottom: 4px;
+                }
+                
+                .message-text {
+                    line-height: 1.5;
+                    color: var(--gray-900);
+                }
+                
+                @media (max-width: 768px) {
+                    .content-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .header {
+                        flex-direction: column;
+                        gap: 16px;
+                        align-items: flex-start;
+                    }
+                    
+                    .actions {
+                        width: 100%;
+                        justify-content: flex-start;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="client-info">
+                        <h1 class="client-name">{{ client.name }}</h1>
+                        <p class="client-subtitle">{{ client.case_type }} • {{ practice_area.name }}</p>
+                        <div class="status-priority">
+                            <span class="status-badge status-{{ client.status }}">{{ client.status.title() }}</span>
+                            <span class="priority-badge priority-{{ client.priority }}">{{ client.priority.title() }} Priority</span>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <a href="/clients" class="back-link">← Back to Clients</a>
+                        <a href="/chat?practice_area={{ client.practice_area }}" class="action-btn secondary">💬 Chat</a>
+                    </div>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="main-content">
+                        <div class="card">
+                            <h2 class="card-title">Case Metrics</h2>
+                            <div class="metrics-grid">
+                                <div class="metric-item">
+                                    <div class="metric-value">{{ client.messages }}</div>
+                                    <div class="metric-label">Messages</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">{{ client.documents }}</div>
+                                    <div class="metric-label">Documents</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">${{ "{:,}".format(client.value) }}</div>
+                                    <div class="metric-label">Case Value</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">{{ ((client.messages + client.documents) * 1.5) | round | int }}h</div>
+                                    <div class="metric-label">Time Invested</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="conversation-history">
+                            <h2 class="card-title">Recent Conversation History</h2>
+                            {% for message in conversation_history %}
+                            <div class="message {{ message.type }}">
+                                <div class="message-avatar">
+                                    {{ 'YOU' if message.type == 'user' else 'LA' }}
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-time">{{ message.timestamp }}</div>
+                                    <div class="message-text">{{ message.content }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar">
+                        <div class="card">
+                            <h3 class="card-title">Client Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Case Type</span>
+                                <span class="info-value">{{ client.case_type }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Practice Area</span>
+                                <span class="info-value">{{ practice_area.name }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Last Contact</span>
+                                <span class="info-value">{{ client.last_contact }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Status</span>
+                                <span class="info-value">{{ client.status.title() }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Priority</span>
+                                <span class="info-value">{{ client.priority.title() }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 class="card-title">Next Actions</h3>
+                            <div style="padding: 16px; background: white; border-radius: 8px; border: 1px solid var(--gray-200);">
+                                <div style="font-weight: 500; color: var(--gray-900); margin-bottom: 8px;">Upcoming Task</div>
+                                <div style="color: var(--gray-700);">{{ client.next_action }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 class="card-title">Quick Actions</h3>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button class="action-btn" style="width: 100%; justify-content: center;" onclick="window.location.href='/chat?practice_area={{ client.practice_area }}'">
+                                    💬 Start New Conversation
+                                </button>
+                                <button class="action-btn secondary" style="width: 100%; justify-content: center;" onclick="alert('Document upload coming soon!')">
+                                    📄 Upload Document
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, client=client, practice_area=practice_area, conversation_history=conversation_history)
+        
+    except Exception as e:
+        logger.error(f"Client detail error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Client Detail</title></head>
+<body><h1>🏛️ LexAI Client Detail</h1>
+<p>Error loading client: {e}</p>
+<a href="/clients">← Back to Clients</a></body></html>"""
+
+@app.route('/clients')
+def clients_list():
+    """Client list route alias for compatibility"""
+    return clients_page()
+
+@app.route('/documents')
+def documents_list():
+    """Document management system with upload and analysis capabilities"""
+    try:
+        # Mock document data for demonstration
+        documents = [
+            {
+                'id': 1,
+                'name': 'Contract_Amendment_Smith.pdf',
+                'type': 'Contract',
+                'client': 'John Smith',
+                'upload_date': '2025-01-03',
+                'size': '245 KB',
+                'status': 'analyzed',
+                'ai_summary': 'Standard contract amendment updating payment terms and delivery schedule.',
+                'tags': ['contract', 'amendment', 'payment'],
+                'practice_area': 'corporate'
+            },
+            {
+                'id': 2,
+                'name': 'Custody_Agreement_Draft.docx',
+                'type': 'Legal Document',
+                'client': 'John Smith',
+                'upload_date': '2025-01-02',
+                'size': '156 KB',
+                'status': 'pending',
+                'ai_summary': 'Custody agreement draft pending review and analysis.',
+                'tags': ['custody', 'family-law', 'draft'],
+                'practice_area': 'family'
+            },
+            {
+                'id': 3,
+                'name': 'Insurance_Claim_Documentation.pdf',
+                'type': 'Evidence',
+                'client': 'Sarah Johnson',
+                'upload_date': '2025-01-01',
+                'size': '1.2 MB',
+                'status': 'analyzed',
+                'ai_summary': 'Complete insurance claim documentation with medical reports and incident details.',
+                'tags': ['insurance', 'personal-injury', 'medical'],
+                'practice_area': 'personal_injury'
+            }
+        ]
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Document Management - LexAI</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --primary-green: #2E4B3C;
+                    --secondary-cream: #F7EDDA;
+                    --gray-50: #f9fafb;
+                    --gray-100: #f3f4f6;
+                    --gray-200: #e5e7eb;
+                    --gray-600: #4b5563;
+                    --gray-700: #374151;
+                    --gray-900: #111827;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --error: #ef4444;
+                    --blue: #3b82f6;
+                }
+                
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
+                    margin: 0;
+                    padding: 20px;
+                    min-height: 100vh;
+                    color: var(--gray-900);
+                }
+                
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .back-link, .upload-btn {
+                    background: var(--primary-green);
+                    color: var(--secondary-cream);
+                    padding: 10px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .upload-btn {
+                    background: var(--blue);
+                }
+                
+                .upload-area {
+                    border: 2px dashed var(--gray-200);
+                    border-radius: 12px;
+                    padding: 48px 24px;
+                    text-align: center;
+                    margin-bottom: 32px;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                }
+                
+                .upload-area:hover {
+                    border-color: var(--primary-green);
+                    background: rgba(46, 75, 60, 0.02);
+                }
+                
+                .upload-area.dragover {
+                    border-color: var(--primary-green);
+                    background: rgba(46, 75, 60, 0.05);
+                }
+                
+                .upload-icon {
+                    font-size: 3rem;
+                    margin-bottom: 16px;
+                    color: var(--gray-600);
+                }
+                
+                .upload-text {
+                    font-size: 1.1rem;
+                    color: var(--gray-700);
+                    margin-bottom: 8px;
+                }
+                
+                .upload-subtext {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                }
+                
+                .documents-grid {
+                    display: grid;
+                    gap: 16px;
+                }
+                
+                .document-card {
+                    background: var(--gray-50);
+                    border: 1px solid var(--gray-100);
+                    border-radius: 12px;
+                    padding: 24px;
+                    transition: all 0.2s ease;
+                }
+                
+                .document-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+                }
+                
+                .document-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 16px;
+                }
+                
+                .document-name {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: var(--gray-900);
+                    margin: 0 0 4px 0;
+                }
+                
+                .document-meta {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                }
+                
+                .status-badge {
+                    padding: 4px 12px;
+                    border-radius: 6px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                }
+                
+                .status-analyzed { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+                .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+                .status-error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+                
+                .document-summary {
+                    margin: 16px 0;
+                    padding: 16px;
+                    background: white;
+                    border-radius: 8px;
+                    border: 1px solid var(--gray-200);
+                    font-size: 0.875rem;
+                    line-height: 1.5;
+                    color: var(--gray-700);
+                }
+                
+                .document-tags {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    margin-top: 12px;
+                }
+                
+                .tag {
+                    background: var(--gray-100);
+                    color: var(--gray-700);
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                }
+                
+                .document-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-top: 16px;
+                }
+                
+                .action-btn {
+                    padding: 6px 12px;
+                    border: 1px solid var(--gray-200);
+                    border-radius: 6px;
+                    background: white;
+                    color: var(--gray-700);
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .action-btn:hover {
+                    background: var(--gray-50);
+                    border-color: var(--gray-300);
+                }
+                
+                .action-btn.primary {
+                    background: var(--primary-green);
+                    color: white;
+                    border-color: var(--primary-green);
+                }
+                
+                .filters {
+                    display: flex;
+                    gap: 12px;
+                    margin-bottom: 24px;
+                    flex-wrap: wrap;
+                }
+                
+                .filter-btn {
+                    padding: 8px 16px;
+                    border: 1px solid var(--gray-200);
+                    border-radius: 8px;
+                    background: white;
+                    color: var(--gray-700);
+                    font-size: 0.875rem;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+                
+                .filter-btn.active {
+                    background: var(--primary-green);
+                    color: white;
+                    border-color: var(--primary-green);
+                }
+                
+                .hidden {
+                    display: none;
+                }
+                
+                @media (max-width: 768px) {
+                    .header {
+                        flex-direction: column;
+                        gap: 16px;
+                        align-items: flex-start;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div>
+                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Document Management</h1>
+                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Upload, analyze, and manage legal documents with AI</p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <a href="/" class="back-link">← Dashboard</a>
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📤 Upload Document</button>
+                    </div>
+                </div>
+                
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Click to upload or drag and drop</div>
+                    <div class="upload-subtext">PDF, DOC, DOCX files up to 10MB</div>
+                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx" onchange="handleFileUpload(this)">
+                </div>
+                
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterDocuments('all')">All Documents</button>
+                    <button class="filter-btn" onclick="filterDocuments('contract')">Contracts</button>
+                    <button class="filter-btn" onclick="filterDocuments('evidence')">Evidence</button>
+                    <button class="filter-btn" onclick="filterDocuments('analyzed')">Analyzed</button>
+                    <button class="filter-btn" onclick="filterDocuments('pending')">Pending</button>
+                </div>
+                
+                <div class="documents-grid" id="documentsGrid">
+                    {% for doc in documents %}
+                    <div class="document-card" data-type="{{ doc.type.lower() }}" data-status="{{ doc.status }}">
+                        <div class="document-header">
+                            <div>
+                                <h3 class="document-name">{{ doc.name }}</h3>
+                                <div class="document-meta">
+                                    {{ doc.type }} • {{ doc.client }} • {{ doc.upload_date }} • {{ doc.size }}
+                                </div>
+                            </div>
+                            <span class="status-badge status-{{ doc.status }}">{{ doc.status }}</span>
+                        </div>
+                        
+                        {% if doc.ai_summary %}
+                        <div class="document-summary">
+                            <strong>AI Analysis:</strong> {{ doc.ai_summary }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="document-tags">
+                            {% for tag in doc.tags %}
+                            <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="document-actions">
+                            <button class="action-btn primary" onclick="viewDocument({{ doc.id }})">View</button>
+                            <button class="action-btn" onclick="downloadDocument({{ doc.id }})">Download</button>
+                            <button class="action-btn" onclick="analyzeDocument({{ doc.id }})">Re-analyze</button>
+                            <button class="action-btn" onclick="shareDocument({{ doc.id }})">Share</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <script>
+                // File upload handling
+                function handleFileUpload(input) {
+                    const file = input.files[0];
+                    if (file) {
+                        console.log('File selected:', file.name);
+                        alert(`File "${file.name}" selected for upload. Upload functionality coming soon!`);
+                    }
+                }
+                
+                // Drag and drop functionality
+                const uploadArea = document.querySelector('.upload-area');
+                
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        console.log('Files dropped:', files[0].name);
+                        alert(`File "${files[0].name}" dropped. Upload functionality coming soon!`);
+                    }
+                });
+                
+                // Document filtering
+                function filterDocuments(filter) {
+                    const cards = document.querySelectorAll('.document-card');
+                    const buttons = document.querySelectorAll('.filter-btn');
+                    
+                    // Update button states
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    event.target.classList.add('active');
+                    
+                    // Filter cards
+                    cards.forEach(card => {
+                        const type = card.dataset.type;
+                        const status = card.dataset.status;
+                        
+                        let show = false;
+                        if (filter === 'all') {
+                            show = true;
+                        } else if (filter === 'contract' && type === 'contract') {
+                            show = true;
+                        } else if (filter === 'evidence' && type === 'evidence') {
+                            show = true;
+                        } else if (filter === status) {
+                            show = true;
+                        }
+                        
+                        card.style.display = show ? 'block' : 'none';
+                    });
+                }
+                
+                // Document actions
+                function viewDocument(id) {
+                    alert(`Viewing document ${id}. Full document viewer coming soon!`);
+                }
+                
+                function downloadDocument(id) {
+                    alert(`Downloading document ${id}. Download functionality coming soon!`);
+                }
+                
+                function analyzeDocument(id) {
+                    alert(`Re-analyzing document ${id} with AI. Analysis engine coming soon!`);
+                }
+                
+                function shareDocument(id) {
+                    alert(`Sharing document ${id}. Collaboration features coming soon!`);
+                }
+            </script>
+        </body>
+        </html>
+        """, documents=documents)
+        
+    except Exception as e:
+        logger.error(f"Documents page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Documents</title></head>
+<body><h1>🏛️ LexAI Document Management</h1>
+<p>Error loading documents: {e}</p>
+<a href="/">← Back to Dashboard</a></body></html>"""
+
+@app.route('/analytics')
+def analytics_dashboard():
+    """Analytics dashboard page"""
+    try:
+        analytics = get_analytics_data()
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Analytics Dashboard - LexAI</title>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --primary-green: #2E4B3C;
+                    --secondary-cream: #F7EDDA;
+                    --gray-50: #f9fafb;
+                    --gray-100: #f3f4f6;
+                    --gray-600: #4b5563;
+                    --gray-900: #111827;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --blue: #3b82f6;
+                }
+                
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
+                    margin: 0;
+                    padding: 20px;
+                    min-height: 100vh;
+                    color: var(--gray-900);
+                }
+                
+                .container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 32px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .back-link {
+                    background: var(--primary-green);
+                    color: var(--secondary-cream);
+                    padding: 8px 16px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                }
+                
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 20px;
+                    margin-bottom: 32px;
+                }
+                
+                .stat-card {
+                    background: var(--gray-50);
+                    padding: 24px;
+                    border-radius: 12px;
+                    border: 1px solid var(--gray-100);
+                }
+                
+                .stat-title {
+                    font-size: 0.875rem;
+                    color: var(--gray-600);
+                    margin: 0 0 8px 0;
+                    font-weight: 500;
+                }
+                
+                .stat-value {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                    margin: 0;
+                }
+                
+                .stat-change {
+                    font-size: 0.875rem;
+                    color: var(--success);
+                    margin: 4px 0 0 0;
+                }
+                
+                .section {
+                    background: var(--gray-50);
+                    border-radius: 12px;
+                    padding: 24px;
+                    margin-bottom: 24px;
+                    border: 1px solid var(--gray-100);
+                }
+                
+                .section-title {
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    color: var(--gray-900);
+                    margin: 0 0 16px 0;
+                }
+                
+                .metric-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 0;
+                    border-bottom: 1px solid var(--gray-100);
+                }
+                
+                .metric-row:last-child {
+                    border-bottom: none;
+                }
+                
+                .metric-label {
+                    font-weight: 500;
+                    color: var(--gray-700);
+                }
+                
+                .metric-value {
+                    color: var(--gray-900);
+                    font-weight: 600;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div>
+                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Analytics Dashboard</h1>
+                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Performance metrics and insights</p>
+                    </div>
+                    <a href="/" class="back-link">← Dashboard</a>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Revenue YTD</div>
+                        <div class="stat-value">${{ "{:,}".format(analytics.revenue.total_ytd) }}</div>
+                        <div class="stat-change">+15.2% from last quarter</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Active Cases</div>
+                        <div class="stat-value">{{ analytics.cases.active }}</div>
+                        <div class="stat-change">{{ analytics.cases.pending }} pending review</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">AI Interactions</div>
+                        <div class="stat-value">{{ analytics.ai_usage.total_interactions }}</div>
+                        <div class="stat-change">+{{ "%.1f"|format(analytics.ai_usage.monthly_growth) }}% this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Client Satisfaction</div>
+                        <div class="stat-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}</div>
+                        <div class="stat-change">{{ "%.1f"|format(analytics.efficiency.resolution_rate) }}% resolution rate</div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Revenue by Practice Area</h2>
+                    {% for area, revenue in analytics.revenue.by_practice.items() %}
+                    <div class="metric-row">
+                        <span class="metric-label">{{ area.replace('_', ' ').title() }}</span>
+                        <span class="metric-value">${{ "{:,}".format(revenue) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Case Distribution</h2>
+                    {% for status, count in analytics.cases.by_status.items() %}
+                    <div class="metric-row">
+                        <span class="metric-label">{{ status.title() }} Cases</span>
+                        <span class="metric-value">{{ count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">AI Usage Insights</h2>
+                    <div class="metric-row">
+                        <span class="metric-label">Average Interactions per Case</span>
+                        <span class="metric-value">{{ "%.1f"|format(analytics.ai_usage.avg_per_case) }}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Most Used Features</span>
+                        <span class="metric-value">{{ ', '.join(analytics.ai_usage.top_areas) }}</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">Efficiency Metrics</h2>
+                    <div class="metric-row">
+                        <span class="metric-label">Average Case Duration</span>
+                        <span class="metric-value">{{ analytics.efficiency.avg_case_duration }} days</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Resolution Rate</span>
+                        <span class="metric-value">{{ "%.1f"|format(analytics.efficiency.resolution_rate) }}%</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Client Satisfaction Score</span>
+                        <span class="metric-value">{{ "%.1f"|format(analytics.efficiency.client_satisfaction) }}/5.0</span>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """, analytics=analytics)
+        
+    except Exception as e:
+        logger.error(f"Analytics page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Analytics</title></head>
+<body><h1>🏛️ LexAI Analytics</h1>
+<p>Error loading analytics: {e}</p>
+<a href="/">← Back to Dashboard</a></body></html>"""
+
 @app.route('/health')
 @rate_limit_decorator
 def health_check():
@@ -1650,6 +3116,133 @@ def security_status():
         })
     except Exception as e:
         logger.error(f"Security status check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/clients')
+@rate_limit_decorator
+def get_clients():
+    """Get client list with filtering and analytics"""
+    try:
+        status_filter = request.args.get('status')
+        practice_filter = request.args.get('practice_area')
+        
+        clients = get_mock_clients()
+        
+        # Apply filters
+        if status_filter:
+            clients = [c for c in clients if c['status'] == status_filter]
+        if practice_filter:
+            clients = [c for c in clients if c['practice_area'] == practice_filter]
+        
+        analytics = get_analytics_data()
+        
+        return jsonify({
+            "status": "success",
+            "clients": clients,
+            "analytics": analytics,
+            "total": len(clients),
+            "filters": {
+                "status": status_filter,
+                "practice_area": practice_filter
+            }
+        })
+    except Exception as e:
+        logger.error(f"Failed to get clients: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/clients/<int:client_id>')
+@rate_limit_decorator
+def get_client_details(client_id):
+    """Get detailed client information with conversation history"""
+    try:
+        clients = get_mock_clients()
+        client = next((c for c in clients if c['id'] == client_id), None)
+        
+        if not client:
+            return jsonify({
+                "status": "error",
+                "error": "Client not found"
+            }), 404
+        
+        # Get conversation summary
+        conversation_summary = conversation_manager.get_conversation_summary(
+            f"client_{client_id}", 
+            client['practice_area']
+        )
+        
+        # Enhanced client details
+        client_details = {
+            **client,
+            "conversation_summary": conversation_summary,
+            "timeline": [
+                {"date": "2025-01-03", "event": "Case opened", "type": "milestone"},
+                {"date": "2025-01-02", "event": "AI consultation - 3 messages", "type": "ai_interaction"},
+                {"date": "2025-01-01", "event": "Document uploaded", "type": "document"},
+                {"date": "2024-12-30", "event": "Initial consultation", "type": "meeting"}
+            ],
+            "metrics": {
+                "total_ai_interactions": conversation_summary.get('message_count', 0),
+                "documents_uploaded": client.get('documents', 0),
+                "case_value": client.get('value', 0),
+                "days_active": 14
+            }
+        }
+        
+        return jsonify({
+            "status": "success",
+            "client": client_details
+        })
+    except Exception as e:
+        logger.error(f"Failed to get client details: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/analytics')
+@rate_limit_decorator
+def get_analytics():
+    """Get comprehensive practice analytics"""
+    try:
+        analytics = get_analytics_data()
+        clients = get_mock_clients()
+        
+        # Calculate additional metrics
+        practice_distribution = {}
+        for client in clients:
+            area = client['practice_area']
+            if area not in practice_distribution:
+                practice_distribution[area] = 0
+            practice_distribution[area] += 1
+        
+        enhanced_analytics = {
+            **analytics,
+            "practice_distribution": practice_distribution,
+            "recent_activity": [
+                {"type": "new_client", "description": "John Smith - Family Law", "time": "2 hours ago"},
+                {"type": "ai_interaction", "description": "25 AI consultations today", "time": "1 hour ago"},
+                {"type": "document", "description": "Contract analysis completed", "time": "30 min ago"},
+                {"type": "case_update", "description": "Mike Davis case updated", "time": "15 min ago"}
+            ],
+            "alerts": [
+                {"type": "deadline", "message": "Motion due for John Smith in 2 days", "priority": "high"},
+                {"type": "follow_up", "message": "Follow up with Lisa Chen on USCIS filing", "priority": "medium"}
+            ]
+        }
+        
+        return jsonify({
+            "status": "success",
+            "analytics": enhanced_analytics,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Failed to get analytics: {e}")
         return jsonify({
             "status": "error",
             "error": str(e)
