@@ -263,126 +263,100 @@ def upload_file():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    data = request.get_json()
-    messages = data.get('messages', [])
-    client_id = data.get('client_id', 'default_client')
-
-    if not messages:
-        return jsonify({"error": "No messages provided"}), 400
-
-    # Ensure client exists in database
-    client = Client.query.filter_by(id=client_id).first()
-    if not client:
-        # Create client if it doesn't exist
-        client = Client(id=client_id, name=f"Client {client_id}")
-        db.session.add(client)
-        db.session.commit()
-
-    # Tokenize messages before sending to Grok
-    anonymizer = Anonymizer()
-    tokenized_messages = []
-    combined_token_map = {}
-    for msg in messages:
-        tokenized_msg = msg.copy()
-        if 'content' in tokenized_msg:
-            # Tokenize the message content
-            content = tokenized_msg['content']
-            tokenized_content, token_map = anonymizer.tokenize(content)
-            # Check if the message contains an email token and modify the instruction
-            if "at Email" in tokenized_content:
-                # Extract the person and email tokens
-                person_token = None
-                email_token = None
-                for token, value in token_map.items():
-                    if token.startswith("Person"):
-                        person_token = token
-                    elif token.startswith("Email"):
-                        email_token = token
-                # Rewrite the instruction to explicitly structure the email draft
-                subject = "Meeting on May 15, 2025"
-                body = tokenized_content.split("about", 1)[1].strip() if "about" in tokenized_content else "about a meeting on May 15, 2025."
-                tokenized_content = f"Draft an email with the following details: To: {person_token} <{email_token}>, Subject: {subject}, Body: {body}"
-                logger.info(f"Modified instruction: {tokenized_content}")
-            tokenized_msg['content'] = tokenized_content
-            combined_token_map.update(token_map)
-        tokenized_messages.append(tokenized_msg)
-
-    # Add user message to database
-    add_conversation(client_id, "user", messages[-1]["content"])
-
-    # Prepare the payload for Grok with tokenized messages
-    payload = {
-        "model": "grok-3-latest",
-        "messages": tokenized_messages,
-        "stream": False
-    }
-
     try:
+        data = request.get_json()
+        
+        # Support both old format (messages array) and new format (single message)
+        if 'message' in data:
+            # New simplified format like fAIble
+            message = data.get('message', '').strip()
+            client_id = data.get('client_id', 'default_client')
+        else:
+            # Old format for backward compatibility
+            messages = data.get('messages', [])
+            client_id = data.get('client_id', 'default_client')
+            if not messages:
+                return jsonify({"error": "Message is required"}), 400
+            message = messages[-1].get('content', '').strip()
+
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+
+        logger.info(f"Chat request: client_id={client_id}, message='{message[:50]}...'")
+
+        # Ensure client exists in database
+        try:
+            client = Client.query.filter_by(id=client_id).first()
+            if not client:
+                client = Client(id=client_id, name=f"Client {client_id}")
+                db.session.add(client)
+                db.session.commit()
+                logger.info(f"Created new client: {client_id}")
+        except Exception as e:
+            logger.warning(f"Database operation failed: {e}")
+            # Continue without database for now
+
+        # Simple direct API call (without complex tokenization for now)
+        payload = {
+            "model": "grok-3-latest",
+            "messages": [
+                {"role": "system", "content": "You are a helpful legal assistant specializing in family law. Provide clear, professional guidance while noting that this is not formal legal advice."},
+                {"role": "user", "content": message}
+            ],
+            "stream": False,
+            "temperature": 0.7
+        }
+
         headers = {
             "Authorization": f"Bearer {XAI_API_KEY}",
             "Content-Type": "application/json"
         }
-        logger.info(f"Sending request to Grok API with payload: {json.dumps(payload)}")
+
+        logger.info(f"Sending request to Grok API...")
         response = requests.post(
             "https://api.x.ai/v1/chat/completions",
             headers=headers,
             json=payload,
             timeout=30
         )
+        
         response.raise_for_status()
         grok_response = response.json()
-        logger.info(f"Grok API response: {grok_response}")
-
-        # De-tokenize Grok's response before storing and returning
+        
         assistant_content = grok_response["choices"][0]["message"]["content"]
-        detokenized_content = anonymizer.detokenize(assistant_content, combined_token_map)
+        logger.info(f"Received response from Grok API: {len(assistant_content)} characters")
 
-        # Post-process the response to ensure the email address is included, but only if not already present
-        # Only run post-processing if an email token exists in the token map
-        email_token_exists = any(token.startswith("Email") for token in combined_token_map.keys())
-        if email_token_exists:
-            # Check for "To:" while ignoring markdown formatting (e.g., **To:**, *To:*)
-            if not re.search(r'(?:\*\*|\*)*To:(?:\*\*|\*)*', detokenized_content):
-                # Find the email token and its corresponding value
-                email_token = next(token for token, value in combined_token_map.items() if value == "john.doe@example.com")
-                person_token = next(token for token, value in combined_token_map.items() if value == "John Doe")
-                email_line = f"To: {combined_token_map[person_token]} <{combined_token_map[email_token]}>\n\n"
-                # Insert the "To:" line after the subject line or at the start
-                if "Subject: " in detokenized_content:
-                    parts = detokenized_content.split("Subject: ", 1)
-                    detokenized_content = f"Subject: {parts[1].split('\n\n', 1)[0]}\n\n{email_line}{parts[1].split('\n\n', 1)[1]}"
-                    logger.info("Added To: line to response")
-                else:
-                    detokenized_content = email_line + detokenized_content
-                    logger.info("Added To: line to response")
-            else:
-                logger.info("To: line already present in response (possibly with markdown), skipping post-processing addition")
-        else:
-            logger.info("No email token found in token map, skipping post-processing for To: line")
+        # Save to database if possible
+        try:
+            add_conversation(client_id, "user", message)
+            add_conversation(client_id, "assistant", assistant_content)
+            logger.info(f"Saved conversation to database")
+        except Exception as e:
+            logger.warning(f"Failed to save to database: {e}")
+            # Continue without saving
 
-        # Add Grok's de-tokenized response to database
-        add_conversation(client_id, "assistant", detokenized_content)
-
-        # Log the final response sent to the frontend
-        logger.info(f"Response sent to frontend: {detokenized_content}")
-
-        # Return the de-tokenized response to the frontend
+        # Return response in the format expected by frontend
         return jsonify({
             "choices": [
                 {
                     "delta": {
-                        "content": detokenized_content
+                        "content": assistant_content
                     }
                 }
             ]
         })
+
     except requests.exceptions.RequestException as e:
-        # Log the full response if available
         error_detail = str(e)
         if hasattr(e, 'response') and e.response is not None:
-            error_detail += f" - Response: {e.response.text}"
-        logger.error(f"Error communicating with Grok API: {error_detail}")
-        return jsonify({"error": f"Failed to get response from Grok: {str(e)}"}), 500
+            try:
+                error_response = e.response.json()
+                error_detail += f" - Response: {error_response}"
+            except:
+                error_detail += f" - Response: {e.response.text}"
+        logger.error(f"Grok API error: {error_detail}")
+        return jsonify({"error": f"AI service error: {str(e)}"}), 500
+    
     except Exception as e:
         logger.error(f"Unexpected error in chat endpoint: {str(e)}")
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
