@@ -1756,22 +1756,14 @@ def dashboard():
         stats = get_mock_stats()
         recent_clients = get_mock_clients()[:3]  # Show last 3 clients
         
-        # Try to render template first
-        try:
-            from flask import render_template
-            return render_template('dashboard.html', 
-                                 practice_areas=PRACTICE_AREAS,
-                                 stats=stats,
-                                 recent_clients=recent_clients,
-                                 total_clients=stats['total_clients'])
-        except Exception as template_error:
-            logger.warning(f"Template render failed: {template_error}, using embedded template")
-            # Enhanced fallback with modern styling matching local version
-            return render_template_string(EMBEDDED_DASHBOARD_TEMPLATE, 
-                                        practice_areas=PRACTICE_AREAS,
-                                        stats=stats,
-                                        recent_clients=recent_clients,
-                                        api_status=bool(XAI_API_KEY))
+        # Use external template file with traditional navigation
+        from flask import render_template
+        return render_template('dashboard.html', 
+                             practice_areas=PRACTICE_AREAS,
+                             stats=stats,
+                             recent_clients=recent_clients,
+                             recent_activity=None,
+                             total_clients=stats['total_clients'])
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         # Minimal fallback
