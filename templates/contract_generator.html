@@ -1,0 +1,870 @@
+{% extends "base.html" %}
+
+{% block title %}Contract Generator - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Contract Generator Specific Styles */
+        .generator-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .generator-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .generator-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .generator-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .generator-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .generator-main {
+                grid-template-columns: 400px 1fr;
+            }
+        }
+
+        /* Template Selection Panel */
+        .template-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .template-section {
+            margin-bottom: 2rem;
+        }
+
+        .template-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .template-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .template-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .template-item {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+
+        .template-item:hover {
+            border-color: #2E4B3C;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .template-item.selected {
+            border-color: #2E4B3C;
+            background-color: #f0fdf4;
+        }
+
+        .template-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .template-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .template-complexity {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .complexity-basic {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .complexity-intermediate {
+            background-color: #fef3cd;
+            color: #d97706;
+        }
+
+        .complexity-advanced {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Contract Parameters */
+        .parameters-section {
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .generate-btn:hover {
+            background-color: #09332C;
+            transform: translateY(-1px);
+        }
+
+        .generate-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Output Panel */
+        .output-panel {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        .output-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .output-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            flex: 1;
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .output-action {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: white;
+            color: #374151;
+        }
+
+        .output-action:hover {
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+        }
+
+        .output-action.primary {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            border-color: #2E4B3C;
+        }
+
+        .output-action.primary:hover {
+            background-color: #09332C;
+        }
+
+        .output-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .contract-output {
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: #1f2937;
+            white-space: pre-wrap;
+        }
+
+        .contract-output h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1f2937;
+        }
+
+        .contract-output h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: #374151;
+        }
+
+        .contract-output p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .contract-output .signature-section {
+            margin-top: 3rem;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 2rem;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #374151;
+            margin: 2rem 0;
+            height: 1px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.5rem;
+            color: #9ca3af;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .loading-state.visible {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #2E4B3C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* AI Suggestions */
+        .ai-suggestions {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .ai-suggestions-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-suggestions-title {
+            font-weight: 600;
+            color: #16a34a;
+            font-size: 0.875rem;
+        }
+
+        .ai-suggestions-content {
+            font-size: 0.875rem;
+            color: #15803d;
+            line-height: 1.5;
+        }
+
+        .suggestion-item {
+            padding: 0.5rem;
+            background-color: #dcfce7;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background-color: #bbf7d0;
+        }
+
+        .suggestion-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1023px) {
+            .generator-main {
+                grid-template-columns: 1fr;
+            }
+
+            .template-panel {
+                order: 2;
+            }
+
+            .output-panel {
+                order: 1;
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .generator-title {
+                font-size: 2rem;
+            }
+
+            .generator-container {
+                padding: 1rem 0;
+            }
+
+            .template-panel, .output-panel {
+                margin: 0 0.5rem;
+            }
+
+            .output-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .output-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="generator-container">
+    <!-- Generator Header -->
+    <div class="generator-header">
+        <h1 class="generator-title">Contract Generator</h1>
+        <p class="generator-subtitle">AI-powered contract drafting with customizable templates and smart suggestions</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="generator-main">
+        <!-- Template Selection Panel -->
+        <div class="template-panel">
+            <!-- Template Categories -->
+            <div class="template-section">
+                <h3>Business Contracts</h3>
+                <div class="template-grid">
+                    <div class="template-item" data-template="service-agreement" onclick="selectTemplate(this)">
+                        <div class="template-name">Service Agreement</div>
+                        <div class="template-desc">Professional services contract with payment terms and deliverables</div>
+                        <span class="template-complexity complexity-basic">Basic</span>
+                    </div>
+                    <div class="template-item" data-template="consulting-agreement" onclick="selectTemplate(this)">
+                        <div class="template-name">Consulting Agreement</div>
+                        <div class="template-desc">Independent contractor agreement with scope and confidentiality</div>
+                        <span class="template-complexity complexity-intermediate">Intermediate</span>
+                    </div>
+                    <div class="template-item" data-template="partnership-agreement" onclick="selectTemplate(this)">
+                        <div class="template-name">Partnership Agreement</div>
+                        <div class="template-desc">Business partnership with profit sharing and responsibilities</div>
+                        <span class="template-complexity complexity-advanced">Advanced</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="template-section">
+                <h3>Employment Contracts</h3>
+                <div class="template-grid">
+                    <div class="template-item" data-template="employment-contract" onclick="selectTemplate(this)">
+                        <div class="template-name">Employment Contract</div>
+                        <div class="template-desc">Full-time employment agreement with benefits and terms</div>
+                        <span class="template-complexity complexity-intermediate">Intermediate</span>
+                    </div>
+                    <div class="template-item" data-template="nda" onclick="selectTemplate(this)">
+                        <div class="template-name">Non-Disclosure Agreement</div>
+                        <div class="template-desc">Confidentiality agreement for protecting sensitive information</div>
+                        <span class="template-complexity complexity-basic">Basic</span>
+                    </div>
+                    <div class="template-item" data-template="non-compete" onclick="selectTemplate(this)">
+                        <div class="template-name">Non-Compete Agreement</div>
+                        <div class="template-desc">Restrictive covenant preventing competition after employment</div>
+                        <span class="template-complexity complexity-advanced">Advanced</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="template-section">
+                <h3>Real Estate</h3>
+                <div class="template-grid">
+                    <div class="template-item" data-template="lease-agreement" onclick="selectTemplate(this)">
+                        <div class="template-name">Lease Agreement</div>
+                        <div class="template-desc">Residential or commercial property lease with terms and conditions</div>
+                        <span class="template-complexity complexity-basic">Basic</span>
+                    </div>
+                    <div class="template-item" data-template="purchase-agreement" onclick="selectTemplate(this)">
+                        <div class="template-name">Purchase Agreement</div>
+                        <div class="template-desc">Real estate purchase contract with contingencies and closing terms</div>
+                        <span class="template-complexity complexity-advanced">Advanced</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Parameters -->
+            <div class="parameters-section" id="parameters-section" style="display: none;">
+                <h3>Contract Details</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Contract Title</label>
+                    <input type="text" class="form-input" id="contract-title" placeholder="e.g., Website Development Services Agreement">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Party 1 (Provider/Employer)</label>
+                    <input type="text" class="form-input" id="party1-name" placeholder="Company or individual name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Party 2 (Client/Employee)</label>
+                    <input type="text" class="form-input" id="party2-name" placeholder="Company or individual name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contract Value/Payment</label>
+                    <input type="text" class="form-input" id="contract-value" placeholder="e.g., $5,000 or $75/hour">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Duration/Timeline</label>
+                    <input type="text" class="form-input" id="contract-duration" placeholder="e.g., 3 months or Upon completion">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Special Terms & Requirements</label>
+                    <textarea class="form-input form-textarea" id="special-terms" placeholder="Any specific clauses, requirements, or customizations for this contract..."></textarea>
+                </div>
+
+                <!-- AI Suggestions -->
+                <div class="ai-suggestions" id="ai-suggestions" style="display: none;">
+                    <div class="ai-suggestions-header">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <span class="ai-suggestions-title">AI Suggestions</span>
+                    </div>
+                    <div class="ai-suggestions-content" id="suggestions-content"></div>
+                </div>
+                
+                <button class="generate-btn" id="generate-btn" onclick="generateContract()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Generate Contract
+                </button>
+            </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="output-panel">
+            <!-- Output Header -->
+            <div class="output-header">
+                <h2 class="output-title">Generated Contract</h2>
+                <div class="output-actions" id="output-actions" style="display: none;">
+                    <button class="output-action" onclick="editContract()">Edit</button>
+                    <button class="output-action" onclick="downloadContract()">Download</button>
+                    <button class="output-action" onclick="shareContract()">Share</button>
+                    <button class="output-action primary" onclick="saveContract()">Save</button>
+                </div>
+            </div>
+
+            <!-- Output Content -->
+            <div class="output-content" id="output-content">
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <h3>Ready to Generate</h3>
+                    <p>Select a contract template and fill in the details to get started</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loading-state">
+                    <div class="loading-spinner"></div>
+                    <h3>Generating Contract</h3>
+                    <p>AI is drafting your customized contract with legal best practices</p>
+                </div>
+
+                <!-- Contract Output -->
+                <div class="contract-output" id="contract-output" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedTemplate = null;
+    let currentContract = null;
+
+    // Template selection
+    window.selectTemplate = function(element) {
+        // Remove previous selection
+        document.querySelectorAll('.template-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Select new template
+        element.classList.add('selected');
+        selectedTemplate = element.dataset.template;
+        
+        // Show parameters section
+        document.getElementById('parameters-section').style.display = 'block';
+        
+        // Load template-specific suggestions
+        loadTemplateSuggestions(selectedTemplate);
+        
+        // Update form placeholders based on template
+        updateFormPlaceholders(selectedTemplate);
+    };
+
+    function updateFormPlaceholders(templateType) {
+        const titleInput = document.getElementById('contract-title');
+        const party1Input = document.getElementById('party1-name');
+        const party2Input = document.getElementById('party2-name');
+        const valueInput = document.getElementById('contract-value');
+        const durationInput = document.getElementById('contract-duration');
+        const termsInput = document.getElementById('special-terms');
+
+        const placeholders = {
+            'service-agreement': {
+                title: 'Website Development Services Agreement',
+                party1: 'TechCorp Solutions LLC',
+                party2: 'ABC Manufacturing Inc.',
+                value: '$15,000 total project cost',
+                duration: '8 weeks from project start',
+                terms: 'Include milestone payments, intellectual property ownership, revision limits...'
+            },
+            'consulting-agreement': {
+                title: 'Marketing Consulting Agreement',
+                party1: 'Jane Smith Consulting',
+                party2: 'StartupXYZ Inc.',
+                value: '$150/hour, 20 hours/month',
+                duration: '6 month initial term',
+                terms: 'Confidentiality requirements, deliverable specifications, termination clauses...'
+            },
+            'employment-contract': {
+                title: 'Senior Software Engineer Employment Agreement',
+                party1: 'TechCompany Inc.',
+                party2: 'John Developer',
+                value: '$95,000 annual salary + benefits',
+                duration: 'Permanent employment',
+                terms: 'Remote work policy, equity options, performance review schedule...'
+            },
+            'nda': {
+                title: 'Mutual Non-Disclosure Agreement',
+                party1: 'Company A Corp.',
+                party2: 'Company B LLC',
+                value: 'No monetary consideration',
+                duration: '5 years from execution',
+                terms: 'Define confidential information, permitted disclosures, return of materials...'
+            },
+            'lease-agreement': {
+                title: 'Residential Lease Agreement',
+                party1: 'Property Management LLC',
+                party2: 'Jane Tenant',
+                value: '$2,500/month rent + $2,500 deposit',
+                duration: '12 month lease term',
+                terms: 'Pet policy, maintenance responsibilities, parking arrangements...'
+            }
+        };
+
+        const templatePlaceholders = placeholders[templateType] || placeholders['service-agreement'];
+        
+        titleInput.placeholder = templatePlaceholders.title;
+        party1Input.placeholder = templatePlaceholders.party1;
+        party2Input.placeholder = templatePlaceholders.party2;
+        valueInput.placeholder = templatePlaceholders.value;
+        durationInput.placeholder = templatePlaceholders.duration;
+        termsInput.placeholder = templatePlaceholders.terms;
+    }
+
+    function loadTemplateSuggestions(templateType) {
+        const suggestions = {
+            'service-agreement': [
+                'Include clear scope of work and deliverables',
+                'Specify payment schedule and late fees',
+                'Add intellectual property ownership clause',
+                'Include change request procedures'
+            ],
+            'consulting-agreement': [
+                'Define confidentiality and non-disclosure terms',
+                'Specify expense reimbursement policy',
+                'Include independent contractor status clause',
+                'Add termination notice requirements'
+            ],
+            'employment-contract': [
+                'Include comprehensive benefits package',
+                'Specify vacation and sick leave policies',
+                'Add performance evaluation procedures',
+                'Include at-will employment terms'
+            ],
+            'nda': [
+                'Define what constitutes confidential information',
+                'Specify permitted disclosures and exceptions',
+                'Include return or destruction of materials',
+                'Add injunctive relief provisions'
+            ],
+            'lease-agreement': [
+                'Include security deposit and move-in procedures',
+                'Specify maintenance and repair responsibilities',
+                'Add rules for guests and subletting',
+                'Include early termination conditions'
+            ]
+        };
+
+        const templateSuggestions = suggestions[templateType] || suggestions['service-agreement'];
+        const suggestionsContainer = document.getElementById('suggestions-content');
+        const aiSuggestions = document.getElementById('ai-suggestions');
+        
+        suggestionsContainer.innerHTML = templateSuggestions.map(suggestion => 
+            `<div class="suggestion-item" onclick="applySuggestion('${suggestion}')">${suggestion}</div>`
+        ).join('');
+        
+        aiSuggestions.style.display = 'block';
+    }
+
+    window.applySuggestion = function(suggestion) {
+        const termsInput = document.getElementById('special-terms');
+        const currentValue = termsInput.value;
+        const newValue = currentValue ? `${currentValue}\n• ${suggestion}` : `• ${suggestion}`;
+        termsInput.value = newValue;
+    };
+
+    // Contract generation
+    window.generateContract = function() {
+        if (!selectedTemplate) {
+            alert('Please select a contract template first');
+            return;
+        }
+
+        // Get form data
+        const contractData = {
+            template: selectedTemplate,
+            title: document.getElementById('contract-title').value.trim(),
+            party1: document.getElementById('party1-name').value.trim(),
+            party2: document.getElementById('party2-name').value.trim(),
+            value: document.getElementById('contract-value').value.trim(),
+            duration: document.getElementById('contract-duration').value.trim(),
+            specialTerms: document.getElementById('special-terms').value.trim()
+        };
+
+        // Validate required fields
+        if (!contractData.title || !contractData.party1 || !contractData.party2) {
+            alert('Please fill in all required fields (Title, Party 1, Party 2)');
+            return;
+        }
+
+        // Show loading state
+        document.getElementById('empty-state').style.display = 'none';
+        document.getElementById('loading-state').classList.add('visible');
+        document.getElementById('contract-output').style.display = 'none';
+        document.getElementById('generate-btn').disabled = true;
+
+        // Call API to generate contract
+        fetch('/api/contracts/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(contractData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.contract) {
+                displayContract(data.contract);
+                currentContract = data.contract;
+            } else if (data.error) {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Generation error:', error);
+            alert('Error generating contract: ' + error.message);
+            document.getElementById('empty-state').style.display = 'block';
+        })
+        .finally(() => {
+            document.getElementById('loading-state').classList.remove('visible');
+            document.getElementById('generate-btn').disabled = false;
+        });
+    };
+
+    function displayContract(contractText) {
+        const outputElement = document.getElementById('contract-output');
+        const outputActions = document.getElementById('output-actions');
+        
+        // Format the contract text with proper HTML structure
+        const formattedContract = formatContractText(contractText);
+        outputElement.innerHTML = formattedContract;
+        
+        outputElement.style.display = 'block';
+        outputActions.style.display = 'flex';
+    }
+
+    function formatContractText(text) {
+        // Simple formatting - in production, this would be more sophisticated
+        return text
+            .split('\n\n')
+            .map(paragraph => {
+                if (paragraph.toUpperCase() === paragraph && paragraph.length < 100) {
+                    // Likely a heading
+                    return `<h2>${paragraph}</h2>`;
+                } else if (paragraph.length > 0) {
+                    return `<p>${paragraph}</p>`;
+                }
+                return '';
+            })
+            .join('');
+    }
+
+    // Contract actions
+    window.editContract = function() {
+        alert('Edit functionality coming soon! You can modify the parameters and regenerate.');
+    };
+
+    window.downloadContract = function() {
+        if (!currentContract) return;
+        
+        const blob = new Blob([currentContract], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'contract.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    window.shareContract = function() {
+        if (!currentContract) return;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: 'Generated Contract',
+                text: currentContract
+            });
+        } else {
+            // Fallback - copy to clipboard
+            navigator.clipboard.writeText(currentContract).then(() => {
+                alert('Contract copied to clipboard!');
+            });
+        }
+    };
+
+    window.saveContract = function() {
+        if (!currentContract) return;
+        
+        // In production, this would save to a database
+        alert('Contract saved to your documents! Save functionality coming soon.');
+    };
+});
+</script>
+{% endblock %}

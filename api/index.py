@@ -3651,6 +3651,306 @@ def analytics_dashboard():
 <p>Error loading analytics: {e}</p>
 <a href="/">← Back to Dashboard</a></body></html>"""
 
+@app.route('/contract-generator')
+def contract_generator_page():
+    """Contract Generator page"""
+    try:
+        from flask import render_template
+        return render_template('contract_generator.html')
+    except Exception as e:
+        logger.error(f"Contract generator page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Contract Generator</title></head>
+<body><h1>🏛️ LexAI Contract Generator</h1>
+<p>Page loading error: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
+
+@app.route('/api/contracts/generate', methods=['POST'])
+@rate_limit_decorator
+def generate_contract():
+    """Generate contract using AI based on template and parameters"""
+    try:
+        # Validate request
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data provided'}), 400
+        
+        # Validate required fields
+        required_fields = ['template', 'title', 'party1', 'party2']
+        missing_fields = [field for field in required_fields if not data.get(field, '').strip()]
+        if missing_fields:
+            return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+        
+        # Security validation
+        validator = SecurityValidator()
+        
+        # Validate each field
+        for field, value in data.items():
+            if isinstance(value, str) and not validator.validate_input(value):
+                return jsonify({'error': f'Invalid content detected in field: {field}'}), 400
+        
+        template_type = data.get('template', '').strip()
+        title = data.get('title', '').strip()
+        party1 = data.get('party1', '').strip()
+        party2 = data.get('party2', '').strip()
+        value = data.get('value', '').strip()
+        duration = data.get('duration', '').strip()
+        special_terms = data.get('specialTerms', '').strip()
+        
+        # Build contract generation prompt
+        contract_prompt = build_contract_prompt(
+            template_type, title, party1, party2, value, duration, special_terms
+        )
+        
+        # Generate contract using AI
+        if XAI_API_KEY:
+            try:
+                headers = {
+                    'Authorization': f'Bearer {XAI_API_KEY}',
+                    'Content-Type': 'application/json'
+                }
+                
+                payload = {
+                    'messages': [
+                        {
+                            'role': 'system',
+                            'content': """You are a professional contract drafting assistant. Generate comprehensive, legally sound contracts based on the provided template and parameters. 
+
+IMPORTANT GUIDELINES:
+- Use proper legal language and structure
+- Include all standard contract provisions
+- Follow industry best practices for the contract type
+- Ensure terms are clear and enforceable
+- Include appropriate legal disclaimers
+- Structure with clear sections and headings
+- Use professional formatting
+
+DISCLAIMER: This is a draft template for reference only. All contracts should be reviewed by qualified legal counsel before execution."""
+                        },
+                        {
+                            'role': 'user',
+                            'content': contract_prompt
+                        }
+                    ],
+                    'model': 'grok-beta',
+                    'max_tokens': 4000,
+                    'temperature': 0.3,
+                    'stream': False
+                }
+                
+                response = requests.post(
+                    'https://api.x.ai/v1/chat/completions',
+                    headers=headers,
+                    json=payload,
+                    timeout=30
+                )
+                
+                if response.status_code == 200:
+                    ai_data = response.json()
+                    if ai_data.get('choices') and ai_data['choices'][0].get('message'):
+                        contract_text = ai_data['choices'][0]['message']['content']
+                        
+                        return jsonify({
+                            'success': True,
+                            'contract': contract_text,
+                            'template_used': template_type,
+                            'generated_at': datetime.utcnow().isoformat()
+                        })
+                    else:
+                        raise Exception("Invalid AI response format")
+                else:
+                    logger.error(f"XAI API error: {response.status_code} - {response.text}")
+                    raise Exception(f"AI service error: {response.status_code}")
+                    
+            except Exception as ai_error:
+                logger.error(f"AI contract generation failed: {ai_error}")
+                # Fall back to template-based generation
+                contract_text = generate_fallback_contract(
+                    template_type, title, party1, party2, value, duration, special_terms
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'contract': contract_text,
+                    'template_used': template_type,
+                    'generated_at': datetime.utcnow().isoformat(),
+                    'note': 'Generated using template fallback system'
+                })
+        else:
+            # No AI available - use template fallback
+            contract_text = generate_fallback_contract(
+                template_type, title, party1, party2, value, duration, special_terms
+            )
+            
+            return jsonify({
+                'success': True,
+                'contract': contract_text,
+                'template_used': template_type,
+                'generated_at': datetime.utcnow().isoformat(),
+                'note': 'Generated using template system (AI not configured)'
+            })
+        
+    except Exception as e:
+        logger.error(f"Contract generation error: {e}")
+        return jsonify({'error': 'Failed to generate contract. Please try again.'}), 500
+
+def build_contract_prompt(template_type, title, party1, party2, value, duration, special_terms):
+    """Build detailed contract generation prompt"""
+    
+    template_instructions = {
+        'service-agreement': """Generate a comprehensive Service Agreement contract with these sections:
+- Parties and Background
+- Scope of Services (detailed description)
+- Payment Terms and Schedule
+- Timeline and Deliverables
+- Intellectual Property Ownership
+- Confidentiality and Non-Disclosure
+- Termination Clauses
+- Limitation of Liability
+- Dispute Resolution
+- Governing Law
+- Signature Blocks""",
+        
+        'consulting-agreement': """Generate a comprehensive Consulting Agreement with these sections:
+- Parties and Engagement Overview
+- Consulting Services Description
+- Independent Contractor Status
+- Compensation and Expenses
+- Confidentiality and Non-Disclosure
+- Intellectual Property Rights
+- Term and Termination
+- Non-Solicitation (if applicable)
+- Indemnification
+- Governing Law and Jurisdiction
+- Signature Blocks""",
+        
+        'employment-contract': """Generate a comprehensive Employment Contract with these sections:
+- Parties and Position Details
+- Employment Terms and Conditions
+- Compensation and Benefits
+- Duties and Responsibilities
+- Confidentiality and Non-Disclosure
+- Intellectual Property Assignment
+- Non-Competition and Non-Solicitation
+- Termination Provisions
+- Dispute Resolution
+- Governing Law
+- Signature Blocks""",
+        
+        'nda': """Generate a comprehensive Non-Disclosure Agreement with these sections:
+- Parties and Purpose
+- Definition of Confidential Information
+- Obligations of Receiving Party
+- Permitted Disclosures and Exceptions
+- Return or Destruction of Materials
+- Term and Survival
+- Remedies and Injunctive Relief
+- No License or Warranty
+- Governing Law
+- Signature Blocks""",
+        
+        'lease-agreement': """Generate a comprehensive Lease Agreement with these sections:
+- Parties and Property Description
+- Lease Term and Renewal
+- Rent and Payment Terms
+- Security Deposit
+- Use and Occupancy Restrictions
+- Maintenance and Repairs
+- Insurance Requirements
+- Default and Remedies
+- Termination Conditions
+- Governing Law
+- Signature Blocks"""
+    }
+    
+    instruction = template_instructions.get(template_type, template_instructions['service-agreement'])
+    
+    prompt = f"""Please generate a professional {template_type.replace('-', ' ').title()} contract with the following details:
+
+CONTRACT DETAILS:
+- Contract Title: {title}
+- Party 1 (Provider/Employer): {party1}
+- Party 2 (Client/Employee): {party2}
+- Contract Value/Payment: {value}
+- Duration/Timeline: {duration}
+- Special Terms: {special_terms}
+
+TEMPLATE REQUIREMENTS:
+{instruction}
+
+FORMATTING REQUIREMENTS:
+- Use proper legal document formatting
+- Include clear section headings
+- Use numbered or lettered subsections where appropriate
+- Include date placeholders: [DATE]
+- Include signature blocks with lines for both parties
+- Use professional legal language
+- Include standard legal disclaimers
+
+IMPORTANT: Generate a complete, professional contract that includes all standard provisions for this type of agreement. The contract should be legally structured and professionally formatted."""
+    
+    return prompt
+
+def generate_fallback_contract(template_type, title, party1, party2, value, duration, special_terms):
+    """Generate a basic contract template when AI is not available"""
+    
+    current_date = datetime.now().strftime("%B %d, %Y")
+    
+    base_template = f"""
+{title.upper()}
+
+This {template_type.replace('-', ' ').title()} ("Agreement") is entered into on [DATE] between:
+
+PARTY 1: {party1} ("Provider")
+PARTY 2: {party2} ("Client")
+
+BACKGROUND
+The parties wish to enter into this agreement to establish the terms and conditions of their business relationship.
+
+1. SERVICES/DELIVERABLES
+{party1} agrees to provide the services as outlined in this agreement. The scope includes all work necessary to complete the project as described.
+
+2. COMPENSATION
+Total contract value: {value}
+Payment terms: {duration}
+
+3. TERM
+This agreement shall commence on the date signed and continue for the duration specified: {duration}
+
+4. SPECIAL TERMS
+{special_terms if special_terms else 'No additional special terms specified.'}
+
+5. CONFIDENTIALITY
+Both parties agree to maintain the confidentiality of any proprietary information shared during the course of this agreement.
+
+6. TERMINATION
+Either party may terminate this agreement with written notice as specified in the terms above.
+
+7. GOVERNING LAW
+This agreement shall be governed by the laws of the applicable jurisdiction.
+
+8. ENTIRE AGREEMENT
+This agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements.
+
+IN WITNESS WHEREOF, the parties have executed this agreement on the date first written above.
+
+{party1}                           Date: ________________
+Signature: _________________________
+Print Name: {party1}
+
+{party2}                          Date: ________________
+Signature: _________________________
+Print Name: {party2}
+
+---
+DISCLAIMER: This is a template contract for reference purposes only. This document should be reviewed by qualified legal counsel before execution. No attorney-client relationship is created by the use of this template.
+    """
+    
+    return base_template.strip()
+
 @app.route('/health')
 @rate_limit_decorator
 def health_check():
