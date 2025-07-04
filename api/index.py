@@ -1,14 +1,20 @@
 """
 LexAI Practice Partner - Enhanced Serverless Version
 Matches localhost:5002 functionality with modern templates and full feature set
+Includes comprehensive security middleware and input validation
 """
 
 import os
 import json
 import requests
 import logging
+import re
+import hashlib
+import time
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template_string, url_for
+from functools import wraps
+from typing import Dict, Any, Optional, List
+from flask import Flask, request, jsonify, render_template_string, url_for, g
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -38,6 +44,185 @@ if REDIS_URL:
     logger.info("Redis URL configured - conversation storage available")
 if DATABASE_URL:
     logger.info("Neon database URL configured - full database features available")
+
+# Security configuration
+MAX_MESSAGE_LENGTH = 5000
+RATE_LIMIT_REQUESTS = 100  # requests per window
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+
+# Security patterns
+SQL_INJECTION_PATTERNS = [
+    r"(\bUNION\b.*\bSELECT\b)",
+    r"(\bSELECT\b.*\bFROM\b)",
+    r"(\bINSERT\b.*\bINTO\b)",
+    r"(\bUPDATE\b.*\bSET\b)",
+    r"(\bDELETE\b.*\bFROM\b)",
+    r"(\bDROP\b.*\bTABLE\b)",
+    r"(\';.*--)",
+    r"(\bOR\b.*=.*)",
+    r"(\bAND\b.*=.*)"
+]
+
+XSS_PATTERNS = [
+    r"<script[^>]*>.*?</script>",
+    r"<iframe[^>]*>.*?</iframe>",
+    r"javascript:",
+    r"vbscript:",
+    r"onload\s*=",
+    r"onerror\s*=",
+    r"onclick\s*=",
+    r"onmouseover\s*="
+]
+
+# Rate limiting storage (in memory for serverless)
+rate_limit_storage: Dict[str, List[float]] = {}
+
+class SecurityValidator:
+    """Input validation and security checks"""
+    
+    @staticmethod
+    def validate_message(message: str) -> Dict[str, Any]:
+        """Validate chat message input"""
+        errors = []
+        
+        # Length check
+        if not message or len(message.strip()) == 0:
+            errors.append("Message cannot be empty")
+            
+        if len(message) > MAX_MESSAGE_LENGTH:
+            errors.append(f"Message too long (max {MAX_MESSAGE_LENGTH} characters)")
+            
+        # SQL injection check
+        message_upper = message.upper()
+        for pattern in SQL_INJECTION_PATTERNS:
+            if re.search(pattern, message_upper, re.IGNORECASE):
+                errors.append("Potentially malicious content detected")
+                logger.warning(f"SQL injection attempt: {message[:100]}")
+                break
+                
+        # XSS check
+        for pattern in XSS_PATTERNS:
+            if re.search(pattern, message, re.IGNORECASE):
+                errors.append("Potentially malicious content detected")
+                logger.warning(f"XSS attempt: {message[:100]}")
+                break
+                
+        return {
+            'valid': len(errors) == 0,
+            'errors': errors,
+            'sanitized': SecurityValidator.sanitize_input(message)
+        }
+    
+    @staticmethod
+    def sanitize_input(text: str) -> str:
+        """Sanitize user input"""
+        if not text:
+            return ""
+            
+        # Remove control characters
+        text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', text)
+        
+        # Normalize whitespace
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Trim
+        return text.strip()
+
+class RateLimiter:
+    """Rate limiting functionality"""
+    
+    @staticmethod
+    def get_client_id(request) -> str:
+        """Get unique client identifier"""
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        user_agent = request.headers.get('User-Agent', '')
+        return hashlib.md5(f"{ip}:{user_agent}".encode()).hexdigest()
+    
+    @staticmethod
+    def is_rate_limited(client_id: str) -> bool:
+        """Check if client is rate limited"""
+        now = time.time()
+        window_start = now - RATE_LIMIT_WINDOW
+        
+        # Clean old entries
+        if client_id in rate_limit_storage:
+            rate_limit_storage[client_id] = [
+                timestamp for timestamp in rate_limit_storage[client_id]
+                if timestamp > window_start
+            ]
+        else:
+            rate_limit_storage[client_id] = []
+        
+        # Check rate limit
+        request_count = len(rate_limit_storage[client_id])
+        if request_count >= RATE_LIMIT_REQUESTS:
+            logger.warning(f"Rate limit exceeded for client: {client_id}")
+            return True
+            
+        # Add current request
+        rate_limit_storage[client_id].append(now)
+        return False
+
+def security_headers(response):
+    """Add security headers to response"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "connect-src 'self' https://api.x.ai"
+    )
+    return response
+
+def rate_limit_decorator(f):
+    """Rate limiting decorator"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        client_id = RateLimiter.get_client_id(request)
+        
+        if RateLimiter.is_rate_limited(client_id):
+            return jsonify({
+                'error': 'Rate limit exceeded. Please try again later.',
+                'retry_after': RATE_LIMIT_WINDOW
+            }), 429
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
+def validate_json_input(required_fields: List[str] = None):
+    """Decorator for JSON input validation"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not request.is_json:
+                return jsonify({'error': 'Content-Type must be application/json'}), 400
+                
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'No JSON data provided'}), 400
+                
+            # Check required fields
+            if required_fields:
+                missing_fields = [field for field in required_fields if field not in data]
+                if missing_fields:
+                    return jsonify({
+                        'error': f'Missing required fields: {", ".join(missing_fields)}'
+                    }), 400
+            
+            # Store validated data in g for use in route
+            g.validated_data = data
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# Register security headers middleware
+@app.after_request
+def apply_security_headers(response):
+    return security_headers(response)
 
 # Practice areas (from working local version)
 PRACTICE_AREAS = {
@@ -1096,8 +1281,9 @@ def chat_interface(client_id=None):
 <a href="/">← Back to Dashboard</a></body></html>"""
 
 @app.route('/health')
+@rate_limit_decorator
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with rate limiting"""
     try:
         return jsonify({
             "status": "healthy",
@@ -1112,7 +1298,17 @@ def health_check():
                 "ai_chat": bool(XAI_API_KEY),
                 "conversation_storage": bool(REDIS_URL or DATABASE_URL),
                 "practice_areas": True,
-                "modern_ui": True
+                "modern_ui": True,
+                "security_validation": True,
+                "rate_limiting": True,
+                "xss_protection": True,
+                "sql_injection_protection": True
+            },
+            "security": {
+                "rate_limit_window": RATE_LIMIT_WINDOW,
+                "rate_limit_requests": RATE_LIMIT_REQUESTS,
+                "max_message_length": MAX_MESSAGE_LENGTH,
+                "active_rate_limits": len(rate_limit_storage)
             }
         })
     except Exception as e:
@@ -1122,20 +1318,71 @@ def health_check():
             "error": str(e)
         }), 500
 
-@app.route('/api/chat', methods=['POST'])
-def api_chat():
-    """Enhanced chat API (from working local version with proven XAI pattern)"""
+@app.route('/api/security-status')
+@rate_limit_decorator
+def security_status():
+    """Security monitoring endpoint"""
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-            
+        client_id = RateLimiter.get_client_id(request)
+        
+        # Get current rate limit status for this client
+        now = time.time()
+        window_start = now - RATE_LIMIT_WINDOW
+        client_requests = []
+        
+        if client_id in rate_limit_storage:
+            client_requests = [
+                timestamp for timestamp in rate_limit_storage[client_id]
+                if timestamp > window_start
+            ]
+        
+        return jsonify({
+            "status": "monitoring",
+            "timestamp": datetime.utcnow().isoformat(),
+            "client_id": client_id[:8] + "...",  # Partial for privacy
+            "rate_limit": {
+                "requests_in_window": len(client_requests),
+                "max_requests": RATE_LIMIT_REQUESTS,
+                "window_seconds": RATE_LIMIT_WINDOW,
+                "remaining_requests": max(0, RATE_LIMIT_REQUESTS - len(client_requests))
+            },
+            "security_features": {
+                "input_validation": True,
+                "xss_protection": True,
+                "sql_injection_protection": True,
+                "security_headers": True,
+                "rate_limiting": True
+            },
+            "total_active_sessions": len(rate_limit_storage)
+        })
+    except Exception as e:
+        logger.error(f"Security status check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/chat', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['message'])
+def api_chat():
+    """Enhanced chat API with security validation"""
+    try:
+        data = g.validated_data
         message = data.get('message', '').strip()
         practice_area = data.get('practice_area', 'general')
         client_id = data.get('client_id', f'client_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}')
         
-        if not message:
-            return jsonify({"error": "Message is required"}), 400
+        # Security validation
+        validation_result = SecurityValidator.validate_message(message)
+        if not validation_result['valid']:
+            logger.warning(f"Invalid message from {RateLimiter.get_client_id(request)}: {validation_result['errors']}")
+            return jsonify({
+                "error": "Invalid input: " + "; ".join(validation_result['errors'])
+            }), 400
+        
+        # Use sanitized message
+        message = validation_result['sanitized']
 
         if not XAI_API_KEY:
             return jsonify({"error": "AI service not configured"}), 503
@@ -1175,14 +1422,20 @@ def api_chat():
                 assistant_content = completion['choices'][0]['message']['content'].strip()
                 logger.info(f"Received response: {len(assistant_content)} characters")
                 
-                # Log conversation using available resources
+                # Log conversation using available resources with security info
                 try:
+                    client_info = RateLimiter.get_client_id(request)
+                    log_entry = f"Client: {client_info[:8]}... | Practice: {practice_area} | User: {message[:30]}... | AI: {assistant_content[:30]}..."
+                    
                     if REDIS_URL:
-                        logger.info(f"💾 [REDIS] Conversation: {client_id} | {practice_area} | User: {message[:30]}... | AI: {assistant_content[:30]}...")
+                        logger.info(f"💾 [REDIS] Conversation: {log_entry}")
                     elif DATABASE_URL:
-                        logger.info(f"🗄️ [NEON] Conversation: {client_id} | {practice_area} | User: {message[:30]}... | AI: {assistant_content[:30]}...")
+                        logger.info(f"🗄️ [NEON] Conversation: {log_entry}")
                     else:
-                        logger.info(f"📝 [LOG] Conversation: {client_id} | {practice_area} | User: {message[:30]}... | AI: {assistant_content[:30]}...")
+                        logger.info(f"📝 [LOG] Conversation: {log_entry}")
+                        
+                    # Log successful interaction for security monitoring
+                    logger.info(f"🔒 [SECURITY] Valid interaction from {client_info[:8]}... | Practice: {practice_area} | Message length: {len(message)}")
                 except Exception as e:
                     logger.error(f"Conversation logging error: {e}")
                 
