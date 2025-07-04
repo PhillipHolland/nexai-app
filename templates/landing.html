@@ -3,183 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexAI Practice Partner - AI-Powered Legal Assistant for Family Law</title>
-    <meta name="description" content="Transform your family law practice with LexAI's intelligent document analysis, custody agreement drafting, and AI-powered legal research. Professional, secure, and specialized for family law practitioners.">
+    <title>LexAI Practice Partner - AI-Powered Legal Assistant for All Law Firms</title>
+    <meta name="description" content="Transform your legal practice with LexAI's intelligent document analysis, contract drafting, and AI-powered legal research. Professional, secure, and built for all types of law firms.">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Brand Colors -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'darkest-green': '#09332C',
-                        'dark-green': '#2E4B3C',
-                        'light-cream': '#F7EDDA',
-                        'warm-cream': '#F7DFBA',
-                        'warm-orange': '#FFA74F',
-                        'bright-coral': '#F0531C'
-                    },
-                    fontFamily: {
-                        'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/landing.css">
 </head>
-<body class="bg-light-cream font-sans">
+<body>
     <!-- Navigation -->
-    <nav class="bg-dark-green shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-content">
                 <!-- Logo -->
-                <div class="flex items-center">
-                    <img src="/static/lexAI.png" alt="LexAI Practice Partner" class="h-12 w-auto">
+                <div class="logo">
+                    <img src="/static/lexAI.png" alt="LexAI Practice Partner">
                 </div>
                 
                 <!-- Navigation Links -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#features" class="text-light-cream hover:text-warm-orange transition-colors duration-200 font-medium">Features</a>
-                    <a href="#how-it-works" class="text-light-cream hover:text-warm-orange transition-colors duration-200 font-medium">How It Works</a>
-                    <a href="#pricing" class="text-light-cream hover:text-warm-orange transition-colors duration-200 font-medium">Pricing</a>
-                    <a href="/chat" class="bg-warm-orange text-dark-green px-6 py-2 rounded-lg font-semibold hover:bg-bright-coral transition-colors duration-200 shadow-lg">
-                        Start Free Trial
-                    </a>
-                </div>
-                
-                <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button class="text-light-cream hover:text-warm-orange">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
+                <div class="nav-links">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#how-it-works" class="nav-link">How It Works</a>
+                    <a href="#pricing" class="nav-link">Pricing</a>
+                    <a href="/chat" class="btn-primary">Start Free Trial</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                    AI-Powered Legal Assistant<br>
-                    <span class="text-dark-green">for Family Law Practitioners</span>
-                </h1>
-                <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-                    Transform your family law practice with intelligent document analysis, automated custody agreements, 
-                    and AI-powered research. Professional, secure, and built specifically for family law.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <a href="/chat" class="bg-warm-orange text-dark-green px-8 py-4 rounded-lg text-lg font-semibold hover:bg-bright-coral transition-colors duration-200 shadow-lg">
-                        Start Free Trial
-                    </a>
-                    <a href="#features" class="text-dark-green border-2 border-dark-green px-8 py-4 rounded-lg text-lg font-semibold hover:bg-dark-green hover:text-light-cream transition-colors duration-200">
-                        See Features
-                    </a>
-                </div>
+    <section class="hero">
+        <div class="container">
+            <h1>
+                AI-Powered Legal Assistant<br>
+                <span class="highlight">for All Law Firms</span>
+            </h1>
+            <p>
+                Transform your legal practice with intelligent document analysis, automated contract drafting, 
+                and AI-powered research. Professional, secure, and built for all types of legal practitioners.
+            </p>
+            <div class="hero-buttons">
+                <a href="/chat" class="btn-primary">Start Free Trial</a>
+                <a href="#features" class="btn-secondary">See Features</a>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Everything You Need for Modern Family Law Practice
-                </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    LexAI combines cutting-edge AI with deep family law expertise to streamline your practice and improve client outcomes.
-                </p>
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need for Modern Legal Practice</h2>
+                <p>LexAI combines cutting-edge AI with deep legal expertise to streamline your practice and improve client outcomes across all practice areas.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="features-grid">
                 <!-- AI Document Analysis -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Intelligent Document Analysis</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Upload financial statements, court filings, and case documents. Our AI instantly analyzes content, 
-                        identifies key information, and highlights potential issues or opportunities.
+                    <h3>Intelligent Document Analysis</h3>
+                    <p>
+                        Upload contracts, court filings, and legal documents. Our AI instantly analyzes content, 
+                        identifies key clauses, and highlights potential issues or opportunities across all practice areas.
                     </p>
                 </div>
 
-                <!-- Custody Agreement Drafting -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                <!-- Contract Drafting -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Automated Custody Agreements</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Generate comprehensive custody agreements tailored to your client's specific situation. 
-                        Include visitation schedules, decision-making authority, and state-specific requirements.
+                    <h3>Automated Contract Drafting</h3>
+                    <p>
+                        Generate comprehensive contracts, agreements, and legal documents tailored to your specific needs. 
+                        Covers corporate, real estate, employment, family law, and more with jurisdiction-specific requirements.
                     </p>
                 </div>
 
                 <!-- Financial Analysis -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Financial Statement Analysis</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Automatically analyze income statements, asset disclosures, and financial documents. 
-                        Identify discrepancies, calculate support obligations, and assess asset valuation.
+                    <h3>Financial Document Analysis</h3>
+                    <p>
+                        Automatically analyze financial statements, asset disclosures, and business valuations. 
+                        Perfect for corporate law, M&A, family law, and estate planning with detailed insights.
                     </p>
                 </div>
 
-                <!-- Court Filing Review -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Legal Filing Review -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Court Filing Review</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Review petitions, motions, and responses for completeness, accuracy, and compliance with local rules. 
-                        Catch errors before filing and ensure professional presentation.
+                    <h3>Legal Filing Review</h3>
+                    <p>
+                        Review motions, briefs, and legal filings for completeness, accuracy, and compliance with court rules. 
+                        Catch errors before filing and ensure professional presentation across all jurisdictions.
                     </p>
                 </div>
 
-                <!-- Email & Communication Drafting -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Professional Communication -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Professional Communication</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Draft professional emails to opposing counsel, clients, and courts. Maintain appropriate tone 
-                        while clearly communicating complex legal positions and settlement offers.
+                    <h3>Professional Communication</h3>
+                    <p>
+                        Draft professional emails, demand letters, and client communications. Maintain appropriate tone 
+                        while clearly communicating complex legal positions, negotiations, and case updates.
                     </p>
                 </div>
 
                 <!-- Legal Research -->
-                <div class="bg-light-cream rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="w-12 h-12 bg-dark-green rounded-lg flex items-center justify-center mb-6">
-                        <svg class="w-6 h-6 text-light-cream" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">AI-Powered Legal Research</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Research family law precedents, statutes, and case law relevant to your specific situation. 
-                        Get instant answers to complex legal questions with cited sources and analysis.
+                    <h3>AI-Powered Legal Research</h3>
+                    <p>
+                        Research precedents, statutes, and case law across all practice areas. 
+                        Get instant answers to complex legal questions with cited sources and comprehensive analysis.
                     </p>
                 </div>
             </div>
@@ -187,46 +145,36 @@
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="py-20 bg-warm-cream">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Simple, Secure, and Professional
-                </h2>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Get started in minutes with our intuitive interface designed specifically for legal professionals.
-                </p>
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>Simple, Secure, and Professional</h2>
+                <p>Get started in minutes with our intuitive interface designed specifically for legal professionals.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-dark-green rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="text-2xl font-bold text-light-cream">1</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Upload or Describe</h3>
-                    <p class="text-gray-600">
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Upload or Describe</h3>
+                    <p>
                         Upload documents or describe your legal question. Our AI immediately begins analyzing 
-                        and understanding the context of your family law matter.
+                        and understanding the context of your legal matter across all practice areas.
                     </p>
                 </div>
 
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-dark-green rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="text-2xl font-bold text-light-cream">2</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">AI Analysis</h3>
-                    <p class="text-gray-600">
-                        LexAI processes your information using advanced legal AI trained specifically on family law. 
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI Analysis</h3>
+                    <p>
+                        LexAI processes your information using advanced legal AI trained on comprehensive legal knowledge. 
                         All data is encrypted and maintains strict attorney-client privilege.
                     </p>
                 </div>
 
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-dark-green rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span class="text-2xl font-bold text-light-cream">3</span>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Professional Results</h3>
-                    <p class="text-gray-600">
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Professional Results</h3>
+                    <p>
                         Receive detailed analysis, draft documents, or research results you can immediately use 
                         in your practice. Copy, edit, and customize as needed.
                     </p>
