@@ -592,6 +592,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingState = document.getElementById('loading-state');
     const searchResults = document.getElementById('search-results');
 
+    // Test API connection on page load
+    fetch('/api/legal-research/test')
+        .then(response => response.json())
+        .then(data => {
+            console.log('API connection test successful:', data);
+        })
+        .catch(error => {
+            console.warn('API connection test failed:', error);
+            resultsMeta.textContent = 'API connection issue detected - using demo mode';
+        });
+
     // Auto-resize textarea
     searchQuery.addEventListener('input', function() {
         this.style.height = 'auto';
@@ -627,6 +638,8 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // Perform search
+        console.log('Starting legal research search:', { query, filters });
+        
         fetch('/api/legal-research/search', {
             method: 'POST',
             headers: {
@@ -637,13 +650,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 filters: filters
             })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Search response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Search results:', data);
             displayResults(data);
         })
         .catch(error => {
-            console.error('Search error:', error);
-            displayError('An error occurred while searching. Please try again.');
+            console.error('Search error details:', error);
+            displayError(`Search failed: ${error.message}. Please check the console for details.`);
         })
         .finally(() => {
             loadingState.classList.remove('visible');
