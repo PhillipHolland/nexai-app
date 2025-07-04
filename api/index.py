@@ -1088,6 +1088,30 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                         </svg>
                         AI Assistant
                     </a>
+                    <a href="/clients" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Clients
+                    </a>
+                    <a href="/documents" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Documents
+                    </a>
+                    <a href="/analytics" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Analytics
+                    </a>
+                    <a href="/billing" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                        Billing
+                    </a>
                 </div>
 
                 <div class="nav-section">
@@ -4384,6 +4408,648 @@ I apologize for the technical issue. Please try again shortly, or contact suppor
         # Final fallback protection - ensures chat ALWAYS works
         logger.error(f"Chat endpoint error: {str(e)} - Using emergency fallback")
         return jsonify(get_protected_fallback_response(message, practice_area))
+
+# ============================================================================
+# BILLING AND SUBSCRIPTION FRAMEWORK
+# ============================================================================
+
+# Subscription plans configuration
+SUBSCRIPTION_PLANS = {
+    'starter': {
+        'name': 'Starter',
+        'price': 49,
+        'billing_cycle': 'monthly',
+        'features': [
+            '100 AI consultations per month',
+            'Basic document analysis',
+            'Email support',
+            'Single practice area access'
+        ],
+        'limits': {
+            'ai_consultations': 100,
+            'document_uploads': 50,
+            'storage_gb': 5,
+            'users': 1
+        },
+        'color': '#3B82F6'
+    },
+    'professional': {
+        'name': 'Professional',
+        'price': 149,
+        'billing_cycle': 'monthly',
+        'features': [
+            '500 AI consultations per month',
+            'Advanced document analysis',
+            'Priority support',
+            'All practice areas',
+            'Client management dashboard',
+            'Legal research tools'
+        ],
+        'limits': {
+            'ai_consultations': 500,
+            'document_uploads': 250,
+            'storage_gb': 25,
+            'users': 5
+        },
+        'color': '#10B981',
+        'popular': True
+    },
+    'enterprise': {
+        'name': 'Enterprise',
+        'price': 499,
+        'billing_cycle': 'monthly',
+        'features': [
+            'Unlimited AI consultations',
+            'Enhanced Bagel RL analysis',
+            'Dedicated support manager',
+            'Custom integrations',
+            'Advanced analytics',
+            'White-label options',
+            'API access'
+        ],
+        'limits': {
+            'ai_consultations': -1,  # Unlimited
+            'document_uploads': -1,
+            'storage_gb': 100,
+            'users': -1
+        },
+        'color': '#8B5CF6'
+    }
+}
+
+# Mock user subscription data (in production, use database)
+USER_SUBSCRIPTIONS = {
+    'demo_user': {
+        'plan': 'professional',
+        'status': 'active',
+        'current_period_start': '2025-01-01',
+        'current_period_end': '2025-02-01',
+        'usage': {
+            'ai_consultations': 127,
+            'document_uploads': 23,
+            'storage_used_gb': 8.5
+        },
+        'billing_history': [
+            {
+                'date': '2025-01-01',
+                'amount': 149,
+                'status': 'paid',
+                'invoice_id': 'INV-2025-001'
+            },
+            {
+                'date': '2024-12-01',
+                'amount': 149,
+                'status': 'paid',
+                'invoice_id': 'INV-2024-012'
+            }
+        ]
+    }
+}
+
+@app.route('/billing')
+def billing_dashboard():
+    """Billing and subscription management dashboard"""
+    try:
+        # Get current user subscription (mock data)
+        user_id = 'demo_user'  # In production, get from session
+        subscription = USER_SUBSCRIPTIONS.get(user_id, {})
+        current_plan = subscription.get('plan', 'starter')
+        
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>LexAI Billing & Subscription</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+            <style>
+                .billing-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+                
+                .billing-header {
+                    text-align: center;
+                    margin-bottom: 48px;
+                }
+                
+                .billing-title {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: var(--text-dark);
+                    margin-bottom: 16px;
+                }
+                
+                .billing-subtitle {
+                    font-size: 1.125rem;
+                    color: var(--text-light);
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                
+                .current-plan-section {
+                    background: linear-gradient(135deg, var(--primary-green), #22c55e);
+                    border-radius: 16px;
+                    padding: 32px;
+                    color: white;
+                    margin-bottom: 48px;
+                    text-align: center;
+                }
+                
+                .current-plan-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                }
+                
+                .current-plan-name {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    margin-bottom: 16px;
+                }
+                
+                .usage-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 24px;
+                    margin-top: 24px;
+                }
+                
+                .usage-card {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 20px;
+                    text-align: center;
+                }
+                
+                .usage-number {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                }
+                
+                .usage-label {
+                    font-size: 0.875rem;
+                    opacity: 0.9;
+                }
+                
+                .plans-section {
+                    margin-bottom: 48px;
+                }
+                
+                .section-title {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    text-align: center;
+                    margin-bottom: 32px;
+                    color: var(--text-dark);
+                }
+                
+                .plans-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                    gap: 32px;
+                    margin-bottom: 48px;
+                }
+                
+                .plan-card {
+                    background: white;
+                    border: 2px solid var(--border-light);
+                    border-radius: 16px;
+                    padding: 32px;
+                    position: relative;
+                    transition: all 0.3s ease;
+                }
+                
+                .plan-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                }
+                
+                .plan-card.popular {
+                    border-color: var(--primary-green);
+                    transform: scale(1.05);
+                }
+                
+                .plan-card.current {
+                    border-color: var(--primary-green);
+                    background: var(--gray-50);
+                }
+                
+                .popular-badge {
+                    position: absolute;
+                    top: -12px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--primary-green);
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                }
+                
+                .current-badge {
+                    position: absolute;
+                    top: -12px;
+                    right: 16px;
+                    background: var(--primary-green);
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                }
+                
+                .plan-name {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                    color: var(--text-dark);
+                }
+                
+                .plan-price {
+                    font-size: 3rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                    margin-bottom: 4px;
+                }
+                
+                .plan-cycle {
+                    color: var(--text-light);
+                    margin-bottom: 24px;
+                }
+                
+                .plan-features {
+                    list-style: none;
+                    padding: 0;
+                    margin-bottom: 32px;
+                }
+                
+                .plan-features li {
+                    padding: 8px 0;
+                    position: relative;
+                    padding-left: 24px;
+                }
+                
+                .plan-features li::before {
+                    content: "✓";
+                    position: absolute;
+                    left: 0;
+                    color: var(--primary-green);
+                    font-weight: bold;
+                }
+                
+                .plan-button {
+                    width: 100%;
+                    padding: 12px 24px;
+                    background: var(--primary-green);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                }
+                
+                .plan-button:hover {
+                    background: #1e3a2e;
+                }
+                
+                .plan-button.current {
+                    background: var(--gray-400);
+                    cursor: not-allowed;
+                }
+                
+                .billing-history {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
+                
+                .billing-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                
+                .billing-table th,
+                .billing-table td {
+                    padding: 16px;
+                    text-align: left;
+                    border-bottom: 1px solid var(--border-light);
+                }
+                
+                .billing-table th {
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    background: var(--gray-50);
+                }
+                
+                .status-paid {
+                    color: var(--primary-green);
+                    font-weight: 600;
+                }
+                
+                .back-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--primary-green);
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-bottom: 24px;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .back-link:hover {
+                    opacity: 0.8;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="billing-container">
+                <a href="{{ url_for('dashboard') }}" class="back-link">
+                    ← Back to Dashboard
+                </a>
+                
+                <div class="billing-header">
+                    <h1 class="billing-title">Billing & Subscription</h1>
+                    <p class="billing-subtitle">Manage your LexAI subscription and billing preferences</p>
+                </div>
+                
+                <!-- Current Plan Status -->
+                <div class="current-plan-section">
+                    <div class="current-plan-title">Current Plan</div>
+                    <div class="current-plan-name">{{ plans[current_plan]['name'] }}</div>
+                    <div>Next billing date: {{ subscription.get('current_period_end', 'N/A') }}</div>
+                    
+                    <div class="usage-grid">
+                        <div class="usage-card">
+                            <div class="usage-number">{{ subscription.get('usage', {}).get('ai_consultations', 0) }}</div>
+                            <div class="usage-label">AI Consultations</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">{{ subscription.get('usage', {}).get('document_uploads', 0) }}</div>
+                            <div class="usage-label">Documents Uploaded</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">{{ "%.1f"|format(subscription.get('usage', {}).get('storage_used_gb', 0)) }}GB</div>
+                            <div class="usage-label">Storage Used</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">${{ plans[current_plan]['price'] }}</div>
+                            <div class="usage-label">Monthly Cost</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Available Plans -->
+                <div class="plans-section">
+                    <h2 class="section-title">Choose Your Plan</h2>
+                    <div class="plans-grid">
+                        {% for plan_id, plan in plans.items() %}
+                        <div class="plan-card {{ 'popular' if plan.get('popular') else '' }} {{ 'current' if plan_id == current_plan else '' }}">
+                            {% if plan.get('popular') %}
+                            <div class="popular-badge">Most Popular</div>
+                            {% endif %}
+                            
+                            {% if plan_id == current_plan %}
+                            <div class="current-badge">Current Plan</div>
+                            {% endif %}
+                            
+                            <div class="plan-name">{{ plan['name'] }}</div>
+                            <div class="plan-price">${{ plan['price'] }}</div>
+                            <div class="plan-cycle">per month</div>
+                            
+                            <ul class="plan-features">
+                                {% for feature in plan['features'] %}
+                                <li>{{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <button class="plan-button {{ 'current' if plan_id == current_plan else '' }}" 
+                                    onclick="{% if plan_id != current_plan %}changePlan('{{ plan_id }}'){% endif %}"
+                                    {% if plan_id == current_plan %}disabled{% endif %}>
+                                {% if plan_id == current_plan %}
+                                Current Plan
+                                {% else %}
+                                {% if plan['price'] > plans[current_plan]['price'] %}Upgrade{% else %}Downgrade{% endif %}
+                                {% endif %}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Billing History -->
+                <div class="billing-history">
+                    <h2 class="section-title">Billing History</h2>
+                    <table class="billing-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in subscription.get('billing_history', []) %}
+                            <tr>
+                                <td>{{ invoice['date'] }}</td>
+                                <td>${{ invoice['amount'] }}</td>
+                                <td class="status-paid">{{ invoice['status'].title() }}</td>
+                                <td>{{ invoice['invoice_id'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <script>
+                function changePlan(planId) {
+                    if (confirm(`Are you sure you want to change to the ${planId} plan?`)) {
+                        fetch('/api/billing/change-plan', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ plan: planId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Plan changed successfully!');
+                                location.reload();
+                            } else {
+                                alert('Failed to change plan: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            alert('Error changing plan: ' + error.message);
+                        });
+                    }
+                }
+            </script>
+        </body>
+        </html>
+        """, 
+        plans=SUBSCRIPTION_PLANS,
+        current_plan=current_plan,
+        subscription=subscription)
+        
+    except Exception as e:
+        logger.error(f"Billing dashboard error: {e}")
+        return f"""<!DOCTYPE html>
+        <html><head><title>LexAI Billing</title></head>
+        <body style="font-family: Inter, sans-serif; padding: 40px; text-align: center;">
+        <h1>🏛️ LexAI Billing Dashboard</h1>
+        <p>Error loading billing information: {e}</p>
+        <a href="/" style="color: #2E4B3C;">← Back to Dashboard</a>
+        </body></html>"""
+
+@app.route('/api/billing/plans', methods=['GET'])
+@rate_limit_decorator
+def get_billing_plans():
+    """Get available subscription plans"""
+    try:
+        return jsonify({
+            "success": True,
+            "plans": SUBSCRIPTION_PLANS
+        })
+    except Exception as e:
+        logger.error(f"Get billing plans error: {e}")
+        return jsonify({"error": "Failed to fetch plans"}), 500
+
+@app.route('/api/billing/subscription', methods=['GET'])
+@rate_limit_decorator
+def get_subscription_status():
+    """Get current user subscription status"""
+    try:
+        # Mock user ID (in production, get from authentication)
+        user_id = 'demo_user'
+        subscription = USER_SUBSCRIPTIONS.get(user_id, {})
+        
+        if not subscription:
+            return jsonify({
+                "success": True,
+                "subscription": None,
+                "message": "No active subscription"
+            })
+        
+        return jsonify({
+            "success": True,
+            "subscription": subscription,
+            "current_plan": SUBSCRIPTION_PLANS.get(subscription.get('plan', 'starter'))
+        })
+    except Exception as e:
+        logger.error(f"Get subscription error: {e}")
+        return jsonify({"error": "Failed to fetch subscription"}), 500
+
+@app.route('/api/billing/change-plan', methods=['POST'])
+@rate_limit_decorator
+def change_subscription_plan():
+    """Change user subscription plan"""
+    try:
+        data = request.get_json()
+        if not data or 'plan' not in data:
+            return jsonify({"error": "Plan ID required"}), 400
+        
+        new_plan = data['plan']
+        if new_plan not in SUBSCRIPTION_PLANS:
+            return jsonify({"error": "Invalid plan"}), 400
+        
+        # Mock user ID (in production, get from authentication)
+        user_id = 'demo_user'
+        
+        # Update subscription (in production, integrate with payment processor)
+        if user_id not in USER_SUBSCRIPTIONS:
+            USER_SUBSCRIPTIONS[user_id] = {
+                'plan': new_plan,
+                'status': 'active',
+                'current_period_start': datetime.utcnow().strftime('%Y-%m-%d'),
+                'current_period_end': (datetime.utcnow() + timedelta(days=30)).strftime('%Y-%m-%d'),
+                'usage': {
+                    'ai_consultations': 0,
+                    'document_uploads': 0,
+                    'storage_used_gb': 0
+                },
+                'billing_history': []
+            }
+        else:
+            USER_SUBSCRIPTIONS[user_id]['plan'] = new_plan
+        
+        logger.info(f"Plan changed to {new_plan} for user {user_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully changed to {SUBSCRIPTION_PLANS[new_plan]['name']} plan",
+            "new_plan": SUBSCRIPTION_PLANS[new_plan]
+        })
+        
+    except Exception as e:
+        logger.error(f"Change plan error: {e}")
+        return jsonify({"error": "Failed to change plan"}), 500
+
+@app.route('/api/billing/usage', methods=['GET'])
+@rate_limit_decorator
+def get_usage_statistics():
+    """Get detailed usage statistics for current billing period"""
+    try:
+        # Mock user ID (in production, get from authentication)
+        user_id = 'demo_user'
+        subscription = USER_SUBSCRIPTIONS.get(user_id, {})
+        
+        if not subscription:
+            return jsonify({
+                "success": True,
+                "usage": {
+                    'ai_consultations': 0,
+                    'document_uploads': 0,
+                    'storage_used_gb': 0
+                },
+                "limits": SUBSCRIPTION_PLANS['starter']['limits'],
+                "message": "No active subscription"
+            })
+        
+        current_plan = subscription.get('plan', 'starter')
+        usage = subscription.get('usage', {})
+        limits = SUBSCRIPTION_PLANS[current_plan]['limits']
+        
+        # Calculate usage percentages
+        usage_stats = {
+            'ai_consultations': {
+                'used': usage.get('ai_consultations', 0),
+                'limit': limits['ai_consultations'],
+                'percentage': 0 if limits['ai_consultations'] == -1 else min(100, (usage.get('ai_consultations', 0) / limits['ai_consultations']) * 100)
+            },
+            'document_uploads': {
+                'used': usage.get('document_uploads', 0),
+                'limit': limits['document_uploads'],
+                'percentage': 0 if limits['document_uploads'] == -1 else min(100, (usage.get('document_uploads', 0) / limits['document_uploads']) * 100)
+            },
+            'storage': {
+                'used_gb': usage.get('storage_used_gb', 0),
+                'limit_gb': limits['storage_gb'],
+                'percentage': min(100, (usage.get('storage_used_gb', 0) / limits['storage_gb']) * 100)
+            }
+        }
+        
+        return jsonify({
+            "success": True,
+            "usage_stats": usage_stats,
+            "current_plan": current_plan,
+            "billing_period": {
+                'start': subscription.get('current_period_start'),
+                'end': subscription.get('current_period_end')
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get usage statistics error: {e}")
+        return jsonify({"error": "Failed to fetch usage statistics"}), 500
 
 # Error handlers
 @app.errorhandler(404)
