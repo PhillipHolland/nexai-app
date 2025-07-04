@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexAI Practice Partner - Professional Legal AI Platform</title>
+    <title>LexAI Practice Partner - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* LexAI Professional Color Palette */
-            --lexai-primary: #0F4D3C;
-            --lexai-primary-light: #16a34a;
-            --lexai-primary-dark: #064e3b;
-            --lexai-secondary: #047857;
-            --lexai-accent: #10b981;
-            --lexai-surface: #ffffff;
-            --lexai-background: #f8fffe;
-            --lexai-muted: #f0fdfa;
+            /* LexAI Original Color Palette */
+            --lexai-primary: #2E4B3C;
+            --lexai-primary-light: #4A6B57;
+            --lexai-cream: #F7EDDA;
+            --lexai-cream-light: #F7DFBA;
+            --lexai-accent: #16a34a;
             
-            /* Professional Grays */
-            --gray-50: #fafbfc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
+            /* Neutral Grays */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
             
             /* Typography */
             --font-primary: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
         }
         
         * {
@@ -45,292 +40,240 @@
         
         body {
             font-family: var(--font-primary);
-            background: var(--lexai-background);
+            background: linear-gradient(135deg, var(--lexai-cream) 0%, var(--lexai-cream-light) 100%);
             color: var(--gray-900);
-            line-height: 1.6;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* Premium Navigation */
+        /* Compact Navigation */
         .top-nav {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--gray-200);
-            box-shadow: 0 1px 3px rgba(15, 77, 60, 0.05);
+            box-shadow: 0 1px 3px rgba(46, 75, 60, 0.1);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
         
         .nav-container {
-            max-width: 1440px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 0 32px;
+            padding: 0 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 80px;
+            height: 64px;
         }
         
         .nav-brand {
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-weight: 700;
+            gap: 12px;
             color: var(--lexai-primary);
         }
         
         .nav-brand-text {
-            font-size: 1.375rem;
+            font-size: 1.125rem;
             font-weight: 700;
             color: var(--lexai-primary);
-            letter-spacing: -0.025em;
         }
         
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
         
         .nav-link {
             color: var(--gray-600);
             text-decoration: none;
             font-weight: 500;
-            padding: 12px 20px;
-            border-radius: 10px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 0.95rem;
-            position: relative;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
         }
         
         .nav-link:hover {
             color: var(--lexai-primary);
-            background: var(--lexai-muted);
-            transform: translateY(-1px);
+            background: var(--lexai-cream);
         }
         
         .nav-link.active {
             color: var(--lexai-primary);
-            background: var(--lexai-muted);
+            background: var(--lexai-cream);
             font-weight: 600;
         }
         
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 20px;
-            right: 20px;
-            height: 2px;
-            background: var(--lexai-primary);
-            border-radius: 1px;
-        }
-        
-        /* Main Layout */
-        .main-layout {
-            max-width: 1440px;
+        /* Compact Dashboard Layout */
+        .dashboard-container {
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 60px 32px;
-        }
-        
-        /* Hero Section */
-        .hero-section {
-            text-align: center;
-            margin-bottom: 100px;
-            padding: 80px 0;
-        }
-        
-        .hero-title {
-            font-size: clamp(3rem, 6vw, 4.5rem);
-            font-weight: 800;
-            color: var(--lexai-primary);
-            margin-bottom: 24px;
-            letter-spacing: -0.04em;
-            line-height: 1.1;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--gray-600);
-            margin-bottom: 48px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            font-weight: 400;
-            line-height: 1.6;
-        }
-        
-        .hero-cta {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .cta-primary {
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-secondary) 100%);
-            color: white;
-            padding: 18px 36px;
-            border: none;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 20px rgba(15, 77, 60, 0.2);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .cta-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(15, 77, 60, 0.3);
-        }
-        
-        .cta-secondary {
-            background: var(--gray-50);
-            color: var(--gray-700);
-            padding: 18px 36px;
-            border: 1px solid var(--gray-200);
-            border-radius: 14px;
-            font-weight: 500;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .cta-secondary:hover {
-            background: var(--gray-100);
-            border-color: var(--gray-300);
-            transform: translateY(-2px);
-        }
-        
-        /* Feature Grid */
-        .feature-grid {
+            padding: 20px 24px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 40px;
-            margin-bottom: 100px;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
         }
         
-        .feature-card {
-            background: var(--lexai-surface);
-            border-radius: 24px;
-            padding: 48px;
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Welcome Header - Compact */
+        .welcome-header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--gray-200);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
         }
         
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--lexai-primary) 0%, var(--lexai-accent) 100%);
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--lexai-primary);
+            margin-bottom: 6px;
         }
         
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 50px rgba(15, 77, 60, 0.12);
+        .welcome-subtitle {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+        
+        /* Quick Actions Grid - Compact */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.15);
             border-color: var(--lexai-primary);
         }
         
-        .feature-icon {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-accent) 100%);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 28px;
-            color: white;
-        }
-        
-        .feature-title {
-            font-size: 1.625rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin-bottom: 20px;
-            letter-spacing: -0.025em;
-        }
-        
-        .feature-description {
-            color: var(--gray-600);
-            font-size: 1.05rem;
-            line-height: 1.7;
-            margin-bottom: 32px;
-        }
-        
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .feature-list li {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 0;
-            color: var(--gray-700);
-            font-size: 1rem;
-        }
-        
-        .feature-list li::before {
-            content: '✓';
-            width: 24px;
-            height: 24px;
-            background: var(--lexai-accent);
-            border-radius: 50%;
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-primary-light) 100%);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 14px;
-            font-weight: 700;
             flex-shrink: 0;
         }
         
-        /* Stats Section */
-        .stats-section {
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-secondary) 100%);
-            border-radius: 32px;
-            padding: 80px 48px;
-            margin: 100px 0;
-            color: white;
+        .action-content h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        
+        .action-content p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        /* Practice Areas - Compact Grid */
+        .practice-areas {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--lexai-primary);
+            margin-bottom: 16px;
+        }
+        
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        
+        .practice-card {
+            padding: 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             text-align: center;
         }
         
-        .stats-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            letter-spacing: -0.03em;
+        .practice-card:hover {
+            border-color: var(--lexai-primary);
+            background: var(--lexai-cream);
         }
         
-        .stats-subtitle {
+        .practice-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .practice-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        
+        .practice-desc {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            line-height: 1.4;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Stats Card */
+        .stats-card {
+            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-primary-light) 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: white;
+        }
+        
+        .stats-title {
             font-size: 1.125rem;
-            opacity: 0.9;
-            margin-bottom: 60px;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 48px;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
         }
         
         .stat-item {
@@ -338,117 +281,113 @@
         }
         
         .stat-number {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: white;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
         }
         
         .stat-label {
-            font-size: 1.05rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
+            font-size: 0.75rem;
+            opacity: 0.9;
         }
         
-        /* Practice Areas */
-        .practice-areas {
-            margin: 100px 0;
-        }
-        
-        .section-header {
-            text-align: center;
-            margin-bottom: 80px;
-        }
-        
-        .section-title {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--lexai-primary);
-            margin-bottom: 20px;
-            letter-spacing: -0.03em;
-        }
-        
-        .section-subtitle {
-            font-size: 1.2rem;
-            color: var(--gray-600);
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .practice-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 32px;
-        }
-        
-        .practice-card {
-            background: var(--lexai-surface);
+        /* Recent Activity */
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--gray-200);
-            border-radius: 20px;
-            padding: 40px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
         }
         
-        .practice-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--lexai-primary) 0%, var(--lexai-accent) 100%);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
+        .activity-list {
+            list-style: none;
         }
         
-        .practice-card:hover::before {
-            transform: scaleX(1);
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-100);
         }
         
-        .practice-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 40px rgba(15, 77, 60, 0.1);
-            border-color: var(--lexai-primary);
+        .activity-item:last-child {
+            border-bottom: none;
         }
         
-        .practice-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--lexai-cream);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            font-size: 32px;
+            color: var(--lexai-primary);
+            flex-shrink: 0;
         }
         
-        .practice-name {
-            font-weight: 700;
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-size: 0.875rem;
+            font-weight: 500;
             color: var(--gray-900);
-            margin-bottom: 16px;
-            font-size: 1.25rem;
-            letter-spacing: -0.025em;
+            margin-bottom: 2px;
         }
         
-        .practice-desc {
-            color: var(--gray-600);
-            font-size: 1rem;
-            line-height: 1.6;
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        
+        /* Quick Links */
+        .quick-links {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            color: var(--gray-700);
+            text-decoration: none;
+            border-bottom: 1px solid var(--gray-100);
+            transition: color 0.2s ease;
+        }
+        
+        .link-item:last-child {
+            border-bottom: none;
+        }
+        
+        .link-item:hover {
+            color: var(--lexai-primary);
+        }
+        
+        .link-icon {
+            width: 16px;
+            height: 16px;
+            color: var(--lexai-primary);
         }
         
         /* Responsive Design */
         @media (max-width: 1024px) {
-            .feature-grid {
+            .dashboard-container {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
             
-            .practice-grid {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            .sidebar {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                display: grid;
             }
         }
         
@@ -458,96 +397,41 @@
             }
             
             .nav-container {
-                padding: 0 24px;
-                height: 70px;
+                padding: 0 16px;
             }
             
-            .nav-brand-text {
-                font-size: 1.25rem;
+            .dashboard-container {
+                padding: 16px;
+                gap: 16px;
             }
             
-            .main-layout {
-                padding: 40px 24px;
+            .quick-actions {
+                grid-template-columns: 1fr;
             }
             
-            .hero-section {
-                padding: 60px 0;
-                margin-bottom: 80px;
-            }
-            
-            .hero-title {
-                font-size: 2.75rem;
-            }
-            
-            .hero-cta {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .feature-card {
-                padding: 36px 28px;
-            }
-            
-            .stats-section {
-                padding: 60px 32px;
-                margin: 80px 0;
-                border-radius: 24px;
+            .practice-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 36px;
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
-            
-            .stat-number {
-                font-size: 3rem;
-            }
-            
-            .section-title {
-                font-size: 2.5rem;
-            }
-            
-            .practice-card {
-                padding: 32px 24px;
-            }
-        }
-        
-        /* Additional Utilities */
-        .animate-fade-in {
-            animation: fadeIn 0.8s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
     </style>
 </head>
 <body>
-    <!-- Premium Navigation -->
+    <!-- Compact Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
             <div class="nav-brand">
-                <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
                     <path d="M8 12h16M8 16h12M8 20h16M12 8v16" stroke="white" stroke-width="2" stroke-linecap="round"/>
                     <defs>
                         <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#0F4D3C"/>
-                            <stop offset="100%" style="stop-color:#10b981"/>
+                            <stop offset="0%" style="stop-color:#2E4B3C"/>
+                            <stop offset="100%" style="stop-color:#4A6B57"/>
                         </linearGradient>
                     </defs>
                 </svg>
@@ -565,177 +449,178 @@
         </div>
     </nav>
     
-    <div class="main-layout">
-        <!-- Hero Section -->
-        <section class="hero-section animate-fade-in">
-            <h1 class="hero-title">
-                The Future of <span class="gradient-text">Legal Practice</span>
-            </h1>
-            <p class="hero-subtitle">
-                Advanced AI-powered legal assistance for modern law firms. Streamline your practice with intelligent document analysis, case research, and client management.
-            </p>
-            <div class="hero-cta">
-                <a href="/chat" class="cta-primary">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    Start AI Consultation
-                </a>
-                <a href="/search" class="cta-secondary">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    Explore Research Tools
-                </a>
-            </div>
-        </section>
-
-        <!-- Feature Grid -->
-        <div class="feature-grid">
-            <div class="feature-card animate-fade-in">
-                <div class="feature-icon">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                </div>
-                <h3 class="feature-title">AI-Powered Legal Research</h3>
-                <p class="feature-description">
-                    Access comprehensive legal databases with intelligent search capabilities. Get instant case law analysis, statutory interpretation, and precedent research.
-                </p>
-                <ul class="feature-list">
-                    <li>Natural language query processing</li>
-                    <li>Real-time case law updates</li>
-                    <li>Jurisdictional filtering</li>
-                    <li>Citation verification</li>
-                </ul>
-            </div>
-
-            <div class="feature-card animate-fade-in">
-                <div class="feature-icon">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                </div>
-                <h3 class="feature-title">Smart Document Analysis</h3>
-                <p class="feature-description">
-                    Automatically analyze contracts, legal briefs, and other documents. Extract key clauses, identify risks, and generate comprehensive summaries.
-                </p>
-                <ul class="feature-list">
-                    <li>Contract clause extraction</li>
-                    <li>Risk assessment algorithms</li>
-                    <li>Automated compliance checking</li>
-                    <li>Document comparison tools</li>
-                </ul>
-            </div>
-
-            <div class="feature-card animate-fade-in">
-                <div class="feature-icon">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <h3 class="feature-title">Client Management Suite</h3>
-                <p class="feature-description">
-                    Comprehensive client relationship management with automated workflows, secure communications, and detailed case tracking capabilities.
-                </p>
-                <ul class="feature-list">
-                    <li>Secure client portals</li>
-                    <li>Automated billing integration</li>
-                    <li>Case timeline tracking</li>
-                    <li>Communication logs</li>
-                </ul>
-            </div>
-
-            <div class="feature-card animate-fade-in">
-                <div class="feature-icon">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <h3 class="feature-title">Practice Analytics</h3>
-                <p class="feature-description">
-                    Data-driven insights into your practice performance. Track case outcomes, client satisfaction, and operational efficiency with detailed analytics.
-                </p>
-                <ul class="feature-list">
-                    <li>Performance dashboards</li>
-                    <li>Revenue forecasting</li>
-                    <li>Case outcome analysis</li>
-                    <li>Time tracking optimization</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Stats Section -->
-        <section class="stats-section">
-            <h2 class="stats-title">Trusted by Legal Professionals</h2>
-            <p class="stats-subtitle">Join thousands of lawyers who have transformed their practice with LexAI</p>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">{{ stats.total_chats or '1,200+' }}</div>
-                    <div class="stat-label">AI Consultations</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ stats.total_documents or '15,000+' }}</div>
-                    <div class="stat-label">Documents Analyzed</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ stats.research_queries or '8,500+' }}</div>
-                    <div class="stat-label">Research Queries</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">{{ stats.total_clients or '350+' }}</div>
-                    <div class="stat-label">Active Law Firms</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Practice Areas -->
-        <section class="practice-areas">
-            <div class="section-header">
-                <h2 class="section-title">Specialized Legal Expertise</h2>
-                <p class="section-subtitle">
-                    Our AI is trained across multiple practice areas to provide specialized assistance tailored to your specific legal domain
-                </p>
+    <!-- Compact Dashboard Layout -->
+    <div class="dashboard-container">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Welcome Header -->
+            <div class="welcome-header">
+                <h1 class="welcome-title">Welcome back to LexAI</h1>
+                <p class="welcome-subtitle">Your AI-powered legal practice management platform</p>
             </div>
             
-            <div class="practice-grid">
-                {% for area_id, area in practice_areas.items() %}
-                <div class="practice-card" onclick="window.location.href='/chat?practice_area={{ area_id }}'">
-                    <div class="practice-icon" style="background: {{ area.color }}20; color: {{ area.color }};">
-                        {% if area_id == 'family' %}👨‍👩‍👧‍👦{% endif %}
-                        {% if area_id == 'personal_injury' %}🩹{% endif %}
-                        {% if area_id == 'corporate' %}🏢{% endif %}
-                        {% if area_id == 'criminal' %}⚖️{% endif %}
-                        {% if area_id == 'real_estate' %}🏠{% endif %}
-                        {% if area_id == 'immigration' %}🌍{% endif %}
+            <!-- Quick Actions Grid -->
+            <div class="quick-actions">
+                <div class="action-card" onclick="window.location.href='/chat'">
+                    <div class="action-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
                     </div>
-                    <div class="practice-name">{{ area.name }}</div>
-                    <div class="practice-desc">{{ area.description }}</div>
+                    <div class="action-content">
+                        <h3>AI Assistant</h3>
+                        <p>Start a legal consultation</p>
+                    </div>
                 </div>
-                {% endfor %}
+                
+                <div class="action-card" onclick="window.location.href='/search'">
+                    <div class="action-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <div class="action-content">
+                        <h3>Legal Research</h3>
+                        <p>Search case law & statutes</p>
+                    </div>
+                </div>
+                
+                <div class="action-card" onclick="window.location.href='/documents'">
+                    <div class="action-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="action-content">
+                        <h3>Documents</h3>
+                        <p>Review & analyze files</p>
+                    </div>
+                </div>
+                
+                <div class="action-card" onclick="window.location.href='/clients'">
+                    <div class="action-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <div class="action-content">
+                        <h3>Clients</h3>
+                        <p>Manage client cases</p>
+                    </div>
+                </div>
             </div>
-        </section>
+            
+            <!-- Practice Areas -->
+            <div class="practice-areas">
+                <h2 class="section-title">Practice Areas</h2>
+                <div class="practice-grid">
+                    {% for area_id, area in practice_areas.items() %}
+                    <div class="practice-card" onclick="window.location.href='/chat?practice_area={{ area_id }}'">
+                        <div class="practice-icon" style="color: {{ area.color }};">
+                            {% if area_id == 'family' %}👨‍👩‍👧‍👦{% endif %}
+                            {% if area_id == 'personal_injury' %}🩹{% endif %}
+                            {% if area_id == 'corporate' %}🏢{% endif %}
+                            {% if area_id == 'criminal' %}⚖️{% endif %}
+                            {% if area_id == 'real_estate' %}🏠{% endif %}
+                            {% if area_id == 'immigration' %}🌍{% endif %}
+                        </div>
+                        <div class="practice-name">{{ area.name }}</div>
+                        <div class="practice-desc">{{ area.description }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Stats Card -->
+            <div class="stats-card">
+                <h3 class="stats-title">Platform Usage</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_chats or '47' }}</div>
+                        <div class="stat-label">AI Chats</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_documents or '23' }}</div>
+                        <div class="stat-label">Documents</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.research_queries or '12' }}</div>
+                        <div class="stat-label">Research</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_clients or '8' }}</div>
+                        <div class="stat-label">Clients</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h3 class="section-title">Recent Activity</h3>
+                <ul class="activity-list">
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">AI consultation completed</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Contract analysis finished</div>
+                            <div class="activity-time">5 hours ago</div>
+                        </div>
+                    </li>
+                    <li class="activity-item">
+                        <div class="activity-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Research query processed</div>
+                            <div class="activity-time">1 day ago</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <h3 class="section-title">Quick Links</h3>
+                <a href="/analytics" class="link-item">
+                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    View Analytics
+                </a>
+                <a href="/billing" class="link-item">
+                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    Billing & Usage
+                </a>
+                <a href="/settings" class="link-item">
+                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Settings
+                </a>
+            </div>
+        </div>
     </div>
-
-    <script>
-        // Add smooth animations on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                }
-            });
-        }, observerOptions);
-
-        // Observe all cards and sections
-        document.querySelectorAll('.feature-card, .practice-card, .stats-section').forEach(el => {
-            observer.observe(el);
-        });
-    </script>
 </body>
 </html>
