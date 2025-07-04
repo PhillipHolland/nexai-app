@@ -8563,6 +8563,7 @@ def api_advanced_search():
         
         # Process query with AI
         ai_analysis = LegalSearchProcessor.process_natural_language_query(query, practice_area)
+        logger.info(f"AI analysis completed: {ai_analysis}")
         
         # Perform search across selected databases
         all_results = []
@@ -8583,6 +8584,9 @@ def api_advanced_search():
                         filtered_results.append(result)
                 
                 all_results.extend(filtered_results)
+                logger.info(f"Database {database}: found {len(filtered_results)} results")
+        
+        logger.info(f"Total results before enhancement: {len(all_results)}")
         
         # Sort by relevance score
         all_results.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
@@ -9289,7 +9293,7 @@ def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
 
-# For Vercel - Force cache refresh
+# For Vercel - Deployment v2.1
 app.debug = False
 
 if __name__ == '__main__':
