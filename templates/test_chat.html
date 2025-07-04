@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 10px; margin: 10px 0; }
+        .user { color: blue; margin: 5px 0; }
+        .assistant { color: green; margin: 5px 0; }
+        .error { color: red; margin: 5px 0; }
+        input[type="text"] { width: 70%; padding: 5px; }
+        button { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>Simple Chat Test</h1>
+    <div id="messages"></div>
+    <div>
+        <input type="text" id="messageInput" placeholder="Type your message here..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messages = document.getElementById('messages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Display user message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user';
+            userDiv.textContent = 'User: ' + message;
+            messages.appendChild(userDiv);
+            
+            input.value = '';
+            
+            try {
+                console.log('Sending message:', message);
+                
+                // Test with the new simplified format
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        client_id: 'test_client'
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                // Display assistant response
+                const assistantDiv = document.createElement('div');
+                assistantDiv.className = 'assistant';
+                
+                if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+                    assistantDiv.textContent = 'Assistant: ' + data.choices[0].delta.content;
+                } else if (data.error) {
+                    assistantDiv.className = 'error';
+                    assistantDiv.textContent = 'Error: ' + data.error;
+                } else {
+                    assistantDiv.className = 'error';
+                    assistantDiv.textContent = 'Unexpected response format: ' + JSON.stringify(data);
+                }
+                
+                messages.appendChild(assistantDiv);
+                messages.scrollTop = messages.scrollHeight;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = 'Error: ' + error.message;
+                messages.appendChild(errorDiv);
+            }
+        }
+        
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

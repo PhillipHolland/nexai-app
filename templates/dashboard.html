@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexAI Practice Partner - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="layout-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 class="text-xl font-bold text-gray-900">LexAI Platform</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Main</h3>
+                    <a href="{{ url_for('dashboard') }}" class="nav-link active">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('chat_interface') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        AI Assistant
+                    </a>
+                    <a href="{{ url_for('clients_list') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Clients
+                    </a>
+                    <a href="{{ url_for('documents_list') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Documents
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Analytics</h3>
+                    <a href="{{ url_for('analytics_dashboard') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Analytics
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Practice Areas</h3>
+                    {% for area_id, area in practice_areas.items() %}
+                    <a href="{{ url_for('chat_interface') }}?practice_area={{ area_id }}" class="nav-link">
+                        <div class="practice-area-icon {{ area_id.replace('_', '-') }}">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24">
+                                {% if area.icon == 'family' %}
+                                <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-4h3v4H4zm3-5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6.5 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12.5 11H11V5.5h1.5v2.25L15.25 5H17l-2.25 3L17 11h-1.75l-1.75-2.25V11z"/>
+                                {% elif area.icon == 'shield' %}
+                                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.8,9.2 9.8,10V11H14.2V10C14.2,9.2 13.8,8.2 12,8.2Z"/>
+                                {% elif area.icon == 'building' %}
+                                <path d="M10,2V4H8V2H10M13,2V4H11V2H13M16,2V4H14V2H16M10,5V7H8V5H10M13,5V7H11V5H13M16,5V7H14V5H16M10,8V10H8V8H10M13,8V10H11V8H13M16,8V10H14V8H16M10,11V13H8V11H10M13,11V13H11V11H13M16,11V13H14V11H16M10,14V16H8V14H10M13,14V16H11V14H13M16,14V16H14V14H16M10,17V19H8V17H10M13,17V19H11V17H13M16,17V19H14V17H16M4,2V4H6V2H4M4,5V7H6V5H4M4,8V10H6V8H4M4,11V13H6V11H4M4,14V16H6V14H4M4,17V19H6V17H4M4,20V22H18V20H4M7,20V22H17V20H7Z"/>
+                                {% elif area.icon == 'scale' %}
+                                <path d="M7,4V2C7,1.45 7.45,1 8,1H16C16.55,1 17,1.45 17,2V4H20V6H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V6H4V4H7M9,3V4H15V3H9M7,6V19H17V6H7M9,8H15V9H9V8M9,10H13V11H9V10Z"/>
+                                {% elif area.icon == 'home' %}
+                                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                                {% elif area.icon == 'globe' %}
+                                <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                                {% endif %}
+                            </svg>
+                        </div>
+                        {{ area.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <header class="navbar">
+                <div class="navbar-brand">
+                    <button id="sidebarToggle" class="menu-toggle">
+                        <div class="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
+                    <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI" class="navbar-logo">
+                    <span class="navbar-text">Dashboard</span>
+                </div>
+                
+                <div class="navbar-controls">
+                    <button class="btn-secondary btn-sm">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h10V9H4v2zM4 7h12V5H4v2z"/>
+                        </svg>
+                        Settings
+                    </button>
+                    <button class="btn-primary btn-sm">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        New Chat
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="dashboard-title">Welcome to LexAI Practice Partner</h1>
+                            <p class="dashboard-subtitle">Your comprehensive legal AI platform for modern law firms</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="badge badge-professional">
+                                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                Professional Plan
+                            </div>
+                            <button class="btn-gradient btn-sm">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                Upgrade to Premium
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions Bar -->
+                    <div class="flex items-center gap-4 mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                        <div class="flex items-center gap-2 text-blue-700">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span class="font-medium">AI Ready</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-green-700">
+                            <div class="status-dot status-active"></div>
+                            <span class="text-sm">All systems operational</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-gray-600 ml-auto">
+                            <span class="text-sm">Last sync: 2 minutes ago</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">Total Clients</span>
+                            <div class="flex items-center gap-2">
+                                <svg class="stat-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                <div class="tooltip">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm0-4h-2V7h2v8z"/>
+                                    </svg>
+                                    <div class="tooltip-content">Active clients in the last 30 days</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">{{ total_clients }}</div>
+                        <div class="stat-card-change positive">+12% this month</div>
+                        <div class="progress-bar mt-3">
+                            <div class="progress-fill" style="width: 68%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">AI Conversations</span>
+                            <div class="flex items-center gap-2">
+                                <svg class="stat-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                <div class="badge badge-success">Hot</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">247</div>
+                        <div class="stat-card-change positive">+23% this week</div>
+                        <div class="text-xs text-gray-500 mt-2">Avg. 4.2 min response time</div>
+                    </div>
+
+                    <div class="stat-card card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">Documents Processed</span>
+                            <svg class="stat-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-card-value">89</div>
+                        <div class="stat-card-change positive">+8% this week</div>
+                        <div class="flex gap-1 mt-2">
+                            <div class="doc-icon contract">C</div>
+                            <div class="doc-icon motion">M</div>
+                            <div class="doc-icon brief">B</div>
+                            <div class="doc-icon evidence">E</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card card-premium">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">Time Saved</span>
+                            <div class="flex items-center gap-2">
+                                <svg class="stat-card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div class="badge badge-premium">Pro</div>
+                            </div>
+                        </div>
+                        <div class="stat-card-value">127 hrs</div>
+                        <div class="stat-card-change positive">+34% this month</div>
+                        <div class="text-xs text-purple-600 mt-2 font-medium">≈ $12,700 in billable time</div>
+                    </div>
+                </div>
+
+                <!-- Practice Areas -->
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-900">Practice Areas</h2>
+                            <p class="text-gray-600 mt-1">AI-powered assistance tailored to your legal specializations</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="btn-outline btn-sm">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+                                </svg>
+                                Customize
+                            </button>
+                            <button class="btn-secondary btn-sm">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add Practice Area
+                            </button>
+                        </div>
+                    </div>
+                    <div class="practice-areas-grid">
+                        {% for area_id, area in practice_areas.items() %}
+                        <div class="practice-area-card card" onclick="window.location.href='{{ url_for('chat_interface') }}?practice_area={{ area_id }}'">
+                            <div class="practice-area-header">
+                                <div class="flex items-center justify-between w-full">
+                                    <div class="flex items-center gap-3">
+                                        <div class="practice-area-icon {{ area_id.replace('_', '-') }}">
+                                            <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                        {% if area.icon == 'family' %}
+                                        <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-4h3v4H4zm3-5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6.5 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12.5 11H11V5.5h1.5v2.25L15.25 5H17l-2.25 3L17 11h-1.75l-1.75-2.25V11z"/>
+                                        {% elif area.icon == 'shield' %}
+                                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.8,9.2 9.8,10V11H14.2V10C14.2,9.2 13.8,8.2 12,8.2Z"/>
+                                        {% elif area.icon == 'building' %}
+                                        <path d="M10,2V4H8V2H10M13,2V4H11V2H13M16,2V4H14V2H16M10,5V7H8V5H10M13,5V7H11V5H13M16,5V7H14V5H16M10,8V10H8V8H10M13,8V10H11V8H13M16,8V10H14V8H16M10,11V13H8V11H10M13,11V13H11V11H13M16,11V13H14V11H16M10,14V16H8V14H10M13,14V16H11V14H13M16,14V16H14V14H16M10,17V19H8V17H10M13,17V19H11V17H13M16,17V19H14V17H16M4,2V4H6V2H4M4,5V7H6V5H4M4,8V10H6V8H4M4,11V13H6V11H4M4,14V16H6V14H4M4,17V19H6V17H4M4,20V22H18V20H4M7,20V22H17V20H7Z"/>
+                                        {% elif area.icon == 'scale' %}
+                                        <path d="M7,4V2C7,1.45 7.45,1 8,1H16C16.55,1 17,1.45 17,2V4H20V6H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V6H4V4H7M9,3V4H15V3H9M7,6V19H17V6H7M9,8H15V9H9V8M9,10H13V11H9V10Z"/>
+                                        {% elif area.icon == 'home' %}
+                                        <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                                        {% elif area.icon == 'globe' %}
+                                        <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                                        {% endif %}
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="practice-area-title">{{ area.name }}</h3>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <div class="status-dot status-active"></div>
+                                                <span class="text-xs text-gray-500">AI Ready</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="badge badge-info">{{ area.prompts|length }}</div>
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="practice-area-prompts">
+                                {% for prompt in area.prompts[:3] %}
+                                <li class="flex items-center gap-2">
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                                    </svg>
+                                    {{ prompt }}
+                                </li>
+                                {% endfor %}
+                                {% if area.prompts|length > 3 %}
+                                <li class="text-xs text-gray-500 mt-2 font-medium">
+                                    +{{ area.prompts|length - 3 }} more prompts available
+                                </li>
+                                {% endif %}
+                            </ul>
+                            <div class="mt-4 pt-4 border-t border-gray-100">
+                                <div class="flex items-center justify-between text-xs text-gray-500">
+                                    <span>Last used: 2 hours ago</span>
+                                    <span>★ 4.9/5.0</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="mt-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-gray-900">Recent Clients</h2>
+                            <p class="text-gray-600 mt-1">Your most active client relationships</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="search-container">
+                                <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input class="search-input form-input" placeholder="Search clients..." style="width: 200px;">
+                            </div>
+                            <button class="btn-primary btn-sm">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add Client
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        {% if recent_clients %}
+                            <div class="divide-y divide-gray-200">
+                                {% for client in recent_clients %}
+                                <div class="p-6 hover:bg-gray-50 cursor-pointer transition-all duration-200" onclick="window.location.href='{{ url_for('chat_interface', client_id=client.id) }}'">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                                {{ (client.name or 'U')[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <h3 class="text-lg font-medium text-gray-900">{{ client.name or 'Unnamed Client' }}</h3>
+                                                    <div class="status-dot status-active"></div>
+                                                </div>
+                                                <p class="text-sm text-gray-500">{{ client.case_type or 'General' }}</p>
+                                                <div class="flex items-center gap-4 mt-1">
+                                                    <span class="text-xs text-gray-400">Last active: 2h ago</span>
+                                                    <div class="badge badge-success">3 open tasks</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right flex items-center gap-4">
+                                            <div>
+                                                <p class="text-sm text-gray-500">Last updated</p>
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    {{ client.updated_at.strftime('%b %d, %Y') if client.updated_at else 'Recently' }}
+                                                </p>
+                                            </div>
+                                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="p-12 text-center">
+                                <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900">No clients yet</h3>
+                                <p class="mt-2 text-gray-500 max-w-sm mx-auto">Start building your client base by adding your first client or beginning an AI conversation.</p>
+                                <div class="mt-6 flex items-center justify-center gap-3">
+                                    <a href="{{ url_for('chat_interface') }}" class="btn-gradient">Start Your First Chat</a>
+                                    <button class="btn-outline">Import Clients</button>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-xs text-gray-400">✨ Tip: Try starting with a practice area to get specialized AI assistance</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Modern sidebar toggle with hamburger animation
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const menuToggle = this;
+            
+            sidebar.classList.toggle('sidebar-hidden');
+            mainContent.classList.toggle('main-content-full');
+            menuToggle.classList.toggle('active');
+        });
+
+        // Quick action for new chat button
+        document.querySelector('.btn-primary').addEventListener('click', function(e) {
+            if (this.textContent.trim() === 'New Chat') {
+                e.preventDefault();
+                window.location.href = '{{ url_for("chat_interface") }}';
+            }
+        });
+
+        // Practice area card clicks
+        document.querySelectorAll('.practice-area-prompts li').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card click
+                const practiceArea = this.closest('.practice-area-card').getAttribute('onclick').match(/practice_area=([^']+)/)[1];
+                const prompt = this.textContent;
+                
+                // Redirect to chat with pre-filled prompt
+                const url = new URL('{{ url_for("chat_interface") }}', window.location.origin);
+                url.searchParams.set('practice_area', practiceArea);
+                url.searchParams.set('prompt', prompt);
+                window.location.href = url.toString();
+            });
+        });
+    </script>
+</body>
+</html>

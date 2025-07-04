@@ -1,75 +1,52 @@
 """
-LexAI Practice Partner - Production-Ready Legal AI Platform
-Modern Flask application with enterprise-grade security and configuration management
+LexAI Practice Partner - Comprehensive Legal AI Platform
+Modern Flask application with advanced features for law firms of all sizes.
 """
 
 import os
 import json
 import requests
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for, flash
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from werkzeug.utils import secure_filename
 import re
 from datetime import datetime, timezone
 import logging
-from database import db, init_db, get_client_data, update_client_info, add_conversation, clear_conversation_history, add_document, Client, User
+from database import db, init_db, get_client_data, update_client_info, add_conversation, clear_conversation_history, add_document, Client
 import uuid
-from dotenv import load_dotenv
-from auth import login_required, admin_required, get_current_user, create_user_session, destroy_user_session, register_user, authenticate_user
-from config import get_config, validate_environment
-from flask_migrate import Migrate
 
-# Load environment variables from .env file
-load_dotenv()
-
-def create_app(config_name=None):
-    """Application factory pattern for better testability and configuration management"""
-    app = Flask(__name__)
-    
-    # Load configuration
-    config_class = get_config(config_name)
-    app.config.from_object(config_class)
-    
-    # Validate environment configuration
-    validation_result = validate_environment()
-    if not validation_result['valid']:
-        for error in validation_result['errors']:
-            app.logger.error(f"Configuration Error: {error}")
-        raise RuntimeError("Invalid configuration. Check environment variables.")
-    
-    # Log warnings
-    for warning in validation_result['warnings']:
-        app.logger.warning(f"Configuration Warning: {warning}")
-    
-    # Initialize configuration
-    config_class.init_app(app)
-    
-    # Initialize database
-    init_db(app)
-    
-    # Initialize migrations
-    migrate = Migrate(app, db)
-    
-    return app
-
-# Create application instance
-app = create_app()
+app = Flask(__name__)
 
 # Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# API configuration
-XAI_API_KEY = app.config.get('XAI_API_KEY')
-XAI_MODEL = app.config.get('XAI_MODEL', 'grok-3-latest')
-API_TIMEOUT = app.config.get('API_TIMEOUT', 30)
+# App configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-dev-key-change-in-production')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file upload
 
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://') 
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lexai_platform.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize database
+init_db(app)
+
+# API configuration
+XAI_API_KEY = os.getenv("XAI_API_KEY")
 if not XAI_API_KEY:
     logger.warning("XAI_API_KEY not set - AI features will not work")
-else:
-    logger.info(f"XAI_API_KEY loaded: {XAI_API_KEY[:10]}...{XAI_API_KEY[-4:]}")
 
 # File upload configuration
-UPLOAD_FOLDER = app.config.get('UPLOAD_FOLDER', '/tmp/uploads')
-ALLOWED_EXTENSIONS = app.config.get('ALLOWED_EXTENSIONS', {'txt', 'pdf', 'doc', 'docx', 'rtf', 'odt'})
+UPLOAD_FOLDER = '/tmp/uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx', 'rtf', 'odt'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Practice area configurations
 PRACTICE_AREAS = {
@@ -148,50 +125,7 @@ PRACTICE_AREAS = {
 }
 
 # ============================================================================
-# HEALTH CHECK AND MONITORING ROUTES
-# ============================================================================
-
-@app.route('/health')
-def health_check():
-    """Health check endpoint for monitoring and load balancers"""
-    try:
-        # Check database connection
-        from sqlalchemy import text
-        db.session.execute(text('SELECT 1'))
-        
-        # Check configuration
-        validation = validate_environment()
-        
-        status = {
-            'status': 'healthy',
-            'timestamp': datetime.utcnow().isoformat(),
-            'version': '1.0.0',
-            'environment': app.config.get('FLASK_ENV', 'unknown'),
-            'database': 'connected',
-            'api_configured': bool(XAI_API_KEY),
-            'config_valid': validation['valid']
-        }
-        
-        return jsonify(status), 200
-        
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e),
-            'timestamp': datetime.utcnow().isoformat()
-        }), 503
-
-@app.route('/config/validate')
-@login_required
-@admin_required
-def validate_config_endpoint():
-    """Admin endpoint to validate configuration"""
-    validation = validate_environment()
-    return jsonify(validation)
-
-# ============================================================================
-# MAIN APPLICATION ROUTES
+# ROUTES
 # ============================================================================
 
 @app.route('/')
@@ -336,6 +270,7 @@ def api_chat():
         
         response.raise_for_status()
         grok_response = response.json()
+        
         assistant_content = grok_response["choices"][0]["message"]["content"]
         logger.info(f"Received response: {len(assistant_content)} characters")
 
@@ -498,4 +433,4 @@ def build_system_prompt(practice_area):
     return base_prompt + specializations.get(practice_area, '')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5002)
+    app.run(debug=True)

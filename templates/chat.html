@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexAI Practice Partner - AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="layout-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 class="text-xl font-bold text-gray-900">LexAI Platform</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Main</h3>
+                    <a href="{{ url_for('dashboard') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('chat_interface') }}" class="nav-link active">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        AI Assistant
+                    </a>
+                    <a href="{{ url_for('clients_list') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Clients
+                    </a>
+                    <a href="{{ url_for('documents_list') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Documents
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Analytics</h3>
+                    <a href="{{ url_for('analytics_dashboard') }}" class="nav-link">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Analytics
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <h3 class="nav-section-title">Practice Areas</h3>
+                    {% for area_id, area in practice_areas.items() %}
+                    <a href="{{ url_for('chat_interface') }}?practice_area={{ area_id }}" class="nav-link">
+                        <div class="practice-area-icon {{ area_id.replace('_', '-') }}">
+                            <svg class="nav-icon" fill="currentColor" viewBox="0 0 24 24">
+                                {% if area.icon == 'family' %}
+                                <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-4h3v4H4zm3-5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6.5 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12.5 11H11V5.5h1.5v2.25L15.25 5H17l-2.25 3L17 11h-1.75l-1.75-2.25V11z"/>
+                                {% elif area.icon == 'shield' %}
+                                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.8,9.2 9.8,10V11H14.2V10C14.2,9.2 13.8,8.2 12,8.2Z"/>
+                                {% elif area.icon == 'building' %}
+                                <path d="M10,2V4H8V2H10M13,2V4H11V2H13M16,2V4H14V2H16M10,5V7H8V5H10M13,5V7H11V5H13M16,5V7H14V5H16M10,8V10H8V8H10M13,8V10H11V8H13M16,8V10H14V8H16M10,11V13H8V11H10M13,11V13H11V11H13M16,11V13H14V11H16M10,14V16H8V14H10M13,14V16H11V14H13M16,14V16H14V14H16M10,17V19H8V17H10M13,17V19H11V17H13M16,17V19H14V17H16M4,2V4H6V2H4M4,5V7H6V5H4M4,8V10H6V8H4M4,11V13H6V11H4M4,14V16H6V14H4M4,17V19H6V17H4M4,20V22H18V20H4M7,20V22H17V20H7Z"/>
+                                {% elif area.icon == 'scale' %}
+                                <path d="M7,4V2C7,1.45 7.45,1 8,1H16C16.55,1 17,1.45 17,2V4H20V6H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V6H4V4H7M9,3V4H15V3H9M7,6V19H17V6H7M9,8H15V9H9V8M9,10H13V11H9V10Z"/>
+                                {% elif area.icon == 'home' %}
+                                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                                {% elif area.icon == 'globe' %}
+                                <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                                {% endif %}
+                            </svg>
+                        </div>
+                        {{ area.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <header class="navbar">
+                <div class="navbar-brand">
+                    <button id="sidebarToggle" class="menu-toggle">
+                        <div class="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
+                    <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI" class="navbar-logo">
+                    <span class="navbar-text">AI Assistant</span>
+                </div>
+                
+                <div class="navbar-controls">
+                    <div class="flex items-center gap-2">
+                        <div class="badge badge-success">
+                            <div class="status-dot status-active"></div>
+                            AI Online
+                        </div>
+                        <div class="text-sm text-gray-300">|</div>
+                        <span class="text-sm text-gray-300" id="tokenUsage">0 tokens used</span>
+                    </div>
+                    <button class="btn-secondary btn-sm" id="newChatBtn">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        New Chat
+                    </button>
+                    <div class="relative">
+                        <button class="btn-secondary btn-sm" id="settingsBtn">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Settings
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <!-- Chat Sidebar -->
+                <div class="chat-sidebar">
+                    <div class="chat-sidebar-header">
+                        <h3 class="text-lg font-semibold text-gray-900">Active Clients</h3>
+                        <select id="clientSelector" class="form-select mt-2">
+                            <option value="">Select a client...</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if current_client and current_client.id == client.id %}selected{% endif %}>
+                                {{ client.name or 'Unnamed Client' }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="chat-sidebar-content">
+                        {% if current_client %}
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-900 mb-2">{{ current_client.name or 'Client Information' }}</h4>
+                            <p class="text-sm text-gray-600">{{ current_client.case_type or 'General' }}</p>
+                            {% if current_client.email %}
+                            <p class="text-sm text-gray-600">{{ current_client.email }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Practice Area Quick Actions -->
+                        <div class="mb-4">
+                            <h4 class="font-medium text-gray-700 mb-3">Quick Actions</h4>
+                            <div class="space-y-2">
+                                {% for area_id, area in practice_areas.items() %}
+                                <details class="bg-white rounded border border-gray-200">
+                                    <summary class="p-3 cursor-pointer hover:bg-gray-50 flex items-center gap-2">
+                                        <div class="practice-area-icon {{ area_id.replace('_', '-') }}" style="width: 16px; height: 16px; padding: 2px;">
+                                            <svg fill="currentColor" viewBox="0 0 24 24" style="width: 12px; height: 12px;">
+                                                {% if area.icon == 'family' %}
+                                                <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zM4 18v-4h3v4H4zm3-5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm6.5 5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12.5 11H11V5.5h1.5v2.25L15.25 5H17l-2.25 3L17 11h-1.75l-1.75-2.25V11z"/>
+                                                {% elif area.icon == 'shield' %}
+                                                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.8,9.2 9.8,10V11H14.2V10C14.2,9.2 13.8,8.2 12,8.2Z"/>
+                                                {% elif area.icon == 'building' %}
+                                                <path d="M10,2V4H8V2H10M13,2V4H11V2H13M16,2V4H14V2H16M10,5V7H8V5H10M13,5V7H11V5H13M16,5V7H14V5H16M10,8V10H8V8H10M13,8V10H11V8H13M16,8V10H14V8H16M10,11V13H8V11H10M13,11V13H11V11H13M16,11V13H14V11H16M10,14V16H8V14H10M13,14V16H11V14H13M16,14V16H14V14H16M10,17V19H8V17H10M13,17V19H11V17H13M16,17V19H14V17H16M4,2V4H6V2H4M4,5V7H6V5H4M4,8V10H6V8H4M4,11V13H6V11H4M4,14V16H6V14H4M4,17V19H6V17H4M4,20V22H18V20H4M7,20V22H17V20H7Z"/>
+                                                {% elif area.icon == 'scale' %}
+                                                <path d="M7,4V2C7,1.45 7.45,1 8,1H16C16.55,1 17,1.45 17,2V4H20V6H19V19C19,20.1 18.1,21 17,21H7C5.9,21 5,20.1 5,19V6H4V4H7M9,3V4H15V3H9M7,6V19H17V6H7M9,8H15V9H9V8M9,10H13V11H9V10Z"/>
+                                                {% elif area.icon == 'home' %}
+                                                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                                                {% elif area.icon == 'globe' %}
+                                                <path d="M17.9,17.39C17.64,16.59 16.89,16 16,16H15V13A1,1 0 0,0 14,12H8V10H10A1,1 0 0,0 11,9V7H13A2,2 0 0,0 15,5V4.59C17.93,5.77 20,8.64 20,12C20,14.08 19.2,15.97 17.9,17.39M11,19.93C7.05,19.44 4,16.08 4,12C4,11.38 4.08,10.78 4.21,10.21L9,15V16A2,2 0 0,0 11,18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                                                {% endif %}
+                                            </svg>
+                                        </div>
+                                        <span class="text-sm font-medium">{{ area.name }}</span>
+                                    </summary>
+                                    <div class="p-3 pt-0">
+                                        {% for prompt in area.prompts %}
+                                        <button class="quick-action-btn w-full text-left mb-1 practice-prompt" 
+                                                data-practice-area="{{ area_id }}" 
+                                                data-prompt="{{ prompt }}">
+                                            {{ prompt }}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </details>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Chat Area -->
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <div class="flex items-center gap-4">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">AI Legal Assistant</h2>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm text-gray-500" id="practiceAreaIndicator">General Legal Assistance</p>
+                                    <div class="badge badge-professional">Grok-3</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <span class="text-xs text-gray-400 block">Session tokens</span>
+                                <span class="text-sm font-medium text-gray-600" id="tokenCounter">0 tokens</span>
+                            </div>
+                            <button class="btn-outline btn-sm" id="exportChatBtn">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Export
+                            </button>
+                            <button class="btn-outline btn-sm" id="clearChatBtn">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="text-center py-12">
+                            <div class="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Ready to assist with your legal work</h3>
+                            <p class="text-gray-500 max-w-md mx-auto mb-6">I can help with research, document drafting, case analysis, and provide specialized guidance across all practice areas.</p>
+                            
+                            <div class="flex items-center justify-center gap-4 text-sm text-gray-400 mb-8">
+                                <div class="flex items-center gap-1">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    Professional Grade AI
+                                </div>
+                                <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+                                <div class="flex items-center gap-1">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H15.5C16.4,11 17,11.4 17,12V16C17,16.6 16.6,17 16,17H8C7.4,17 7,16.6 7,16V12C7,11.4 7.4,11 8,11H8.5V10C8.5,8.6 9.6,7 12,7M12,8.2C10.2,8.2 9.8,9.2 9.8,10V11H14.2V10C14.2,9.2 13.8,8.2 12,8.2Z"/>
+                                    </svg>
+                                    Secure & Confidential
+                                </div>
+                                <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+                                <div class="flex items-center gap-1">
+                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                    Real-time Responses
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <!-- Enhanced Quick Actions -->
+                        <div class="quick-actions" id="quickActions">
+                            <div class="flex items-center gap-2 mb-3">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                                </svg>
+                                <span class="text-sm font-medium text-gray-600">Quick Actions</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                <button class="quick-action-btn flex items-center gap-2" data-prompt="Summarize this case">
+                                    <div class="doc-icon evidence">S</div>
+                                    <span>Summarize</span>
+                                </button>
+                                <button class="quick-action-btn flex items-center gap-2" data-prompt="Draft a legal document">
+                                    <div class="doc-icon contract">D</div>
+                                    <span>Draft</span>
+                                </button>
+                                <button class="quick-action-btn flex items-center gap-2" data-prompt="Research legal precedents">
+                                    <div class="doc-icon brief">R</div>
+                                    <span>Research</span>
+                                </button>
+                                <button class="quick-action-btn flex items-center gap-2" data-prompt="Analyze contract terms">
+                                    <div class="doc-icon motion">A</div>
+                                    <span>Analyze</span>
+                                </button>
+                                <button class="quick-action-btn flex items-center gap-2" data-prompt="Calculate damages">
+                                    <div class="doc-icon correspondence">C</div>
+                                    <span>Calculate</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <form id="chatForm" class="mt-4">
+                            <div class="chat-input-wrapper">
+                                <textarea id="messageInput" 
+                                         class="chat-input" 
+                                         placeholder="Ask me anything about legal matters..."
+                                         rows="1"
+                                         required></textarea>
+                                <button type="submit" class="chat-send-button" id="sendButton">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="btn-outline btn-sm" id="attachFileBtn">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                        </svg>
+                                        Attach
+                                    </button>
+                                    <button type="button" class="btn-outline btn-sm" id="templatesBtn">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                        </svg>
+                                        Templates
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="text-xs text-gray-400 flex items-center gap-1">
+                                        <div class="status-dot status-active"></div>
+                                        <span>Real-time mode</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        <span>⏎ Send • ⇧⏎ New line</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let currentClientId = '';
+        let currentPracticeArea = 'general';
+        let conversationHistory = [];
+
+        // URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramPracticeArea = urlParams.get('practice_area');
+        const paramPrompt = urlParams.get('prompt');
+        const paramClientId = urlParams.get('client_id');
+
+        // DOM elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const clientSelector = document.getElementById('clientSelector');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatForm = document.getElementById('chatForm');
+        const chatMessages = document.getElementById('chatMessages');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const attachFileBtn = document.getElementById('attachFileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const practiceAreaIndicator = document.getElementById('practiceAreaIndicator');
+        const tokenCounter = document.getElementById('tokenCounter');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            initializeFromParams();
+            autoResizeTextarea();
+        });
+
+        function setupEventListeners() {
+            // Modern sidebar toggle with hamburger animation
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('sidebar-hidden');
+                document.querySelector('.main-content').classList.toggle('main-content-full');
+                sidebarToggle.classList.toggle('active');
+            });
+
+            // Client selection
+            clientSelector.addEventListener('change', (e) => {
+                currentClientId = e.target.value;
+                console.log('Selected client:', currentClientId);
+            });
+
+            // Chat form submission
+            chatForm.addEventListener('submit', handleChatSubmission);
+
+            // Auto-resize textarea
+            messageInput.addEventListener('input', autoResizeTextarea);
+
+            // Keyboard shortcuts
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChatSubmission(e);
+                }
+            });
+
+            // Quick action buttons
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const prompt = btn.dataset.prompt;
+                    messageInput.value = prompt;
+                    messageInput.focus();
+                    autoResizeTextarea();
+                });
+            });
+
+            // Practice area prompts
+            document.querySelectorAll('.practice-prompt').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const practiceArea = btn.dataset.practiceArea;
+                    const prompt = btn.dataset.prompt;
+                    currentPracticeArea = practiceArea;
+                    messageInput.value = prompt;
+                    updatePracticeAreaIndicator();
+                    messageInput.focus();
+                    autoResizeTextarea();
+                });
+            });
+
+            // File attachment
+            attachFileBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileName = file.name;
+                    messageInput.value = `Analyze this document: ${fileName}\n\n` + messageInput.value;
+                    autoResizeTextarea();
+                }
+            });
+
+            // New chat
+            newChatBtn.addEventListener('click', startNewChat);
+
+            // Clear chat
+            clearChatBtn.addEventListener('click', clearChat);
+        }
+
+        function initializeFromParams() {
+            if (paramClientId) {
+                currentClientId = paramClientId;
+                clientSelector.value = paramClientId;
+            }
+
+            if (paramPracticeArea) {
+                currentPracticeArea = paramPracticeArea;
+                updatePracticeAreaIndicator();
+            }
+
+            if (paramPrompt) {
+                messageInput.value = paramPrompt;
+                messageInput.focus();
+                autoResizeTextarea();
+            }
+        }
+
+        function autoResizeTextarea() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+        }
+
+        function updatePracticeAreaIndicator() {
+            const practiceAreas = {{ practice_areas | tojson | safe }};
+            const area = practiceAreas[currentPracticeArea];
+            if (area) {
+                practiceAreaIndicator.textContent = area.name + ' - Specialized Assistance';
+            } else {
+                practiceAreaIndicator.textContent = 'General Legal Assistance';
+            }
+        }
+
+        async function handleChatSubmission(e) {
+            e.preventDefault();
+            
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Disable form
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<svg class="animate-spin" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8v8H4z"/></svg>';
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+            
+            // Clear input
+            messageInput.value = '';
+            autoResizeTextarea();
+
+            // Hide quick actions after first message
+            document.getElementById('quickActions').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        client_id: currentClientId || 'default_client',
+                        practice_area: currentPracticeArea
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+                    addMessageToChat('assistant', data.choices[0].delta.content);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessageToChat('assistant', 'I apologize, but I encountered an error processing your request. Please try again.');
+            } finally {
+                // Re-enable form
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>';
+                messageInput.focus();
+            }
+        }
+
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            // Enhanced avatar with gradients and status
+            const avatar = document.createElement('div');
+            avatar.className = `message-avatar ${role}`;
+            if (role === 'user') {
+                avatar.textContent = 'U';
+                avatar.style.background = 'linear-gradient(135deg, #3b82f6, #1e40af)';
+            } else {
+                avatar.innerHTML = `
+                    <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                `;
+                avatar.style.background = 'linear-gradient(135deg, #8b5cf6, #6366f1)';
+            }
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (role === 'assistant') {
+                // Enhanced message with actions
+                const contentWrapper = document.createElement('div');
+                contentWrapper.innerHTML = marked.parse(content);
+                messageContent.appendChild(contentWrapper);
+                
+                // Add message actions
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-2 mt-3 pt-3 border-t border-gray-100';
+                actions.innerHTML = `
+                    <button class="btn-outline btn-sm copy-btn" data-content="${content.replace(/"/g, '&quot;')}">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copy
+                    </button>
+                    <button class="btn-outline btn-sm regenerate-btn">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Regenerate
+                    </button>
+                    <button class="btn-outline btn-sm improve-btn">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        Improve
+                    </button>
+                    <div class="ml-auto flex items-center gap-2 text-xs text-gray-400">
+                        <span>${new Date().toLocaleTimeString()}</span>
+                        <div class="badge badge-success">Grok-3</div>
+                    </div>
+                `;
+                messageContent.appendChild(actions);
+            } else {
+                messageContent.textContent = content;
+                
+                // Add timestamp for user messages
+                const timestamp = document.createElement('div');
+                timestamp.className = 'text-xs text-gray-400 mt-2';
+                timestamp.textContent = new Date().toLocaleTimeString();
+                messageContent.appendChild(timestamp);
+            }
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
+            // Remove empty state if present
+            const emptyState = chatMessages.querySelector('.text-center');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            // Add with animation
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transform = 'translateY(20px)';
+            chatMessages.appendChild(messageDiv);
+            
+            requestAnimationFrame(() => {
+                messageDiv.style.transition = 'all 0.3s ease';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
+            });
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Update conversation history
+            conversationHistory.push({ role, content });
+            updateTokenCounter();
+        }
+
+        function updateTokenCounter() {
+            // Enhanced token estimation with better accuracy
+            const totalChars = conversationHistory.reduce((acc, msg) => acc + msg.content.length, 0);
+            const estimatedTokens = Math.ceil(totalChars / 4);
+            tokenCounter.textContent = `${estimatedTokens}`;
+            
+            // Update navbar token usage
+            const tokenUsage = document.getElementById('tokenUsage');
+            if (tokenUsage) {
+                tokenUsage.textContent = `${estimatedTokens} tokens used`;
+            }
+            
+            // Add visual warning if approaching limits
+            if (estimatedTokens > 8000) {
+                tokenCounter.classList.add('text-warning');
+            } else if (estimatedTokens > 15000) {
+                tokenCounter.classList.add('text-error');
+            } else {
+                tokenCounter.classList.remove('text-warning', 'text-error');
+            }
+        }
+
+        function startNewChat() {
+            clearChat();
+            currentClientId = '';
+            currentPracticeArea = 'general';
+            clientSelector.value = '';
+            updatePracticeAreaIndicator();
+            document.getElementById('quickActions').style.display = 'flex';
+        }
+
+        function clearChat() {
+            chatMessages.innerHTML = `
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Start a conversation</h3>
+                    <p class="text-gray-500">Ask me anything about legal matters. I can help with research, document drafting, and case analysis.</p>
+                </div>
+            `;
+            conversationHistory = [];
+            updateTokenCounter();
+            messageInput.focus();
+        }
+
+        // Enhanced event handlers for new features
+        document.addEventListener('click', (e) => {
+            // Copy button handler
+            if (e.target.closest('.copy-btn')) {
+                const btn = e.target.closest('.copy-btn');
+                const content = btn.dataset.content;
+                navigator.clipboard.writeText(content).then(() => {
+                    btn.innerHTML = `
+                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Copied!
+                    `;
+                    setTimeout(() => {
+                        btn.innerHTML = `
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        `;
+                    }, 2000);
+                });
+            }
+            
+            // Regenerate button handler
+            if (e.target.closest('.regenerate-btn')) {
+                // Get the last user message and regenerate response
+                const lastUserMessage = conversationHistory.filter(m => m.role === 'user').pop();
+                if (lastUserMessage) {
+                    handleChatSubmission({ preventDefault: () => {}, target: { elements: { messageInput: { value: lastUserMessage.content } } } });
+                }
+            }
+            
+            // Improve button handler
+            if (e.target.closest('.improve-btn')) {
+                messageInput.value = 'Please improve and expand on your previous response with more detail and examples.';
+                messageInput.focus();
+            }
+        });
+        
+        // Export chat functionality
+        document.getElementById('exportChatBtn')?.addEventListener('click', () => {
+            const chatContent = conversationHistory.map(msg => 
+                `${msg.role.toUpperCase()}: ${msg.content}`
+            ).join('\n\n');
+            
+            const blob = new Blob([chatContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lexai-chat-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        
+        // Templates placeholder
+        document.getElementById('templatesBtn')?.addEventListener('click', () => {
+            alert('Legal templates feature coming soon!');
+        });
+
+        // Mobile responsiveness
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('sidebar-hidden');
+                document.querySelector('.main-content').classList.add('main-content-full');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
+        
+        // Auto-save conversation state
+        setInterval(() => {
+            if (conversationHistory.length > 0) {
+                localStorage.setItem('lexai-conversation', JSON.stringify(conversationHistory));
+            }
+        }, 30000); // Save every 30 seconds
+    </script>
+</body>
+</html>

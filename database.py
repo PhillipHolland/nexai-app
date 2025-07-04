@@ -5,6 +5,45 @@ import json
 
 db = SQLAlchemy()
 
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.LargeBinary, nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    firm_name = db.Column(db.String(100), nullable=True)
+    role = db.Column(db.String(20), nullable=False, default='user')  # 'user', 'admin', 'premium'
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(DateTime(timezone=True), default=func.now())
+    last_login = db.Column(DateTime(timezone=True), nullable=True)
+    password_updated_at = db.Column(DateTime(timezone=True), nullable=True)
+    reset_token = db.Column(db.String(64), nullable=True)
+    reset_token_expires = db.Column(DateTime(timezone=True), nullable=True)
+    
+    # Subscription info
+    subscription_tier = db.Column(db.String(20), default='free')  # 'free', 'professional', 'premium', 'enterprise'
+    subscription_expires = db.Column(DateTime(timezone=True), nullable=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'firm_name': self.firm_name,
+            'role': self.role,
+            'is_active': self.is_active,
+            'subscription_tier': self.subscription_tier,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None
+        }
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
 class Client(db.Model):
     __tablename__ = 'clients'
     

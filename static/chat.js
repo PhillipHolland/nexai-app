@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Send chat message only if there’s a message to send
         if (message) {
             const payload = {
-                messages: [{ role: 'user', content: message + (fileContent ? `\n\nFile Content: ${fileContent}` : '') }],
+                message: message + (fileContent ? `\n\nFile Content: ${fileContent}` : ''),
                 client_id: currentClientId || "default_client", // Default to "default_client" if none selected
             };
             try {
