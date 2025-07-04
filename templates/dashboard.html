@@ -304,12 +304,12 @@
             </div>
             
             <div class="nav-menu">
-                <a href="{{ url_for('dashboard') }}" class="nav-link active">Dashboard</a>
-                <a href="{{ url_for('chat_interface') }}" class="nav-link">AI Assistant</a>
-                <a href="{{ url_for('clients_list') }}" class="nav-link">Clients</a>
-                <a href="{{ url_for('documents_list') }}" class="nav-link">Documents</a>
-                <a href="{{ url_for('legal_research_page') }}" class="nav-link">Research</a>
-                <a href="{{ url_for('analytics_dashboard') }}" class="nav-link">Analytics</a>
+                <a href="/" class="nav-link active">Dashboard</a>
+                <a href="/chat" class="nav-link">AI Assistant</a>
+                <a href="/clients" class="nav-link">Clients</a>
+                <a href="/documents" class="nav-link">Documents</a>
+                <a href="/search" class="nav-link">Research</a>
+                <a href="/analytics" class="nav-link">Analytics</a>
             </div>
         </div>
     </nav>
@@ -330,7 +330,7 @@
                     <p class="card-subtitle">Start your workflow with common tasks</p>
                 </div>
                 <div class="card-content">
-                    <div class="quick-action" onclick="window.location.href='{{ url_for('chat_interface') }}'">
+                    <div class="quick-action" onclick="window.location.href='/chat'">
                         <div class="quick-action-icon">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -342,7 +342,7 @@
                         </div>
                     </div>
                     
-                    <div class="quick-action" onclick="window.location.href='{{ url_for('clients_list') }}'">
+                    <div class="quick-action" onclick="window.location.href='/clients'">
                         <div class="quick-action-icon">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -354,7 +354,7 @@
                         </div>
                     </div>
                     
-                    <div class="quick-action" onclick="window.location.href='{{ url_for('legal_research_page') }}'">
+                    <div class="quick-action" onclick="window.location.href='/search'">
                         <div class="quick-action-icon">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -377,7 +377,7 @@
                 <div class="card-content">
                     <div class="practice-areas-grid">
                         {% for area_id, area in practice_areas.items() %}
-                        <div class="practice-area-card" onclick="window.location.href='{{ url_for('chat_interface') }}?practice_area={{ area_id }}'">
+                        <div class="practice-area-card" onclick="window.location.href='/chat?practice_area={{ area_id }}'">
                             <div class="practice-area-icon" style="background: {{ area.color }}20; color: {{ area.color }};">
                                 {% if area_id == 'family' %}👨‍👩‍👧‍👦{% endif %}
                                 {% if area_id == 'personal_injury' %}🩹{% endif %}
@@ -422,7 +422,7 @@
                             </svg>
                             <h4 style="color: #6b7280; margin-bottom: 8px;">No recent activity</h4>
                             <p style="color: #9ca3af; font-size: 0.875rem;">Start a conversation to see your activity here</p>
-                            <button class="btn-primary" onclick="window.location.href='{{ url_for('chat_interface') }}'" style="margin-top: 16px;">Start Your First Chat</button>
+                            <button class="btn-primary" onclick="window.location.href='/chat'" style="margin-top: 16px;">Start Your First Chat</button>
                         </div>
                     {% endif %}
                 </div>
