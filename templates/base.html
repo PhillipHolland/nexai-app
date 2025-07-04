@@ -190,6 +190,23 @@
                         </div>
                     </div>
                     
+                    <!-- Time & Billing Dropdown -->
+                    <div class="base-dropdown">
+                        <button class="base-dropdown-button">
+                            Time & Billing
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="base-dropdown-menu hidden">
+                            <a href="{{ url_for('time_tracking_page') }}" class="base-dropdown-item">Time Tracking</a>
+                            <a href="{{ url_for('billing_page') }}" class="base-dropdown-item">Billing & Invoices</a>
+                            <a href="#" class="base-dropdown-item">Expense Tracking</a>
+                            <a href="#" class="base-dropdown-item">Payment Management</a>
+                            <a href="#" class="base-dropdown-item">Time Reports</a>
+                        </div>
+                    </div>
+                    
                     <!-- Analytics & Reports Dropdown -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
@@ -201,7 +218,6 @@
                         <div class="base-dropdown-menu hidden">
                             <a href="{{ url_for('analytics_dashboard') }}" class="base-dropdown-item">Performance Dashboard</a>
                             <a href="#" class="base-dropdown-item">Financial Reports</a>
-                            <a href="#" class="base-dropdown-item">Time Tracking</a>
                             <a href="#" class="base-dropdown-item">Client Insights</a>
                             <a href="#" class="base-dropdown-item">Predictive Analytics</a>
                         </div>
@@ -286,6 +302,10 @@
                 <a href="{{ url_for('documents_list') }}" 
                    class="base-mobile-link {% if request.endpoint == 'documents_list' %}active{% endif %}">
                     Documents
+                </a>
+                <a href="{{ url_for('time_tracking_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
+                    Time Tracking
                 </a>
                 <a href="{{ url_for('analytics_dashboard') }}" 
                    class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">

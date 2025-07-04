@@ -8095,6 +8095,26 @@ def api_update_profile():
             'error': 'Profile update failed. Please try again.'
         }), 500
 
+@app.route('/time-tracking')
+def time_tracking_page():
+    """Time tracking page"""
+    try:
+        from flask import render_template
+        return render_template('time_tracking.html')
+    except Exception as e:
+        logger.error(f"Time tracking template error: {e}")
+        return f"<h1>Time Tracking</h1><p>Template error: {e}</p>", 500
+
+@app.route('/billing')
+def billing_page():
+    """Billing and invoices page"""
+    try:
+        from flask import render_template
+        return render_template('billing.html')
+    except Exception as e:
+        logger.error(f"Billing template error: {e}")
+        return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
+
 @app.route('/api/auth/change-password', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['currentPassword', 'newPassword'])
@@ -8126,6 +8146,643 @@ def api_change_password():
         return jsonify({
             'success': False,
             'error': 'Password change failed. Please try again.'
+        }), 500
+
+# Time Tracking API Routes
+@app.route('/api/time/entries', methods=['GET'])
+def api_get_time_entries():
+    """Get time entries with filtering"""
+    try:
+        # Get query parameters
+        client_id = request.args.get('client_id')
+        project_id = request.args.get('project_id')
+        date_range = request.args.get('date_range', 'month')
+        status = request.args.get('status')
+        
+        # Demo time entries data
+        demo_entries = [
+            {
+                'id': 1,
+                'date': '2025-01-07',
+                'client': 'John Smith - Family Law',
+                'client_id': 'john-smith',
+                'project': 'Divorce Settlement',
+                'project_id': 'divorce-case',
+                'task': 'Document Review',
+                'task_id': 'review',
+                'description': 'Reviewed financial documents and asset disclosure forms',
+                'duration': 2.5,
+                'rate': 350,
+                'amount': 875,
+                'status': 'completed',
+                'timestamp': '2025-01-07T10:30:00Z'
+            },
+            {
+                'id': 2,
+                'date': '2025-01-06',
+                'client': 'ABC Corporation - Corporate',
+                'client_id': 'abc-corp',
+                'project': 'Contract Review',
+                'project_id': 'contract-review',
+                'task': 'Legal Research',
+                'task_id': 'research',
+                'description': 'Researched corporate governance regulations for merger',
+                'duration': 3.25,
+                'rate': 375,
+                'amount': 1218.75,
+                'status': 'billed',
+                'timestamp': '2025-01-06T14:15:00Z'
+            },
+            {
+                'id': 3,
+                'date': '2025-01-06',
+                'client': 'Jane Doe - Personal Injury',
+                'client_id': 'jane-doe',
+                'project': 'Personal Injury Litigation',
+                'project_id': 'litigation',
+                'task': 'Client Meeting',
+                'task_id': 'client-meeting',
+                'description': 'Initial consultation and case assessment meeting',
+                'duration': 1.5,
+                'rate': 350,
+                'amount': 525,
+                'status': 'completed',
+                'timestamp': '2025-01-06T09:00:00Z'
+            }
+        ]
+        
+        # Apply filters (basic implementation)
+        filtered_entries = demo_entries
+        if client_id:
+            filtered_entries = [e for e in filtered_entries if e['client_id'] == client_id]
+        if status:
+            filtered_entries = [e for e in filtered_entries if e['status'] == status]
+        
+        # Calculate summary statistics
+        total_hours = sum(entry['duration'] for entry in filtered_entries)
+        total_amount = sum(entry['amount'] for entry in filtered_entries)
+        unbilled_amount = sum(entry['amount'] for entry in filtered_entries if entry['status'] == 'completed')
+        
+        return jsonify({
+            'success': True,
+            'entries': filtered_entries,
+            'summary': {
+                'total_hours': total_hours,
+                'total_amount': total_amount,
+                'unbilled_amount': unbilled_amount,
+                'entry_count': len(filtered_entries)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get time entries API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve time entries'
+        }), 500
+
+@app.route('/api/time/entries', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['client_id', 'project_id', 'task_id', 'duration'])
+def api_create_time_entry():
+    """Create a new time entry"""
+    try:
+        data = g.validated_data
+        
+        # Validate required fields
+        required_fields = ['client_id', 'project_id', 'task_id', 'duration']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({
+                    'success': False,
+                    'error': f'{field} is required'
+                }), 400
+        
+        # Sanitize and validate inputs
+        client_id = SecurityValidator.sanitize_input(data.get('client_id', ''))
+        project_id = SecurityValidator.sanitize_input(data.get('project_id', ''))
+        task_id = SecurityValidator.sanitize_input(data.get('task_id', ''))
+        description = SecurityValidator.sanitize_input(data.get('description', ''))
+        
+        duration = float(data.get('duration', 0))
+        rate = float(data.get('rate', 350))
+        
+        if duration <= 0:
+            return jsonify({
+                'success': False,
+                'error': 'Duration must be greater than 0'
+            }), 400
+        
+        # Create time entry
+        entry = {
+            'id': int(datetime.utcnow().timestamp()),
+            'date': datetime.utcnow().strftime('%Y-%m-%d'),
+            'client_id': client_id,
+            'project_id': project_id,
+            'task_id': task_id,
+            'description': description,
+            'duration': duration,
+            'rate': rate,
+            'amount': duration * rate,
+            'status': 'completed',
+            'timestamp': datetime.utcnow().isoformat(),
+            'created_by': 'demo_user'
+        }
+        
+        logger.info(f"Time entry created: {duration}h for {client_id} - ${entry['amount']:.2f}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Time entry created successfully',
+            'entry': entry
+        })
+        
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid numeric value for duration or rate'
+        }), 400
+    except Exception as e:
+        logger.error(f"Create time entry API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create time entry'
+        }), 500
+
+@app.route('/api/time/entries/<int:entry_id>', methods=['PUT'])
+@rate_limit_decorator
+@validate_json_input()
+def api_update_time_entry(entry_id):
+    """Update an existing time entry"""
+    try:
+        data = g.validated_data
+        
+        # For demo purposes, simulate successful update
+        logger.info(f"Time entry {entry_id} updated")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Time entry updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Update time entry API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update time entry'
+        }), 500
+
+@app.route('/api/time/entries/<int:entry_id>', methods=['DELETE'])
+def api_delete_time_entry(entry_id):
+    """Delete a time entry"""
+    try:
+        # For demo purposes, simulate successful deletion
+        logger.info(f"Time entry {entry_id} deleted")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Time entry deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Delete time entry API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to delete time entry'
+        }), 500
+
+@app.route('/api/time/summary', methods=['GET'])
+def api_time_summary():
+    """Get time tracking summary statistics"""
+    try:
+        date_range = request.args.get('range', 'month')
+        
+        # Demo summary data
+        summary = {
+            'today': {
+                'hours': 6.5,
+                'amount': 2275,
+                'entries': 3
+            },
+            'week': {
+                'hours': 42.5,
+                'amount': 14875,
+                'entries': 18
+            },
+            'month': {
+                'hours': 180.25,
+                'amount': 63087.50,
+                'entries': 76
+            },
+            'unbilled': {
+                'hours': 28.75,
+                'amount': 10062.50,
+                'entries': 12
+            },
+            'by_client': [
+                {'client': 'ABC Corporation', 'hours': 45.5, 'amount': 17062.50},
+                {'client': 'John Smith', 'hours': 32.25, 'amount': 11287.50},
+                {'client': 'Jane Doe', 'hours': 28.5, 'amount': 9975.00}
+            ],
+            'by_task': [
+                {'task': 'Legal Research', 'hours': 52.5, 'percentage': 29.1},
+                {'task': 'Document Drafting', 'hours': 38.25, 'percentage': 21.2},
+                {'task': 'Document Review', 'hours': 35.0, 'percentage': 19.4},
+                {'task': 'Client Meeting', 'hours': 25.5, 'percentage': 14.1}
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'summary': summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Time summary API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve time summary'
+        }), 500
+
+# Billing and Invoice API Routes
+@app.route('/api/invoices', methods=['GET'])
+def api_get_invoices():
+    """Get invoices with filtering"""
+    try:
+        # Get query parameters
+        client_id = request.args.get('client_id')
+        status = request.args.get('status')
+        date_range = request.args.get('date_range', 'all')
+        
+        # Demo invoice data
+        demo_invoices = [
+            {
+                'id': 1,
+                'invoice_number': 'INV-2025-001',
+                'client': 'ABC Corporation',
+                'client_id': 'abc-corp',
+                'date': '2025-01-05',
+                'due_date': '2025-02-04',
+                'amount': 8750.00,
+                'status': 'sent',
+                'line_items': [
+                    {'description': 'Legal research for merger', 'quantity': 15.5, 'rate': 375, 'amount': 5812.50},
+                    {'description': 'Contract review and analysis', 'quantity': 8.0, 'rate': 375, 'amount': 3000.00}
+                ],
+                'subtotal': 8812.50,
+                'tax': 750.06,
+                'total': 8750.00
+            },
+            {
+                'id': 2,
+                'invoice_number': 'INV-2025-002',
+                'client': 'John Smith',
+                'client_id': 'john-smith',
+                'date': '2025-01-03',
+                'due_date': '2025-02-02',
+                'amount': 4200.00,
+                'status': 'paid',
+                'paid_date': '2025-01-25',
+                'line_items': [
+                    {'description': 'Family law consultation', 'quantity': 3.0, 'rate': 350, 'amount': 1050.00},
+                    {'description': 'Document preparation', 'quantity': 9.0, 'rate': 350, 'amount': 3150.00}
+                ],
+                'subtotal': 4200.00,
+                'tax': 0.00,
+                'total': 4200.00
+            },
+            {
+                'id': 3,
+                'invoice_number': 'INV-2024-156',
+                'client': 'Jane Doe',
+                'client_id': 'jane-doe',
+                'date': '2024-12-28',
+                'due_date': '2025-01-27',
+                'amount': 2100.00,
+                'status': 'overdue',
+                'line_items': [
+                    {'description': 'Personal injury case research', 'quantity': 6.0, 'rate': 350, 'amount': 2100.00}
+                ],
+                'subtotal': 2100.00,
+                'tax': 0.00,
+                'total': 2100.00
+            }
+        ]
+        
+        # Apply filters
+        filtered_invoices = demo_invoices
+        if client_id:
+            filtered_invoices = [inv for inv in filtered_invoices if inv['client_id'] == client_id]
+        if status:
+            filtered_invoices = [inv for inv in filtered_invoices if inv['status'] == status]
+        
+        # Calculate summary
+        total_outstanding = sum(inv['amount'] for inv in filtered_invoices if inv['status'] != 'paid')
+        total_paid = sum(inv['amount'] for inv in filtered_invoices if inv['status'] == 'paid')
+        overdue_amount = sum(inv['amount'] for inv in filtered_invoices if inv['status'] == 'overdue')
+        
+        return jsonify({
+            'success': True,
+            'invoices': filtered_invoices,
+            'summary': {
+                'total_outstanding': total_outstanding,
+                'total_paid': total_paid,
+                'overdue_amount': overdue_amount,
+                'invoice_count': len(filtered_invoices)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get invoices API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve invoices'
+        }), 500
+
+@app.route('/api/invoices', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['client_id', 'line_items'])
+def api_create_invoice():
+    """Create a new invoice"""
+    try:
+        data = g.validated_data
+        
+        # Validate required fields
+        if not data.get('client_id') or not data.get('line_items'):
+            return jsonify({
+                'success': False,
+                'error': 'Client and line items are required'
+            }), 400
+        
+        # Sanitize inputs
+        client_id = SecurityValidator.sanitize_input(data.get('client_id', ''))
+        line_items = data.get('line_items', [])
+        
+        # Validate line items
+        if not isinstance(line_items, list) or len(line_items) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'At least one line item is required'
+            }), 400
+        
+        # Calculate totals
+        subtotal = 0
+        for item in line_items:
+            quantity = float(item.get('quantity', 0))
+            rate = float(item.get('rate', 0))
+            subtotal += quantity * rate
+        
+        tax_rate = float(data.get('tax_rate', 0.085))  # 8.5% default
+        tax = subtotal * tax_rate
+        total = subtotal + tax
+        
+        # Generate invoice number
+        invoice_number = f"INV-2025-{len(demo_invoices) + 1:03d}"
+        
+        # Create invoice
+        invoice = {
+            'id': int(datetime.utcnow().timestamp()),
+            'invoice_number': invoice_number,
+            'client_id': client_id,
+            'date': data.get('date', datetime.utcnow().strftime('%Y-%m-%d')),
+            'due_date': data.get('due_date'),
+            'line_items': line_items,
+            'subtotal': subtotal,
+            'tax': tax,
+            'total': total,
+            'status': 'draft',
+            'created_at': datetime.utcnow().isoformat(),
+            'created_by': 'demo_user'
+        }
+        
+        logger.info(f"Invoice created: {invoice_number} for {client_id} - ${total:.2f}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice created successfully',
+            'invoice': invoice
+        })
+        
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid numeric values in line items'
+        }), 400
+    except Exception as e:
+        logger.error(f"Create invoice API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create invoice'
+        }), 500
+
+@app.route('/api/invoices/<int:invoice_id>', methods=['PUT'])
+@rate_limit_decorator
+@validate_json_input()
+def api_update_invoice(invoice_id):
+    """Update an existing invoice"""
+    try:
+        data = g.validated_data
+        
+        # For demo purposes, simulate successful update
+        logger.info(f"Invoice {invoice_id} updated")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Update invoice API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update invoice'
+        }), 500
+
+@app.route('/api/invoices/<int:invoice_id>/send', methods=['POST'])
+@rate_limit_decorator
+def api_send_invoice(invoice_id):
+    """Send an invoice to client"""
+    try:
+        # For demo purposes, simulate sending invoice
+        logger.info(f"Invoice {invoice_id} sent to client")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice sent successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Send invoice API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to send invoice'
+        }), 500
+
+@app.route('/api/invoices/<int:invoice_id>/payment', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['amount'])
+def api_record_payment(invoice_id):
+    """Record a payment for an invoice"""
+    try:
+        data = g.validated_data
+        
+        amount = float(data.get('amount', 0))
+        if amount <= 0:
+            return jsonify({
+                'success': False,
+                'error': 'Payment amount must be greater than 0'
+            }), 400
+        
+        payment_method = SecurityValidator.sanitize_input(data.get('payment_method', 'check'))
+        notes = SecurityValidator.sanitize_input(data.get('notes', ''))
+        
+        # Create payment record
+        payment = {
+            'id': int(datetime.utcnow().timestamp()),
+            'invoice_id': invoice_id,
+            'amount': amount,
+            'payment_method': payment_method,
+            'payment_date': datetime.utcnow().strftime('%Y-%m-%d'),
+            'notes': notes,
+            'recorded_at': datetime.utcnow().isoformat()
+        }
+        
+        logger.info(f"Payment recorded: ${amount:.2f} for invoice {invoice_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Payment recorded successfully',
+            'payment': payment
+        })
+        
+    except ValueError as e:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid payment amount'
+        }), 400
+    except Exception as e:
+        logger.error(f"Record payment API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to record payment'
+        }), 500
+
+@app.route('/api/billing/summary', methods=['GET'])
+def api_billing_summary():
+    """Get billing summary statistics"""
+    try:
+        date_range = request.args.get('range', 'month')
+        
+        # Demo billing summary
+        summary = {
+            'outstanding': {
+                'amount': 24850.00,
+                'count': 8,
+                'change_percent': 8.2
+            },
+            'paid_this_month': {
+                'amount': 63250.00,
+                'count': 12,
+                'change_percent': 12.5
+            },
+            'overdue': {
+                'amount': 3420.00,
+                'count': 2,
+                'change_percent': -15.3
+            },
+            'avg_payment_time': {
+                'days': 18,
+                'change_days': -3
+            },
+            'monthly_revenue': [
+                {'month': 'Aug', 'amount': 45200},
+                {'month': 'Sep', 'amount': 52300},
+                {'month': 'Oct', 'amount': 48900},
+                {'month': 'Nov', 'amount': 61400},
+                {'month': 'Dec', 'amount': 58700},
+                {'month': 'Jan', 'amount': 63250}
+            ],
+            'payment_methods': [
+                {'method': 'Bank Transfer', 'amount': 42500, 'percentage': 67.2},
+                {'method': 'Check', 'amount': 15750, 'percentage': 24.9},
+                {'method': 'Credit Card', 'amount': 5000, 'percentage': 7.9}
+            ],
+            'top_clients': [
+                {'client': 'ABC Corporation', 'amount': 28750, 'invoices': 3},
+                {'client': 'Tech Startup Inc.', 'amount': 18500, 'invoices': 2},
+                {'client': 'Metro Real Estate', 'amount': 12400, 'invoices': 4}
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'summary': summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Billing summary API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve billing summary'
+        }), 500
+
+@app.route('/api/invoices/generate-from-time', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['client_id'])
+def api_generate_invoice_from_time():
+    """Generate invoice from unbilled time entries"""
+    try:
+        data = g.validated_data
+        client_id = SecurityValidator.sanitize_input(data.get('client_id', ''))
+        
+        if not client_id:
+            return jsonify({
+                'success': False,
+                'error': 'Client ID is required'
+            }), 400
+        
+        # For demo purposes, simulate generating invoice from time entries
+        # In reality, this would query unbilled time entries for the client
+        demo_time_entries = [
+            {'description': 'Legal research and case analysis', 'hours': 3.5, 'rate': 350},
+            {'description': 'Document review and preparation', 'hours': 2.25, 'rate': 350},
+            {'description': 'Client consultation meeting', 'hours': 1.0, 'rate': 350}
+        ]
+        
+        subtotal = sum(entry['hours'] * entry['rate'] for entry in demo_time_entries)
+        tax = subtotal * 0.085
+        total = subtotal + tax
+        
+        invoice_data = {
+            'client_id': client_id,
+            'line_items': [
+                {
+                    'description': entry['description'],
+                    'quantity': entry['hours'],
+                    'rate': entry['rate'],
+                    'amount': entry['hours'] * entry['rate']
+                }
+                for entry in demo_time_entries
+            ],
+            'subtotal': subtotal,
+            'tax': tax,
+            'total': total
+        }
+        
+        logger.info(f"Invoice generated from time entries: {client_id} - ${total:.2f}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice generated from time entries',
+            'invoice_data': invoice_data,
+            'time_entries_count': len(demo_time_entries)
+        })
+        
+    except Exception as e:
+        logger.error(f"Generate invoice from time API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate invoice from time entries'
         }), 500
 
 # Redirect routes for compatibility

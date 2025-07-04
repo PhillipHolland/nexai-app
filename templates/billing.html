@@ -1,0 +1,960 @@
+{% extends "base.html" %}
+
+{% block title %}Billing & Invoices - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Billing Specific Styles */
+        .billing-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .billing-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .billing-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .billing-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .billing-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Quick Stats Cards */
+        .billing-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2E4B3C;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: #2E4B3C;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F7EDDA;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .stat-change.positive {
+            color: #16a34a;
+        }
+
+        .stat-change.negative {
+            color: #dc2626;
+        }
+
+        /* Action Buttons */
+        .billing-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+            text-decoration: none;
+        }
+
+        .action-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: #F7EDDA;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-card:hover .action-icon {
+            transform: scale(1.1);
+        }
+
+        .action-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Invoice Section */
+        .invoice-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        /* Invoice Table */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .invoice-table th {
+            text-align: left;
+            padding: 1rem 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .invoice-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .invoice-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-sent {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-paid {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Invoice Form */
+        .invoice-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .invoice-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-section {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Line Items */
+        .line-items {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .line-items-header {
+            background: #f9fafb;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .line-item {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            align-items: center;
+        }
+
+        .line-item:last-child {
+            border-bottom: none;
+        }
+
+        .line-item input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .line-item-remove {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .line-item-remove:hover {
+            background-color: #fee2e2;
+        }
+
+        /* Invoice Totals */
+        .invoice-totals {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .total-row.final {
+            font-size: 1.125rem;
+            font-weight: 600;
+            padding-top: 0.5rem;
+            border-top: 1px solid #d1d5db;
+            margin-top: 1rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .billing-title {
+                font-size: 2rem;
+            }
+
+            .billing-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .billing-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .section-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .section-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .line-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .billing-container {
+                background: white;
+            }
+            
+            .section-actions,
+            .billing-actions,
+            .btn {
+                display: none !important;
+            }
+            
+            .invoice-section {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="billing-container">
+    <!-- Billing Header -->
+    <div class="billing-header">
+        <h1 class="billing-title">Billing & Invoices</h1>
+        <p class="billing-subtitle">Generate invoices, track payments, and manage your firm's billing</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="billing-main">
+        <!-- Quick Stats -->
+        <div class="billing-stats">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Outstanding</div>
+                    <div class="stat-icon">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2v20m9-9H3"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$24,850</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    +8.2% from last month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Paid This Month</div>
+                    <div class="stat-icon">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$63,250</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    +12.5% from last month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Overdue</div>
+                    <div class="stat-icon">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">$3,420</div>
+                <div class="stat-change negative">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 10l-5 5-5-5"/>
+                    </svg>
+                    2 invoices overdue
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-title">Avg. Payment Time</div>
+                    <div class="stat-icon">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">18 days</div>
+                <div class="stat-change positive">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5"/>
+                    </svg>
+                    3 days improvement
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="billing-actions">
+            <div class="action-card" onclick="createNewInvoice()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 4v16m8-8H4"/>
+                    </svg>
+                </div>
+                <div class="action-title">New Invoice</div>
+                <div class="action-description">Create invoice from time entries</div>
+            </div>
+
+            <div class="action-card" onclick="generateFromTime()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="action-title">From Time Entries</div>
+                <div class="action-description">Auto-generate from unbilled time</div>
+            </div>
+
+            <div class="action-card" onclick="sendReminders()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="action-title">Send Reminders</div>
+                <div class="action-description">Payment reminder emails</div>
+            </div>
+
+            <div class="action-card" onclick="viewReports()">
+                <div class="action-icon">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div class="action-title">Billing Reports</div>
+                <div class="action-description">Revenue and payment analytics</div>
+            </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="invoice-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Invoices</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="refreshInvoices()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="createNewInvoice()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"/>
+                        </svg>
+                        New Invoice
+                    </button>
+                </div>
+            </div>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <tr>
+                        <td><strong>INV-2025-001</strong></td>
+                        <td>ABC Corporation</td>
+                        <td>Jan 5, 2025</td>
+                        <td>Feb 4, 2025</td>
+                        <td><strong>$8,750.00</strong></td>
+                        <td><span class="status-badge status-sent">Sent</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewInvoice(1)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>INV-2025-002</strong></td>
+                        <td>John Smith</td>
+                        <td>Jan 3, 2025</td>
+                        <td>Feb 2, 2025</td>
+                        <td><strong>$4,200.00</strong></td>
+                        <td><span class="status-badge status-paid">Paid</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewInvoice(2)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>INV-2024-156</strong></td>
+                        <td>Jane Doe</td>
+                        <td>Dec 28, 2024</td>
+                        <td>Jan 27, 2025</td>
+                        <td><strong>$2,100.00</strong></td>
+                        <td><span class="status-badge status-overdue">Overdue</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewInvoice(3)">View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>INV-2024-155</strong></td>
+                        <td>Tech Startup Inc.</td>
+                        <td>Dec 20, 2024</td>
+                        <td>Jan 19, 2025</td>
+                        <td><strong>$12,500.00</strong></td>
+                        <td><span class="status-badge status-paid">Paid</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewInvoice(4)">View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Invoice Creator (Initially Hidden) -->
+        <div class="invoice-section" id="invoiceCreator" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Create New Invoice</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="cancelInvoice()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
+                </div>
+            </div>
+
+            <form class="invoice-form" id="newInvoiceForm">
+                <!-- Client Information -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Bill To</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="invoiceClient">Client</label>
+                        <select id="invoiceClient" class="form-select" required>
+                            <option value="">Select Client</option>
+                            <option value="abc-corp">ABC Corporation</option>
+                            <option value="john-smith">John Smith</option>
+                            <option value="jane-doe">Jane Doe</option>
+                            <option value="tech-startup">Tech Startup Inc.</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="clientAddress">Billing Address</label>
+                        <textarea id="clientAddress" class="form-textarea" rows="4" placeholder="Client billing address..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Invoice Details -->
+                <div class="form-section">
+                    <h3 class="form-section-title">Invoice Details</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="invoiceNumber">Invoice Number</label>
+                        <input type="text" id="invoiceNumber" class="form-input" value="INV-2025-003" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="invoiceDate">Invoice Date</label>
+                        <input type="date" id="invoiceDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="dueDate">Due Date</label>
+                        <input type="date" id="dueDate" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="terms">Payment Terms</label>
+                        <select id="terms" class="form-select">
+                            <option value="net30">Net 30</option>
+                            <option value="net15">Net 15</option>
+                            <option value="net60">Net 60</option>
+                            <option value="due-on-receipt">Due on Receipt</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Line Items -->
+            <div style="grid-column: 1 / -1;">
+                <h3 class="form-section-title" style="margin-bottom: 1rem;">Line Items</h3>
+                <div class="line-items">
+                    <div class="line-items-header">
+                        <div style="display: grid; grid-template-columns: 3fr 1fr 1fr 1fr auto; gap: 1rem;">
+                            <div>Description</div>
+                            <div>Quantity</div>
+                            <div>Rate</div>
+                            <div>Amount</div>
+                            <div style="width: 40px;"></div>
+                        </div>
+                    </div>
+                    <div id="lineItemsContainer">
+                        <div class="line-item">
+                            <input type="text" placeholder="Legal research and analysis" value="Legal research for contract review">
+                            <input type="number" value="3.5" step="0.25" min="0">
+                            <input type="number" value="350" step="0.01" min="0">
+                            <input type="text" value="$1,225.00" readonly>
+                            <button type="button" class="line-item-remove" onclick="removeLineItem(this)">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="line-item">
+                            <input type="text" placeholder="Document drafting" value="Contract amendment drafting">
+                            <input type="number" value="2.0" step="0.25" min="0">
+                            <input type="number" value="375" step="0.01" min="0">
+                            <input type="text" value="$750.00" readonly>
+                            <button type="button" class="line-item-remove" onclick="removeLineItem(this)">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; border-top: 1px solid #e5e7eb;">
+                        <button type="button" class="btn btn-secondary" onclick="addLineItem()">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Line Item
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Invoice Totals -->
+                <div class="invoice-totals">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotalAmount">$1,975.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (8.5%):</span>
+                        <span id="taxAmount">$167.88</span>
+                    </div>
+                    <div class="total-row final">
+                        <span>Total:</span>
+                        <span id="totalAmount">$2,142.88</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default dates
+    const today = new Date();
+    const dueDate = new Date(today);
+    dueDate.setDate(today.getDate() + 30);
+    
+    document.getElementById('invoiceDate').value = today.toISOString().split('T')[0];
+    document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+
+    // Add event listeners for line item calculations
+    document.addEventListener('input', function(e) {
+        if (e.target.closest('.line-item')) {
+            calculateLineItemTotal(e.target.closest('.line-item'));
+            calculateInvoiceTotal();
+        }
+    });
+});
+
+// Action functions
+window.createNewInvoice = function() {
+    document.getElementById('invoiceCreator').style.display = 'block';
+    document.getElementById('invoiceCreator').scrollIntoView({ behavior: 'smooth' });
+};
+
+window.generateFromTime = function() {
+    alert('Generate from time entries functionality coming soon!');
+};
+
+window.sendReminders = function() {
+    alert('Payment reminder functionality coming soon!');
+};
+
+window.viewReports = function() {
+    alert('Billing reports functionality coming soon!');
+};
+
+window.refreshInvoices = function() {
+    alert('Invoice list refreshed!');
+};
+
+window.viewInvoice = function(id) {
+    alert(`Viewing invoice ${id} - full invoice view coming soon!`);
+};
+
+window.cancelInvoice = function() {
+    if (confirm('Cancel creating this invoice? All data will be lost.')) {
+        document.getElementById('invoiceCreator').style.display = 'none';
+        document.getElementById('newInvoiceForm').reset();
+    }
+};
+
+window.saveInvoice = function() {
+    // Validate form
+    const client = document.getElementById('invoiceClient').value;
+    const invoiceDate = document.getElementById('invoiceDate').value;
+    const dueDate = document.getElementById('dueDate').value;
+    
+    if (!client || !invoiceDate || !dueDate) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
+    // Simulate saving
+    alert('Invoice created successfully! Invoice number: INV-2025-003');
+    document.getElementById('invoiceCreator').style.display = 'none';
+    
+    // In a real app, this would send the invoice data to the server
+    console.log('Invoice data:', {
+        client: client,
+        invoiceDate: invoiceDate,
+        dueDate: dueDate,
+        lineItems: getLineItems(),
+        total: document.getElementById('totalAmount').textContent
+    });
+};
+
+// Line item functions
+window.addLineItem = function() {
+    const container = document.getElementById('lineItemsContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'line-item';
+    newItem.innerHTML = `
+        <input type="text" placeholder="Description of work performed">
+        <input type="number" value="0" step="0.25" min="0">
+        <input type="number" value="350" step="0.01" min="0">
+        <input type="text" value="$0.00" readonly>
+        <button type="button" class="line-item-remove" onclick="removeLineItem(this)">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    container.appendChild(newItem);
+};
+
+window.removeLineItem = function(button) {
+    if (document.querySelectorAll('.line-item').length > 1) {
+        button.closest('.line-item').remove();
+        calculateInvoiceTotal();
+    } else {
+        alert('At least one line item is required');
+    }
+};
+
+function calculateLineItemTotal(lineItem) {
+    const inputs = lineItem.querySelectorAll('input');
+    const quantity = parseFloat(inputs[1].value) || 0;
+    const rate = parseFloat(inputs[2].value) || 0;
+    const total = quantity * rate;
+    inputs[3].value = '$' + total.toFixed(2);
+}
+
+function calculateInvoiceTotal() {
+    const lineItems = document.querySelectorAll('.line-item');
+    let subtotal = 0;
+    
+    lineItems.forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        const quantity = parseFloat(inputs[1].value) || 0;
+        const rate = parseFloat(inputs[2].value) || 0;
+        subtotal += quantity * rate;
+    });
+    
+    const tax = subtotal * 0.085; // 8.5% tax
+    const total = subtotal + tax;
+    
+    document.getElementById('subtotalAmount').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('taxAmount').textContent = '$' + tax.toFixed(2);
+    document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+}
+
+function getLineItems() {
+    const lineItems = [];
+    document.querySelectorAll('.line-item').forEach(item => {
+        const inputs = item.querySelectorAll('input');
+        lineItems.push({
+            description: inputs[0].value,
+            quantity: parseFloat(inputs[1].value) || 0,
+            rate: parseFloat(inputs[2].value) || 0,
+            amount: parseFloat(inputs[3].value.replace('$', '')) || 0
+        });
+    });
+    return lineItems;
+}
+
+// Initial calculation
+calculateInvoiceTotal();
+</script>
+{% endblock %}

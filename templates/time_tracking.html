@@ -1,0 +1,988 @@
+{% extends "base.html" %}
+
+{% block title %}Time Tracking - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Time Tracking Specific Styles */
+        .time-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .time-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .time-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .time-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .time-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .time-main {
+                grid-template-columns: 400px 1fr;
+            }
+        }
+
+        /* Timer Widget */
+        .timer-widget {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .timer-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .timer-time {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 0.5rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .timer-status {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        .timer-status.running {
+            color: #16a34a;
+            font-weight: 500;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .timer-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .timer-btn.start {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+        }
+
+        .timer-btn.start:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .timer-btn.pause {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .timer-btn.pause:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .timer-btn.stop {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+        }
+
+        .timer-btn.stop:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .timer-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Timer Form */
+        .timer-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s ease;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        /* Time Entries Table */
+        .time-entries {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .entries-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .entries-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .entries-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* Filters */
+        .entries-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+
+        /* Time Entry Table */
+        .entries-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .entries-table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .entries-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .entries-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-completed {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-billed {
+            background-color: #fef3cd;
+            color: #d97706;
+        }
+
+        /* Time Display */
+        .time-display {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .time-duration {
+            color: #2E4B3C;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            color: #2E4B3C;
+            background-color: #f3f4f6;
+        }
+
+        /* Summary Cards */
+        .time-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            border-left: 4px solid #2E4B3C;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1023px) {
+            .time-main {
+                grid-template-columns: 1fr;
+            }
+
+            .timer-widget {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .time-title {
+                font-size: 2rem;
+            }
+
+            .timer-time {
+                font-size: 2.5rem;
+            }
+
+            .entries-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .entries-actions {
+                flex-direction: column;
+            }
+
+            .time-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .quick-action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        .quick-action-btn:hover {
+            background: #f3f4f6;
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+            text-decoration: none;
+        }
+
+        .quick-action-icon {
+            width: 2rem;
+            height: 2rem;
+            color: #6b7280;
+        }
+
+        .quick-action-btn:hover .quick-action-icon {
+            color: #2E4B3C;
+        }
+
+        .quick-action-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="time-container">
+    <!-- Time Tracking Header -->
+    <div class="time-header">
+        <h1 class="time-title">Time Tracking</h1>
+        <p class="time-subtitle">Track billable hours and manage time entries for accurate client billing</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="time-main">
+        <!-- Timer Widget Sidebar -->
+        <div class="timer-widget">
+            <!-- Timer Display -->
+            <div class="timer-display">
+                <div class="timer-time" id="timerDisplay">00:00:00</div>
+                <div class="timer-status" id="timerStatus">Ready to start</div>
+            </div>
+
+            <!-- Timer Controls -->
+            <div class="timer-controls">
+                <button class="timer-btn start" id="startBtn" onclick="startTimer()">Start</button>
+                <button class="timer-btn pause" id="pauseBtn" onclick="pauseTimer()" disabled>Pause</button>
+                <button class="timer-btn stop" id="stopBtn" onclick="stopTimer()" disabled>Stop</button>
+            </div>
+
+            <!-- Timer Form -->
+            <form class="timer-form" id="timerForm">
+                <div class="form-group">
+                    <label class="form-label" for="client">Client</label>
+                    <select id="client" class="form-select" required>
+                        <option value="">Select Client</option>
+                        <option value="john-smith">John Smith - Family Law</option>
+                        <option value="abc-corp">ABC Corporation - Corporate</option>
+                        <option value="jane-doe">Jane Doe - Personal Injury</option>
+                        <option value="tech-startup">Tech Startup Inc. - Business</option>
+                        <option value="real-estate">Metro Real Estate - Property</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="project">Project/Case</label>
+                    <select id="project" class="form-select" required>
+                        <option value="">Select Project</option>
+                        <option value="divorce-case">Divorce Settlement</option>
+                        <option value="contract-review">Contract Review</option>
+                        <option value="litigation">Personal Injury Litigation</option>
+                        <option value="business-formation">Business Formation</option>
+                        <option value="property-sale">Property Sale Transaction</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="task">Task Type</label>
+                    <select id="task" class="form-select" required>
+                        <option value="">Select Task</option>
+                        <option value="research">Legal Research</option>
+                        <option value="drafting">Document Drafting</option>
+                        <option value="review">Document Review</option>
+                        <option value="client-meeting">Client Meeting</option>
+                        <option value="court-appearance">Court Appearance</option>
+                        <option value="negotiation">Negotiation</option>
+                        <option value="admin">Administrative</option>
+                        <option value="travel">Travel Time</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description</label>
+                    <textarea id="description" class="form-textarea" placeholder="Brief description of work performed..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="rate">Hourly Rate ($)</label>
+                    <input type="number" id="rate" class="form-input" value="350" step="0.01" min="0">
+                </div>
+            </form>
+        </div>
+
+        <!-- Time Entries Section -->
+        <div class="time-entries">
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3 class="quick-actions-title">Quick Actions</h3>
+                <div class="quick-action-grid">
+                    <button class="quick-action-btn" onclick="addManualEntry()">
+                        <svg class="quick-action-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span class="quick-action-label">Manual Entry</span>
+                    </button>
+                    <button class="quick-action-btn" onclick="exportTimesheet()">
+                        <svg class="quick-action-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span class="quick-action-label">Export</span>
+                    </button>
+                    <a href="{{ url_for('billing_page') }}" class="quick-action-btn">
+                        <svg class="quick-action-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="quick-action-label">Generate Invoice</span>
+                    </a>
+                    <button class="quick-action-btn" onclick="showReports()">
+                        <svg class="quick-action-icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span class="quick-action-label">Time Reports</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Time Summary -->
+            <div class="time-summary">
+                <div class="summary-card">
+                    <div class="summary-value" id="todayHours">0.0</div>
+                    <div class="summary-label">Hours Today</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="weekHours">42.5</div>
+                    <div class="summary-label">Hours This Week</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="monthHours">180.25</div>
+                    <div class="summary-label">Hours This Month</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="unbilledAmount">$14,875</div>
+                    <div class="summary-label">Unbilled Amount</div>
+                </div>
+            </div>
+
+            <!-- Entries Header -->
+            <div class="entries-header">
+                <h2 class="entries-title">Recent Time Entries</h2>
+                <div class="entries-actions">
+                    <button class="btn btn-secondary" onclick="refreshEntries()">Refresh</button>
+                    <button class="btn btn-primary" onclick="addManualEntry()">Add Entry</button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="entries-filters">
+                <div class="form-group">
+                    <label class="form-label" for="filterClient">Client</label>
+                    <select id="filterClient" class="form-select" onchange="filterEntries()">
+                        <option value="">All Clients</option>
+                        <option value="john-smith">John Smith</option>
+                        <option value="abc-corp">ABC Corporation</option>
+                        <option value="jane-doe">Jane Doe</option>
+                        <option value="tech-startup">Tech Startup Inc.</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="filterDate">Date Range</label>
+                    <select id="filterDate" class="form-select" onchange="filterEntries()">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="filterStatus">Status</label>
+                    <select id="filterStatus" class="form-select" onchange="filterEntries()">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="billed">Billed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Time Entries Table -->
+            <table class="entries-table" id="entriesTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Project</th>
+                        <th>Task</th>
+                        <th>Duration</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="entriesTableBody">
+                    <!-- Demo entries will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Timer state
+    let timerState = {
+        isRunning: false,
+        isPaused: false,
+        startTime: null,
+        pausedTime: 0,
+        currentSeconds: 0
+    };
+
+    let timerInterval = null;
+
+    // Load timer state from localStorage
+    loadTimerState();
+
+    // Initialize demo time entries
+    initializeDemoEntries();
+
+    // Update timer display every second if running
+    if (timerState.isRunning) {
+        startTimerInterval();
+    }
+
+    // Timer functions
+    window.startTimer = function() {
+        // Validate form
+        if (!validateTimerForm()) {
+            alert('Please fill in all required fields (Client, Project, Task)');
+            return;
+        }
+
+        timerState.isRunning = true;
+        timerState.isPaused = false;
+        timerState.startTime = Date.now() - timerState.pausedTime;
+        
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('pauseBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('timerStatus').textContent = 'Timer running...';
+        document.getElementById('timerStatus').classList.add('running');
+
+        startTimerInterval();
+        saveTimerState();
+    };
+
+    window.pauseTimer = function() {
+        timerState.isRunning = false;
+        timerState.isPaused = true;
+        timerState.pausedTime = timerState.currentSeconds * 1000;
+        
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('timerStatus').textContent = 'Timer paused';
+        document.getElementById('timerStatus').classList.remove('running');
+
+        clearInterval(timerInterval);
+        saveTimerState();
+    };
+
+    window.stopTimer = function() {
+        if (timerState.currentSeconds === 0) {
+            alert('Timer has no time recorded');
+            return;
+        }
+
+        // Save time entry
+        saveTimeEntry();
+
+        // Reset timer
+        timerState = {
+            isRunning: false,
+            isPaused: false,
+            startTime: null,
+            pausedTime: 0,
+            currentSeconds: 0
+        };
+
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('timerStatus').textContent = 'Time entry saved!';
+        document.getElementById('timerStatus').classList.remove('running');
+        document.getElementById('timerDisplay').textContent = '00:00:00';
+
+        clearInterval(timerInterval);
+        saveTimerState();
+        refreshEntries();
+        updateSummaryCards();
+
+        // Clear form description for next entry
+        document.getElementById('description').value = '';
+    };
+
+    function startTimerInterval() {
+        timerInterval = setInterval(function() {
+            const now = Date.now();
+            timerState.currentSeconds = Math.floor((now - timerState.startTime) / 1000);
+            updateTimerDisplay();
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const hours = Math.floor(timerState.currentSeconds / 3600);
+        const minutes = Math.floor((timerState.currentSeconds % 3600) / 60);
+        const seconds = timerState.currentSeconds % 60;
+        
+        const display = 
+            String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0') + ':' +
+            String(seconds).padStart(2, '0');
+        
+        document.getElementById('timerDisplay').textContent = display;
+    }
+
+    function validateTimerForm() {
+        const client = document.getElementById('client').value;
+        const project = document.getElementById('project').value;
+        const task = document.getElementById('task').value;
+        
+        return client && project && task;
+    }
+
+    function saveTimeEntry() {
+        const client = document.getElementById('client');
+        const project = document.getElementById('project');
+        const task = document.getElementById('task');
+        const description = document.getElementById('description').value;
+        const rate = parseFloat(document.getElementById('rate').value) || 350;
+
+        const duration = timerState.currentSeconds / 3600; // Convert to hours
+        const amount = duration * rate;
+
+        const entry = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            client: client.options[client.selectedIndex].text,
+            clientId: client.value,
+            project: project.options[project.selectedIndex].text,
+            projectId: project.value,
+            task: task.options[task.selectedIndex].text,
+            taskId: task.value,
+            description: description,
+            duration: duration,
+            rate: rate,
+            amount: amount,
+            status: 'completed',
+            timestamp: new Date().toISOString()
+        };
+
+        // Save to localStorage
+        const entries = getTimeEntries();
+        entries.unshift(entry); // Add to beginning
+        localStorage.setItem('lexai_time_entries', JSON.stringify(entries));
+    }
+
+    function getTimeEntries() {
+        const entries = localStorage.getItem('lexai_time_entries');
+        return entries ? JSON.parse(entries) : [];
+    }
+
+    function loadTimerState() {
+        const savedState = localStorage.getItem('lexai_timer_state');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            if (state.isRunning) {
+                // Restore running timer
+                timerState = state;
+                const now = Date.now();
+                timerState.currentSeconds = Math.floor((now - timerState.startTime) / 1000);
+                
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('timerStatus').textContent = 'Timer running...';
+                document.getElementById('timerStatus').classList.add('running');
+                
+                updateTimerDisplay();
+            } else if (state.isPaused && state.currentSeconds > 0) {
+                // Restore paused timer
+                timerState = state;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('timerStatus').textContent = 'Timer paused';
+                updateTimerDisplay();
+            }
+        }
+    }
+
+    function saveTimerState() {
+        localStorage.setItem('lexai_timer_state', JSON.stringify(timerState));
+    }
+
+    // Initialize demo entries if none exist
+    function initializeDemoEntries() {
+        const entries = getTimeEntries();
+        if (entries.length === 0) {
+            const demoEntries = [
+                {
+                    id: 1,
+                    date: new Date().toLocaleDateString(),
+                    client: 'John Smith - Family Law',
+                    clientId: 'john-smith',
+                    project: 'Divorce Settlement',
+                    projectId: 'divorce-case',
+                    task: 'Document Review',
+                    taskId: 'review',
+                    description: 'Reviewed financial documents and asset disclosure forms',
+                    duration: 2.5,
+                    rate: 350,
+                    amount: 875,
+                    status: 'completed',
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    date: new Date(Date.now() - 86400000).toLocaleDateString(),
+                    client: 'ABC Corporation - Corporate',
+                    clientId: 'abc-corp',
+                    project: 'Contract Review',
+                    projectId: 'contract-review',
+                    task: 'Legal Research',
+                    taskId: 'research',
+                    description: 'Researched corporate governance regulations for merger',
+                    duration: 3.25,
+                    rate: 375,
+                    amount: 1218.75,
+                    status: 'billed',
+                    timestamp: new Date(Date.now() - 86400000).toISOString()
+                },
+                {
+                    id: 3,
+                    date: new Date(Date.now() - 86400000).toLocaleDateString(),
+                    client: 'Jane Doe - Personal Injury',
+                    clientId: 'jane-doe',
+                    project: 'Personal Injury Litigation',
+                    projectId: 'litigation',
+                    task: 'Client Meeting',
+                    taskId: 'client-meeting',
+                    description: 'Initial consultation and case assessment meeting',
+                    duration: 1.5,
+                    rate: 350,
+                    amount: 525,
+                    status: 'completed',
+                    timestamp: new Date(Date.now() - 86400000).toISOString()
+                }
+            ];
+            localStorage.setItem('lexai_time_entries', JSON.stringify(demoEntries));
+        }
+        refreshEntries();
+        updateSummaryCards();
+    }
+
+    // Refresh entries table
+    window.refreshEntries = function() {
+        const entries = getTimeEntries();
+        const tbody = document.getElementById('entriesTableBody');
+        tbody.innerHTML = '';
+
+        entries.forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${entry.date}</td>
+                <td>${entry.client}</td>
+                <td>${entry.project}</td>
+                <td>${entry.task}</td>
+                <td class="time-display time-duration">${entry.duration.toFixed(2)}h</td>
+                <td class="time-display">$${entry.rate.toFixed(2)}</td>
+                <td class="time-display">$${entry.amount.toFixed(2)}</td>
+                <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
+                <td>
+                    <button class="action-btn" onclick="editEntry(${entry.id})" title="Edit">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    <button class="action-btn" onclick="deleteEntry(${entry.id})" title="Delete">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+
+    function updateSummaryCards() {
+        const entries = getTimeEntries();
+        const today = new Date().toLocaleDateString();
+        
+        // Today's hours
+        const todayEntries = entries.filter(entry => entry.date === today);
+        const todayHours = todayEntries.reduce((sum, entry) => sum + entry.duration, 0);
+        document.getElementById('todayHours').textContent = todayHours.toFixed(1);
+        
+        // Unbilled amount
+        const unbilledEntries = entries.filter(entry => entry.status === 'completed');
+        const unbilledAmount = unbilledEntries.reduce((sum, entry) => sum + entry.amount, 0);
+        document.getElementById('unbilledAmount').textContent = '$' + unbilledAmount.toLocaleString();
+    }
+
+    // Filter entries
+    window.filterEntries = function() {
+        // Implement filtering logic here
+        refreshEntries();
+    };
+
+    // Other functions
+    window.addManualEntry = function() {
+        alert('Manual entry form coming soon!');
+    };
+
+    window.exportTimesheet = function() {
+        alert('Export functionality coming soon!');
+    };
+
+    window.showReports = function() {
+        alert('Time reports coming soon!');
+    };
+
+    window.editEntry = function(id) {
+        alert('Edit entry functionality coming soon!');
+    };
+
+    window.deleteEntry = function(id) {
+        if (confirm('Are you sure you want to delete this time entry?')) {
+            const entries = getTimeEntries();
+            const filteredEntries = entries.filter(entry => entry.id !== id);
+            localStorage.setItem('lexai_time_entries', JSON.stringify(filteredEntries));
+            refreshEntries();
+            updateSummaryCards();
+        }
+    };
+});
+</script>
+{% endblock %}
