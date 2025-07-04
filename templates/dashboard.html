@@ -3,442 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LexAI Practice Partner - Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='platform.css') }}">
+    <title>LexAI Practice Partner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            /* LexAI Original Color Palette */
-            --lexai-primary: #2E4B3C;
-            --lexai-primary-light: #4A6B57;
-            --lexai-cream: #F7EDDA;
-            --lexai-cream-light: #F7DFBA;
-            --lexai-accent: #16a34a;
-            
-            /* Neutral Grays */
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-300: #d1d5db;
-            --gray-500: #6b7280;
-            --gray-600: #4b5563;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --gray-900: #111827;
-            
-            /* Typography */
-            --font-primary: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: var(--font-primary);
-            background: linear-gradient(135deg, var(--lexai-cream) 0%, var(--lexai-cream-light) 100%);
-            color: var(--gray-900);
+            font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
         }
-        
-        /* Compact Navigation */
-        .top-nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--gray-200);
-            box-shadow: 0 1px 3px rgba(46, 75, 60, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
+
+        /* Top Navigation - Clean like Linear */
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e1e1e1;
             padding: 0 24px;
+            height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 64px;
         }
-        
-        .nav-brand {
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo {
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--lexai-primary);
-        }
-        
-        .nav-brand-text {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--lexai-primary);
-        }
-        
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .nav-link {
-            color: var(--gray-600);
             text-decoration: none;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
+            color: #1a1a1a;
         }
-        
-        .nav-link:hover {
-            color: var(--lexai-primary);
-            background: var(--lexai-cream);
+
+        .logo img {
+            height: 32px;
+            width: auto;
         }
-        
-        .nav-link.active {
-            color: var(--lexai-primary);
-            background: var(--lexai-cream);
+
+        .logo-text {
+            font-size: 16px;
             font-weight: 600;
         }
-        
-        /* Compact Dashboard Layout */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px 24px;
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 24px;
-        }
-        
-        /* Main Content Area */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        /* Welcome Header - Compact */
-        .welcome-header {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .welcome-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--lexai-primary);
-            margin-bottom: 6px;
-        }
-        
-        .welcome-subtitle {
-            color: var(--gray-600);
-            font-size: 1rem;
-        }
-        
-        /* Quick Actions Grid - Compact */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 4px;
-        }
-        
-        .action-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--gray-200);
-            cursor: pointer;
-            transition: all 0.2s ease;
+
+        .nav-links {
             display: flex;
             align-items: center;
+            gap: 24px;
+        }
+
+        .nav-link {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .nav-link:hover {
+            color: #1a1a1a;
+            background: #f5f5f5;
+        }
+
+        .nav-link.active {
+            color: #1a1a1a;
+            background: #f0f0f0;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e1e1e1;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.15s ease;
+        }
+
+        .card:hover {
+            border-color: #ccc;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Quick Actions */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 16px;
         }
-        
-        .action-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.15);
-            border-color: var(--lexai-primary);
+
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #1a1a1a;
+            transition: all 0.15s ease;
         }
-        
+
+        .action-item:hover {
+            border-color: #ccc;
+            background: #fafafa;
+        }
+
         .action-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-primary-light) 100%);
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            background: #f5f5f5;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            flex-shrink: 0;
+            color: #666;
         }
-        
-        .action-content h3 {
-            font-size: 1rem;
+
+        .action-text h4 {
+            font-size: 14px;
             font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
-        
-        .action-content p {
-            font-size: 0.875rem;
-            color: var(--gray-600);
+
+        .action-text p {
+            font-size: 12px;
+            color: #666;
         }
-        
-        /* Practice Areas - Compact Grid */
-        .practice-areas {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--lexai-primary);
-            margin-bottom: 16px;
-        }
-        
-        .practice-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-        }
-        
-        .practice-card {
-            padding: 16px;
-            border: 1px solid var(--gray-200);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-        
-        .practice-card:hover {
-            border-color: var(--lexai-primary);
-            background: var(--lexai-cream);
-        }
-        
-        .practice-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-        
-        .practice-name {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 4px;
-        }
-        
-        .practice-desc {
-            font-size: 0.75rem;
-            color: var(--gray-600);
-            line-height: 1.4;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        /* Stats Card */
-        .stats-card {
-            background: linear-gradient(135deg, var(--lexai-primary) 0%, var(--lexai-primary-light) 100%);
-            border-radius: 12px;
-            padding: 24px;
-            color: white;
-        }
-        
-        .stats-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-        
+
+        /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
         }
-        
+
         .stat-item {
             text-align: center;
+            padding: 16px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            background: #fafafa;
         }
-        
+
         .stat-number {
-            font-size: 1.75rem;
+            font-size: 24px;
             font-weight: 700;
+            color: #1a1a1a;
             margin-bottom: 4px;
         }
-        
+
         .stat-label {
-            font-size: 0.75rem;
-            opacity: 0.9;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
-        /* Recent Activity */
-        .recent-activity {
-            background: white;
-            border-radius: 12px;
+
+        /* Practice Areas */
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .practice-item {
             padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--gray-200);
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: #1a1a1a;
         }
-        
-        .activity-list {
-            list-style: none;
+
+        .practice-item:hover {
+            border-color: #ccc;
+            background: #fafafa;
         }
-        
+
+        .practice-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .practice-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .practice-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Recent Activity */
         .activity-item {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 0;
-            border-bottom: 1px solid var(--gray-100);
+            border-bottom: 1px solid #f0f0f0;
         }
-        
+
         .activity-item:last-child {
             border-bottom: none;
         }
-        
+
         .activity-icon {
             width: 32px;
             height: 32px;
-            background: var(--lexai-cream);
-            border-radius: 8px;
+            background: #f5f5f5;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--lexai-primary);
-            flex-shrink: 0;
+            color: #666;
         }
-        
+
         .activity-content {
             flex: 1;
         }
-        
+
         .activity-title {
-            font-size: 0.875rem;
+            font-size: 14px;
             font-weight: 500;
-            color: var(--gray-900);
             margin-bottom: 2px;
         }
-        
+
         .activity-time {
-            font-size: 0.75rem;
-            color: var(--gray-500);
+            font-size: 12px;
+            color: #666;
         }
-        
-        /* Quick Links */
-        .quick-links {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--gray-200);
-        }
-        
-        .link-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            color: var(--gray-700);
-            text-decoration: none;
-            border-bottom: 1px solid var(--gray-100);
-            transition: color 0.2s ease;
-        }
-        
-        .link-item:last-child {
-            border-bottom: none;
-        }
-        
-        .link-item:hover {
-            color: var(--lexai-primary);
-        }
-        
-        .link-icon {
-            width: 16px;
-            height: 16px;
-            color: var(--lexai-primary);
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .dashboard-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .sidebar {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                display: grid;
-            }
-        }
-        
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .nav-menu {
+            .nav-links {
                 display: none;
             }
-            
-            .nav-container {
-                padding: 0 16px;
+
+            .main-content {
+                padding: 24px 16px;
             }
-            
-            .dashboard-container {
-                padding: 16px;
-                gap: 16px;
-            }
-            
-            .quick-actions {
+
+            .dashboard-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .practice-grid {
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
-            .stats-grid {
+
+            .practice-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Compact Navigation -->
-    <nav class="top-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
-                    <path d="M8 12h16M8 16h12M8 20h16M12 8v16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    <defs>
-                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#2E4B3C"/>
-                            <stop offset="100%" style="stop-color:#4A6B57"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span class="nav-brand-text">LexAI Practice Partner</span>
-            </div>
+    <!-- Clean Top Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="logo">
+                <img src="{{ url_for('static', filename='lexAI.png') }}" alt="LexAI">
+                <span class="logo-text">LexAI Practice Partner</span>
+            </a>
             
-            <div class="nav-menu">
+            <div class="nav-links">
                 <a href="/" class="nav-link active">Dashboard</a>
                 <a href="/chat" class="nav-link">AI Assistant</a>
                 <a href="/clients" class="nav-link">Clients</a>
@@ -448,75 +342,113 @@
             </div>
         </div>
     </nav>
-    
-    <!-- Compact Dashboard Layout -->
-    <div class="dashboard-container">
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Welcome Header -->
-            <div class="welcome-header">
-                <h1 class="welcome-title">Welcome back to LexAI</h1>
-                <p class="welcome-subtitle">Your AI-powered legal practice management platform</p>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Your AI-powered legal practice overview</p>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Quick Actions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                    <p class="card-subtitle">Get started with common tasks</p>
+                </div>
+                
+                <div class="action-grid">
+                    <a href="/chat" class="action-item">
+                        <div class="action-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <div class="action-text">
+                            <h4>Start Chat</h4>
+                            <p>AI consultation</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/search" class="action-item">
+                        <div class="action-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <div class="action-text">
+                            <h4>Research</h4>
+                            <p>Legal database</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/documents" class="action-item">
+                        <div class="action-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="action-text">
+                            <h4>Documents</h4>
+                            <p>Analyze files</p>
+                        </div>
+                    </a>
+                    
+                    <a href="/clients" class="action-item">
+                        <div class="action-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div class="action-text">
+                            <h4>Clients</h4>
+                            <p>Manage cases</p>
+                        </div>
+                    </a>
+                </div>
             </div>
-            
-            <!-- Quick Actions Grid -->
-            <div class="quick-actions">
-                <div class="action-card" onclick="window.location.href='/chat'">
-                    <div class="action-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
-                    </div>
-                    <div class="action-content">
-                        <h3>AI Assistant</h3>
-                        <p>Start a legal consultation</p>
-                    </div>
+
+            <!-- Stats Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Usage Overview</h3>
+                    <p class="card-subtitle">Your platform activity</p>
                 </div>
                 
-                <div class="action-card" onclick="window.location.href='/search'">
-                    <div class="action-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_chats or '24' }}</div>
+                        <div class="stat-label">Chats</div>
                     </div>
-                    <div class="action-content">
-                        <h3>Legal Research</h3>
-                        <p>Search case law & statutes</p>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_documents or '8' }}</div>
+                        <div class="stat-label">Documents</div>
                     </div>
-                </div>
-                
-                <div class="action-card" onclick="window.location.href='/documents'">
-                    <div class="action-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.research_queries or '15' }}</div>
+                        <div class="stat-label">Searches</div>
                     </div>
-                    <div class="action-content">
-                        <h3>Documents</h3>
-                        <p>Review & analyze files</p>
-                    </div>
-                </div>
-                
-                <div class="action-card" onclick="window.location.href='/clients'">
-                    <div class="action-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <div class="action-content">
-                        <h3>Clients</h3>
-                        <p>Manage client cases</p>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ stats.total_clients or '3' }}</div>
+                        <div class="stat-label">Clients</div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Practice Areas -->
-            <div class="practice-areas">
-                <h2 class="section-title">Practice Areas</h2>
+
+            <!-- Practice Areas Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Practice Areas</h3>
+                    <p class="card-subtitle">Specialized AI assistance</p>
+                </div>
+                
                 <div class="practice-grid">
                     {% for area_id, area in practice_areas.items() %}
-                    <div class="practice-card" onclick="window.location.href='/chat?practice_area={{ area_id }}'">
-                        <div class="practice-icon" style="color: {{ area.color }};">
+                    <a href="/chat?practice_area={{ area_id }}" class="practice-item">
+                        <div class="practice-icon">
                             {% if area_id == 'family' %}👨‍👩‍👧‍👦{% endif %}
                             {% if area_id == 'personal_injury' %}🩹{% endif %}
                             {% if area_id == 'corporate' %}🏢{% endif %}
@@ -525,100 +457,54 @@
                             {% if area_id == 'immigration' %}🌍{% endif %}
                         </div>
                         <div class="practice-name">{{ area.name }}</div>
-                        <div class="practice-desc">{{ area.description }}</div>
-                    </div>
+                        <div class="practice-desc">{{ area.description[:30] }}...</div>
+                    </a>
                     {% endfor %}
                 </div>
             </div>
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Stats Card -->
-            <div class="stats-card">
-                <h3 class="stats-title">Platform Usage</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_chats or '47' }}</div>
-                        <div class="stat-label">AI Chats</div>
+
+            <!-- Recent Activity Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <p class="card-subtitle">Latest actions and updates</p>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_documents or '23' }}</div>
-                        <div class="stat-label">Documents</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.research_queries or '12' }}</div>
-                        <div class="stat-label">Research</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">{{ stats.total_clients or '8' }}</div>
-                        <div class="stat-label">Clients</div>
+                    <div class="activity-content">
+                        <div class="activity-title">AI consultation completed</div>
+                        <div class="activity-time">2 hours ago</div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Recent Activity -->
-            <div class="recent-activity">
-                <h3 class="section-title">Recent Activity</h3>
-                <ul class="activity-list">
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                            </svg>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">AI consultation completed</div>
-                            <div class="activity-time">2 hours ago</div>
-                        </div>
-                    </li>
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Contract analysis finished</div>
-                            <div class="activity-time">5 hours ago</div>
-                        </div>
-                    </li>
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Research query processed</div>
-                            <div class="activity-time">1 day ago</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Quick Links -->
-            <div class="quick-links">
-                <h3 class="section-title">Quick Links</h3>
-                <a href="/analytics" class="link-item">
-                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    View Analytics
-                </a>
-                <a href="/billing" class="link-item">
-                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                    </svg>
-                    Billing & Usage
-                </a>
-                <a href="/settings" class="link-item">
-                    <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Settings
-                </a>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Document analysis finished</div>
+                        <div class="activity-time">5 hours ago</div>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Legal research query processed</div>
+                        <div class="activity-time">1 day ago</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
