@@ -767,6 +767,7 @@ def apply_security_headers(response):
 PRACTICE_AREAS = {
     'family': {
         'name': 'Family Law',
+        'description': 'Custody, divorce, and family legal matters',
         'icon': 'family',
         'color': '#8B5CF6',
         'prompts': [
@@ -779,6 +780,7 @@ PRACTICE_AREAS = {
     },
     'personal_injury': {
         'name': 'Personal Injury',
+        'description': 'Accident claims and injury compensation',
         'icon': 'shield',
         'color': '#EF4444',
         'prompts': [
@@ -791,6 +793,7 @@ PRACTICE_AREAS = {
     },
     'corporate': {
         'name': 'Corporate Law',
+        'description': 'Business formation and compliance',
         'icon': 'building',
         'color': '#3B82F6',
         'prompts': [
@@ -803,6 +806,7 @@ PRACTICE_AREAS = {
     },
     'criminal': {
         'name': 'Criminal Defense',
+        'description': 'Defense against criminal charges',
         'icon': 'scale',
         'color': '#F59E0B',
         'prompts': [
@@ -815,6 +819,7 @@ PRACTICE_AREAS = {
     },
     'real_estate': {
         'name': 'Real Estate',
+        'description': 'Property transactions and disputes',
         'icon': 'home',
         'color': '#10B981',
         'prompts': [
@@ -827,6 +832,7 @@ PRACTICE_AREAS = {
     },
     'immigration': {
         'name': 'Immigration',
+        'description': 'Visa and citizenship matters',
         'icon': 'globe',
         'color': '#6366F1',
         'prompts': [
