@@ -372,10 +372,28 @@
             const authData = localStorage.getItem('lexai_auth');
             const currentPath = window.location.pathname;
             
-            // If not on auth pages and no authentication data, redirect to login
+            // DEVELOPMENT MODE: Skip authentication check for now
+            // TODO: Re-enable authentication checks in production
+            /*
             if (!authData && !currentPath.startsWith('/auth/') && currentPath !== '/') {
                 window.location.href = '/auth/login';
                 return false;
+            }
+            */
+            
+            // If no auth data, create demo session for development
+            if (!authData) {
+                const demoAuth = {
+                    user: {
+                        first_name: 'Demo',
+                        last_name: 'User',
+                        email: 'demo@lexai.com',
+                        firm_name: 'Demo Law Firm',
+                        role: 'Legal Professional'
+                    },
+                    loginTime: new Date().toISOString()
+                };
+                localStorage.setItem('lexai_auth', JSON.stringify(demoAuth));
             }
             
             return true;
