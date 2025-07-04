@@ -1,0 +1,611 @@
+{% extends "base.html" %}
+
+{% block title %}Document Library - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Document Library Styles */
+        .documents-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .documents-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .documents-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .documents-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .documents-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .upload-btn {
+            background-color: #2E4B3C; /* dark-green */
+            color: #F7EDDA; /* light-cream */
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .upload-btn:hover {
+            background-color: #09332C; /* darkest-green */
+            transform: translateY(-1px);
+            text-decoration: none;
+            color: #F7EDDA;
+        }
+
+        .analyze-btn {
+            background-color: #FFA74F; /* warm-orange */
+            color: #2E4B3C; /* dark-green */
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .analyze-btn:hover {
+            background-color: #F0531C; /* bright-coral */
+            text-decoration: none;
+            color: #2E4B3C;
+        }
+
+        .documents-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .search-filters {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background-color: white;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .documents-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .documents-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .document-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .document-icon {
+            width: 3rem;
+            height: 3rem;
+            background-color: #2E4B3C; /* dark-green */
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .document-icon svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #F7EDDA; /* light-cream */
+        }
+
+        .document-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .document-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .document-type {
+            background-color: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn.view {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .action-btn.view:hover {
+            background-color: #e5e7eb;
+        }
+
+        .action-btn.analyze {
+            background-color: #FFA74F;
+            color: #2E4B3C;
+        }
+
+        .action-btn.analyze:hover {
+            background-color: #F0531C;
+        }
+
+        .action-btn.delete {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .action-btn.delete:hover {
+            background-color: #fecaca;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1.5rem;
+            color: #9ca3af;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-summary {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .documents-title {
+                font-size: 2rem;
+            }
+
+            .documents-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .upload-btn, .analyze-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .search-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input {
+                min-width: auto;
+            }
+
+            .documents-container {
+                padding: 1rem 0;
+            }
+        }
+
+        .analysis-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .analysis-status.analyzed {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .analysis-status.pending {
+            background-color: #fef3cd;
+            color: #d97706;
+        }
+
+        .analysis-status.not-analyzed {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="documents-container">
+    <!-- Documents Header -->
+    <div class="documents-header">
+        <h1 class="documents-title">Document Library</h1>
+        <p class="documents-subtitle">Organize, analyze, and manage all your legal documents in one place</p>
+        
+        <div class="documents-actions">
+            <a href="{{ url_for('document_analysis_page') }}" class="upload-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                Upload Document
+            </a>
+            <a href="{{ url_for('document_analysis_page') }}" class="analyze-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Analyze Document
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="documents-main">
+        <!-- Document Stats -->
+        <div class="stats-summary">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-documents">{{ documents|length or 0 }}</div>
+                    <div class="stat-label">Total Documents</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="analyzed-documents">{{ analyzed_count or 0 }}</div>
+                    <div class="stat-label">Analyzed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="pending-documents">{{ pending_count or 0 }}</div>
+                    <div class="stat-label">Pending Analysis</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-size">{{ total_size or '0 MB' }}</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-filters">
+            <input type="text" class="search-input" placeholder="Search documents..." id="search-input">
+            <select class="filter-select" id="type-filter">
+                <option value="">All Types</option>
+                <option value="pdf">PDF</option>
+                <option value="doc">Word Document</option>
+                <option value="txt">Text File</option>
+            </select>
+            <select class="filter-select" id="status-filter">
+                <option value="">All Status</option>
+                <option value="analyzed">Analyzed</option>
+                <option value="pending">Pending</option>
+                <option value="not-analyzed">Not Analyzed</option>
+            </select>
+            <select class="filter-select" id="sort-select">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name">Name A-Z</option>
+                <option value="size">Size</option>
+            </select>
+        </div>
+
+        <!-- Documents Grid -->
+        <div class="documents-grid" id="documents-grid">
+            {% if documents and documents|length > 0 %}
+                {% for doc in documents %}
+                <div class="document-card" data-doc-id="{{ doc.id }}" data-name="{{ doc.name }}" data-type="{{ doc.type }}" data-status="{{ doc.status }}">
+                    <div class="document-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="document-name">{{ doc.name }}</div>
+                    <div class="document-meta">
+                        <span class="document-type">{{ doc.type.upper() }}</span>
+                        <span>{{ doc.size }}</span>
+                    </div>
+                    <div class="document-meta">
+                        <span>{{ doc.upload_date }}</span>
+                        <span class="analysis-status {{ doc.status }}">
+                            {% if doc.status == 'analyzed' %}
+                                ✓ Analyzed
+                            {% elif doc.status == 'pending' %}
+                                ⏳ Pending
+                            {% else %}
+                                ○ Not Analyzed
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="document-actions">
+                        <button class="action-btn view" onclick="viewDocument('{{ doc.id }}')" title="View Document">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn analyze" onclick="analyzeDocument('{{ doc.id }}')" title="Analyze Document">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteDocument('{{ doc.id }}')" title="Delete Document">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <h3>No documents yet</h3>
+                    <p>Upload your first document to get started with AI-powered analysis</p>
+                    <a href="{{ url_for('document_analysis_page') }}" class="upload-btn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        Upload Your First Document
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const typeFilter = document.getElementById('type-filter');
+    const statusFilter = document.getElementById('status-filter');
+    const sortSelect = document.getElementById('sort-select');
+    const documentsGrid = document.getElementById('documents-grid');
+    
+    let allDocuments = Array.from(document.querySelectorAll('.document-card'));
+
+    // Search functionality
+    searchInput.addEventListener('input', filterDocuments);
+    typeFilter.addEventListener('change', filterDocuments);
+    statusFilter.addEventListener('change', filterDocuments);
+    sortSelect.addEventListener('change', filterDocuments);
+
+    function filterDocuments() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const typeFilter = document.getElementById('type-filter').value;
+        const statusFilter = document.getElementById('status-filter').value;
+        const sortBy = sortSelect.value;
+
+        let filteredDocs = allDocuments.filter(doc => {
+            const name = doc.dataset.name.toLowerCase();
+            const type = doc.dataset.type;
+            const status = doc.dataset.status;
+
+            const matchesSearch = name.includes(searchTerm);
+            const matchesType = !typeFilter || type === typeFilter;
+            const matchesStatus = !statusFilter || status === statusFilter;
+
+            return matchesSearch && matchesType && matchesStatus;
+        });
+
+        // Sort documents
+        filteredDocs.sort((a, b) => {
+            switch(sortBy) {
+                case 'name':
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                case 'oldest':
+                    return new Date(a.dataset.uploadDate) - new Date(b.dataset.uploadDate);
+                case 'size':
+                    return parseFloat(a.dataset.size) - parseFloat(b.dataset.size);
+                default: // newest
+                    return new Date(b.dataset.uploadDate) - new Date(a.dataset.uploadDate);
+            }
+        });
+
+        // Hide all documents
+        allDocuments.forEach(doc => doc.style.display = 'none');
+
+        // Show filtered documents
+        filteredDocs.forEach(doc => doc.style.display = 'block');
+
+        // Update stats
+        updateStats(filteredDocs);
+    }
+
+    function updateStats(visibleDocs) {
+        const totalDocs = visibleDocs.length;
+        const analyzedDocs = visibleDocs.filter(doc => doc.dataset.status === 'analyzed').length;
+        const pendingDocs = visibleDocs.filter(doc => doc.dataset.status === 'pending').length;
+
+        document.getElementById('total-documents').textContent = totalDocs;
+        document.getElementById('analyzed-documents').textContent = analyzedDocs;
+        document.getElementById('pending-documents').textContent = pendingDocs;
+    }
+
+    // Document actions
+    window.viewDocument = function(docId) {
+        // Redirect to document viewer (to be implemented)
+        console.log('View document:', docId);
+        alert('Document viewer coming soon!');
+    };
+
+    window.analyzeDocument = function(docId) {
+        // Redirect to document analysis with pre-selected document
+        window.location.href = `{{ url_for('document_analysis_page') }}?doc_id=${docId}`;
+    };
+
+    window.deleteDocument = function(docId) {
+        if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+            // Make API call to delete document
+            fetch(`/api/documents/${docId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove document from UI
+                    const docCard = document.querySelector(`[data-doc-id="${docId}"]`);
+                    if (docCard) {
+                        docCard.remove();
+                        allDocuments = allDocuments.filter(doc => doc.dataset.docId !== docId);
+                        filterDocuments(); // Refresh the view
+                    }
+                } else {
+                    alert('Error deleting document: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Delete error:', error);
+                alert('Error deleting document. Please try again.');
+            });
+        }
+    };
+});
+</script>
+{% endblock %}

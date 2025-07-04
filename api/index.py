@@ -2908,12 +2908,14 @@ def document_analysis_page():
 def documents_list():
     """Document management system with upload and analysis capabilities"""
     try:
+        from flask import render_template
+        
         # Mock document data for demonstration
         documents = [
             {
                 'id': 1,
                 'name': 'Contract_Amendment_Smith.pdf',
-                'type': 'Contract',
+                'type': 'pdf',
                 'client': 'John Smith',
                 'upload_date': '2025-01-03',
                 'size': '245 KB',
@@ -2925,7 +2927,7 @@ def documents_list():
             {
                 'id': 2,
                 'name': 'Custody_Agreement_Draft.docx',
-                'type': 'Legal Document',
+                'type': 'docx',
                 'client': 'John Smith',
                 'upload_date': '2025-01-02',
                 'size': '156 KB',
@@ -2937,7 +2939,7 @@ def documents_list():
             {
                 'id': 3,
                 'name': 'Insurance_Claim_Documentation.pdf',
-                'type': 'Evidence',
+                'type': 'pdf',
                 'client': 'Sarah Johnson',
                 'upload_date': '2025-01-01',
                 'size': '1.2 MB',
@@ -2948,407 +2950,23 @@ def documents_list():
             }
         ]
         
-        return render_template_string("""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Document Management - LexAI</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                :root {
-                    --primary-green: #2E4B3C;
-                    --secondary-cream: #F7EDDA;
-                    --gray-50: #f9fafb;
-                    --gray-100: #f3f4f6;
-                    --gray-200: #e5e7eb;
-                    --gray-600: #4b5563;
-                    --gray-700: #374151;
-                    --gray-900: #111827;
-                    --success: #10b981;
-                    --warning: #f59e0b;
-                    --error: #ef4444;
-                    --blue: #3b82f6;
-                }
-                
-                body {
-                    font-family: 'Inter', system-ui, sans-serif;
-                    background: linear-gradient(135deg, var(--secondary-cream) 0%, #F7DFBA 100%);
-                    margin: 0;
-                    padding: 20px;
-                    min-height: 100vh;
-                    color: var(--gray-900);
-                }
-                
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    background: white;
-                    border-radius: 16px;
-                    padding: 32px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                
-                .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 32px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid var(--gray-100);
-                }
-                
-                .back-link, .upload-btn {
-                    background: var(--primary-green);
-                    color: var(--secondary-cream);
-                    padding: 10px 16px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    border: none;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .upload-btn {
-                    background: var(--blue);
-                }
-                
-                .upload-area {
-                    border: 2px dashed var(--gray-200);
-                    border-radius: 12px;
-                    padding: 48px 24px;
-                    text-align: center;
-                    margin-bottom: 32px;
-                    transition: all 0.2s ease;
-                    cursor: pointer;
-                }
-                
-                .upload-area:hover {
-                    border-color: var(--primary-green);
-                    background: rgba(46, 75, 60, 0.02);
-                }
-                
-                .upload-area.dragover {
-                    border-color: var(--primary-green);
-                    background: rgba(46, 75, 60, 0.05);
-                }
-                
-                .upload-icon {
-                    font-size: 3rem;
-                    margin-bottom: 16px;
-                    color: var(--gray-600);
-                }
-                
-                .upload-text {
-                    font-size: 1.1rem;
-                    color: var(--gray-700);
-                    margin-bottom: 8px;
-                }
-                
-                .upload-subtext {
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                }
-                
-                .documents-grid {
-                    display: grid;
-                    gap: 16px;
-                }
-                
-                .document-card {
-                    background: var(--gray-50);
-                    border: 1px solid var(--gray-100);
-                    border-radius: 12px;
-                    padding: 24px;
-                    transition: all 0.2s ease;
-                }
-                
-                .document-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-                }
-                
-                .document-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 16px;
-                }
-                
-                .document-name {
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: var(--gray-900);
-                    margin: 0 0 4px 0;
-                }
-                
-                .document-meta {
-                    font-size: 0.875rem;
-                    color: var(--gray-600);
-                }
-                
-                .status-badge {
-                    padding: 4px 12px;
-                    border-radius: 6px;
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                    text-transform: uppercase;
-                }
-                
-                .status-analyzed { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-                .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-                .status-error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
-                
-                .document-summary {
-                    margin: 16px 0;
-                    padding: 16px;
-                    background: white;
-                    border-radius: 8px;
-                    border: 1px solid var(--gray-200);
-                    font-size: 0.875rem;
-                    line-height: 1.5;
-                    color: var(--gray-700);
-                }
-                
-                .document-tags {
-                    display: flex;
-                    gap: 8px;
-                    flex-wrap: wrap;
-                    margin-top: 12px;
-                }
-                
-                .tag {
-                    background: var(--gray-100);
-                    color: var(--gray-700);
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 0.75rem;
-                    font-weight: 500;
-                }
-                
-                .document-actions {
-                    display: flex;
-                    gap: 8px;
-                    margin-top: 16px;
-                }
-                
-                .action-btn {
-                    padding: 6px 12px;
-                    border: 1px solid var(--gray-200);
-                    border-radius: 6px;
-                    background: white;
-                    color: var(--gray-700);
-                    font-size: 0.75rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .action-btn:hover {
-                    background: var(--gray-50);
-                    border-color: var(--gray-300);
-                }
-                
-                .action-btn.primary {
-                    background: var(--primary-green);
-                    color: white;
-                    border-color: var(--primary-green);
-                }
-                
-                .filters {
-                    display: flex;
-                    gap: 12px;
-                    margin-bottom: 24px;
-                    flex-wrap: wrap;
-                }
-                
-                .filter-btn {
-                    padding: 8px 16px;
-                    border: 1px solid var(--gray-200);
-                    border-radius: 8px;
-                    background: white;
-                    color: var(--gray-700);
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                
-                .filter-btn.active {
-                    background: var(--primary-green);
-                    color: white;
-                    border-color: var(--primary-green);
-                }
-                
-                .hidden {
-                    display: none;
-                }
-                
-                @media (max-width: 768px) {
-                    .header {
-                        flex-direction: column;
-                        gap: 16px;
-                        align-items: flex-start;
-                    }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div>
-                        <h1 style="margin: 0; font-size: 2rem; font-weight: 700; color: var(--primary-green);">Document Management</h1>
-                        <p style="margin: 4px 0 0 0; color: var(--gray-600);">Upload, analyze, and manage legal documents with AI</p>
-                    </div>
-                    <div style="display: flex; gap: 12px;">
-                        <a href="/" class="back-link">← Dashboard</a>
-                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📤 Upload Document</button>
-                    </div>
-                </div>
-                
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">📄</div>
-                    <div class="upload-text">Click to upload or drag and drop</div>
-                    <div class="upload-subtext">PDF, DOC, DOCX files up to 10MB</div>
-                    <input type="file" id="fileInput" class="hidden" accept=".pdf,.doc,.docx" onchange="handleFileUpload(this)">
-                </div>
-                
-                <div class="filters">
-                    <button class="filter-btn active" onclick="filterDocuments('all')">All Documents</button>
-                    <button class="filter-btn" onclick="filterDocuments('contract')">Contracts</button>
-                    <button class="filter-btn" onclick="filterDocuments('evidence')">Evidence</button>
-                    <button class="filter-btn" onclick="filterDocuments('analyzed')">Analyzed</button>
-                    <button class="filter-btn" onclick="filterDocuments('pending')">Pending</button>
-                </div>
-                
-                <div class="documents-grid" id="documentsGrid">
-                    {% for doc in documents %}
-                    <div class="document-card" data-type="{{ doc.type.lower() }}" data-status="{{ doc.status }}">
-                        <div class="document-header">
-                            <div>
-                                <h3 class="document-name">{{ doc.name }}</h3>
-                                <div class="document-meta">
-                                    {{ doc.type }} • {{ doc.client }} • {{ doc.upload_date }} • {{ doc.size }}
-                                </div>
-                            </div>
-                            <span class="status-badge status-{{ doc.status }}">{{ doc.status }}</span>
-                        </div>
-                        
-                        {% if doc.ai_summary %}
-                        <div class="document-summary">
-                            <strong>AI Analysis:</strong> {{ doc.ai_summary }}
-                        </div>
-                        {% endif %}
-                        
-                        <div class="document-tags">
-                            {% for tag in doc.tags %}
-                            <span class="tag">{{ tag }}</span>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="document-actions">
-                            <button class="action-btn primary" onclick="viewDocument({{ doc.id }})">View</button>
-                            <button class="action-btn" onclick="downloadDocument({{ doc.id }})">Download</button>
-                            <button class="action-btn" onclick="analyzeDocument({{ doc.id }})">Re-analyze</button>
-                            <button class="action-btn" onclick="shareDocument({{ doc.id }})">Share</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <script>
-                // File upload handling
-                function handleFileUpload(input) {
-                    const file = input.files[0];
-                    if (file) {
-                        console.log('File selected:', file.name);
-                        alert(`File "${file.name}" selected for upload. Upload functionality coming soon!`);
-                    }
-                }
-                
-                // Drag and drop functionality
-                const uploadArea = document.querySelector('.upload-area');
-                
-                uploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.add('dragover');
-                });
-                
-                uploadArea.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.remove('dragover');
-                });
-                
-                uploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadArea.classList.remove('dragover');
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        console.log('Files dropped:', files[0].name);
-                        alert(`File "${files[0].name}" dropped. Upload functionality coming soon!`);
-                    }
-                });
-                
-                // Document filtering
-                function filterDocuments(filter) {
-                    const cards = document.querySelectorAll('.document-card');
-                    const buttons = document.querySelectorAll('.filter-btn');
-                    
-                    // Update button states
-                    buttons.forEach(btn => btn.classList.remove('active'));
-                    event.target.classList.add('active');
-                    
-                    // Filter cards
-                    cards.forEach(card => {
-                        const type = card.dataset.type;
-                        const status = card.dataset.status;
-                        
-                        let show = false;
-                        if (filter === 'all') {
-                            show = true;
-                        } else if (filter === 'contract' && type === 'contract') {
-                            show = true;
-                        } else if (filter === 'evidence' && type === 'evidence') {
-                            show = true;
-                        } else if (filter === status) {
-                            show = true;
-                        }
-                        
-                        card.style.display = show ? 'block' : 'none';
-                    });
-                }
-                
-                // Document actions
-                function viewDocument(id) {
-                    alert(`Viewing document ${id}. Full document viewer coming soon!`);
-                }
-                
-                function downloadDocument(id) {
-                    alert(`Downloading document ${id}. Download functionality coming soon!`);
-                }
-                
-                function analyzeDocument(id) {
-                    alert(`Re-analyzing document ${id} with AI. Analysis engine coming soon!`);
-                }
-                
-                function shareDocument(id) {
-                    alert(`Sharing document ${id}. Collaboration features coming soon!`);
-                }
-            </script>
-        </body>
-        </html>
-        """, documents=documents)
+        # Calculate stats
+        analyzed_count = len([d for d in documents if d['status'] == 'analyzed'])
+        pending_count = len([d for d in documents if d['status'] == 'pending'])
+        total_size = "1.6 MB"  # Mock calculation
         
+        return render_template('documents_list.html', 
+                             documents=documents,
+                             analyzed_count=analyzed_count,
+                             pending_count=pending_count,
+                             total_size=total_size)
     except Exception as e:
-        logger.error(f"Documents page error: {e}")
+        logger.error(f"Document list error: {e}")
         return f"""<!DOCTYPE html>
-<html><head><title>LexAI Documents</title></head>
-<body><h1>🏛️ LexAI Document Management</h1>
-<p>Error loading documents: {e}</p>
-<a href="/">← Back to Dashboard</a></body></html>"""
+<html><head><title>LexAI Document Library</title></head>
+<body><h1>🏛️ LexAI Document Library</h1>
+<p>Page loading error: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
 
 @app.route('/api/documents/upload', methods=['POST'])
 @rate_limit_decorator
@@ -3652,6 +3270,29 @@ def analyze_document(doc_id):
     except Exception as e:
         logger.error(f"Document analysis error: {e}")
         return jsonify({'error': 'Document analysis failed'}), 500
+
+@app.route('/api/documents/<doc_id>', methods=['DELETE'])
+@rate_limit_decorator
+def delete_document(doc_id):
+    """Delete a document from the library"""
+    try:
+        # In production, this would delete from database
+        # For now, we'll just simulate a successful deletion
+        logger.info(f"Document {doc_id} deletion requested")
+        
+        # Mock validation - in production, check if document exists and user has permission
+        if not doc_id or not doc_id.isdigit():
+            return jsonify({'error': 'Invalid document ID'}), 400
+        
+        # Mock successful deletion
+        return jsonify({
+            'success': True,
+            'message': f'Document {doc_id} deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Document deletion error: {e}")
+        return jsonify({'error': 'Failed to delete document'}), 500
 
 
 @app.route('/api/cases/<case_id>/timeline', methods=['GET'])
@@ -4330,6 +3971,41 @@ def api_chat():
         # Build specialized system prompt
         system_prompt = build_system_prompt(practice_area)
         
+        # Check for document context
+        has_document = data.get('has_document', False)
+        document_name = data.get('document_name', '')
+        document_content = data.get('document_content', '')
+        
+        # Enhance system prompt with document context if available
+        if has_document and document_content:
+            system_prompt += f"""
+
+DOCUMENT CONTEXT:
+You are now analyzing and answering questions about a document titled: "{document_name}"
+
+Document Content:
+{document_content[:8000]}  # Limit content to 8KB
+
+Instructions for document-based responses:
+- Reference specific sections or clauses from the document when relevant
+- Identify potential legal issues, risks, or areas of concern
+- Provide clear explanations of legal terms found in the document
+- Suggest improvements or modifications where appropriate
+- Always indicate when you're referencing the uploaded document vs. general legal knowledge
+"""
+        elif has_document and not document_content:
+            system_prompt += f"""
+
+DOCUMENT CONTEXT:
+The user has uploaded a document titled: "{document_name}" but the content could not be read (likely a PDF or Word document).
+
+Instructions:
+- Acknowledge the document upload
+- Provide general guidance about document analysis
+- Suggest specific questions the user might ask about their document
+- Offer to help interpret legal terms or concepts they might find in the document
+"""
+        
         # Get conversation history for context
         conversation_history = conversation_manager.get_conversation(client_id, practice_area)
         
@@ -4344,8 +4020,13 @@ def api_chat():
                 "content": msg["content"]
             })
         
+        # Enhanced user message with document context
+        enhanced_message = message
+        if has_document:
+            enhanced_message = f"[Document: {document_name}] {message}"
+        
         # Add current user message
-        messages.append({"role": "user", "content": message})
+        messages.append({"role": "user", "content": enhanced_message})
         
         # API call payload
         payload = {

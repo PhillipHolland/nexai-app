@@ -51,11 +51,116 @@
             height: fit-content;
         }
 
-        .practice-areas h3 {
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-section h3 {
             font-size: 1.125rem;
             font-weight: 600;
             color: #1f2937;
             margin-bottom: 1rem;
+        }
+
+        /* Document Upload Styles */
+        .document-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .document-upload-area:hover {
+            border-color: #2E4B3C;
+            background-color: #f0fdf4;
+        }
+
+        .document-upload-area.dragover {
+            border-color: #FFA74F;
+            background-color: #fef3cd;
+        }
+
+        .upload-icon {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-subtext {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Uploaded Document Display */
+        .uploaded-document {
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .doc-icon {
+            font-size: 1.25rem;
+        }
+
+        .doc-details {
+            flex: 1;
+        }
+
+        .doc-name {
+            font-weight: 500;
+            color: #1f2937;
+            font-size: 0.875rem;
+            line-height: 1.2;
+        }
+
+        .doc-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .remove-doc-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .remove-doc-btn:hover {
+            color: #dc2626;
+            background-color: #fee2e2;
+        }
+
+        .doc-status {
+            font-size: 0.75rem;
+            color: #16a34a;
+            font-weight: 500;
+            text-align: center;
+            padding: 0.25rem 0.5rem;
+            background-color: #dcfce7;
+            border-radius: 0.25rem;
         }
 
         .practice-area {
@@ -306,6 +411,15 @@
             .practice-areas {
                 width: 100%;
                 order: 2;
+                padding: 1rem;
+            }
+
+            .sidebar-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .document-upload-area {
+                padding: 0.75rem;
             }
 
             .chat-interface {
@@ -315,6 +429,19 @@
 
             .message {
                 max-width: 95%;
+            }
+
+            .practice-area {
+                padding: 0.5rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .practice-area-name {
+                font-size: 0.875rem;
+            }
+
+            .practice-area-desc {
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -330,32 +457,67 @@
 
     <!-- Main Chat Interface -->
     <div class="chat-main">
-        <!-- Practice Areas Sidebar -->
+        <!-- Sidebar -->
         <div class="practice-areas">
-            <h3>Practice Areas</h3>
-            <div class="practice-area active" data-area="general">
-                <div class="practice-area-name">General Legal</div>
-                <div class="practice-area-desc">General legal questions and guidance</div>
+            <!-- Document Upload Section -->
+            <div class="sidebar-section">
+                <h3>Document Q&A</h3>
+                <div class="document-upload-area" id="document-upload-area">
+                    <div class="upload-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">Upload Document</div>
+                    <div class="upload-subtext">Ask questions about your documents</div>
+                    <input type="file" id="doc-upload-input" accept=".pdf,.doc,.docx,.txt" style="display: none;">
+                </div>
+                
+                <!-- Uploaded Document Display -->
+                <div class="uploaded-document" id="uploaded-document" style="display: none;">
+                    <div class="doc-info">
+                        <div class="doc-icon">📄</div>
+                        <div class="doc-details">
+                            <div class="doc-name" id="doc-name"></div>
+                            <div class="doc-size" id="doc-size"></div>
+                        </div>
+                        <button class="remove-doc-btn" id="remove-doc-btn" title="Remove document">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="doc-status" id="doc-status">Ready for questions</div>
+                </div>
             </div>
-            <div class="practice-area" data-area="family">
-                <div class="practice-area-name">Family Law</div>
-                <div class="practice-area-desc">Divorce, custody, and family matters</div>
-            </div>
-            <div class="practice-area" data-area="corporate">
-                <div class="practice-area-name">Corporate Law</div>
-                <div class="practice-area-desc">Business formation and contracts</div>
-            </div>
-            <div class="practice-area" data-area="real-estate">
-                <div class="practice-area-name">Real Estate</div>
-                <div class="practice-area-desc">Property transactions and disputes</div>
-            </div>
-            <div class="practice-area" data-area="personal-injury">
-                <div class="practice-area-name">Personal Injury</div>
-                <div class="practice-area-desc">Accident claims and compensation</div>
-            </div>
-            <div class="practice-area" data-area="criminal">
-                <div class="practice-area-name">Criminal Defense</div>
-                <div class="practice-area-desc">Criminal law and defense strategies</div>
+
+            <!-- Practice Areas Section -->
+            <div class="sidebar-section">
+                <h3>Practice Areas</h3>
+                <div class="practice-area active" data-area="general">
+                    <div class="practice-area-name">General Legal</div>
+                    <div class="practice-area-desc">General legal questions and guidance</div>
+                </div>
+                <div class="practice-area" data-area="family">
+                    <div class="practice-area-name">Family Law</div>
+                    <div class="practice-area-desc">Divorce, custody, and family matters</div>
+                </div>
+                <div class="practice-area" data-area="corporate">
+                    <div class="practice-area-name">Corporate Law</div>
+                    <div class="practice-area-desc">Business formation and contracts</div>
+                </div>
+                <div class="practice-area" data-area="real-estate">
+                    <div class="practice-area-name">Real Estate</div>
+                    <div class="practice-area-desc">Property transactions and disputes</div>
+                </div>
+                <div class="practice-area" data-area="personal-injury">
+                    <div class="practice-area-name">Personal Injury</div>
+                    <div class="practice-area-desc">Accident claims and compensation</div>
+                </div>
+                <div class="practice-area" data-area="criminal">
+                    <div class="practice-area-name">Criminal Defense</div>
+                    <div class="practice-area-desc">Criminal law and defense strategies</div>
+                </div>
             </div>
         </div>
 
@@ -381,13 +543,13 @@
                             <div class="suggested-prompt-title">Business Formation</div>
                             <div class="suggested-prompt-desc">Learn about entity formation requirements</div>
                         </div>
-                        <div class="suggested-prompt" data-prompt="Analyze this employment contract for potential issues and areas of concern.">
-                            <div class="suggested-prompt-title">Document Review</div>
-                            <div class="suggested-prompt-desc">Get document analysis and feedback</div>
+                        <div class="suggested-prompt" data-prompt="Upload a document and I'll analyze it for potential issues and provide recommendations.">
+                            <div class="suggested-prompt-title">Document Analysis</div>
+                            <div class="suggested-prompt-desc">Upload and get AI-powered document review</div>
                         </div>
-                        <div class="suggested-prompt" data-prompt="What are my rights as a tenant if my landlord wants to raise the rent?">
-                            <div class="suggested-prompt-title">Legal Rights</div>
-                            <div class="suggested-prompt-desc">Understand your legal rights and options</div>
+                        <div class="suggested-prompt" data-prompt="What are the main terms in this contract and what should I be concerned about?">
+                            <div class="suggested-prompt-title">Contract Review</div>
+                            <div class="suggested-prompt-desc">Ask questions about uploaded documents</div>
                         </div>
                     </div>
                 </div>
@@ -443,6 +605,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentPracticeArea = 'general';
     let conversationHistory = [];
+    let uploadedDocument = null;
+
+    // Document upload elements
+    const documentUploadArea = document.getElementById('document-upload-area');
+    const docUploadInput = document.getElementById('doc-upload-input');
+    const uploadedDocumentDiv = document.getElementById('uploaded-document');
+    const docName = document.getElementById('doc-name');
+    const docSize = document.getElementById('doc-size');
+    const docStatus = document.getElementById('doc-status');
+    const removeDocBtn = document.getElementById('remove-doc-btn');
 
     // Practice area selection
     practiceAreas.forEach(area => {
@@ -457,11 +629,94 @@ document.addEventListener('DOMContentLoaded', function() {
     suggestedPrompts.forEach(prompt => {
         prompt.addEventListener('click', function() {
             const promptText = this.dataset.prompt;
-            chatInput.value = promptText;
-            hideEmptyState();
-            sendMessage(promptText);
+            if (promptText.includes('Upload a document')) {
+                // Trigger document upload
+                docUploadInput.click();
+            } else {
+                chatInput.value = promptText;
+                hideEmptyState();
+                sendMessage(promptText);
+            }
         });
     });
+
+    // Document Upload Functionality
+    documentUploadArea.addEventListener('click', function() {
+        docUploadInput.click();
+    });
+
+    documentUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    documentUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    documentUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleDocumentUpload(files[0]);
+        }
+    });
+
+    docUploadInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleDocumentUpload(e.target.files[0]);
+        }
+    });
+
+    removeDocBtn.addEventListener('click', function() {
+        removeDocument();
+    });
+
+    function handleDocumentUpload(file) {
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'application/msword', 
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                            'text/plain'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please upload a PDF, DOC, DOCX, or TXT file.');
+            return;
+        }
+
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        uploadedDocument = file;
+        displayUploadedDocument(file);
+        
+        // Auto-add message about document upload
+        addMessage(`📄 Uploaded document: ${file.name}. You can now ask questions about this document.`, false);
+        hideEmptyState();
+    }
+
+    function displayUploadedDocument(file) {
+        docName.textContent = file.name;
+        docSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+        docStatus.textContent = 'Ready for questions';
+        
+        documentUploadArea.style.display = 'none';
+        uploadedDocumentDiv.style.display = 'block';
+    }
+
+    function removeDocument() {
+        uploadedDocument = null;
+        documentUploadArea.style.display = 'block';
+        uploadedDocumentDiv.style.display = 'none';
+        docUploadInput.value = '';
+        
+        addMessage('📄 Document removed. You can upload a new document or continue with general legal questions.', false);
+    }
 
     // Auto-resize textarea
     chatInput.addEventListener('input', function() {
@@ -539,16 +794,36 @@ document.addEventListener('DOMContentLoaded', function() {
         showTyping();
 
         try {
+            // Prepare request data
+            const requestData = {
+                message: message,
+                practice_area: currentPracticeArea,
+                conversation_history: conversationHistory.slice(-10) // Keep last 10 messages
+            };
+
+            // If document is uploaded, include document context
+            if (uploadedDocument) {
+                requestData.has_document = true;
+                requestData.document_name = uploadedDocument.name;
+                requestData.document_type = uploadedDocument.type;
+                
+                // Read document content if it's a text file
+                if (uploadedDocument.type === 'text/plain') {
+                    try {
+                        const documentContent = await readFileAsText(uploadedDocument);
+                        requestData.document_content = documentContent.substring(0, 10000); // Limit to 10KB
+                    } catch (e) {
+                        console.warn('Could not read document content:', e);
+                    }
+                }
+            }
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    message: message,
-                    practice_area: currentPracticeArea,
-                    conversation_history: conversationHistory.slice(-10) // Keep last 10 messages
-                })
+                body: JSON.stringify(requestData)
             });
 
             if (!response.ok) {
@@ -573,6 +848,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             sendBtn.disabled = false;
         }
+    }
+
+    // Helper function to read file content
+    function readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = e => reject(e);
+            reader.readAsText(file);
+        });
     }
 });
 </script>
