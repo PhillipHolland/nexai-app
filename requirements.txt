@@ -16,7 +16,7 @@ WTForms>=3.1.1
 
 # Database drivers
 psycopg2-binary>=2.9.3  # PostgreSQL
-sqlite3  # SQLite (built-in)
+# sqlite3 is built into Python, no need to install
 
 # Environment and configuration
 python-dotenv>=1.0.1
