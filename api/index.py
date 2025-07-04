@@ -11,11 +11,18 @@ import logging
 import re
 import hashlib
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, url_for, g
 from dotenv import load_dotenv
+
+try:
+    import redis
+    REDIS_AVAILABLE = True
+except ImportError:
+    REDIS_AVAILABLE = False
+    logging.warning("Redis not available - conversation persistence disabled")
 
 # Load environment variables
 load_dotenv()
@@ -44,6 +51,17 @@ if REDIS_URL:
     logger.info("Redis URL configured - conversation storage available")
 if DATABASE_URL:
     logger.info("Neon database URL configured - full database features available")
+
+# Redis connection for conversation persistence
+redis_client = None
+if REDIS_AVAILABLE and REDIS_URL:
+    try:
+        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        redis_client.ping()
+        logger.info("✅ Redis connected successfully")
+    except Exception as e:
+        logger.error(f"Redis connection failed: {e}")
+        redis_client = None
 
 # Security configuration
 MAX_MESSAGE_LENGTH = 5000
@@ -218,6 +236,117 @@ def validate_json_input(required_fields: List[str] = None):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+class ConversationManager:
+    """Redis-based conversation persistence with fallback to in-memory storage"""
+    
+    def __init__(self, redis_client=None):
+        self.redis_client = redis_client
+        self.memory_storage = {}  # Fallback for when Redis is unavailable
+        self.conversation_ttl = 86400  # 24 hours
+        
+    def _get_conversation_key(self, client_id: str, practice_area: str) -> str:
+        """Generate conversation key for Redis"""
+        return f"conversation:{client_id}:{practice_area}"
+    
+    def save_message(self, client_id: str, practice_area: str, role: str, content: str) -> bool:
+        """Save a message to the conversation history"""
+        try:
+            message = {
+                'role': role,
+                'content': content,
+                'timestamp': datetime.utcnow().isoformat(),
+                'practice_area': practice_area
+            }
+            
+            if self.redis_client:
+                key = self._get_conversation_key(client_id, practice_area)
+                # Store as JSON list in Redis
+                conversation = self.get_conversation(client_id, practice_area)
+                conversation.append(message)
+                
+                # Keep only last 20 messages to manage memory
+                if len(conversation) > 20:
+                    conversation = conversation[-20:]
+                
+                self.redis_client.setex(key, self.conversation_ttl, json.dumps(conversation))
+                logger.info(f"💾 Saved to Redis: {client_id[:8]}... | {role} | {len(content)} chars")
+                return True
+            else:
+                # Fallback to memory storage
+                key = self._get_conversation_key(client_id, practice_area)
+                if key not in self.memory_storage:
+                    self.memory_storage[key] = []
+                self.memory_storage[key].append(message)
+                
+                # Keep only last 10 messages in memory
+                if len(self.memory_storage[key]) > 10:
+                    self.memory_storage[key] = self.memory_storage[key][-10:]
+                
+                logger.info(f"📝 Saved to memory: {client_id[:8]}... | {role} | {len(content)} chars")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Failed to save message: {e}")
+            return False
+    
+    def get_conversation(self, client_id: str, practice_area: str) -> List[Dict]:
+        """Retrieve conversation history"""
+        try:
+            key = self._get_conversation_key(client_id, practice_area)
+            
+            if self.redis_client:
+                conversation_data = self.redis_client.get(key)
+                if conversation_data:
+                    return json.loads(conversation_data)
+            else:
+                # Fallback to memory storage
+                return self.memory_storage.get(key, [])
+                
+        except Exception as e:
+            logger.error(f"Failed to retrieve conversation: {e}")
+            
+        return []
+    
+    def get_conversation_summary(self, client_id: str, practice_area: str) -> Dict[str, Any]:
+        """Get conversation metadata and summary"""
+        conversation = self.get_conversation(client_id, practice_area)
+        
+        if not conversation:
+            return {
+                'message_count': 0,
+                'last_activity': None,
+                'practice_area': practice_area,
+                'status': 'new'
+            }
+        
+        return {
+            'message_count': len(conversation),
+            'last_activity': conversation[-1]['timestamp'],
+            'practice_area': practice_area,
+            'status': 'active',
+            'last_message_preview': conversation[-1]['content'][:100] + '...' if len(conversation[-1]['content']) > 100 else conversation[-1]['content']
+        }
+    
+    def clear_conversation(self, client_id: str, practice_area: str) -> bool:
+        """Clear conversation history"""
+        try:
+            key = self._get_conversation_key(client_id, practice_area)
+            
+            if self.redis_client:
+                self.redis_client.delete(key)
+            else:
+                self.memory_storage.pop(key, None)
+                
+            logger.info(f"🗑️ Cleared conversation: {client_id[:8]}... | {practice_area}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to clear conversation: {e}")
+            return False
+
+# Initialize conversation manager
+conversation_manager = ConversationManager(redis_client)
 
 # Register security headers middleware
 @app.after_request
@@ -827,7 +956,6 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
                     </button>
                     <!-- LexAI Logo -->
                     <img src="/static/lexAI.png" alt="LexAI" class="navbar-logo">
-                    <span class="navbar-text">LexAI Practice Partner</span>
                 </div>
                 
                 <div style="display: flex; gap: 12px; align-items: center;">
@@ -1334,19 +1462,28 @@ def health_check():
             },
             "features": {
                 "ai_chat": bool(XAI_API_KEY),
-                "conversation_storage": bool(REDIS_URL or DATABASE_URL),
+                "conversation_storage": bool(redis_client),
+                "conversation_fallback": True,
                 "practice_areas": True,
                 "modern_ui": True,
                 "security_validation": True,
                 "rate_limiting": True,
                 "xss_protection": True,
-                "sql_injection_protection": True
+                "sql_injection_protection": True,
+                "session_continuity": True
             },
             "security": {
                 "rate_limit_window": RATE_LIMIT_WINDOW,
                 "rate_limit_requests": RATE_LIMIT_REQUESTS,
                 "max_message_length": MAX_MESSAGE_LENGTH,
                 "active_rate_limits": len(rate_limit_storage)
+            },
+            "storage": {
+                "redis_connected": bool(redis_client),
+                "redis_available": REDIS_AVAILABLE,
+                "memory_fallback": not bool(redis_client),
+                "conversation_ttl_hours": 24,
+                "max_messages_per_conversation": 20
             }
         })
     except Exception as e:
@@ -1400,6 +1537,57 @@ def security_status():
             "error": str(e)
         }), 500
 
+@app.route('/api/conversation/<client_id>')
+@rate_limit_decorator
+def get_conversation_history(client_id):
+    """Get conversation history for a client"""
+    try:
+        practice_area = request.args.get('practice_area', 'general')
+        conversation = conversation_manager.get_conversation(client_id, practice_area)
+        summary = conversation_manager.get_conversation_summary(client_id, practice_area)
+        
+        return jsonify({
+            "status": "success",
+            "conversation": conversation,
+            "summary": summary,
+            "client_id": client_id,
+            "practice_area": practice_area
+        })
+    except Exception as e:
+        logger.error(f"Failed to get conversation history: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/conversation/<client_id>/clear', methods=['POST'])
+@rate_limit_decorator
+def clear_conversation_history(client_id):
+    """Clear conversation history for a client"""
+    try:
+        practice_area = request.args.get('practice_area', 'general')
+        success = conversation_manager.clear_conversation(client_id, practice_area)
+        
+        if success:
+            return jsonify({
+                "status": "success",
+                "message": "Conversation history cleared",
+                "client_id": client_id,
+                "practice_area": practice_area
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "error": "Failed to clear conversation"
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"Failed to clear conversation: {e}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
 @app.route('/api/chat', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['message'])
@@ -1428,13 +1616,27 @@ def api_chat():
         # Build specialized system prompt
         system_prompt = build_system_prompt(practice_area)
         
+        # Get conversation history for context
+        conversation_history = conversation_manager.get_conversation(client_id, practice_area)
+        
+        # Build messages array with conversation history
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history (last 10 messages for context)
+        recent_history = conversation_history[-10:] if conversation_history else []
+        for msg in recent_history:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # Add current user message
+        messages.append({"role": "user", "content": message})
+        
         # API call payload
         payload = {
             "model": "grok-3-latest",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": message}
-            ],
+            "messages": messages,
             "stream": False,
             "temperature": 0.7
         }
@@ -1460,6 +1662,20 @@ def api_chat():
                 assistant_content = completion['choices'][0]['message']['content'].strip()
                 logger.info(f"Received response: {len(assistant_content)} characters")
                 
+                # Save conversation to persistent storage
+                try:
+                    # Save user message
+                    conversation_manager.save_message(client_id, practice_area, "user", message)
+                    # Save assistant response
+                    conversation_manager.save_message(client_id, practice_area, "assistant", assistant_content)
+                    
+                    # Get conversation summary for logging
+                    summary = conversation_manager.get_conversation_summary(client_id, practice_area)
+                    logger.info(f"💬 Conversation updated: {client_id[:8]}... | {practice_area} | Messages: {summary['message_count']}")
+                    
+                except Exception as e:
+                    logger.error(f"Failed to save conversation: {e}")
+                
                 # Log conversation using available resources with security info
                 try:
                     client_info = RateLimiter.get_client_id(request)
@@ -1480,7 +1696,8 @@ def api_chat():
                 return jsonify({
                     "choices": [{"delta": {"content": assistant_content}}],
                     "client_id": client_id,
-                    "practice_area": practice_area
+                    "practice_area": practice_area,
+                    "conversation_summary": conversation_manager.get_conversation_summary(client_id, practice_area)
                 })
         
         logger.error(f"XAI API error: {response.status_code} - {response.text}")

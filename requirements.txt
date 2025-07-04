@@ -1,4 +1,5 @@
-# Enhanced LexAI Practice Partner - Serverless Requirements for Vercel
+# Enhanced LexAI Practice Partner - Production Requirements
 Flask==3.1.0
 requests>=2.32.3
 python-dotenv>=1.0.1
+redis>=5.1.1

@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 from werkzeug.utils import secure_filename
 import re
 from datetime import datetime, timezone
+import os
 import logging
 from database import db, init_db, get_client_data, update_client_info, add_conversation, clear_conversation_history, add_document, Client, User
 import uuid
@@ -17,6 +18,8 @@ from dotenv import load_dotenv
 from auth import login_required, admin_required, get_current_user, create_user_session, destroy_user_session, register_user, authenticate_user
 from config import get_config, validate_environment
 from flask_migrate import Migrate
+from security import SecurityValidator, RateLimiter, security_headers, rate_limit_decorator, validate_json_input, log_security_event
+from error_handling import ErrorHandler, handle_api_error, monitor_performance, HealthCheck
 
 # Load environment variables from .env file
 load_dotenv()
@@ -49,16 +52,24 @@ def create_app(config_name=None):
     # Initialize migrations
     migrate = Migrate(app, db)
     
+    # Initialize error handling
+    error_handler = ErrorHandler(app)
+    
     return app
 
 # Create application instance
 app = create_app()
 
+# Add security headers to all responses
+@app.after_request
+def add_security_headers(response):
+    return security_headers(response)
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# API configuration
-XAI_API_KEY = app.config.get('XAI_API_KEY')
+# API configuration  
+XAI_API_KEY = (os.environ.get('XAI_API_KEY') or os.environ.get('xai_api_key') or '').strip()
 XAI_MODEL = app.config.get('XAI_MODEL', 'grok-3-latest')
 API_TIMEOUT = app.config.get('API_TIMEOUT', 30)
 
@@ -245,7 +256,15 @@ def clients_list():
 @app.route('/documents')
 def documents_list():
     """Document management interface"""
-    return render_template('documents.html')
+    try:
+        # Get user's documents (in production, filter by user)
+        documents = db.session.execute(
+            'SELECT * FROM documents ORDER BY uploaded_at DESC'
+        ).fetchall()
+        return render_template('documents.html', documents=documents)
+    except Exception as e:
+        logger.warning(f"Documents list error: {e}")
+        return render_template('documents.html', documents=[])
 
 @app.route('/analytics')
 def analytics_dashboard():
@@ -270,10 +289,14 @@ def analytics_dashboard():
 # ============================================================================
 
 @app.route('/api/chat', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['message'])
+@handle_api_error
+@monitor_performance
 def api_chat():
-    """Enhanced chat API with practice area specialization"""
+    """Enhanced chat API with practice area specialization and security"""
     try:
-        data = request.get_json()
+        data = g.validated_data
         
         # Support both message formats
         if 'message' in data:
@@ -284,6 +307,13 @@ def api_chat():
                 return jsonify({"error": "Message is required"}), 400
             message = messages[-1].get('content', '').strip()
 
+        # Validate and sanitize message
+        validation_result = SecurityValidator.validate_message(message)
+        if not validation_result['valid']:
+            log_security_event('input_validation_failed', f"Message validation failed: {validation_result['errors']}")
+            return jsonify({"error": validation_result['errors'][0]}), 400
+        
+        message = validation_result['sanitized']
         client_id = data.get('client_id', f'client_{uuid.uuid4().hex[:8]}')
         practice_area = data.get('practice_area', 'general')
         
@@ -334,10 +364,17 @@ def api_chat():
             timeout=30
         )
         
-        response.raise_for_status()
-        grok_response = response.json()
-        assistant_content = grok_response["choices"][0]["message"]["content"]
-        logger.info(f"Received response: {len(assistant_content)} characters")
+        if response.status_code == 200:
+            grok_response = response.json()
+            if 'choices' in grok_response and len(grok_response['choices']) > 0:
+                assistant_content = grok_response["choices"][0]["message"]["content"].strip()
+                logger.info(f"Received response: {len(assistant_content)} characters")
+            else:
+                logger.error(f"Unexpected response structure: {grok_response}")
+                return jsonify({"error": "Invalid response from AI service"}), 502
+        else:
+            logger.error(f"XAI API error: {response.status_code} - {response.text}")
+            return jsonify({"error": "AI service temporarily unavailable"}), 503
 
         # Save to database
         try:
@@ -353,20 +390,9 @@ def api_chat():
             "practice_area": practice_area
         })
 
-    except requests.exceptions.RequestException as e:
-        error_detail = str(e)
-        if hasattr(e, 'response') and e.response is not None:
-            try:
-                error_response = e.response.json()
-                error_detail += f" - Response: {error_response}"
-            except:
-                error_detail += f" - Response: {e.response.text}"
-        logger.error(f"Grok API error: {error_detail}")
-        return jsonify({"error": f"AI service error: {str(e)}"}), 500
-    
     except Exception as e:
-        logger.error(f"Unexpected error in chat endpoint: {str(e)}")
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+        logger.error(f"Chat endpoint error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/clients', methods=['GET', 'POST'])
 def api_clients():
@@ -404,6 +430,58 @@ def api_clients():
         except Exception as e:
             logger.error(f"Clients fetch error: {e}")
             return jsonify([])
+
+@app.route('/api/upload', methods=['POST'])
+@rate_limit_decorator
+def api_upload_document():
+    """Secure document upload API"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+            
+        # Validate file
+        validation_result = SecurityValidator.validate_file_upload(
+            file.filename, 
+            len(file.read())
+        )
+        file.seek(0)  # Reset file pointer
+        
+        if not validation_result['valid']:
+            log_security_event('file_validation_failed', f"File validation failed: {validation_result['errors']}")
+            return jsonify({'error': validation_result['errors'][0]}), 400
+            
+        # Generate secure filename
+        import os
+        timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        safe_filename = validation_result['safe_filename']
+        filename = f"{timestamp}_{safe_filename}"
+        
+        # Ensure upload directory exists
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        
+        # Save file
+        file.save(filepath)
+        
+        # Store document metadata in database
+        client_id = request.form.get('client_id', 'general')
+        add_document(client_id, safe_filename, filepath, file.content_type or 'application/octet-stream')
+        
+        logger.info(f"Document uploaded: {filename} for client {client_id}")
+        
+        return jsonify({
+            'success': True,
+            'filename': safe_filename,
+            'message': 'Document uploaded successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Document upload error: {e}")
+        return jsonify({'error': 'Upload failed'}), 500
 
 @app.route('/api/client/<client_id>', methods=['GET', 'POST'])
 def api_client_detail(client_id):
