@@ -10616,6 +10616,359 @@ def api_generate_invoice_from_time():
             'error': 'Failed to generate invoice from time entries'
         }), 500
 
+# Team Calendar Routes
+@app.route('/team-calendar')
+def team_calendar():
+    """Team Calendar page"""
+    return render_template('team_calendar.html')
+
+@app.route('/task-management')
+def task_management():
+    """Task Management page"""
+    return render_template('task_management.html')
+
+@app.route('/api/tasks/create', methods=['POST'])
+@rate_limit
+@validate_request
+def create_task():
+    """Create new task"""
+    try:
+        data = request.get_json()
+        
+        required_fields = ['title', 'priority', 'status', 'assignee', 'dueDate']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Generate task ID
+        task_id = f"task-{int(time.time())}"
+        
+        # Mock task creation - replace with database insert
+        new_task = {
+            'id': task_id,
+            'title': data['title'],
+            'description': data.get('description', ''),
+            'priority': data['priority'],
+            'status': data['status'],
+            'assignee': data['assignee'],
+            'due_date': data['dueDate'],
+            'client': data.get('client', ''),
+            'tags': data.get('tags', []),
+            'created_at': datetime.now().isoformat()
+        }
+        
+        return jsonify({
+            'success': True,
+            'task_id': task_id,
+            'task': new_task,
+            'message': 'Task created successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating task: {e}")
+        return jsonify({'success': False, 'error': 'Failed to create task'}), 500
+
+@app.route('/api/tasks', methods=['GET'])
+@rate_limit
+@validate_request
+def get_tasks():
+    """Get tasks with filtering"""
+    try:
+        assignee_filter = request.args.get('assignee')
+        priority_filter = request.args.get('priority')
+        status_filter = request.args.get('status')
+        
+        # Mock task data - replace with database query
+        tasks = [
+            {
+                'id': 'task-1',
+                'title': 'Review Discovery Documents',
+                'description': 'Analyze and categorize discovery documents for Smith v. Johnson case',
+                'priority': 'high',
+                'status': 'todo',
+                'assignee': 'sarah',
+                'assignee_name': 'Sarah Johnson',
+                'due_date': '2024-01-20',
+                'client': 'john-smith',
+                'tags': ['litigation', 'discovery', 'urgent'],
+                'created_at': '2024-01-15'
+            },
+            {
+                'id': 'task-2',
+                'title': 'Draft Employment Contract',
+                'description': 'Create employment agreement for senior developer position',
+                'priority': 'medium',
+                'status': 'in_progress',
+                'assignee': 'michael',
+                'assignee_name': 'Michael Chen',
+                'due_date': '2024-01-18',
+                'client': 'tech-startup',
+                'tags': ['contract', 'employment'],
+                'created_at': '2024-01-12'
+            }
+        ]
+        
+        # Apply filters
+        filtered_tasks = tasks
+        if assignee_filter:
+            filtered_tasks = [t for t in filtered_tasks if t['assignee'] == assignee_filter]
+        if priority_filter:
+            filtered_tasks = [t for t in filtered_tasks if t['priority'] == priority_filter]
+        if status_filter:
+            filtered_tasks = [t for t in filtered_tasks if t['status'] == status_filter]
+        
+        return jsonify({
+            'success': True,
+            'tasks': filtered_tasks,
+            'total': len(filtered_tasks)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting tasks: {e}")
+        return jsonify({'success': False, 'error': 'Failed to get tasks'}), 500
+
+@app.route('/api/team/calendar', methods=['GET'])
+@rate_limit
+@validate_request
+def get_team_calendar():
+    """Get team calendar events with conflict detection"""
+    try:
+        week_start = request.args.get('week_start')
+        attorney_filter = request.args.get('attorney')
+        
+        # Mock team calendar data with conflict detection
+        team_events = [
+            {
+                'id': 'event-1',
+                'title': 'Client Meeting - Smith Case',
+                'attorney': 'Sarah Johnson',
+                'attorney_id': 'sarah',
+                'start_time': '2024-01-17T09:00:00',
+                'end_time': '2024-01-17T10:00:00',
+                'type': 'meeting',
+                'client': 'John Smith',
+                'location': 'Conference Room A',
+                'priority': 'high',
+                'status': 'confirmed'
+            },
+            {
+                'id': 'event-2',
+                'title': 'Court Hearing - ABC Corp',
+                'attorney': 'Michael Chen',
+                'attorney_id': 'michael',
+                'start_time': '2024-01-17T14:00:00',
+                'end_time': '2024-01-17T16:00:00',
+                'type': 'court',
+                'client': 'ABC Corporation',
+                'location': 'Superior Court',
+                'priority': 'urgent',
+                'status': 'confirmed'
+            },
+            {
+                'id': 'event-3',
+                'title': 'Deposition Prep',
+                'attorney': 'Sarah Johnson',
+                'attorney_id': 'sarah',
+                'start_time': '2024-01-17T11:00:00',
+                'end_time': '2024-01-17T12:30:00',
+                'type': 'preparation',
+                'client': 'John Smith',
+                'location': 'Office',
+                'priority': 'medium',
+                'status': 'tentative'
+            },
+            {
+                'id': 'conflict-1',
+                'title': 'CONFLICT: Double Booking',
+                'attorney': 'Sarah Johnson',
+                'attorney_id': 'sarah',
+                'start_time': '2024-01-17T09:30:00',
+                'end_time': '2024-01-17T10:30:00',
+                'type': 'conflict',
+                'client': 'Tech Startup',
+                'location': 'Phone',
+                'priority': 'high',
+                'status': 'conflict',
+                'conflict_with': 'event-1'
+            }
+        ]
+        
+        # Filter by attorney if specified
+        if attorney_filter:
+            team_events = [event for event in team_events if event['attorney_id'] == attorney_filter]
+        
+        # Detect conflicts
+        conflicts = []
+        for i, event1 in enumerate(team_events):
+            for j, event2 in enumerate(team_events[i+1:], i+1):
+                if (event1['attorney_id'] == event2['attorney_id'] and 
+                    event1['status'] != 'conflict' and event2['status'] != 'conflict'):
+                    # Check for time overlap
+                    start1 = datetime.fromisoformat(event1['start_time'].replace('Z', '+00:00'))
+                    end1 = datetime.fromisoformat(event1['end_time'].replace('Z', '+00:00'))
+                    start2 = datetime.fromisoformat(event2['start_time'].replace('Z', '+00:00'))
+                    end2 = datetime.fromisoformat(event2['end_time'].replace('Z', '+00:00'))
+                    
+                    if start1 < end2 and start2 < end1:
+                        conflicts.append({
+                            'event1_id': event1['id'],
+                            'event2_id': event2['id'],
+                            'attorney': event1['attorney'],
+                            'overlap_start': max(start1, start2).isoformat(),
+                            'overlap_end': min(end1, end2).isoformat()
+                        })
+        
+        return jsonify({
+            'success': True, 
+            'events': team_events,
+            'conflicts': conflicts,
+            'summary': {
+                'total_events': len(team_events),
+                'conflicts_count': len(conflicts),
+                'attorneys_busy': len(set(event['attorney_id'] for event in team_events if event['status'] != 'conflict'))
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting team calendar: {e}")
+        return jsonify({'success': False, 'error': 'Failed to get team calendar'}), 500
+
+@app.route('/api/team/calendar/create', methods=['POST'])
+@rate_limit
+@validate_request
+def create_team_event():
+    """Create new team calendar event with conflict checking"""
+    try:
+        data = request.get_json()
+        
+        required_fields = ['title', 'attorney_id', 'start_time', 'end_time', 'type']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Validate datetime format
+        try:
+            start_time = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
+            end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
+        except ValueError:
+            return jsonify({'success': False, 'error': 'Invalid datetime format'}), 400
+        
+        if start_time >= end_time:
+            return jsonify({'success': False, 'error': 'End time must be after start time'}), 400
+        
+        # Generate event ID
+        event_id = f"event-{int(time.time())}"
+        
+        # Check for conflicts (mock implementation)
+        conflicts = []
+        mock_existing_events = [
+            {
+                'attorney_id': 'sarah',
+                'start_time': '2024-01-17T09:00:00',
+                'end_time': '2024-01-17T10:00:00'
+            }
+        ]
+        
+        for existing in mock_existing_events:
+            if existing['attorney_id'] == data['attorney_id']:
+                existing_start = datetime.fromisoformat(existing['start_time'])
+                existing_end = datetime.fromisoformat(existing['end_time'])
+                
+                if start_time < existing_end and existing_start < end_time:
+                    conflicts.append({
+                        'message': f"Conflicts with existing event from {existing_start.strftime('%H:%M')} to {existing_end.strftime('%H:%M')}",
+                        'start_time': existing['start_time'],
+                        'end_time': existing['end_time']
+                    })
+        
+        new_event = {
+            'id': event_id,
+            'title': data['title'],
+            'attorney_id': data['attorney_id'],
+            'start_time': data['start_time'],
+            'end_time': data['end_time'],
+            'type': data['type'],
+            'client': data.get('client', ''),
+            'location': data.get('location', ''),
+            'priority': data.get('priority', 'medium'),
+            'status': 'tentative' if conflicts else 'confirmed',
+            'created_at': datetime.now().isoformat()
+        }
+        
+        return jsonify({
+            'success': True,
+            'event': new_event,
+            'conflicts': conflicts,
+            'message': 'Event created successfully' + (' with conflicts detected' if conflicts else '')
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating team event: {e}")
+        return jsonify({'success': False, 'error': 'Failed to create event'}), 500
+
+@app.route('/api/team/availability', methods=['GET'])
+@rate_limit
+@validate_request
+def get_team_availability():
+    """Get team availability status"""
+    try:
+        date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+        
+        # Mock team availability data
+        team_status = [
+            {
+                'attorney_id': 'sarah',
+                'attorney_name': 'Sarah Johnson',
+                'status': 'busy',
+                'current_activity': 'Client Meeting',
+                'next_available': '11:00 AM',
+                'today_hours': 7.5,
+                'utilization': 85
+            },
+            {
+                'attorney_id': 'michael',
+                'attorney_name': 'Michael Chen',
+                'status': 'available',
+                'current_activity': 'Available',
+                'next_available': 'Now',
+                'today_hours': 6.0,
+                'utilization': 70
+            },
+            {
+                'attorney_id': 'emily',
+                'attorney_name': 'Emily Rodriguez',
+                'status': 'in_court',
+                'current_activity': 'Court Hearing',
+                'next_available': '3:00 PM',
+                'today_hours': 8.0,
+                'utilization': 95
+            },
+            {
+                'attorney_id': 'david',
+                'attorney_name': 'David Kim',
+                'status': 'available',
+                'current_activity': 'Document Review',
+                'next_available': 'Now',
+                'today_hours': 5.5,
+                'utilization': 65
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'team_status': team_status,
+            'date': date,
+            'summary': {
+                'available_attorneys': len([a for a in team_status if a['status'] == 'available']),
+                'busy_attorneys': len([a for a in team_status if a['status'] in ['busy', 'in_court']]),
+                'average_utilization': sum(a['utilization'] for a in team_status) / len(team_status)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting team availability: {e}")
+        return jsonify({'success': False, 'error': 'Failed to get team availability'}), 500
+
 # Redirect routes for compatibility
 @app.route('/research')
 def research_redirect():
