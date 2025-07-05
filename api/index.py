@@ -852,7 +852,6 @@ PRACTICE_AREAS = {
         'name': 'Family Law',
         'description': 'Custody, divorce, and family legal matters',
         'icon': 'family',
-        'color': '#8B5CF6',
         'prompts': [
             'Draft custody agreement',
             'Calculate child support',
@@ -927,8 +926,6 @@ PRACTICE_AREAS = {
         ]
     }
 }
-
-# RBAC Configuration
 
 # RBAC Configuration
 # Define permissions for each role
@@ -1012,7 +1009,6 @@ def permission_required(permission: str):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
-    },
     'real_estate': {
         'name': 'Real Estate',
         'description': 'Property transactions and disputes',
