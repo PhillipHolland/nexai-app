@@ -116,17 +116,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create Flask app with template folder support  
-import os
-template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
-static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+try:
+    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
 
-app = Flask(__name__, 
-           static_folder=static_dir,
-           template_folder=template_dir)
+    app = Flask(__name__, 
+               static_folder=static_dir,
+               template_folder=template_dir)
+    logger.info(f"Flask app created successfully - template_dir: {template_dir}")
+except Exception as e:
+    logger.error(f"Flask app creation failed: {e}")
+    # Fallback app creation
+    app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
 
 # Session configuration
 app.config['SESSION_TYPE'] = 'filesystem'
+
+# Add simple test route
+@app.route('/test')
+def test_route():
+    return "Flask app is working!"
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'lexai_'
