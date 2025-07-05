@@ -10644,11 +10644,11 @@ def task_management():
     """Task Management page"""
     return render_template('task_management.html')
 
-@app.route('/api/tasks/create', methods=['POST'])
+@app.route('/api/tasks/create-new', methods=['POST'])
 @rate_limit
 @validate_request
-def create_task():
-    """Create new task"""
+def create_task_new():
+    """Create new task (enhanced version)"""
     try:
         data = request.get_json()
         
@@ -10685,11 +10685,11 @@ def create_task():
         logger.error(f"Error creating task: {e}")
         return jsonify({'success': False, 'error': 'Failed to create task'}), 500
 
-@app.route('/api/tasks', methods=['GET'])
+@app.route('/api/tasks/list', methods=['GET'])
 @rate_limit
 @validate_request
-def get_tasks():
-    """Get tasks with filtering"""
+def get_tasks_list():
+    """Get tasks with filtering (enhanced version)"""
     try:
         assignee_filter = request.args.get('assignee')
         priority_filter = request.args.get('priority')
