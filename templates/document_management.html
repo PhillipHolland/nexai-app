@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+{% block title %}Document Management | LexAI{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-green: #2E4B3C;
+        --secondary-cream: #F7EDDA;
+        --warm-orange: #FFA74F;
+        --light-gray: #f8fafc;
+        --border-gray: #e2e8f0;
+        --text-gray: #64748b;
+        --dark-gray: #1e293b;
+    }
+
+    .document-header {
+        background: linear-gradient(135deg, var(--primary-green), #4a7c59);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .header-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .document-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .document-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+    }
+
+    .document-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .search-filter-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-gray);
+        width: 20px;
+        height: 20px;
+    }
+
+    .filter-select {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-green), #4a7c59);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--primary-green);
+        border: 2px solid var(--primary-green);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary-green);
+        color: white;
+    }
+
+    .documents-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .document-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-gray);
+    }
+
+    .document-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .document-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .document-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .document-icon.pdf { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .document-icon.docx { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .document-icon.txt { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+    .document-icon.img { background: linear-gradient(135deg, #059669, #10b981); }
+
+    .document-menu {
+        position: relative;
+    }
+
+    .menu-button {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--text-gray);
+    }
+
+    .menu-button:hover {
+        background: var(--light-gray);
+    }
+
+    .document-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .document-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .document-tags {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        background: var(--secondary-cream);
+        color: var(--primary-green);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .action-btn {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid var(--border-gray);
+        background: white;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background: var(--light-gray);
+    }
+
+    .version-info {
+        background: var(--light-gray);
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .version-number {
+        font-weight: 600;
+        color: var(--primary-green);
+    }
+
+    .upload-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .upload-modal.hidden {
+        display: none;
+    }
+
+    .upload-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .upload-header {
+        margin-bottom: 2rem;
+    }
+
+    .upload-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-zone {
+        border: 2px dashed var(--border-gray);
+        border-radius: 8px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary-green);
+        background: var(--light-gray);
+    }
+
+    .upload-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 1rem;
+        color: var(--text-gray);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+    }
+
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+        .document-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-filter-group {
+            flex-direction: column;
+        }
+
+        .search-box {
+            min-width: auto;
+        }
+
+        .documents-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-title {
+            font-size: 2rem;
+        }
+
+        .document-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="document-header">
+    <div class="header-content">
+        <h1 class="header-title">Document Management</h1>
+        <p class="header-subtitle">Organize, version control, and collaborate on legal documents with advanced AI-powered insights</p>
+        
+        <div class="document-stats">
+            <div class="stat-card">
+                <div class="stat-number">147</div>
+                <div class="stat-label">Total Documents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Active Collaborations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5.2GB</div>
+                <div class="stat-label">Storage Used</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">98%</div>
+                <div class="stat-label">Security Score</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="document-container">
+    <div class="document-controls">
+        <div class="search-filter-group">
+            <div class="search-box">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" class="search-input" placeholder="Search documents..." id="documentSearch">
+            </div>
+            
+            <select class="filter-select" id="typeFilter">
+                <option value="">All Types</option>
+                <option value="contract">Contracts</option>
+                <option value="pleading">Pleadings</option>
+                <option value="brief">Briefs</option>
+                <option value="correspondence">Correspondence</option>
+                <option value="research">Research</option>
+                <option value="template">Templates</option>
+            </select>
+            
+            <select class="filter-select" id="statusFilter">
+                <option value="">All Status</option>
+                <option value="draft">Draft</option>
+                <option value="review">In Review</option>
+                <option value="approved">Approved</option>
+                <option value="final">Final</option>
+                <option value="archived">Archived</option>
+            </select>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn-secondary" onclick="createFolder()">New Folder</button>
+            <button class="btn-primary" onclick="openUploadModal()">Upload Document</button>
+        </div>
+    </div>
+
+    <div class="documents-grid" id="documentsGrid">
+        <!-- Documents will be loaded here -->
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="upload-modal hidden">
+    <div class="upload-content">
+        <div class="upload-header">
+            <h2 class="upload-title">Upload Document</h2>
+            <p>Add a new document to your library with version control and metadata</p>
+        </div>
+        
+        <form id="uploadForm">
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p><strong>Click to upload</strong> or drag and drop</p>
+                <p>PDF, DOC, DOCX, TXT, PNG, JPG up to 50MB</p>
+                <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="documentTitle">Document Title</label>
+                <input type="text" id="documentTitle" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="documentType">Document Type</label>
+                <select id="documentType" class="form-select" required>
+                    <option value="">Select Type</option>
+                    <option value="contract">Contract</option>
+                    <option value="pleading">Pleading</option>
+                    <option value="brief">Brief</option>
+                    <option value="correspondence">Correspondence</option>
+                    <option value="research">Research</option>
+                    <option value="template">Template</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="documentClient">Client</label>
+                <select id="documentClient" class="form-select">
+                    <option value="">Select Client (Optional)</option>
+                    <option value="abc-corp">ABC Corporation</option>
+                    <option value="john-smith">John Smith</option>
+                    <option value="jane-doe">Jane Doe</option>
+                    <option value="tech-startup">Tech Startup Inc.</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="documentTags">Tags</label>
+                <input type="text" id="documentTags" class="form-input" placeholder="e.g., urgent, confidential, template">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="documentDescription">Description</label>
+                <textarea id="documentDescription" class="form-textarea" placeholder="Brief description of the document..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeUploadModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Upload Document</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Demo document data
+const documents = [
+    {
+        id: 'doc-1',
+        title: 'Employment Agreement - Senior Developer',
+        type: 'contract',
+        status: 'final',
+        client: 'tech-startup',
+        fileType: 'pdf',
+        size: '2.4 MB',
+        version: '3.0',
+        lastModified: '2024-01-15',
+        author: 'Sarah Johnson',
+        tags: ['employment', 'contract', 'tech'],
+        description: 'Standard employment agreement for senior developer position'
+    },
+    {
+        id: 'doc-2',
+        title: 'Motion for Summary Judgment',
+        type: 'pleading',
+        status: 'review',
+        client: 'john-smith',
+        fileType: 'docx',
+        size: '1.8 MB',
+        version: '2.1',
+        lastModified: '2024-01-14',
+        author: 'Michael Chen',
+        tags: ['motion', 'litigation', 'urgent'],
+        description: 'Motion for summary judgment in Smith v. Johnson case'
+    },
+    {
+        id: 'doc-3',
+        title: 'Corporate Bylaws Template',
+        type: 'template',
+        status: 'approved',
+        client: '',
+        fileType: 'docx',
+        size: '856 KB',
+        version: '4.2',
+        lastModified: '2024-01-12',
+        author: 'Emily Rodriguez',
+        tags: ['corporate', 'template', 'bylaws'],
+        description: 'Standard corporate bylaws template for new businesses'
+    },
+    {
+        id: 'doc-4',
+        title: 'Client Intake Form',
+        type: 'template',
+        status: 'final',
+        client: '',
+        fileType: 'pdf',
+        size: '445 KB',
+        version: '1.0',
+        lastModified: '2024-01-10',
+        author: 'Sarah Johnson',
+        tags: ['intake', 'form', 'client'],
+        description: 'Comprehensive client intake form for new matters'
+    },
+    {
+        id: 'doc-5',
+        title: 'Research Memo - IP Infringement',
+        type: 'research',
+        status: 'draft',
+        client: 'abc-corp',
+        fileType: 'docx',
+        size: '3.2 MB',
+        version: '1.3',
+        lastModified: '2024-01-13',
+        author: 'David Kim',
+        tags: ['research', 'ip', 'infringement'],
+        description: 'Legal research memo on intellectual property infringement claims'
+    },
+    {
+        id: 'doc-6',
+        title: 'Settlement Agreement Draft',
+        type: 'contract',
+        status: 'review',
+        client: 'jane-doe',
+        fileType: 'pdf',
+        size: '1.2 MB',
+        version: '2.0',
+        lastModified: '2024-01-11',
+        author: 'Emily Rodriguez',
+        tags: ['settlement', 'agreement', 'confidential'],
+        description: 'Draft settlement agreement for mediation proceedings'
+    }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDocuments();
+    
+    // Search functionality
+    document.getElementById('documentSearch').addEventListener('input', filterDocuments);
+    document.getElementById('typeFilter').addEventListener('change', filterDocuments);
+    document.getElementById('statusFilter').addEventListener('change', filterDocuments);
+    
+    // Upload form
+    document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+});
+
+function loadDocuments() {
+    const grid = document.getElementById('documentsGrid');
+    grid.innerHTML = '';
+    
+    documents.forEach(doc => {
+        const card = createDocumentCard(doc);
+        grid.appendChild(card);
+    });
+}
+
+function createDocumentCard(doc) {
+    const statusColors = {
+        'draft': '#f59e0b',
+        'review': '#3b82f6',
+        'approved': '#10b981',
+        'final': '#059669',
+        'archived': '#6b7280'
+    };
+    
+    const card = document.createElement('div');
+    card.className = 'document-card';
+    card.innerHTML = `
+        <div class="document-header-row">
+            <div class="document-icon ${doc.fileType}">
+                ${doc.fileType.toUpperCase()}
+            </div>
+            <div class="document-menu">
+                <button class="menu-button" onclick="showDocumentMenu('${doc.id}')">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <h3 class="document-title">${doc.title}</h3>
+        
+        <div class="document-meta">
+            <span>${doc.size}</span>
+            <span style="color: ${statusColors[doc.status]}">● ${doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}</span>
+        </div>
+        
+        <div class="document-tags">
+            ${doc.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+        </div>
+        
+        <div class="version-info">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="version-number">Version ${doc.version}</span>
+                <span style="font-size: 0.75rem; color: var(--text-gray);">
+                    ${doc.lastModified} by ${doc.author}
+                </span>
+            </div>
+        </div>
+        
+        <div class="document-actions">
+            <button class="action-btn" onclick="viewDocument('${doc.id}')">View</button>
+            <button class="action-btn" onclick="editDocument('${doc.id}')">Edit</button>
+            <button class="action-btn" onclick="shareDocument('${doc.id}')">Share</button>
+            <button class="action-btn" onclick="showVersionHistory('${doc.id}')">History</button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function filterDocuments() {
+    const searchTerm = document.getElementById('documentSearch').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    const filtered = documents.filter(doc => {
+        const matchesSearch = doc.title.toLowerCase().includes(searchTerm) ||
+                            doc.description.toLowerCase().includes(searchTerm) ||
+                            doc.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+        const matchesType = !typeFilter || doc.type === typeFilter;
+        const matchesStatus = !statusFilter || doc.status === statusFilter;
+        
+        return matchesSearch && matchesType && matchesStatus;
+    });
+    
+    const grid = document.getElementById('documentsGrid');
+    grid.innerHTML = '';
+    
+    filtered.forEach(doc => {
+        const card = createDocumentCard(doc);
+        grid.appendChild(card);
+    });
+}
+
+// Modal functions
+function openUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+    document.getElementById('uploadForm').reset();
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('documentTitle').value = file.name.replace(/\.[^/.]+$/, "");
+    }
+}
+
+async function handleUpload(event) {
+    event.preventDefault();
+    
+    const formData = new FormData();
+    const file = document.getElementById('fileInput').files[0];
+    
+    if (!file) {
+        alert('Please select a file to upload');
+        return;
+    }
+    
+    formData.append('file', file);
+    formData.append('title', document.getElementById('documentTitle').value);
+    formData.append('type', document.getElementById('documentType').value);
+    formData.append('client', document.getElementById('documentClient').value);
+    formData.append('tags', document.getElementById('documentTags').value);
+    formData.append('description', document.getElementById('documentDescription').value);
+    
+    try {
+        const response = await fetch('/api/documents/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Document uploaded successfully!');
+            closeUploadModal();
+            loadDocuments(); // Reload documents
+        } else {
+            alert('Upload failed: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+    }
+}
+
+// Document actions
+function viewDocument(docId) {
+    // Open document viewer
+    window.open(`/api/documents/${docId}/view`, '_blank');
+}
+
+function editDocument(docId) {
+    // Open document editor
+    window.location.href = `/documents/${docId}/edit`;
+}
+
+function shareDocument(docId) {
+    // Open sharing modal
+    alert(`Sharing options for document ${docId} would open here`);
+}
+
+function showVersionHistory(docId) {
+    // Show version history modal
+    alert(`Version history for document ${docId} would show here`);
+}
+
+function showDocumentMenu(docId) {
+    // Show context menu
+    alert(`Document menu for ${docId} would show here`);
+}
+
+function createFolder() {
+    const folderName = prompt('Enter folder name:');
+    if (folderName) {
+        alert(`Folder "${folderName}" would be created`);
+    }
+}
+</script>
+{% endblock %}

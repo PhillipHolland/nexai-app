@@ -8236,6 +8236,8 @@ def api_create_event():
         time = data.get('time', '')
         duration = float(data.get('duration', 1))
         client = data.get('client', '')
+        case = data.get('case', '')
+        priority = data.get('priority', 'medium')
         location = data.get('location', '')
         description = data.get('description', '')
         reminder = data.get('reminder', False)
@@ -8261,6 +8263,8 @@ def api_create_event():
             'time': time,
             'duration': duration,
             'client': client,
+            'case': case,
+            'priority': priority,
             'location': location,
             'description': description,
             'reminder': reminder,
@@ -9002,6 +9006,207 @@ def check_team_scheduling_conflicts():
     except Exception as e:
         logger.error(f"Team conflict check error: {e}")
         return jsonify({'error': 'Team conflict check failed'}), 500
+
+@app.route('/document-management')
+def document_management_page():
+    """Document Management page with version control"""
+    try:
+        return render_template('document_management.html')
+    except Exception as e:
+        logger.error(f"Document management page error: {e}")
+        return f"Error loading document management: {e}", 500
+
+@app.route('/api/documents/upload', methods=['POST'])
+@rate_limit_decorator
+def upload_document():
+    """Upload a new document with metadata"""
+    try:
+        # Check if file is present
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Get form data
+        title = request.form.get('title', '')
+        doc_type = request.form.get('type', '')
+        client = request.form.get('client', '')
+        tags = request.form.get('tags', '')
+        description = request.form.get('description', '')
+        
+        if not title or not doc_type:
+            return jsonify({'error': 'Title and type are required'}), 400
+        
+        # Validate file type
+        allowed_extensions = {'.pdf', '.doc', '.docx', '.txt', '.png', '.jpg', '.jpeg'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        
+        if file_ext not in allowed_extensions:
+            return jsonify({'error': 'File type not allowed'}), 400
+        
+        # Generate document ID
+        doc_id = f"DOC-{datetime.now().strftime('%Y%m%d')}-{len(title)%1000:03d}"
+        
+        # Mock file processing (in production, save to storage)
+        file_size = len(file.read())
+        file.seek(0)  # Reset file pointer
+        
+        # Create document record
+        document_data = {
+            'id': doc_id,
+            'title': title,
+            'type': doc_type,
+            'client': client,
+            'filename': file.filename,
+            'file_type': file_ext[1:],  # Remove dot
+            'size': f"{file_size / (1024*1024):.1f} MB",
+            'version': '1.0',
+            'status': 'draft',
+            'tags': [tag.strip() for tag in tags.split(',') if tag.strip()],
+            'description': description,
+            'uploaded_by': 'Current User',
+            'uploaded_at': datetime.now().isoformat(),
+            'last_modified': datetime.now().isoformat()
+        }
+        
+        logger.info(f"Document uploaded: {doc_id} - {title}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document uploaded successfully',
+            'document_id': doc_id,
+            'document': document_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Document upload error: {e}")
+        return jsonify({'error': 'Document upload failed'}), 500
+
+@app.route('/api/documents', methods=['GET'])
+@rate_limit_decorator
+def get_documents():
+    """Get list of documents with filtering"""
+    try:
+        search = request.args.get('search', '')
+        doc_type = request.args.get('type', '')
+        status = request.args.get('status', '')
+        client = request.args.get('client', '')
+        
+        # Mock document data
+        documents = [
+            {
+                'id': 'doc-1',
+                'title': 'Employment Agreement - Senior Developer',
+                'type': 'contract',
+                'status': 'final',
+                'client': 'tech-startup',
+                'file_type': 'pdf',
+                'size': '2.4 MB',
+                'version': '3.0',
+                'last_modified': '2024-01-15',
+                'author': 'Sarah Johnson',
+                'tags': ['employment', 'contract', 'tech'],
+                'description': 'Standard employment agreement for senior developer position'
+            },
+            {
+                'id': 'doc-2',
+                'title': 'Motion for Summary Judgment',
+                'type': 'pleading',
+                'status': 'review',
+                'client': 'john-smith',
+                'file_type': 'docx',
+                'size': '1.8 MB',
+                'version': '2.1',
+                'last_modified': '2024-01-14',
+                'author': 'Michael Chen',
+                'tags': ['motion', 'litigation', 'urgent'],
+                'description': 'Motion for summary judgment in Smith v. Johnson case'
+            }
+        ]
+        
+        # Apply filters
+        filtered_docs = documents
+        if search:
+            filtered_docs = [d for d in filtered_docs if search.lower() in d['title'].lower() or search.lower() in d['description'].lower()]
+        if doc_type:
+            filtered_docs = [d for d in filtered_docs if d['type'] == doc_type]
+        if status:
+            filtered_docs = [d for d in filtered_docs if d['status'] == status]
+        if client:
+            filtered_docs = [d for d in filtered_docs if d['client'] == client]
+        
+        return jsonify({
+            'success': True,
+            'documents': filtered_docs,
+            'total': len(filtered_docs)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get documents error: {e}")
+        return jsonify({'error': 'Failed to retrieve documents'}), 500
+
+@app.route('/api/documents/<doc_id>/view', methods=['GET'])
+@rate_limit_decorator
+def view_document(doc_id):
+    """View document content"""
+    try:
+        # In production, this would serve the actual file
+        logger.info(f"Document view requested: {doc_id}")
+        
+        # Mock document content
+        return jsonify({
+            'success': True,
+            'message': f'Document {doc_id} content would be displayed here'
+        })
+        
+    except Exception as e:
+        logger.error(f"Document view error: {e}")
+        return jsonify({'error': 'Failed to view document'}), 500
+
+@app.route('/api/documents/<doc_id>/versions', methods=['GET'])
+@rate_limit_decorator
+def get_document_versions(doc_id):
+    """Get version history for a document"""
+    try:
+        # Mock version history
+        versions = [
+            {
+                'version': '3.0',
+                'date': '2024-01-15',
+                'author': 'Sarah Johnson',
+                'changes': 'Updated compensation structure',
+                'size': '2.4 MB',
+                'current': True
+            },
+            {
+                'version': '2.0',
+                'date': '2024-01-10',
+                'author': 'Michael Chen',
+                'changes': 'Added non-compete clause',
+                'size': '2.2 MB',
+                'current': False
+            },
+            {
+                'version': '1.0',
+                'date': '2024-01-05',
+                'author': 'Sarah Johnson',
+                'changes': 'Initial draft',
+                'size': '2.0 MB',
+                'current': False
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'document_id': doc_id,
+            'versions': versions
+        })
+        
+    except Exception as e:
+        logger.error(f"Document versions error: {e}")
+        return jsonify({'error': 'Failed to retrieve version history'}), 500
 
 @app.route('/api/expenses/create', methods=['POST'])
 @rate_limit_decorator

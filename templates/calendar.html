@@ -726,12 +726,35 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="eventClient">Client</label>
-                    <select id="eventClient" class="form-select">
+                    <select id="eventClient" class="form-select" onchange="updateCaseOptions()">
                         <option value="">Select Client (Optional)</option>
                         <option value="abc-corp">ABC Corporation</option>
                         <option value="john-smith">John Smith</option>
                         <option value="jane-doe">Jane Doe</option>
                         <option value="tech-startup">Tech Startup Inc.</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="eventCase">Case</label>
+                    <select id="eventCase" class="form-select">
+                        <option value="">Select Case (Optional)</option>
+                        <option value="case-1" data-client="john-smith">Smith v. Johnson</option>
+                        <option value="case-2" data-client="abc-corp">Contract Dispute</option>
+                        <option value="case-3" data-client="jane-doe">Estate Planning</option>
+                        <option value="case-4" data-client="tech-startup">Corporate Formation</option>
+                        <option value="case-5" data-client="john-smith">Personal Injury Claim</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="eventPriority">Priority</label>
+                    <select id="eventPriority" class="form-select">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
                     </select>
                 </div>
             </div>
@@ -974,6 +997,39 @@ window.closeEventModal = function() {
     document.getElementById('eventForm').reset();
 };
 
+// Update case options based on selected client
+function updateCaseOptions() {
+    const clientSelect = document.getElementById('eventClient');
+    const caseSelect = document.getElementById('eventCase');
+    const selectedClient = clientSelect.value;
+    
+    // Reset case options
+    caseSelect.innerHTML = '<option value="">Select Case (Optional)</option>';
+    
+    // Get all case options
+    const allCases = [
+        { value: 'case-1', text: 'Smith v. Johnson', client: 'john-smith' },
+        { value: 'case-2', text: 'Contract Dispute', client: 'abc-corp' },
+        { value: 'case-3', text: 'Estate Planning', client: 'jane-doe' },
+        { value: 'case-4', text: 'Corporate Formation', client: 'tech-startup' },
+        { value: 'case-5', text: 'Personal Injury Claim', client: 'john-smith' }
+    ];
+    
+    // Filter cases by selected client
+    const filteredCases = selectedClient ? 
+        allCases.filter(case_ => case_.client === selectedClient) : 
+        allCases;
+    
+    // Add filtered cases to dropdown
+    filteredCases.forEach(case_ => {
+        const option = document.createElement('option');
+        option.value = case_.value;
+        option.textContent = case_.text;
+        option.setAttribute('data-client', case_.client);
+        caseSelect.appendChild(option);
+    });
+}
+
 // Save event
 async function saveEvent() {
     const formData = {
@@ -983,6 +1039,8 @@ async function saveEvent() {
         time: document.getElementById('eventTime').value,
         duration: parseFloat(document.getElementById('eventDuration').value),
         client: document.getElementById('eventClient').value,
+        case: document.getElementById('eventCase').value,
+        priority: document.getElementById('eventPriority').value,
         location: document.getElementById('eventLocation').value,
         description: document.getElementById('eventDescription').value,
         reminder: document.getElementById('eventReminder').checked
