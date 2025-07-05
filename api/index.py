@@ -105,7 +105,11 @@ except ImportError:
         raise FileStorageError("File storage not available - cloud storage required")
 
 # Load environment variables
-load_dotenv()
+try:
+    load_dotenv()
+except:
+    # Fallback if dotenv fails - environment variables should still be available from Vercel
+    pass
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
