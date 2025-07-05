@@ -116,27 +116,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create Flask app with template folder support  
-try:
-    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
-    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
 
-    app = Flask(__name__, 
-               static_folder=static_dir,
-               template_folder=template_dir)
-    logger.info(f"Flask app created successfully - template_dir: {template_dir}")
-except Exception as e:
-    logger.error(f"Flask app creation failed: {e}")
-    # Fallback app creation
-    app = Flask(__name__)
+app = Flask(__name__, 
+           static_folder=static_dir,
+           template_folder=template_dir)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
 
 # Session configuration
 app.config['SESSION_TYPE'] = 'filesystem'
-
-# Add simple test route
-@app.route('/test')
-def test_route():
-    return "Flask app is working!"
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'lexai_'
@@ -163,42 +152,27 @@ if DATABASE_AVAILABLE:
         # Configure database URL
         if DATABASE_URL:
             app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-            logger.info(f"Using production database: {DATABASE_URL[:20]}...")
         else:
-            # In serverless environment, don't use SQLite due to read-only filesystem
-            logger.error("No DATABASE_URL found - database features unavailable in serverless")
-            DATABASE_AVAILABLE = False
+            # Fallback to SQLite for development
+            app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lexai_development.db'
+            logger.warning("No DATABASE_URL found, using SQLite fallback")
         
-        if DATABASE_AVAILABLE:
-            app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-            app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-                'pool_pre_ping': True,
-                'pool_recycle': 300,
-                'pool_timeout': 20,
-                'max_overflow': 0,
-                'pool_size': 1,  # Reduced for serverless
-                'echo': False
-            }
-            
-            # Initialize database with app
-            db.init_app(app)
-            db_manager.init_app(app)
-            
-            # Test database connection but don't create tables in production
-            with app.app_context():
-                try:
-                    # Just test the connection without creating tables
-                    result = db.engine.execute("SELECT 1")
-                    logger.info("✅ Database connection tested successfully")
-                except Exception as e:
-                    logger.warning(f"Database connection test failed: {e}")
-                    # Still try to create tables if needed
-                    try:
-                        db.create_all()
-                        logger.info("✅ Database tables created successfully")
-                    except Exception as create_error:
-                        logger.error(f"Failed to create database tables: {create_error}")
-                        DATABASE_AVAILABLE = False
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 20,
+            'max_overflow': 0
+        }
+        
+        # Initialize database with app
+        db.init_app(app)
+        db_manager.init_app(app)
+        
+        # Create tables
+        with app.app_context():
+            db.create_all()
+            logger.info("✅ Database initialized successfully")
             
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
@@ -2186,48 +2160,20 @@ def landing_page():
 def dashboard():
     """Main dashboard with comprehensive navigation"""
     try:
-        logger.info("Dashboard route accessed")
         
         # Get mock stats for dashboard
         stats = get_mock_stats()
-        logger.info("Mock stats retrieved successfully")
         
-        result = render_template('dashboard.html', 
-                               stats=stats,
-                               user_name="Demo User")
-        logger.info("Dashboard template rendered successfully")
-        return result
-        
+        return render_template('dashboard.html', 
+                             stats=stats,
+                             user_name="Demo User")
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
-        import traceback
-        logger.error(f"Dashboard traceback: {traceback.format_exc()}")
         return f"""<!DOCTYPE html>
 <html><head><title>LexAI Dashboard</title></head>
 <body><h1>🏛️ LexAI Practice Partner</h1>
 <p>Dashboard loading error: {e}</p>
-<p>Check logs for details</p>
-<a href="/">← Back to Home</a></body></html>"""
-
-@app.route('/chat')
-def chat_interface():
-    """Modern AI Chat Interface"""
-    try:
-        # Get practice area from query params
-        practice_area = request.args.get('area', 'general')
-        
-        return render_template('chat.html', 
-                             current_client=None,
-                             practice_areas=PRACTICE_AREAS,
-                             selected_area=practice_area)
-        
-    except Exception as e:
-        logger.error(f"Chat interface error: {e}")
-        return f"""<!DOCTYPE html>
-<html><head><title>LexAI Chat</title></head>
-<body><h1>🏛️ LexAI Chat</h1>
-<p>Chat loading error: {e}</p>
-<a href="/dashboard">← Back to Dashboard</a></body></html>"""
+<a href="/dashboard">Continue to Dashboard</a></body></html>"""
 
 def old_chat_interface_deprecated(client_id=None):
     """Enhanced chat interface matching local version"""
@@ -4120,6 +4066,29 @@ def case_timeline(case_id):
         logger.error(f"Case timeline error: {e}")
         return jsonify({'error': 'Failed to retrieve case timeline'}), 500
 
+@app.route('/analytics')
+# @login_required  # Disabled for now
+@permission_required('view_analytics')
+def analytics_dashboard():
+    """Comprehensive analytics dashboard page"""
+    try:
+        analytics = get_analytics_data()
+        
+        # Get recent activity for the table
+        clients = get_mock_clients()
+        recent_activity = clients[:6]  # Show top 6 recent activities
+        
+        return render_template('analytics_dashboard.html',
+                             analytics=analytics,
+                             recent_activity=recent_activity)
+        
+    except Exception as e:
+        logger.error(f"Analytics dashboard error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Analytics Dashboard</title></head>
+<body><h1>🏛️ LexAI Analytics Dashboard</h1>
+<p>Error loading analytics dashboard: {e}</p>
+<a href="/dashboard">Back to Dashboard</a></body></html>"""
 
 @app.route('/contract-generator')
 def contract_generator_page():
@@ -12160,34 +12129,23 @@ def api_auth_login():
         user, message = authenticate_user(email, password)
         
         if user:
-            # Check if 2FA is enabled
-            if user.two_factor_enabled:
-                # Don't create full session yet, just return 2FA challenge
-                audit_log(user.id, 'login_2fa_required', {'email': email})
-                
-                return jsonify({
-                    'success': True,
-                    'requires_2fa': True,
-                    'user_id': user.id,
-                    'message': '2FA verification required'
-                }), 200
-            else:
-                # No 2FA, proceed with normal login
-                create_user_session(user)
-                audit_log(user.id, 'user_login', {'email': email})
-                
-                return jsonify({
-                    'success': True, 
-                    'message': message,
-                    'user': {
-                        'id': user.id,
-                        'email': user.email,
-                        'first_name': user.first_name,
-                        'last_name': user.last_name,
-                        'role': user.role.value if hasattr(user.role, 'value') else user.role,
-                        'firm_name': user.firm_name
-                    }
-                }), 200
+            # Create session
+            create_user_session(user)
+            
+            audit_log(user.id, 'user_login', {'email': email})
+            
+            return jsonify({
+                'success': True, 
+                'message': message,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'role': user.role,
+                    'firm_name': user.firm_name
+                }
+            }), 200
         else:
             return jsonify({'success': False, 'error': message}), 401
             
@@ -12374,254 +12332,6 @@ def api_auth_complete_reset():
         return jsonify({'success': False, 'error': 'Password reset completion failed'}), 500
 
 # ================================
-# TWO-FACTOR AUTHENTICATION ENDPOINTS
-# ================================
-
-@app.route('/api/auth/2fa/setup', methods=['POST'])
-@rate_limit_decorator
-def api_2fa_setup():
-    """Generate 2FA secret and QR code for setup"""
-    try:
-        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-            return jsonify({
-                'success': False, 
-                'error': '2FA not available - database required'
-            }), 503
-        
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-        
-        # Generate secret and backup codes
-        secret = current_user.generate_2fa_secret()
-        backup_codes = current_user.generate_backup_codes()
-        qr_uri = current_user.get_2fa_uri()
-        
-        # Save to database (but don't enable yet)
-        try:
-            db.session.commit()
-            audit_log(current_user.id, '2fa_setup_initiated', {'email': current_user.email})
-        except Exception as db_error:
-            db.session.rollback()
-            logger.error(f"2FA setup database error: {db_error}")
-            return jsonify({'success': False, 'error': 'Database error'}), 500
-        
-        return jsonify({
-            'success': True,
-            'secret': secret,
-            'qr_uri': qr_uri,
-            'backup_codes': backup_codes,
-            'message': 'Scan QR code with authenticator app, then verify with a code'
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"2FA setup error: {e}")
-        return jsonify({'success': False, 'error': '2FA setup failed'}), 500
-
-@app.route('/api/auth/2fa/verify-setup', methods=['POST'])
-@rate_limit_decorator
-def api_2fa_verify_setup():
-    """Verify 2FA setup with token"""
-    try:
-        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-            return jsonify({
-                'success': False, 
-                'error': '2FA not available - database required'
-            }), 503
-        
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
-        
-        token = data.get('token', '').strip()
-        if not token:
-            return jsonify({'success': False, 'error': 'Token is required'}), 400
-        
-        # Verify the token
-        if current_user.verify_2fa_token(token):
-            # Enable 2FA
-            current_user.two_factor_enabled = True
-            
-            try:
-                db.session.commit()
-                audit_log(current_user.id, '2fa_enabled', {'email': current_user.email})
-            except Exception as db_error:
-                db.session.rollback()
-                logger.error(f"2FA enable database error: {db_error}")
-                return jsonify({'success': False, 'error': 'Database error'}), 500
-            
-            return jsonify({
-                'success': True,
-                'message': '2FA successfully enabled'
-            }), 200
-        else:
-            return jsonify({
-                'success': False, 
-                'error': 'Invalid token. Please try again.'
-            }), 400
-            
-    except Exception as e:
-        logger.error(f"2FA verify setup error: {e}")
-        return jsonify({'success': False, 'error': '2FA verification failed'}), 500
-
-@app.route('/api/auth/2fa/disable', methods=['POST'])
-@rate_limit_decorator
-def api_2fa_disable():
-    """Disable 2FA for current user"""
-    try:
-        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-            return jsonify({
-                'success': False, 
-                'error': '2FA not available - database required'
-            }), 503
-        
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
-        
-        password = data.get('password', '')
-        token = data.get('token', '').strip()
-        
-        if not password:
-            return jsonify({'success': False, 'error': 'Password is required'}), 400
-        
-        # Verify password
-        if not current_user.check_password(password):
-            return jsonify({'success': False, 'error': 'Invalid password'}), 400
-        
-        # Verify 2FA token or backup code
-        valid_token = False
-        if token:
-            valid_token = current_user.verify_2fa_token(token) or current_user.verify_backup_code(token)
-        
-        if not valid_token:
-            return jsonify({'success': False, 'error': 'Valid 2FA token required'}), 400
-        
-        # Disable 2FA
-        current_user.two_factor_enabled = False
-        current_user.two_factor_secret = None
-        current_user.backup_codes = None
-        
-        try:
-            db.session.commit()
-            audit_log(current_user.id, '2fa_disabled', {'email': current_user.email})
-        except Exception as db_error:
-            db.session.rollback()
-            logger.error(f"2FA disable database error: {db_error}")
-            return jsonify({'success': False, 'error': 'Database error'}), 500
-        
-        return jsonify({
-            'success': True,
-            'message': '2FA successfully disabled'
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"2FA disable error: {e}")
-        return jsonify({'success': False, 'error': '2FA disable failed'}), 500
-
-@app.route('/api/auth/2fa/verify', methods=['POST'])
-@rate_limit_decorator
-def api_2fa_verify():
-    """Verify 2FA token during login"""
-    try:
-        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-            return jsonify({
-                'success': False, 
-                'error': '2FA not available - database required'
-            }), 503
-        
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'error': 'No data provided'}), 400
-        
-        token = data.get('token', '').strip()
-        user_id = data.get('user_id', '')
-        
-        if not token or not user_id:
-            return jsonify({'success': False, 'error': 'Token and user ID are required'}), 400
-        
-        # Get user
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            return jsonify({'success': False, 'error': 'User not found'}), 404
-        
-        # Verify token or backup code
-        valid_token = user.verify_2fa_token(token) or user.verify_backup_code(token)
-        
-        if valid_token:
-            # Update last login
-            user.last_login = datetime.now(timezone.utc)
-            user.failed_login_attempts = 0
-            
-            try:
-                db.session.commit()
-                audit_log(user.id, '2fa_login_success', {'email': user.email})
-            except Exception as db_error:
-                db.session.rollback()
-                logger.error(f"2FA login database error: {db_error}")
-            
-            # Create session
-            create_user_session(user)
-            
-            return jsonify({
-                'success': True,
-                'message': '2FA verification successful',
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'name': user.get_full_name(),
-                    'role': user.role.value
-                }
-            }), 200
-        else:
-            audit_log(user.id, '2fa_login_failed', {'email': user.email})
-            return jsonify({
-                'success': False, 
-                'error': 'Invalid 2FA token'
-            }), 400
-            
-    except Exception as e:
-        logger.error(f"2FA verify error: {e}")
-        return jsonify({'success': False, 'error': '2FA verification failed'}), 500
-
-@app.route('/api/auth/2fa/status', methods=['GET'])
-@rate_limit_decorator
-def api_2fa_status():
-    """Get 2FA status for current user"""
-    try:
-        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-            return jsonify({
-                'success': False, 
-                'error': '2FA not available - database required'
-            }), 503
-        
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
-        
-        backup_codes_count = 0
-        if current_user.backup_codes:
-            backup_codes_count = len(json.loads(current_user.backup_codes))
-        
-        return jsonify({
-            'success': True,
-            'two_factor_enabled': current_user.two_factor_enabled,
-            'backup_codes_remaining': backup_codes_count
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"2FA status error: {e}")
-        return jsonify({'success': False, 'error': 'Failed to get 2FA status'}), 500
-
-# ================================
 # ANALYTICS & MONITORING ENDPOINTS
 # ================================
 
@@ -12771,42 +12481,6 @@ def logout():
         logger.error(f"Logout error: {e}")
         flash('Logout error occurred', 'error')
         return redirect(url_for('login'))
-
-@app.route('/2fa/setup')
-def setup_2fa():
-    """2FA setup page"""
-    try:
-        current_user = get_current_user()
-        if not current_user:
-            return redirect(url_for('login'))
-        
-        return render_template('auth_2fa_setup.html')
-        
-    except Exception as e:
-        logger.error(f"2FA setup page error: {e}")
-        return f"""<!DOCTYPE html>
-<html><head><title>2FA Setup</title></head>
-<body><h1>🔐 2FA Setup</h1>
-<p>Error loading 2FA setup: {e}</p>
-<a href="/dashboard">← Back to Dashboard</a></body></html>"""
-
-@app.route('/2fa/verify')
-def verify_2fa():
-    """2FA verification page"""
-    try:
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return redirect(url_for('login'))
-        
-        return render_template('auth_2fa_verify.html')
-        
-    except Exception as e:
-        logger.error(f"2FA verify page error: {e}")
-        return f"""<!DOCTYPE html>
-<html><head><title>2FA Verification</title></head>
-<body><h1>🔐 2FA Verification</h1>
-<p>Error loading 2FA verification: {e}</p>
-<a href="/login">← Back to Login</a></body></html>"""
 
 # Redirect routes for compatibility
 @app.route('/research')
