@@ -12348,6 +12348,254 @@ def api_auth_complete_reset():
         return jsonify({'success': False, 'error': 'Password reset completion failed'}), 500
 
 # ================================
+# TWO-FACTOR AUTHENTICATION ENDPOINTS
+# ================================
+
+@app.route('/api/auth/2fa/setup', methods=['POST'])
+@rate_limit_decorator
+def api_2fa_setup():
+    """Generate 2FA secret and QR code for setup"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': '2FA not available - database required'
+            }), 503
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        # Generate secret and backup codes
+        secret = current_user.generate_2fa_secret()
+        backup_codes = current_user.generate_backup_codes()
+        qr_uri = current_user.get_2fa_uri()
+        
+        # Save to database (but don't enable yet)
+        try:
+            db.session.commit()
+            audit_log(current_user.id, '2fa_setup_initiated', {'email': current_user.email})
+        except Exception as db_error:
+            db.session.rollback()
+            logger.error(f"2FA setup database error: {db_error}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        
+        return jsonify({
+            'success': True,
+            'secret': secret,
+            'qr_uri': qr_uri,
+            'backup_codes': backup_codes,
+            'message': 'Scan QR code with authenticator app, then verify with a code'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"2FA setup error: {e}")
+        return jsonify({'success': False, 'error': '2FA setup failed'}), 500
+
+@app.route('/api/auth/2fa/verify-setup', methods=['POST'])
+@rate_limit_decorator
+def api_2fa_verify_setup():
+    """Verify 2FA setup with token"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': '2FA not available - database required'
+            }), 503
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        token = data.get('token', '').strip()
+        if not token:
+            return jsonify({'success': False, 'error': 'Token is required'}), 400
+        
+        # Verify the token
+        if current_user.verify_2fa_token(token):
+            # Enable 2FA
+            current_user.two_factor_enabled = True
+            
+            try:
+                db.session.commit()
+                audit_log(current_user.id, '2fa_enabled', {'email': current_user.email})
+            except Exception as db_error:
+                db.session.rollback()
+                logger.error(f"2FA enable database error: {db_error}")
+                return jsonify({'success': False, 'error': 'Database error'}), 500
+            
+            return jsonify({
+                'success': True,
+                'message': '2FA successfully enabled'
+            }), 200
+        else:
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid token. Please try again.'
+            }), 400
+            
+    except Exception as e:
+        logger.error(f"2FA verify setup error: {e}")
+        return jsonify({'success': False, 'error': '2FA verification failed'}), 500
+
+@app.route('/api/auth/2fa/disable', methods=['POST'])
+@rate_limit_decorator
+def api_2fa_disable():
+    """Disable 2FA for current user"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': '2FA not available - database required'
+            }), 503
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        password = data.get('password', '')
+        token = data.get('token', '').strip()
+        
+        if not password:
+            return jsonify({'success': False, 'error': 'Password is required'}), 400
+        
+        # Verify password
+        if not current_user.check_password(password):
+            return jsonify({'success': False, 'error': 'Invalid password'}), 400
+        
+        # Verify 2FA token or backup code
+        valid_token = False
+        if token:
+            valid_token = current_user.verify_2fa_token(token) or current_user.verify_backup_code(token)
+        
+        if not valid_token:
+            return jsonify({'success': False, 'error': 'Valid 2FA token required'}), 400
+        
+        # Disable 2FA
+        current_user.two_factor_enabled = False
+        current_user.two_factor_secret = None
+        current_user.backup_codes = None
+        
+        try:
+            db.session.commit()
+            audit_log(current_user.id, '2fa_disabled', {'email': current_user.email})
+        except Exception as db_error:
+            db.session.rollback()
+            logger.error(f"2FA disable database error: {db_error}")
+            return jsonify({'success': False, 'error': 'Database error'}), 500
+        
+        return jsonify({
+            'success': True,
+            'message': '2FA successfully disabled'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"2FA disable error: {e}")
+        return jsonify({'success': False, 'error': '2FA disable failed'}), 500
+
+@app.route('/api/auth/2fa/verify', methods=['POST'])
+@rate_limit_decorator
+def api_2fa_verify():
+    """Verify 2FA token during login"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': '2FA not available - database required'
+            }), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        token = data.get('token', '').strip()
+        user_id = data.get('user_id', '')
+        
+        if not token or not user_id:
+            return jsonify({'success': False, 'error': 'Token and user ID are required'}), 400
+        
+        # Get user
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        # Verify token or backup code
+        valid_token = user.verify_2fa_token(token) or user.verify_backup_code(token)
+        
+        if valid_token:
+            # Update last login
+            user.last_login = datetime.now(timezone.utc)
+            user.failed_login_attempts = 0
+            
+            try:
+                db.session.commit()
+                audit_log(user.id, '2fa_login_success', {'email': user.email})
+            except Exception as db_error:
+                db.session.rollback()
+                logger.error(f"2FA login database error: {db_error}")
+            
+            # Create session
+            create_user_session(user)
+            
+            return jsonify({
+                'success': True,
+                'message': '2FA verification successful',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'name': user.get_full_name(),
+                    'role': user.role.value
+                }
+            }), 200
+        else:
+            audit_log(user.id, '2fa_login_failed', {'email': user.email})
+            return jsonify({
+                'success': False, 
+                'error': 'Invalid 2FA token'
+            }), 400
+            
+    except Exception as e:
+        logger.error(f"2FA verify error: {e}")
+        return jsonify({'success': False, 'error': '2FA verification failed'}), 500
+
+@app.route('/api/auth/2fa/status', methods=['GET'])
+@rate_limit_decorator
+def api_2fa_status():
+    """Get 2FA status for current user"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': '2FA not available - database required'
+            }), 503
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        backup_codes_count = 0
+        if current_user.backup_codes:
+            backup_codes_count = len(json.loads(current_user.backup_codes))
+        
+        return jsonify({
+            'success': True,
+            'two_factor_enabled': current_user.two_factor_enabled,
+            'backup_codes_remaining': backup_codes_count
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"2FA status error: {e}")
+        return jsonify({'success': False, 'error': 'Failed to get 2FA status'}), 500
+
+# ================================
 # ANALYTICS & MONITORING ENDPOINTS
 # ================================
 

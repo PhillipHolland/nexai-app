@@ -127,6 +127,54 @@ class User(UserMixin, db.Model):
         """Check password against hash"""
         return check_password_hash(self.password_hash, password)
     
+    def generate_2fa_secret(self):
+        """Generate a new 2FA secret"""
+        import pyotp
+        import secrets
+        secret = pyotp.random_base32()
+        self.two_factor_secret = secret
+        return secret
+    
+    def get_2fa_uri(self):
+        """Get 2FA provisioning URI for QR code"""
+        import pyotp
+        if not self.two_factor_secret:
+            return None
+        totp = pyotp.TOTP(self.two_factor_secret)
+        return totp.provisioning_uri(
+            name=self.email,
+            issuer_name="LexAI Practice Partner"
+        )
+    
+    def verify_2fa_token(self, token):
+        """Verify 2FA token"""
+        import pyotp
+        if not self.two_factor_secret or not self.two_factor_enabled:
+            return False
+        totp = pyotp.TOTP(self.two_factor_secret)
+        return totp.verify(token, valid_window=1)
+    
+    def generate_backup_codes(self):
+        """Generate backup codes for 2FA"""
+        import secrets
+        codes = []
+        for _ in range(8):
+            code = '-'.join([secrets.token_hex(2).upper() for _ in range(2)])
+            codes.append(code)
+        self.backup_codes = json.dumps(codes)
+        return codes
+    
+    def verify_backup_code(self, code):
+        """Verify and consume backup code"""
+        if not self.backup_codes:
+            return False
+        codes = json.loads(self.backup_codes)
+        if code in codes:
+            codes.remove(code)
+            self.backup_codes = json.dumps(codes)
+            return True
+        return False
+    
     def get_full_name(self):
         """Get user's full name"""
         return f"{self.first_name} {self.last_name}"
