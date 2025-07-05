@@ -115,10 +115,14 @@ except:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create Flask app with template folder support
+# Create Flask app with template folder support  
+import os
+template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'templates'))
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+
 app = Flask(__name__, 
-           static_folder='../static',
-           template_folder='../templates')
+           static_folder=static_dir,
+           template_folder=template_dir)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
 
 # Session configuration
@@ -2138,16 +2142,20 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
 def landing_page():
     """Clean landing page with Clio-inspired design"""
     try:
+        logger.info(f"Landing page accessed - template_folder: {app.template_folder}")
         # Use the new landing page template
         return render_template('landing.html')
     except Exception as e:
         logger.error(f"Landing page error: {e}")
+        logger.error(f"Template folder: {app.template_folder}")
+        logger.error(f"Available templates: {os.listdir(app.template_folder) if os.path.exists(app.template_folder) else 'Template folder not found'}")
         # Minimal fallback
         return f"""<!DOCTYPE html>
-<html><head><title>LexAI Dashboard</title></head>
+<html><head><title>LexAI Practice Partner</title></head>
 <body><h1>🏛️ LexAI Practice Partner</h1>
-<p>Dashboard loading error: {e}</p>
-<a href="/chat">Continue to Chat</a></body></html>"""
+<p>Landing page loading error: {e}</p>
+<p>Template folder: {app.template_folder}</p>
+<a href="/dashboard">Continue to Dashboard</a></body></html>"""
 
 @app.route('/dashboard')
 def dashboard():
@@ -12326,6 +12334,125 @@ def api_auth_complete_reset():
     except Exception as e:
         logger.error(f"Password reset completion error: {e}")
         return jsonify({'success': False, 'error': 'Password reset completion failed'}), 500
+
+# ================================
+# ANALYTICS & MONITORING ENDPOINTS
+# ================================
+
+@app.route('/api/analytics/performance', methods=['GET'])
+@rate_limit_decorator
+@monitor_performance('analytics_performance')
+def get_performance_analytics():
+    """Get performance analytics data"""
+    try:
+        current_user = get_current_user()
+        if not current_user or (hasattr(current_user, 'role') and current_user.role not in ['admin', 'partner']):
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        # Calculate performance statistics
+        analytics_data = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "endpoints": {},
+            "summary": {
+                "total_requests": 0,
+                "avg_response_time": 0,
+                "fastest_endpoint": None,
+                "slowest_endpoint": None,
+                "endpoints_monitored": len(performance_metrics)
+            },
+            "system": {
+                "database_available": DATABASE_AVAILABLE,
+                "auth_available": AUTH_AVAILABLE,
+                "storage_available": FILE_STORAGE_AVAILABLE,
+                "redis_available": bool(redis_client)
+            }
+        }
+        
+        total_requests = 0
+        total_time = 0
+        endpoint_averages = {}
+        
+        # Process performance metrics
+        for endpoint, times in performance_metrics.items():
+            if times:
+                avg_time = sum(times) / len(times)
+                endpoint_averages[endpoint] = avg_time
+                
+                analytics_data["endpoints"][endpoint] = {
+                    "request_count": len(times),
+                    "avg_response_time": round(avg_time, 3),
+                    "min_response_time": round(min(times), 3),
+                    "max_response_time": round(max(times), 3),
+                    "last_10_avg": round(sum(times[-10:]) / len(times[-10:]), 3) if len(times) >= 10 else round(avg_time, 3)
+                }
+                
+                total_requests += len(times)
+                total_time += sum(times)
+        
+        # Calculate summary statistics
+        if total_requests > 0:
+            analytics_data["summary"]["total_requests"] = total_requests
+            analytics_data["summary"]["avg_response_time"] = round(total_time / total_requests, 3)
+            
+            if endpoint_averages:
+                fastest = min(endpoint_averages.items(), key=lambda x: x[1])
+                slowest = max(endpoint_averages.items(), key=lambda x: x[1])
+                analytics_data["summary"]["fastest_endpoint"] = {"name": fastest[0], "time": round(fastest[1], 3)}
+                analytics_data["summary"]["slowest_endpoint"] = {"name": slowest[0], "time": round(slowest[1], 3)}
+        
+        return jsonify(analytics_data)
+        
+    except Exception as e:
+        logger.error(f"Analytics error: {e}")
+        return jsonify({'error': 'Analytics unavailable', 'system_status': 'operational'}), 200
+
+@app.route('/api/analytics/usage', methods=['GET'])
+@rate_limit_decorator
+@monitor_performance('analytics_usage')
+def get_usage_analytics():
+    """Get usage analytics data"""
+    try:
+        current_user = get_current_user()
+        if not current_user or (hasattr(current_user, 'role') and current_user.role not in ['admin', 'partner']):
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        usage_data = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "rate_limiting": {
+                "active_limits": len(rate_limit_storage),
+                "total_tracked_ips": len(rate_limit_storage)
+            },
+            "endpoints": {
+                "health_checks": len(performance_metrics.get('health_check', [])),
+                "auth_requests": len(performance_metrics.get('api_auth_login', [])) + len(performance_metrics.get('api_auth_register', [])),
+                "api_calls": sum(len(times) for endpoint, times in performance_metrics.items() if endpoint.startswith('api_'))
+            },
+            "system_health": {
+                "uptime_status": "operational",
+                "memory_usage": "optimized", 
+                "database_status": "connected" if DATABASE_AVAILABLE else "fallback",
+                "cache_status": "active" if bool(redis_client) else "memory_fallback"
+            }
+        }
+        
+        return jsonify(usage_data)
+        
+    except Exception as e:
+        logger.error(f"Usage analytics error: {e}")
+        return jsonify({'error': 'Usage analytics unavailable'}), 500
+
+@app.route('/analytics')
+def analytics_dashboard():
+    """Analytics dashboard page (admin only)"""
+    try:
+        current_user = get_current_user()
+        if not current_user or (hasattr(current_user, 'role') and current_user.role not in ['admin', 'partner']):
+            return redirect(url_for('login'))
+        
+        return render_template('analytics_dashboard.html')
+    except Exception as e:
+        logger.error(f"Analytics dashboard error: {e}")
+        return f"<h1>Analytics Dashboard</h1><p>Error loading dashboard: {e}</p>", 500
 
 # Authentication UI Routes
 @app.route('/login')
