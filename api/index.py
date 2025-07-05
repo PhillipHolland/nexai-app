@@ -212,6 +212,23 @@ def rate_limit_decorator(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Alias for shorter decorator name
+rate_limit = rate_limit_decorator
+
+def validate_request(f):
+    """Basic request validation decorator"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Basic security checks
+        if request.method in ['POST', 'PUT', 'PATCH']:
+            # For methods that should have data, check content type for JSON endpoints
+            if request.endpoint and 'api' in request.endpoint:
+                if not request.is_json and request.content_length > 0:
+                    return jsonify({'error': 'Content-Type must be application/json'}), 400
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 def validate_json_input(required_fields: List[str] = None):
     """Decorator for JSON input validation"""
     def decorator(f):
