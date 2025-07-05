@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Dict, Any, Optional, List
-from flask import Flask, request, jsonify, render_template_string, url_for, g
+from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g
 from dotenv import load_dotenv
 
 try:
@@ -1770,7 +1770,6 @@ def landing_page():
     """Clean landing page with Clio-inspired design"""
     try:
         # Use the new landing page template
-        from flask import render_template
         return render_template('landing.html')
     except Exception as e:
         logger.error(f"Landing page error: {e}")
@@ -1785,7 +1784,6 @@ def landing_page():
 def dashboard():
     """Main dashboard with comprehensive navigation"""
     try:
-        from flask import render_template
         
         # Get mock stats for dashboard
         stats = get_mock_stats()
@@ -1810,7 +1808,6 @@ def chat_interface(client_id=None):
         practice_area = request.args.get('area', 'general')
         
         try:
-            from flask import render_template
             return render_template('chat.html', 
                                  current_client=client_id,
                                  practice_areas=PRACTICE_AREAS,
@@ -2177,7 +2174,6 @@ def chat_interface(client_id=None):
 def clients_page():
     """Comprehensive client management page"""
     try:
-        from flask import render_template
         clients = get_mock_clients()
         
         # Calculate stats
@@ -2641,7 +2637,6 @@ def clients_list():
 def document_analysis_page():
     """Document analysis page"""
     try:
-        from flask import render_template
         return render_template('document_analysis.html')
     except Exception as e:
         logger.error(f"Document analysis page error: {e}")
@@ -2655,7 +2650,6 @@ def document_analysis_page():
 def legal_research_page():
     """Legal research page with AI-powered case law and statute search"""
     try:
-        from flask import render_template
         return render_template('legal_research.html')
     except Exception as e:
         logger.error(f"Legal research page error: {e}")
@@ -2678,7 +2672,6 @@ def legal_research_test():
 def documents_list():
     """Document management system with upload and analysis capabilities"""
     try:
-        from flask import render_template
         
         # Mock document data for demonstration
         documents = [
@@ -3426,7 +3419,6 @@ def case_timeline(case_id):
 def analytics_dashboard():
     """Comprehensive analytics dashboard page"""
     try:
-        from flask import render_template
         analytics = get_analytics_data()
         
         # Get recent activity for the table
@@ -3449,7 +3441,6 @@ def analytics_dashboard():
 def contract_generator_page():
     """Contract Generator page"""
     try:
-        from flask import render_template
         return render_template('contract_generator.html')
     except Exception as e:
         logger.error(f"Contract generator page error: {e}")
@@ -7133,7 +7124,6 @@ def search_interface():
         'real_estate': {'name': 'Real Estate', 'color': '#10B981'},
         'immigration': {'name': 'Immigration', 'color': '#6366F1'}
     }
-    from flask import render_template
     try:
         return render_template('search.html', practice_areas=practice_areas, SEARCH_TEMPLATE=SEARCH_TEMPLATE)
     except:
@@ -7877,7 +7867,6 @@ app.before_request_funcs.setdefault(None, []).append(lambda: None)
 def auth_login():
     """Login page"""
     try:
-        from flask import render_template
         return render_template('auth_login.html')
     except Exception as e:
         logger.error(f"Login template error: {e}")
@@ -7887,7 +7876,6 @@ def auth_login():
 def auth_register():
     """Registration page"""
     try:
-        from flask import render_template
         return render_template('auth_register.html')
     except Exception as e:
         logger.error(f"Register template error: {e}")
@@ -7897,7 +7885,6 @@ def auth_register():
 def user_profile():
     """User profile page"""
     try:
-        from flask import render_template
         # Demo user data
         demo_user = {
             'first_name': 'Demo',
@@ -8099,7 +8086,6 @@ def api_update_profile():
 def time_tracking_page():
     """Time tracking page"""
     try:
-        from flask import render_template
         return render_template('time_tracking.html')
     except Exception as e:
         logger.error(f"Time tracking template error: {e}")
@@ -8109,7 +8095,6 @@ def time_tracking_page():
 def billing_page():
     """Billing and invoices page"""
     try:
-        from flask import render_template
         return render_template('billing.html')
     except Exception as e:
         logger.error(f"Billing template error: {e}")
@@ -8119,7 +8104,6 @@ def billing_page():
 def expense_tracking_page():
     """Expense tracking and reimbursement page"""
     try:
-        from flask import render_template
         return render_template('expense_tracking.html')
     except Exception as e:
         logger.error(f"Expense tracking template error: {e}")
@@ -8129,7 +8113,6 @@ def expense_tracking_page():
 def calendar_page():
     """Calendar and scheduling page"""
     try:
-        from flask import render_template
         return render_template('calendar.html')
     except Exception as e:
         logger.error(f"Calendar template error: {e}")
@@ -8139,7 +8122,6 @@ def calendar_page():
 def court_deadlines_page():
     """Court dates and deadlines management page"""
     try:
-        from flask import render_template
         return render_template('court_deadlines.html')
     except Exception as e:
         logger.error(f"Court deadlines template error: {e}")
@@ -8149,7 +8131,6 @@ def court_deadlines_page():
 def appointment_booking_page():
     """Client appointment booking page"""
     try:
-        from flask import render_template
         return render_template('appointment_booking.html')
     except Exception as e:
         logger.error(f"Appointment booking template error: {e}")
