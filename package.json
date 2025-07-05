@@ -1,0 +1,14 @@
+{
+  "name": "lexai-app",
+  "version": "1.0.0",
+  "description": "LexAI Legal Practice Management Platform",
+  "scripts": {
+    "vercel-build": "echo 'Python Flask application - no build step required'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PhillipHolland/nexai-app"
+  },
+  "author": "LexAI Team",
+  "license": "MIT"
+}
