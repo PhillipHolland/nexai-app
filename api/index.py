@@ -309,6 +309,18 @@ def validate_json_input(required_fields: List[str] = None):
         return decorated_function
     return decorator
 
+def performance_monitor(f):
+    """Decorator to monitor API endpoint performance"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = f(*args, **kwargs)
+        end_time = time.perf_counter()
+        duration = (end_time - start_time) * 1000  # in milliseconds
+        logger.info(f"Performance: Endpoint {request.endpoint} took {duration:.2f}ms")
+        return result
+    return decorated_function
+
 class ConversationManager:
     """Redis-based conversation persistence with fallback to in-memory storage"""
     
@@ -1078,8 +1090,6 @@ def permission_required(permission: str):
             'Family petition preparation'
         ]
     }
-}
-
 # Enhanced mock data for production demo
 def get_mock_clients():
     return [
@@ -1122,37 +1132,118 @@ def get_mock_clients():
     ]
 
 def get_analytics_data():
-    return {
-        'revenue': {
-            'total_ytd': 268500,
-            'monthly': [22000, 25000, 28000, 32000, 35000, 38000],
-            'by_practice': {
-                'corporate': 125000,
-                'real_estate': 75000,
-                'personal_injury': 45000,
-                'family': 15000,
-                'immigration': 8500
+    """Get comprehensive practice analytics from database"""
+    if not DATABASE_AVAILABLE:
+        # Fallback to mock data if database is not available
+        return {
+            'revenue': {
+                'total_ytd': 268500,
+                'monthly': [22000, 25000, 28000, 32000, 35000, 38000],
+                'by_practice': {
+                    'corporate': 125000,
+                    'real_estate': 75000,
+                    'personal_injury': 45000,
+                    'family': 15000,
+                    'immigration': 8500
+                }
+            },
+            'cases': {
+                'total': 47,
+                'active': 15,
+                'pending': 8,
+                'completed': 24,
+                'by_status': {'active': 15, 'pending': 8, 'completed': 24}
+            },
+            'ai_usage': {
+                'total_interactions': 234,
+                'monthly_growth': 15.2,
+                'avg_per_case': 5.8,
+                'top_areas': ['contract_analysis', 'legal_research', 'document_drafting']
+            },
+            'efficiency': {
+                'avg_case_duration': 45,
+                'resolution_rate': 89.3,
+                'client_satisfaction': 4.7
             }
-        },
-        'cases': {
-            'total': 47,
-            'active': 15,
-            'pending': 8,
-            'completed': 24,
-            'by_status': {'active': 15, 'pending': 8, 'completed': 24}
-        },
-        'ai_usage': {
-            'total_interactions': 234,
-            'monthly_growth': 15.2,
-            'avg_per_case': 5.8,
-            'top_areas': ['contract_analysis', 'legal_research', 'document_drafting']
-        },
-        'efficiency': {
-            'avg_case_duration': 45,
-            'resolution_rate': 89.3,
-            'client_satisfaction': 4.7
         }
-    }
+
+    try:
+        # Revenue Analytics
+        total_revenue_ytd = db.session.query(db.func.sum(Invoice.total_amount)).filter(
+            Invoice.status == InvoiceStatus.PAID,
+            Invoice.issue_date >= datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        ).scalar() or 0
+
+        # Monthly revenue (mock for now, requires more complex date grouping)
+        monthly_revenue = [0] * 6  # Placeholder for 6 months
+
+        # Revenue by practice area (requires joining Cases and Invoices)
+        practice_areas_data = db.session.query(Case.practice_area, db.func.sum(Invoice.total_amount)).\
+            join(Client, Case.client_id == Client.id).\
+            join(Invoice, Client.id == Invoice.client_id).\
+            filter(Invoice.status == InvoiceStatus.PAID).\
+            group_by(Case.practice_area).all()
+
+        revenue_by_practice = {}
+        for area, revenue in practice_areas_data:
+            revenue_by_practice[area] = float(revenue)
+
+        # Case Analytics
+        total_cases = Case.query.count()
+        active_cases = Case.query.filter_by(status=CaseStatus.ACTIVE).count()
+        pending_cases = Case.query.filter_by(status=CaseStatus.PENDING).count()
+        completed_cases = Case.query.filter_by(status=CaseStatus.CLOSED).count()
+
+        cases_by_status = {
+            'active': active_cases,
+            'pending': pending_cases,
+            'completed': completed_cases
+        }
+
+        # AI Usage Analytics (requires AuditLog or specific AI usage logs)
+        total_ai_interactions = AuditLog.query.filter(
+            AuditLog.action.like('%ai_interaction%')
+        ).count()
+        # Monthly growth, avg per case, top areas - these would require more sophisticated logging and analysis
+        ai_usage = {
+            'total_interactions': total_ai_interactions,
+            'monthly_growth': 0,  # Placeholder
+            'avg_per_case': 0,    # Placeholder
+            'top_areas': []       # Placeholder
+        }
+
+        # Efficiency Metrics (placeholders for now)
+        efficiency = {
+            'avg_case_duration': 0,  # Requires date_opened and date_closed
+            'resolution_rate': 0,    # Requires completed cases / total cases
+            'client_satisfaction': 0 # Requires client feedback mechanism
+        }
+
+        return {
+            'revenue': {
+                'total_ytd': float(total_revenue_ytd),
+                'monthly': monthly_revenue,
+                'by_practice': revenue_by_practice
+            },
+            'cases': {
+                'total': total_cases,
+                'active': active_cases,
+                'pending': pending_cases,
+                'completed': completed_cases,
+                'by_status': cases_by_status
+            },
+            'ai_usage': ai_usage,
+            'efficiency': efficiency
+        }
+
+    except Exception as e:
+        logger.error(f"Error fetching analytics data: {e}")
+        return {
+            'revenue': {'total_ytd': 0, 'monthly': [], 'by_practice': {}},
+            'cases': {'total': 0, 'active': 0, 'pending': 0, 'completed': 0, 'by_status': {}},
+            'ai_usage': {'total_interactions': 0, 'monthly_growth': 0, 'avg_per_case': 0, 'top_areas': []},
+            'efficiency': {'avg_case_duration': 0, 'resolution_rate': 0, 'client_satisfaction': 0}
+        }
 
 def get_mock_stats():
     analytics = get_analytics_data()
@@ -4350,6 +4441,7 @@ def security_status():
 
 @app.route('/api/clients')
 @rate_limit_decorator
+@performance_monitor
 @permission_required('view_clients')
 def get_clients():
     """Get client list with filtering and analytics"""
@@ -4426,6 +4518,7 @@ def get_clients():
 
 @app.route('/api/clients', methods=['POST'])
 @rate_limit_decorator
+@performance_monitor
 @permission_required('manage_clients')
 def add_client():
     """Add a new client to the system"""
@@ -4583,6 +4676,7 @@ def get_client_details(client_id):
 
 @app.route('/api/analytics')
 @rate_limit_decorator
+@performance_monitor
 @permission_required('view_analytics')
 def get_analytics():
     """Get comprehensive practice analytics"""
@@ -10286,6 +10380,7 @@ def create_task():
 
 @app.route('/api/tasks', methods=['GET'])
 @rate_limit_decorator
+@performance_monitor
 @permission_required('view_tasks')
 def get_tasks():
     """Get tasks with filtering options"""
@@ -11421,6 +11516,7 @@ def task_management():
 
 @app.route('/api/tasks/create-new', methods=['POST'])
 @rate_limit
+@performance_monitor
 @permission_required('manage_tasks')
 @validate_request
 def create_task_new():
