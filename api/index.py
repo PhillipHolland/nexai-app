@@ -54,10 +54,13 @@ try:
     except ImportError as auth_error:
         AUTH_AVAILABLE = False
         logger.warning(f"Authentication module not available: {auth_error}")
-except ImportError:
+except ImportError as db_error:
     DATABASE_AVAILABLE = False
     AUTH_AVAILABLE = False
-    logging.warning("Database models not available - using mock data fallback")
+    logger.error(f"Database models import failed: {db_error}")
+    # Log more details about the import error
+    import traceback
+    logger.error(f"Database import traceback: {traceback.format_exc()}")
     
     # Create fallback enums when database models are not available
     from enum import Enum
@@ -148,6 +151,29 @@ app.config['SESSION_TYPE'] = 'filesystem'
 @app.route('/test')
 def test_route():
     return "Flask app is working!"
+
+@app.route('/api/debug')
+def debug_info():
+    """Debug endpoint to check import status"""
+    try:
+        return jsonify({
+            'status': 'ok',
+            'imports': {
+                'database': DATABASE_AVAILABLE,
+                'auth': AUTH_AVAILABLE,
+                'file_storage': FILE_STORAGE_AVAILABLE,
+                'redis': REDIS_AVAILABLE
+            },
+            'env': {
+                'database_url_set': bool(os.environ.get('DATABASE_URL')),
+                'xai_api_key_set': bool(os.environ.get('XAI_API_KEY')),
+                'vercel': os.environ.get('VERCEL', 'not_set')
+            },
+            'working_dir': os.getcwd(),
+            'python_path': sys.path[:3]  # First 3 entries
+        })
+    except Exception as e:
+        return jsonify({'error': str(e), 'status': 'error'}), 500
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'lexai_'
