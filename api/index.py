@@ -2174,12 +2174,9 @@ def dashboard():
 <html><head><title>LexAI Dashboard</title></head>
 <body><h1>🏛️ LexAI Practice Partner</h1>
 <p>Dashboard loading error: {e}</p>
-<a href="/chat">Continue to Chat</a></body></html>"""
+<a href="/dashboard">Continue to Dashboard</a></body></html>"""
 
-@app.route('/chat')
-@app.route('/chat/<client_id>')
-# @login_required  # Disabled for now
-def chat_interface(client_id=None):
+def old_chat_interface_deprecated(client_id=None):
     """Enhanced chat interface matching local version"""
     try:
         # Get practice area from query params
