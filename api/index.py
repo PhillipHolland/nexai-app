@@ -8997,9 +8997,9 @@ def document_management_page():
         logger.error(f"Document management page error: {e}")
         return f"Error loading document management: {e}", 500
 
-@app.route('/api/documents/upload', methods=['POST'])
+@app.route('/api/documents/upload-new', methods=['POST'])
 @rate_limit_decorator
-def upload_document():
+def upload_document_new():
     """Upload a new document with metadata"""
     try:
         # Check if file is present

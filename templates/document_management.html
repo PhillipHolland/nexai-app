@@ -761,7 +761,7 @@ async function handleUpload(event) {
     formData.append('description', document.getElementById('documentDescription').value);
     
     try {
-        const response = await fetch('/api/documents/upload', {
+        const response = await fetch('/api/documents/upload-new', {
             method: 'POST',
             body: formData
         });
