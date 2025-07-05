@@ -158,6 +158,37 @@ def test_route():
 def debug_info():
     """Debug endpoint to check import status"""
     try:
+        import_tests = {}
+        
+        # Test individual imports
+        try:
+            import sys
+            import os
+            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+            import_tests['sys_path_added'] = True
+        except Exception as e:
+            import_tests['sys_path_error'] = str(e)
+        
+        try:
+            import database
+            import_tests['database_module'] = True
+        except Exception as e:
+            import_tests['database_error'] = str(e)
+            
+        try:
+            import models
+            import_tests['models_module'] = True
+        except Exception as e:
+            import_tests['models_error'] = str(e)
+            
+        try:
+            import auth
+            import_tests['auth_module'] = True
+        except Exception as e:
+            import_tests['auth_error'] = str(e)
+        
         return jsonify({
             'status': 'ok',
             'imports': {
@@ -166,13 +197,18 @@ def debug_info():
                 'file_storage': FILE_STORAGE_AVAILABLE,
                 'redis': REDIS_AVAILABLE
             },
+            'import_tests': import_tests,
             'env': {
                 'database_url_set': bool(os.environ.get('DATABASE_URL')),
                 'xai_api_key_set': bool(os.environ.get('XAI_API_KEY')),
                 'vercel': os.environ.get('VERCEL', 'not_set')
             },
-            'working_dir': os.getcwd(),
-            'python_path': sys.path[:3]  # First 3 entries
+            'file_system': {
+                'working_dir': os.getcwd(),
+                'parent_dir': os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'files_in_parent': os.listdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))[:10]
+            },
+            'python_path': sys.path[:5]  # First 5 entries
         })
     except Exception as e:
         return jsonify({'error': str(e), 'status': 'error'}), 500
