@@ -12145,23 +12145,34 @@ def api_auth_login():
         user, message = authenticate_user(email, password)
         
         if user:
-            # Create session
-            create_user_session(user)
-            
-            audit_log(user.id, 'user_login', {'email': email})
-            
-            return jsonify({
-                'success': True, 
-                'message': message,
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'role': user.role,
-                    'firm_name': user.firm_name
-                }
-            }), 200
+            # Check if 2FA is enabled
+            if user.two_factor_enabled:
+                # Don't create full session yet, just return 2FA challenge
+                audit_log(user.id, 'login_2fa_required', {'email': email})
+                
+                return jsonify({
+                    'success': True,
+                    'requires_2fa': True,
+                    'user_id': user.id,
+                    'message': '2FA verification required'
+                }), 200
+            else:
+                # No 2FA, proceed with normal login
+                create_user_session(user)
+                audit_log(user.id, 'user_login', {'email': email})
+                
+                return jsonify({
+                    'success': True, 
+                    'message': message,
+                    'user': {
+                        'id': user.id,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'role': user.role.value if hasattr(user.role, 'value') else user.role,
+                        'firm_name': user.firm_name
+                    }
+                }), 200
         else:
             return jsonify({'success': False, 'error': message}), 401
             
@@ -12745,6 +12756,42 @@ def logout():
         logger.error(f"Logout error: {e}")
         flash('Logout error occurred', 'error')
         return redirect(url_for('login'))
+
+@app.route('/2fa/setup')
+def setup_2fa():
+    """2FA setup page"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return redirect(url_for('login'))
+        
+        return render_template('auth_2fa_setup.html')
+        
+    except Exception as e:
+        logger.error(f"2FA setup page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>2FA Setup</title></head>
+<body><h1>🔐 2FA Setup</h1>
+<p>Error loading 2FA setup: {e}</p>
+<a href="/dashboard">← Back to Dashboard</a></body></html>"""
+
+@app.route('/2fa/verify')
+def verify_2fa():
+    """2FA verification page"""
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return redirect(url_for('login'))
+        
+        return render_template('auth_2fa_verify.html')
+        
+    except Exception as e:
+        logger.error(f"2FA verify page error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>2FA Verification</title></head>
+<body><h1>🔐 2FA Verification</h1>
+<p>Error loading 2FA verification: {e}</p>
+<a href="/login">← Back to Login</a></body></html>"""
 
 # Redirect routes for compatibility
 @app.route('/research')

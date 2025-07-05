@@ -423,20 +423,28 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        // Successful login
-                        showSuccess(data.message + ' Redirecting...');
-                        
-                        // Store auth info in localStorage (demo purposes)
-                        localStorage.setItem('lexai_auth', JSON.stringify({
-                            user: data.user,
-                            remember: remember,
-                            loginTime: new Date().toISOString()
-                        }));
+                        if (data.requires_2fa) {
+                            // 2FA required, redirect to verification page
+                            showSuccess('Login successful. Redirecting to 2FA verification...');
+                            setTimeout(() => {
+                                window.location.href = `/2fa/verify?user_id=${data.user_id}`;
+                            }, 1500);
+                        } else {
+                            // Normal login success
+                            showSuccess(data.message + ' Redirecting...');
+                            
+                            // Store auth info in localStorage (demo purposes)
+                            localStorage.setItem('lexai_auth', JSON.stringify({
+                                user: data.user,
+                                remember: remember,
+                                loginTime: new Date().toISOString()
+                            }));
 
-                        // Redirect to dashboard after delay
-                        setTimeout(() => {
-                            window.location.href = data.redirect || '/dashboard';
-                        }, 2000);
+                            // Redirect to dashboard after delay
+                            setTimeout(() => {
+                                window.location.href = data.redirect || '/dashboard';
+                            }, 2000);
+                        }
                     } else {
                         // Login failed
                         showError(data.error || 'Login failed. Please try again.');

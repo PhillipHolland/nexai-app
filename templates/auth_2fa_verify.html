@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        .auth-container {
+            background-color: #F7EDDA;
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .verification-input {
+            text-align: center;
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            font-family: monospace;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+        }
+
+        .btn-primary:hover {
+            background-color: #1f3429;
+            transform: translateY(-1px);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            border: 1px solid #dc2626;
+            color: #dc2626;
+        }
+
+        .backup-code-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .backup-code-link a {
+            color: #2E4B3C;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .backup-code-link a:hover {
+            text-decoration: underline;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-small {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .security-note {
+            background-color: #f0f9ff;
+            border: 1px solid #0284c7;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+            color: #0c4a6e;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">🔐 Verify Identity</h1>
+            <p class="auth-subtitle">Enter the 6-digit code from your authenticator app</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <form id="verify-form">
+            <div class="form-group">
+                <label class="form-label" for="verification-code">Authentication Code</label>
+                <input type="text" id="verification-code" class="form-input verification-input" 
+                       placeholder="123456" maxlength="6" pattern="[0-9]{6}" required
+                       autocomplete="one-time-code">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">Verify Code</button>
+        </form>
+
+        <div class="backup-code-link">
+            <a href="#" onclick="showBackupCodeForm()">Use backup code instead</a>
+        </div>
+
+        <div id="backup-form" style="display: none;">
+            <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+            <h3 style="margin-bottom: 1rem; color: #374151;">Backup Code</h3>
+            <form id="backup-verify-form">
+                <div class="form-group">
+                    <label class="form-label" for="backup-code">Enter Backup Code</label>
+                    <input type="text" id="backup-code" class="form-input" 
+                           placeholder="XXXX-XXXX" style="font-family: monospace;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Verify Backup Code</button>
+            </form>
+            <div class="text-center mt-4">
+                <a href="#" onclick="showAuthForm()">← Back to authenticator code</a>
+            </div>
+        </div>
+
+        <div class="security-note">
+            <strong>🛡️ Security Notice:</strong> This verification helps protect your account from unauthorized access.
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="/login" class="text-small">← Back to Login</a>
+        </div>
+    </div>
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('user_id');
+
+function showAlert(message, type = 'error') {
+    const container = document.getElementById('alert-container');
+    container.innerHTML = `
+        <div class="alert alert-${type}">
+            ${message}
+        </div>
+    `;
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 5000);
+}
+
+function showBackupCodeForm() {
+    document.getElementById('verify-form').style.display = 'none';
+    document.querySelector('.backup-code-link').style.display = 'none';
+    document.getElementById('backup-form').style.display = 'block';
+    document.getElementById('backup-code').focus();
+}
+
+function showAuthForm() {
+    document.getElementById('verify-form').style.display = 'block';
+    document.querySelector('.backup-code-link').style.display = 'block';
+    document.getElementById('backup-form').style.display = 'none';
+    document.getElementById('verification-code').focus();
+}
+
+async function verify2FA(token) {
+    if (!userId) {
+        showAlert('Session error. Please log in again.');
+        setTimeout(() => window.location.href = '/login', 2000);
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/2fa/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                token: token.trim(),
+                user_id: userId 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Redirect to dashboard
+            window.location.href = '/dashboard';
+        } else {
+            showAlert(data.error || 'Verification failed');
+        }
+    } catch (error) {
+        showAlert('Network error. Please try again.');
+        console.error('2FA verification error:', error);
+    }
+}
+
+document.getElementById('verify-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = document.getElementById('verification-code').value;
+    
+    if (!token || token.length !== 6) {
+        showAlert('Please enter a valid 6-digit code');
+        return;
+    }
+    
+    await verify2FA(token);
+});
+
+document.getElementById('backup-verify-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const backupCode = document.getElementById('backup-code').value;
+    
+    if (!backupCode) {
+        showAlert('Please enter a backup code');
+        return;
+    }
+    
+    await verify2FA(backupCode);
+});
+
+// Auto-format verification code input
+document.getElementById('verification-code').addEventListener('input', function(e) {
+    this.value = this.value.replace(/\D/g, '');
+});
+
+// Auto-format backup code input
+document.getElementById('backup-code').addEventListener('input', function(e) {
+    let value = this.value.replace(/[^A-Fa-f0-9-]/g, '').toUpperCase();
+    if (value.length > 4 && value.charAt(4) !== '-') {
+        value = value.slice(0, 4) + '-' + value.slice(4);
+    }
+    this.value = value;
+});
+
+// Focus on code input when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('verification-code').focus();
+});
+</script>
+{% endblock %}
