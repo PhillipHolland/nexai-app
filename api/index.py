@@ -8796,6 +8796,13 @@ def api_check_conflicts():
                 '10:00', '11:00', '14:00', '15:00'
             ] if has_conflicts else []
         })
+        
+    except Exception as e:
+        logger.error(f"Conflict check API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to check conflicts'
+        }), 500
 
 @app.route('/team-calendar')
 def team_calendar_page():
@@ -8995,13 +9002,6 @@ def check_team_scheduling_conflicts():
     except Exception as e:
         logger.error(f"Team conflict check error: {e}")
         return jsonify({'error': 'Team conflict check failed'}), 500
-        
-    except Exception as e:
-        logger.error(f"Conflict check API error: {e}")
-        return jsonify({
-            'success': False,
-            'error': 'Failed to check conflicts'
-        }), 500
 
 @app.route('/api/expenses/create', methods=['POST'])
 @rate_limit_decorator
