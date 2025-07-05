@@ -2171,20 +2171,28 @@ def landing_page():
 def dashboard():
     """Main dashboard with comprehensive navigation"""
     try:
+        logger.info("Dashboard route accessed")
         
         # Get mock stats for dashboard
         stats = get_mock_stats()
+        logger.info("Mock stats retrieved successfully")
         
-        return render_template('dashboard.html', 
-                             stats=stats,
-                             user_name="Demo User")
+        result = render_template('dashboard.html', 
+                               stats=stats,
+                               user_name="Demo User")
+        logger.info("Dashboard template rendered successfully")
+        return result
+        
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
+        import traceback
+        logger.error(f"Dashboard traceback: {traceback.format_exc()}")
         return f"""<!DOCTYPE html>
 <html><head><title>LexAI Dashboard</title></head>
 <body><h1>🏛️ LexAI Practice Partner</h1>
 <p>Dashboard loading error: {e}</p>
-<a href="/dashboard">Continue to Dashboard</a></body></html>"""
+<p>Check logs for details</p>
+<a href="/">← Back to Home</a></body></html>"""
 
 def old_chat_interface_deprecated(client_id=None):
     """Enhanced chat interface matching local version"""
