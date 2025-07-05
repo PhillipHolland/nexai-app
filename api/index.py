@@ -35,12 +35,16 @@ try:
     DATABASE_AVAILABLE = True
     
     # Authentication system imports  
-    from auth import (
-        AuthManager, login_required, admin_required, get_current_user as auth_get_current_user,
-        create_user_session, destroy_user_session, register_user, authenticate_user,
-        update_user_password, reset_user_password, complete_password_reset
-    )
-    AUTH_AVAILABLE = True
+    try:
+        from auth import (
+            AuthManager, login_required, admin_required, get_current_user as auth_get_current_user,
+            create_user_session, destroy_user_session, register_user, authenticate_user,
+            update_user_password, reset_user_password, complete_password_reset
+        )
+        AUTH_AVAILABLE = True
+    except ImportError:
+        AUTH_AVAILABLE = False
+        logging.warning("Authentication module not available - using placeholder auth")
 except ImportError:
     DATABASE_AVAILABLE = False
     AUTH_AVAILABLE = False
@@ -56,6 +60,35 @@ except ImportError:
         PARALEGAL = "paralegal"
         CLIENT = "client"
         STAFF = "staff"
+    
+    # Fallback authentication functions for serverless environment
+    def register_user(email, password, first_name, last_name, firm_name=None):
+        return False, "Registration not available - database required"
+    
+    def authenticate_user(email, password):
+        return None, "Authentication not available - database required"
+    
+    def create_user_session(user):
+        pass  # No-op for fallback
+    
+    def destroy_user_session():
+        pass  # No-op for fallback
+    
+    def update_user_password(user_id, current_password, new_password):
+        return False, "Password update not available - database required"
+    
+    def reset_user_password(email):
+        return True, "Password reset not available in demo mode"
+    
+    def complete_password_reset(token, new_password):
+        return False, "Password reset not available - database required"
+    
+    def verify_reset_token(token):
+        return None, "Token verification not available - database required"
+    
+    def audit_log(user_id, action, details=None):
+        # Fallback audit logging - just log to console
+        logger.info(f"AUDIT: User {user_id} - {action} - {details}")
 
 # File storage imports
 try:
@@ -63,6 +96,13 @@ try:
     FILE_STORAGE_AVAILABLE = True
 except ImportError:
     FILE_STORAGE_AVAILABLE = False
+    
+    # Fallback file storage for serverless environment
+    class FileStorageError(Exception):
+        pass
+    
+    def get_storage_manager():
+        raise FileStorageError("File storage not available - cloud storage required")
 
 # Load environment variables
 load_dotenv()
@@ -12189,7 +12229,6 @@ def auth_verify_token(token):
                 'error': 'Authentication system not available'
             }), 503
         
-        from auth import verify_reset_token
         user, message = verify_reset_token(token)
         
         if user:
