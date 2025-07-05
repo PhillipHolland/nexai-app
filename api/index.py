@@ -9189,6 +9189,239 @@ def get_document_versions(doc_id):
         logger.error(f"Document versions error: {e}")
         return jsonify({'error': 'Failed to retrieve version history'}), 500
 
+@app.route('/client-portal')
+def client_portal_page():
+    """Client Portal page for secure document sharing"""
+    try:
+        return render_template('client_portal.html')
+    except Exception as e:
+        logger.error(f"Client portal page error: {e}")
+        return f"Error loading client portal: {e}", 500
+
+@app.route('/api/client-portal/documents', methods=['GET'])
+@rate_limit_decorator
+def get_client_documents():
+    """Get documents accessible to the client"""
+    try:
+        client_id = request.args.get('client_id', 'john-smith')
+        
+        # Mock client documents (filtered by client)
+        client_documents = [
+            {
+                'id': 'client-doc-1',
+                'title': 'Contract Agreement - Final Version',
+                'type': 'contract',
+                'file_type': 'pdf',
+                'size': '2.4 MB',
+                'last_modified': '2024-01-15',
+                'status': 'final',
+                'description': 'Final version of the employment contract'
+            },
+            {
+                'id': 'client-doc-2',
+                'title': 'Motion for Summary Judgment',
+                'type': 'pleading',
+                'file_type': 'docx',
+                'size': '1.8 MB',
+                'last_modified': '2024-01-12',
+                'status': 'filed',
+                'description': 'Motion filed with the court'
+            },
+            {
+                'id': 'client-doc-3',
+                'title': 'Discovery Response Documents',
+                'type': 'discovery',
+                'file_type': 'pdf',
+                'size': '5.2 MB',
+                'last_modified': '2024-01-10',
+                'status': 'submitted',
+                'description': 'Response to discovery requests'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'documents': client_documents,
+            'client_id': client_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Client documents error: {e}")
+        return jsonify({'error': 'Failed to retrieve client documents'}), 500
+
+@app.route('/api/client-portal/documents/<doc_id>/view', methods=['GET'])
+@rate_limit_decorator
+def view_client_document(doc_id):
+    """View client document (secure access)"""
+    try:
+        # In production, verify client has access to this document
+        logger.info(f"Client document view requested: {doc_id}")
+        
+        # Mock secure document viewing
+        return jsonify({
+            'success': True,
+            'message': f'Secure document viewer for {doc_id} would be displayed here',
+            'document_url': f'/secure-docs/{doc_id}'
+        })
+        
+    except Exception as e:
+        logger.error(f"Client document view error: {e}")
+        return jsonify({'error': 'Failed to view document'}), 500
+
+@app.route('/api/client-portal/documents/<doc_id>/download', methods=['GET'])
+@rate_limit_decorator
+def download_client_document(doc_id):
+    """Download client document (secure access)"""
+    try:
+        # In production, verify client has access and log download
+        logger.info(f"Client document download requested: {doc_id}")
+        
+        # Mock secure document download
+        return jsonify({
+            'success': True,
+            'message': f'Secure download for {doc_id} would start here',
+            'download_url': f'/secure-downloads/{doc_id}'
+        })
+        
+    except Exception as e:
+        logger.error(f"Client document download error: {e}")
+        return jsonify({'error': 'Failed to download document'}), 500
+
+@app.route('/api/client-portal/messages', methods=['GET'])
+@rate_limit_decorator
+def get_client_messages():
+    """Get secure messages for client"""
+    try:
+        client_id = request.args.get('client_id', 'john-smith')
+        
+        # Mock client messages
+        messages = [
+            {
+                'id': 'msg-1',
+                'from': 'Sarah Johnson, Esq.',
+                'to': 'John Smith',
+                'timestamp': '2024-01-15T14:30:00',
+                'subject': 'Case Update',
+                'content': "Hi John, I've reviewed the latest discovery documents and have some questions for you. Could you please schedule a call this week to discuss our strategy for the upcoming deposition?",
+                'read': False
+            },
+            {
+                'id': 'msg-2',
+                'from': 'John Smith',
+                'to': 'Sarah Johnson, Esq.',
+                'timestamp': '2024-01-14T16:15:00',
+                'subject': 'Re: Meeting Request',
+                'content': 'Thank you for the update on the case. I\'m available for a call on Wednesday or Thursday afternoon. Please let me know what time works best for you.',
+                'read': True
+            },
+            {
+                'id': 'msg-3',
+                'from': 'Sarah Johnson, Esq.',
+                'to': 'John Smith',
+                'timestamp': '2024-01-14T10:30:00',
+                'subject': 'Court Update',
+                'content': 'The court has approved our motion for an extension. We now have until March 1st to file our response. I\'ll keep you updated on our progress.',
+                'read': True
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'messages': messages,
+            'unread_count': len([m for m in messages if not m['read']])
+        })
+        
+    except Exception as e:
+        logger.error(f"Client messages error: {e}")
+        return jsonify({'error': 'Failed to retrieve messages'}), 500
+
+@app.route('/api/client-portal/messages', methods=['POST'])
+@rate_limit_decorator
+def send_client_message():
+    """Send secure message from client"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        content = data.get('content', '').strip()
+        client_id = data.get('client_id', 'john-smith')
+        
+        if not content:
+            return jsonify({'error': 'Message content is required'}), 400
+        
+        # Generate message ID
+        msg_id = f"MSG-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        # Mock message creation
+        message_data = {
+            'id': msg_id,
+            'from': 'John Smith',
+            'to': 'Sarah Johnson, Esq.',
+            'timestamp': datetime.now().isoformat(),
+            'content': content,
+            'client_id': client_id,
+            'encrypted': True
+        }
+        
+        logger.info(f"Client message sent: {msg_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Secure message sent successfully',
+            'message_id': msg_id,
+            'data': message_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Send client message error: {e}")
+        return jsonify({'error': 'Failed to send message'}), 500
+
+@app.route('/api/client-portal/billing', methods=['GET'])
+@rate_limit_decorator
+def get_client_billing():
+    """Get billing information for client"""
+    try:
+        client_id = request.args.get('client_id', 'john-smith')
+        
+        # Mock billing data
+        billing_info = {
+            'current_balance': 2450.00,
+            'due_date': '2024-03-15',
+            'status': 'pending',
+            'invoice_details': {
+                'hours_billed': 24.5,
+                'hourly_rate': 350.00,
+                'legal_fees': 1875.00,
+                'expenses': 575.00,
+                'total': 2450.00
+            },
+            'payment_history': [
+                {
+                    'date': '2024-01-01',
+                    'amount': 3200.00,
+                    'status': 'paid',
+                    'method': 'Bank Transfer'
+                },
+                {
+                    'date': '2023-12-01',
+                    'amount': 2800.00,
+                    'status': 'paid',
+                    'method': 'Credit Card'
+                }
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'billing': billing_info,
+            'client_id': client_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Client billing error: {e}")
+        return jsonify({'error': 'Failed to retrieve billing information'}), 500
+
 @app.route('/api/expenses/create', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['date', 'description', 'category', 'amount'])

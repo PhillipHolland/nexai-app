@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+{% block title %}Client Portal | LexAI{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-green: #2E4B3C;
+        --secondary-cream: #F7EDDA;
+        --warm-orange: #FFA74F;
+        --light-gray: #f8fafc;
+        --border-gray: #e2e8f0;
+        --text-gray: #64748b;
+        --dark-gray: #1e293b;
+        --success-green: #10b981;
+        --warning-yellow: #f59e0b;
+        --error-red: #ef4444;
+    }
+
+    .portal-header {
+        background: linear-gradient(135deg, var(--primary-green), #4a7c59);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .header-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .client-info {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .client-avatar {
+        width: 64px;
+        height: 64px;
+        background: var(--warm-orange);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .client-details h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .client-details p {
+        opacity: 0.8;
+        margin: 0;
+    }
+
+    .portal-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+    }
+
+    .portal-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-gray);
+        overflow-x: auto;
+    }
+
+    .tab-button {
+        padding: 1rem 1.5rem;
+        border: none;
+        background: none;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-gray);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .tab-button.active {
+        color: var(--primary-green);
+        border-bottom-color: var(--primary-green);
+    }
+
+    .tab-button:hover {
+        color: var(--primary-green);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .overview-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-gray);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    .card-icon.case { background: linear-gradient(135deg, var(--primary-green), #4a7c59); }
+    .card-icon.docs { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .card-icon.billing { background: linear-gradient(135deg, var(--warm-orange), #f97316); }
+    .card-icon.messages { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin: 0;
+    }
+
+    .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+        color: var(--text-gray);
+        font-size: 0.875rem;
+    }
+
+    .case-status {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: 1rem;
+    }
+
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-closed { background: #f3f4f6; color: #374151; }
+
+    .documents-list {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .document-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-gray);
+        transition: all 0.2s ease;
+    }
+
+    .document-item:hover {
+        background: var(--light-gray);
+    }
+
+    .document-item:last-child {
+        border-bottom: none;
+    }
+
+    .doc-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .doc-icon.pdf { background: #dc2626; }
+    .doc-icon.docx { background: #2563eb; }
+    .doc-icon.txt { background: #7c3aed; }
+
+    .doc-details {
+        flex: 1;
+    }
+
+    .doc-title {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.25rem;
+    }
+
+    .doc-meta {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .doc-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border-gray);
+        background: white;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+
+    .messages-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: 600px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .messages-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .messages-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    .message-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .message-author {
+        font-weight: 600;
+        color: var(--dark-gray);
+    }
+
+    .message-time {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .message-content {
+        background: var(--light-gray);
+        padding: 1rem;
+        border-radius: 8px;
+        line-height: 1.6;
+    }
+
+    .message-input {
+        padding: 1rem;
+        border-top: 1px solid var(--border-gray);
+    }
+
+    .input-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .message-textarea {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid var(--border-gray);
+        border-radius: 8px;
+        resize: none;
+        min-height: 60px;
+    }
+
+    .send-btn {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .send-btn:hover {
+        background: #1e3a2e;
+    }
+
+    .billing-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .billing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .billing-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-green);
+    }
+
+    .billing-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-paid { background: #dcfce7; color: #166534; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-overdue { background: #fee2e2; color: #dc2626; }
+
+    .billing-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .billing-item {
+        text-align: center;
+    }
+
+    .billing-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .billing-label {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+    }
+
+    .secure-notice {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        border: 1px solid #10b981;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .secure-icon {
+        color: var(--success-green);
+        width: 20px;
+        height: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .portal-tabs {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .tab-button {
+            border-bottom: none;
+            border-left: 3px solid transparent;
+            text-align: left;
+        }
+
+        .tab-button.active {
+            border-left-color: var(--primary-green);
+            border-bottom-color: transparent;
+        }
+
+        .overview-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .header-title {
+            font-size: 2rem;
+        }
+
+        .client-info {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="portal-header">
+    <div class="header-content">
+        <h1 class="header-title">Client Portal</h1>
+        <p class="header-subtitle">Secure access to your legal matters, documents, and communications</p>
+        
+        <div class="client-info">
+            <div class="client-avatar">JS</div>
+            <div class="client-details">
+                <h3>John Smith</h3>
+                <p>Client ID: CLI-2024-001 | Account Active Since: January 2024</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="portal-container">
+    <div class="secure-notice">
+        <svg class="secure-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+        <div>
+            <strong>Secure Portal:</strong> All communications and documents are encrypted and protected by attorney-client privilege.
+        </div>
+    </div>
+
+    <div class="portal-tabs">
+        <button class="tab-button active" onclick="showTab('overview')">Overview</button>
+        <button class="tab-button" onclick="showTab('documents')">Documents</button>
+        <button class="tab-button" onclick="showTab('messages')">Messages</button>
+        <button class="tab-button" onclick="showTab('billing')">Billing</button>
+        <button class="tab-button" onclick="showTab('appointments')">Appointments</button>
+    </div>
+
+    <!-- Overview Tab -->
+    <div id="overview" class="tab-content active">
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="card-header">
+                    <div class="card-icon case">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Current Cases</h3>
+                    </div>
+                </div>
+                <div class="card-value">2</div>
+                <div class="card-description">Active legal matters</div>
+                <div class="case-status status-active">Smith v. Johnson - Active</div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-header">
+                    <div class="card-icon docs">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Documents</h3>
+                    </div>
+                </div>
+                <div class="card-value">15</div>
+                <div class="card-description">Available for download</div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-header">
+                    <div class="card-icon messages">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20,2H4A2,2 0 0,0 2,4V22L6,18H20A2,2 0 0,0 22,16V4A2,2 0 0,0 20,2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Messages</h3>
+                    </div>
+                </div>
+                <div class="card-value">3</div>
+                <div class="card-description">Unread messages</div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-header">
+                    <div class="card-icon billing">
+                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="card-title">Outstanding Balance</h3>
+                    </div>
+                </div>
+                <div class="card-value">$2,450</div>
+                <div class="card-description">Due March 15, 2024</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Tab -->
+    <div id="documents" class="tab-content">
+        <div class="documents-list">
+            <div class="document-item">
+                <div class="doc-icon pdf">PDF</div>
+                <div class="doc-details">
+                    <div class="doc-title">Contract Agreement - Final Version</div>
+                    <div class="doc-meta">Updated Jan 15, 2024 • 2.4 MB</div>
+                </div>
+                <div class="doc-actions">
+                    <button class="action-btn" onclick="viewDocument('doc-1')">View</button>
+                    <button class="action-btn" onclick="downloadDocument('doc-1')">Download</button>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="doc-icon docx">DOCX</div>
+                <div class="doc-details">
+                    <div class="doc-title">Motion for Summary Judgment</div>
+                    <div class="doc-meta">Updated Jan 12, 2024 • 1.8 MB</div>
+                </div>
+                <div class="doc-actions">
+                    <button class="action-btn" onclick="viewDocument('doc-2')">View</button>
+                    <button class="action-btn" onclick="downloadDocument('doc-2')">Download</button>
+                </div>
+            </div>
+
+            <div class="document-item">
+                <div class="doc-icon pdf">PDF</div>
+                <div class="doc-details">
+                    <div class="doc-title">Discovery Response Documents</div>
+                    <div class="doc-meta">Updated Jan 10, 2024 • 5.2 MB</div>
+                </div>
+                <div class="doc-actions">
+                    <button class="action-btn" onclick="viewDocument('doc-3')">View</button>
+                    <button class="action-btn" onclick="downloadDocument('doc-3')">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Tab -->
+    <div id="messages" class="tab-content">
+        <div class="messages-container">
+            <div class="messages-header">
+                <h3>Secure Messages</h3>
+                <span class="billing-status status-paid">Encrypted</span>
+            </div>
+            
+            <div class="messages-list" id="messagesList">
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="message-author">Sarah Johnson, Esq.</span>
+                        <span class="message-time">Today, 2:30 PM</span>
+                    </div>
+                    <div class="message-content">
+                        Hi John, I've reviewed the latest discovery documents and have some questions for you. Could you please schedule a call this week to discuss our strategy for the upcoming deposition?
+                    </div>
+                </div>
+
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="message-author">You</span>
+                        <span class="message-time">Yesterday, 4:15 PM</span>
+                    </div>
+                    <div class="message-content">
+                        Thank you for the update on the case. I'm available for a call on Wednesday or Thursday afternoon. Please let me know what time works best for you.
+                    </div>
+                </div>
+
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="message-author">Sarah Johnson, Esq.</span>
+                        <span class="message-time">Yesterday, 10:30 AM</span>
+                    </div>
+                    <div class="message-content">
+                        The court has approved our motion for an extension. We now have until March 1st to file our response. I'll keep you updated on our progress.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-input">
+                <div class="input-group">
+                    <textarea class="message-textarea" placeholder="Type your secure message..." id="messageText"></textarea>
+                    <button class="send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing Tab -->
+    <div id="billing" class="tab-content">
+        <div class="billing-summary">
+            <div class="billing-header">
+                <div>
+                    <h3>Current Invoice</h3>
+                    <div class="billing-amount">$2,450.00</div>
+                </div>
+                <div class="billing-status status-pending">Payment Due</div>
+            </div>
+            
+            <div class="billing-details">
+                <div class="billing-item">
+                    <div class="billing-value">24.5</div>
+                    <div class="billing-label">Hours Billed</div>
+                </div>
+                <div class="billing-item">
+                    <div class="billing-value">$350</div>
+                    <div class="billing-label">Hourly Rate</div>
+                </div>
+                <div class="billing-item">
+                    <div class="billing-value">$1,875</div>
+                    <div class="billing-label">Legal Fees</div>
+                </div>
+                <div class="billing-item">
+                    <div class="billing-value">$575</div>
+                    <div class="billing-label">Expenses</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <h3>Payment Options</h3>
+            <p style="margin-bottom: 1.5rem;">Choose your preferred payment method:</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="action-btn" onclick="payOnline()">Pay Online</button>
+                <button class="action-btn" onclick="downloadInvoice()">Download Invoice</button>
+                <button class="action-btn" onclick="viewPaymentHistory()">Payment History</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Tab -->
+    <div id="appointments" class="tab-content">
+        <div class="overview-card">
+            <h3>Upcoming Appointments</h3>
+            <div style="margin-top: 1.5rem;">
+                <div style="border-left: 4px solid var(--primary-green); padding-left: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Strategy Meeting</div>
+                    <div style="color: var(--text-gray); font-size: 0.875rem;">March 15, 2024 at 2:00 PM</div>
+                    <div style="color: var(--text-gray); font-size: 0.875rem;">Conference Room A - 1 hour</div>
+                </div>
+                
+                <div style="border-left: 4px solid var(--warm-orange); padding-left: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Deposition Preparation</div>
+                    <div style="color: var(--text-gray); font-size: 0.875rem;">March 20, 2024 at 10:00 AM</div>
+                    <div style="color: var(--text-gray); font-size: 0.875rem;">Office - 2 hours</div>
+                </div>
+            </div>
+            
+            <button class="action-btn" onclick="scheduleAppointment()" style="margin-top: 1rem;">Schedule New Appointment</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+function viewDocument(docId) {
+    window.open(`/api/client-portal/documents/${docId}/view`, '_blank');
+}
+
+function downloadDocument(docId) {
+    window.location.href = `/api/client-portal/documents/${docId}/download`;
+}
+
+function sendMessage() {
+    const messageText = document.getElementById('messageText');
+    const messagesList = document.getElementById('messagesList');
+    
+    if (messageText.value.trim()) {
+        const messageItem = document.createElement('div');
+        messageItem.className = 'message-item';
+        messageItem.innerHTML = `
+            <div class="message-header">
+                <span class="message-author">You</span>
+                <span class="message-time">Just now</span>
+            </div>
+            <div class="message-content">
+                ${messageText.value.trim()}
+            </div>
+        `;
+        
+        messagesList.appendChild(messageItem);
+        messageText.value = '';
+        
+        // Scroll to bottom
+        messagesList.scrollTop = messagesList.scrollHeight;
+        
+        // Simulate attorney response (demo)
+        setTimeout(() => {
+            const responseItem = document.createElement('div');
+            responseItem.className = 'message-item';
+            responseItem.innerHTML = `
+                <div class="message-header">
+                    <span class="message-author">Sarah Johnson, Esq.</span>
+                    <span class="message-time">Just now</span>
+                </div>
+                <div class="message-content">
+                    Thank you for your message. I'll review this and get back to you within 24 hours.
+                </div>
+            `;
+            messagesList.appendChild(responseItem);
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }, 2000);
+    }
+}
+
+function payOnline() {
+    alert('Redirecting to secure payment portal...');
+}
+
+function downloadInvoice() {
+    alert('Downloading invoice PDF...');
+}
+
+function viewPaymentHistory() {
+    alert('Payment history would be displayed here.');
+}
+
+function scheduleAppointment() {
+    alert('Appointment scheduling system would open here.');
+}
+
+// Auto-scroll messages to bottom on load
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesList = document.getElementById('messagesList');
+    messagesList.scrollTop = messagesList.scrollHeight;
+});
+</script>
+{% endblock %}
