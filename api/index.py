@@ -9422,6 +9422,316 @@ def get_client_billing():
         logger.error(f"Client billing error: {e}")
         return jsonify({'error': 'Failed to retrieve billing information'}), 500
 
+@app.route('/task-management')
+def task_management_page():
+    """Task Management page for legal workflows"""
+    try:
+        return render_template('task_management.html')
+    except Exception as e:
+        logger.error(f"Task management page error: {e}")
+        return f"Error loading task management: {e}", 500
+
+@app.route('/api/tasks/create', methods=['POST'])
+@rate_limit_decorator
+def create_task():
+    """Create a new task"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        priority = data.get('priority', 'medium')
+        status = data.get('status', 'todo')
+        assignee = data.get('assignee', '')
+        due_date = data.get('dueDate', '')
+        client = data.get('client', '')
+        tags = data.get('tags', [])
+        
+        if not all([title, assignee, due_date]):
+            return jsonify({'error': 'Title, assignee, and due date are required'}), 400
+        
+        # Validate status and priority
+        valid_statuses = ['todo', 'progress', 'review', 'done']
+        valid_priorities = ['low', 'medium', 'high']
+        
+        if status not in valid_statuses:
+            return jsonify({'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'}), 400
+        
+        if priority not in valid_priorities:
+            return jsonify({'error': f'Invalid priority. Must be one of: {", ".join(valid_priorities)}'}), 400
+        
+        # Generate task ID
+        task_id = f"TASK-{datetime.now().strftime('%Y%m%d')}-{len(title)%1000:03d}"
+        
+        # Create task data
+        task_data = {
+            'id': task_id,
+            'title': title,
+            'description': description,
+            'priority': priority,
+            'status': status,
+            'assignee': assignee,
+            'due_date': due_date,
+            'client': client,
+            'tags': tags if isinstance(tags, list) else [],
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat(),
+            'created_by': 'Current User'
+        }
+        
+        logger.info(f"Task created: {task_id} - {title}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Task created successfully',
+            'task_id': task_id,
+            'task': task_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Task creation error: {e}")
+        return jsonify({'error': 'Failed to create task'}), 500
+
+@app.route('/api/tasks', methods=['GET'])
+@rate_limit_decorator
+def get_tasks():
+    """Get tasks with filtering options"""
+    try:
+        assignee = request.args.get('assignee', '')
+        priority = request.args.get('priority', '')
+        status = request.args.get('status', '')
+        client = request.args.get('client', '')
+        
+        # Mock task data
+        tasks = [
+            {
+                'id': 'task-1',
+                'title': 'Review Discovery Documents',
+                'description': 'Analyze and categorize discovery documents for Smith v. Johnson case',
+                'priority': 'high',
+                'status': 'todo',
+                'assignee': 'sarah',
+                'assignee_name': 'Sarah Johnson',
+                'due_date': '2024-01-20',
+                'client': 'john-smith',
+                'tags': ['litigation', 'discovery', 'urgent'],
+                'created_at': '2024-01-15T00:00:00'
+            },
+            {
+                'id': 'task-2',
+                'title': 'Draft Employment Contract',
+                'description': 'Create employment agreement for senior developer position',
+                'priority': 'medium',
+                'status': 'progress',
+                'assignee': 'michael',
+                'assignee_name': 'Michael Chen',
+                'due_date': '2024-01-18',
+                'client': 'tech-startup',
+                'tags': ['contract', 'employment'],
+                'created_at': '2024-01-12T00:00:00'
+            },
+            {
+                'id': 'task-3',
+                'title': 'Prepare Motion for Summary Judgment',
+                'description': 'Draft and file motion for summary judgment in ongoing litigation',
+                'priority': 'high',
+                'status': 'review',
+                'assignee': 'sarah',
+                'assignee_name': 'Sarah Johnson',
+                'due_date': '2024-01-22',
+                'client': 'john-smith',
+                'tags': ['litigation', 'motion', 'court'],
+                'created_at': '2024-01-10T00:00:00'
+            },
+            {
+                'id': 'task-4',
+                'title': 'Client Meeting - Estate Planning',
+                'description': 'Meet with client to discuss will and trust options',
+                'priority': 'medium',
+                'status': 'done',
+                'assignee': 'emily',
+                'assignee_name': 'Emily Rodriguez',
+                'due_date': '2024-01-16',
+                'client': 'jane-doe',
+                'tags': ['estate', 'meeting', 'planning'],
+                'created_at': '2024-01-08T00:00:00'
+            }
+        ]
+        
+        # Apply filters
+        filtered_tasks = tasks
+        if assignee:
+            filtered_tasks = [t for t in filtered_tasks if t['assignee'] == assignee]
+        if priority:
+            filtered_tasks = [t for t in filtered_tasks if t['priority'] == priority]
+        if status:
+            filtered_tasks = [t for t in filtered_tasks if t['status'] == status]
+        if client:
+            filtered_tasks = [t for t in filtered_tasks if t['client'] == client]
+        
+        # Calculate statistics
+        stats = {
+            'total': len(tasks),
+            'todo': len([t for t in tasks if t['status'] == 'todo']),
+            'progress': len([t for t in tasks if t['status'] == 'progress']),
+            'review': len([t for t in tasks if t['status'] == 'review']),
+            'done': len([t for t in tasks if t['status'] == 'done']),
+            'overdue': len([t for t in tasks if t['due_date'] < datetime.now().strftime('%Y-%m-%d') and t['status'] != 'done'])
+        }
+        
+        return jsonify({
+            'success': True,
+            'tasks': filtered_tasks,
+            'statistics': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Get tasks error: {e}")
+        return jsonify({'error': 'Failed to retrieve tasks'}), 500
+
+@app.route('/api/tasks/<task_id>', methods=['PUT'])
+@rate_limit_decorator
+def update_task(task_id):
+    """Update an existing task"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        # Mock task update
+        logger.info(f"Task update requested: {task_id}")
+        
+        updated_task = {
+            'id': task_id,
+            'updated_at': datetime.now().isoformat(),
+            'updated_by': 'Current User',
+            **data
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Task updated successfully',
+            'task': updated_task
+        })
+        
+    except Exception as e:
+        logger.error(f"Task update error: {e}")
+        return jsonify({'error': 'Failed to update task'}), 500
+
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+@rate_limit_decorator
+def delete_task(task_id):
+    """Delete a task"""
+    try:
+        logger.info(f"Task deletion requested: {task_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Task {task_id} deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Task deletion error: {e}")
+        return jsonify({'error': 'Failed to delete task'}), 500
+
+@app.route('/api/workflows/templates', methods=['GET'])
+@rate_limit_decorator
+def get_workflow_templates():
+    """Get available workflow templates"""
+    try:
+        templates = [
+            {
+                'id': 'litigation',
+                'name': 'Litigation Workflow',
+                'description': 'Complete litigation process from filing to resolution',
+                'task_count': 12,
+                'estimated_duration': '6-18 months',
+                'category': 'litigation',
+                'tasks': [
+                    'File initial complaint',
+                    'Serve defendant',
+                    'Answer and counterclaims',
+                    'Discovery requests',
+                    'Depositions',
+                    'Expert witness prep',
+                    'Motion practice',
+                    'Trial preparation',
+                    'Trial',
+                    'Post-trial motions',
+                    'Appeal considerations',
+                    'Settlement negotiations'
+                ]
+            },
+            {
+                'id': 'contract',
+                'name': 'Contract Review',
+                'description': 'Comprehensive contract analysis and negotiation',
+                'task_count': 8,
+                'estimated_duration': '2-4 weeks',
+                'category': 'corporate',
+                'tasks': [
+                    'Initial contract review',
+                    'Risk assessment',
+                    'Term negotiation',
+                    'Redlining',
+                    'Client consultation',
+                    'Final review',
+                    'Execution',
+                    'Filing and storage'
+                ]
+            },
+            {
+                'id': 'compliance',
+                'name': 'Compliance Audit',
+                'description': 'Regulatory compliance review and documentation',
+                'task_count': 15,
+                'estimated_duration': '4-8 weeks',
+                'category': 'corporate',
+                'tasks': [
+                    'Compliance assessment',
+                    'Document review',
+                    'Policy analysis',
+                    'Risk identification',
+                    'Remediation plan',
+                    'Implementation',
+                    'Training',
+                    'Documentation',
+                    'Follow-up review'
+                ]
+            },
+            {
+                'id': 'incorporation',
+                'name': 'Business Incorporation',
+                'description': 'Complete business formation and setup',
+                'task_count': 10,
+                'estimated_duration': '3-6 weeks',
+                'category': 'corporate',
+                'tasks': [
+                    'Entity selection',
+                    'Name reservation',
+                    'Articles of incorporation',
+                    'Bylaws creation',
+                    'Operating agreements',
+                    'EIN application',
+                    'Banking setup',
+                    'Compliance filings',
+                    'Share certificates',
+                    'Corporate records'
+                ]
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'templates': templates
+        })
+        
+    except Exception as e:
+        logger.error(f"Workflow templates error: {e}")
+        return jsonify({'error': 'Failed to retrieve workflow templates'}), 500
+
 @app.route('/api/expenses/create', methods=['POST'])
 @rate_limit_decorator
 @validate_json_input(['date', 'description', 'category', 'amount'])

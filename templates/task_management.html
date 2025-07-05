@@ -1,0 +1,1012 @@
+{% extends "base.html" %}
+{% block title %}Task Management | LexAI{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-green: #2E4B3C;
+        --secondary-cream: #F7EDDA;
+        --warm-orange: #FFA74F;
+        --light-gray: #f8fafc;
+        --border-gray: #e2e8f0;
+        --text-gray: #64748b;
+        --dark-gray: #1e293b;
+        --success-green: #10b981;
+        --warning-yellow: #f59e0b;
+        --error-red: #ef4444;
+    }
+
+    .task-header {
+        background: linear-gradient(135deg, var(--primary-green), #4a7c59);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .header-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .header-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+
+    .task-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .task-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem 4rem;
+    }
+
+    .task-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-select {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        font-size: 1rem;
+        background: white;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-green), #4a7c59);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+
+    .task-board {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .task-column {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-gray);
+        min-height: 500px;
+    }
+
+    .column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-gray);
+    }
+
+    .column-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .column-count {
+        background: var(--text-gray);
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .column-todo .column-count { background: var(--text-gray); }
+    .column-progress .column-count { background: var(--warning-yellow); }
+    .column-review .column-count { background: var(--warm-orange); }
+    .column-done .column-count { background: var(--success-green); }
+
+    .task-list {
+        min-height: 400px;
+    }
+
+    .task-card {
+        background: var(--light-gray);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-gray);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .task-card.priority-high { border-left-color: var(--error-red); }
+    .task-card.priority-medium { border-left-color: var(--warning-yellow); }
+    .task-card.priority-low { border-left-color: var(--success-green); }
+
+    .task-title {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .task-description {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        color: var(--text-gray);
+        margin-bottom: 0.75rem;
+    }
+
+    .task-tags {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        background: var(--secondary-cream);
+        color: var(--primary-green);
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .task-assignee {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .assignee-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--primary-green);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .assignee-name {
+        font-size: 0.875rem;
+        color: var(--dark-gray);
+        font-weight: 500;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--border-gray);
+        background: white;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--primary-green);
+    }
+
+    .task-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .task-modal.hidden {
+        display: none;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        margin-bottom: 2rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+    }
+
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        font-size: 1rem;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--primary-green);
+        border: 2px solid var(--primary-green);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary-green);
+        color: white;
+    }
+
+    .workflow-templates {
+        margin-top: 3rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .templates-header {
+        margin-bottom: 2rem;
+    }
+
+    .templates-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .template-card {
+        border: 2px solid var(--border-gray);
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .template-card:hover {
+        border-color: var(--primary-green);
+        transform: translateY(-2px);
+    }
+
+    .template-name {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .template-description {
+        font-size: 0.875rem;
+        color: var(--text-gray);
+        margin-bottom: 1rem;
+    }
+
+    .template-tasks {
+        font-size: 0.75rem;
+        color: var(--text-gray);
+    }
+
+    @media (max-width: 768px) {
+        .task-board {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .task-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-title {
+            font-size: 2rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .template-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="task-header">
+    <div class="header-content">
+        <h1 class="header-title">Task Management</h1>
+        <p class="header-subtitle">Streamline legal workflows with intelligent task automation and team collaboration</p>
+        
+        <div class="task-stats">
+            <div class="stat-card">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Active Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Overdue Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">156</div>
+                <div class="stat-label">Completed This Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">92%</div>
+                <div class="stat-label">On-Time Completion</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="task-container">
+    <div class="task-controls">
+        <div class="filter-group">
+            <select class="filter-select" id="assigneeFilter">
+                <option value="">All Assignees</option>
+                <option value="sarah">Sarah Johnson</option>
+                <option value="michael">Michael Chen</option>
+                <option value="emily">Emily Rodriguez</option>
+                <option value="david">David Kim</option>
+            </select>
+            
+            <select class="filter-select" id="priorityFilter">
+                <option value="">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+            </select>
+            
+            <select class="filter-select" id="clientFilter">
+                <option value="">All Clients</option>
+                <option value="john-smith">John Smith</option>
+                <option value="abc-corp">ABC Corporation</option>
+                <option value="tech-startup">Tech Startup Inc.</option>
+                <option value="jane-doe">Jane Doe</option>
+            </select>
+        </div>
+        
+        <button class="btn-primary" onclick="openTaskModal()">Create Task</button>
+    </div>
+
+    <div class="task-board">
+        <!-- To Do Column -->
+        <div class="task-column column-todo">
+            <div class="column-header">
+                <div class="column-title">
+                    To Do
+                    <span class="column-count" id="todoCount">5</span>
+                </div>
+            </div>
+            <div class="task-list" id="todoTasks">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="task-column column-progress">
+            <div class="column-header">
+                <div class="column-title">
+                    In Progress
+                    <span class="column-count" id="progressCount">8</span>
+                </div>
+            </div>
+            <div class="task-list" id="progressTasks">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Review Column -->
+        <div class="task-column column-review">
+            <div class="column-header">
+                <div class="column-title">
+                    Review
+                    <span class="column-count" id="reviewCount">4</span>
+                </div>
+            </div>
+            <div class="task-list" id="reviewTasks">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div class="task-column column-done">
+            <div class="column-header">
+                <div class="column-title">
+                    Done
+                    <span class="column-count" id="doneCount">6</span>
+                </div>
+            </div>
+            <div class="task-list" id="doneTasks">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Templates Section -->
+    <div class="workflow-templates">
+        <div class="templates-header">
+            <h2 class="templates-title">Legal Workflow Templates</h2>
+            <p>Start with pre-built workflows for common legal processes</p>
+        </div>
+        
+        <div class="template-grid">
+            <div class="template-card" onclick="createFromTemplate('litigation')">
+                <div class="template-name">Litigation Workflow</div>
+                <div class="template-description">Complete litigation process from filing to resolution</div>
+                <div class="template-tasks">12 tasks • Discovery, Motions, Trial Prep</div>
+            </div>
+            
+            <div class="template-card" onclick="createFromTemplate('contract')">
+                <div class="template-name">Contract Review</div>
+                <div class="template-description">Comprehensive contract analysis and negotiation</div>
+                <div class="template-tasks">8 tasks • Review, Analysis, Redlining</div>
+            </div>
+            
+            <div class="template-card" onclick="createFromTemplate('compliance')">
+                <div class="template-name">Compliance Audit</div>
+                <div class="template-description">Regulatory compliance review and documentation</div>
+                <div class="template-tasks">15 tasks • Assessment, Documentation, Reporting</div>
+            </div>
+            
+            <div class="template-card" onclick="createFromTemplate('incorporation')">
+                <div class="template-name">Business Incorporation</div>
+                <div class="template-description">Complete business formation and setup</div>
+                <div class="template-tasks">10 tasks • Filing, Documentation, Setup</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Modal -->
+<div id="taskModal" class="task-modal hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create New Task</h2>
+            <p>Add a new task to the workflow</p>
+        </div>
+        
+        <form id="taskForm">
+            <div class="form-group">
+                <label class="form-label" for="taskTitle">Task Title</label>
+                <input type="text" id="taskTitle" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskDescription">Description</label>
+                <textarea id="taskDescription" class="form-textarea" placeholder="Detailed task description..."></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="taskPriority">Priority</label>
+                    <select id="taskPriority" class="form-select" required>
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="taskStatus">Status</label>
+                    <select id="taskStatus" class="form-select" required>
+                        <option value="todo" selected>To Do</option>
+                        <option value="progress">In Progress</option>
+                        <option value="review">Review</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="taskAssignee">Assignee</label>
+                    <select id="taskAssignee" class="form-select" required>
+                        <option value="sarah">Sarah Johnson</option>
+                        <option value="michael">Michael Chen</option>
+                        <option value="emily">Emily Rodriguez</option>
+                        <option value="david">David Kim</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="taskDueDate">Due Date</label>
+                    <input type="date" id="taskDueDate" class="form-input" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskClient">Client</label>
+                <select id="taskClient" class="form-select">
+                    <option value="">Select Client (Optional)</option>
+                    <option value="john-smith">John Smith</option>
+                    <option value="abc-corp">ABC Corporation</option>
+                    <option value="tech-startup">Tech Startup Inc.</option>
+                    <option value="jane-doe">Jane Doe</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="taskTags">Tags</label>
+                <input type="text" id="taskTags" class="form-input" placeholder="e.g., litigation, contract, urgent">
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Create Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Demo task data
+const tasks = [
+    {
+        id: 'task-1',
+        title: 'Review Discovery Documents',
+        description: 'Analyze and categorize discovery documents for Smith v. Johnson case',
+        priority: 'high',
+        status: 'todo',
+        assignee: 'sarah',
+        assigneeName: 'Sarah Johnson',
+        dueDate: '2024-01-20',
+        client: 'john-smith',
+        tags: ['litigation', 'discovery', 'urgent'],
+        createdAt: '2024-01-15'
+    },
+    {
+        id: 'task-2',
+        title: 'Draft Employment Contract',
+        description: 'Create employment agreement for senior developer position',
+        priority: 'medium',
+        status: 'progress',
+        assignee: 'michael',
+        assigneeName: 'Michael Chen',
+        dueDate: '2024-01-18',
+        client: 'tech-startup',
+        tags: ['contract', 'employment'],
+        createdAt: '2024-01-12'
+    },
+    {
+        id: 'task-3',
+        title: 'Prepare Motion for Summary Judgment',
+        description: 'Draft and file motion for summary judgment in ongoing litigation',
+        priority: 'high',
+        status: 'review',
+        assignee: 'sarah',
+        assigneeName: 'Sarah Johnson',
+        dueDate: '2024-01-22',
+        client: 'john-smith',
+        tags: ['litigation', 'motion', 'court'],
+        createdAt: '2024-01-10'
+    },
+    {
+        id: 'task-4',
+        title: 'Client Meeting - Estate Planning',
+        description: 'Meet with client to discuss will and trust options',
+        priority: 'medium',
+        status: 'done',
+        assignee: 'emily',
+        assigneeName: 'Emily Rodriguez',
+        dueDate: '2024-01-16',
+        client: 'jane-doe',
+        tags: ['estate', 'meeting', 'planning'],
+        createdAt: '2024-01-08'
+    },
+    {
+        id: 'task-5',
+        title: 'Corporate Compliance Review',
+        description: 'Annual compliance audit for ABC Corporation',
+        priority: 'low',
+        status: 'progress',
+        assignee: 'david',
+        assigneeName: 'David Kim',
+        dueDate: '2024-01-25',
+        client: 'abc-corp',
+        tags: ['compliance', 'corporate', 'audit'],
+        createdAt: '2024-01-14'
+    }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadTasks();
+    
+    // Filter event listeners
+    document.getElementById('assigneeFilter').addEventListener('change', filterTasks);
+    document.getElementById('priorityFilter').addEventListener('change', filterTasks);
+    document.getElementById('clientFilter').addEventListener('change', filterTasks);
+    
+    // Task form submission
+    document.getElementById('taskForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        createTask();
+    });
+});
+
+function loadTasks() {
+    const columns = {
+        todo: document.getElementById('todoTasks'),
+        progress: document.getElementById('progressTasks'),
+        review: document.getElementById('reviewTasks'),
+        done: document.getElementById('doneTasks')
+    };
+    
+    // Clear all columns
+    Object.values(columns).forEach(column => column.innerHTML = '');
+    
+    // Add tasks to appropriate columns
+    tasks.forEach(task => {
+        const taskCard = createTaskCard(task);
+        columns[task.status].appendChild(taskCard);
+    });
+    
+    updateColumnCounts();
+}
+
+function createTaskCard(task) {
+    const card = document.createElement('div');
+    card.className = `task-card priority-${task.priority}`;
+    card.onclick = () => viewTask(task.id);
+    
+    const tagsHtml = task.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+    
+    card.innerHTML = `
+        <div class="task-title">${task.title}</div>
+        <div class="task-description">${task.description}</div>
+        <div class="task-meta">
+            <span>Due: ${new Date(task.dueDate).toLocaleDateString()}</span>
+            <span class="priority-${task.priority}">${task.priority.toUpperCase()}</span>
+        </div>
+        <div class="task-tags">${tagsHtml}</div>
+        <div class="task-assignee">
+            <div class="assignee-avatar">${task.assigneeName.split(' ').map(n => n[0]).join('')}</div>
+            <div class="assignee-name">${task.assigneeName}</div>
+        </div>
+        <div class="task-actions">
+            <button class="action-btn" onclick="event.stopPropagation(); editTask('${task.id}')">Edit</button>
+            <button class="action-btn" onclick="event.stopPropagation(); moveTask('${task.id}')">Move</button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function updateColumnCounts() {
+    const counts = {
+        todo: tasks.filter(t => t.status === 'todo').length,
+        progress: tasks.filter(t => t.status === 'progress').length,
+        review: tasks.filter(t => t.status === 'review').length,
+        done: tasks.filter(t => t.status === 'done').length
+    };
+    
+    document.getElementById('todoCount').textContent = counts.todo;
+    document.getElementById('progressCount').textContent = counts.progress;
+    document.getElementById('reviewCount').textContent = counts.review;
+    document.getElementById('doneCount').textContent = counts.done;
+}
+
+function filterTasks() {
+    const assigneeFilter = document.getElementById('assigneeFilter').value;
+    const priorityFilter = document.getElementById('priorityFilter').value;
+    const clientFilter = document.getElementById('clientFilter').value;
+    
+    const filteredTasks = tasks.filter(task => {
+        const matchesAssignee = !assigneeFilter || task.assignee === assigneeFilter;
+        const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+        const matchesClient = !clientFilter || task.client === clientFilter;
+        
+        return matchesAssignee && matchesPriority && matchesClient;
+    });
+    
+    // Update display with filtered tasks
+    const columns = {
+        todo: document.getElementById('todoTasks'),
+        progress: document.getElementById('progressTasks'),
+        review: document.getElementById('reviewTasks'),
+        done: document.getElementById('doneTasks')
+    };
+    
+    Object.values(columns).forEach(column => column.innerHTML = '');
+    
+    filteredTasks.forEach(task => {
+        const taskCard = createTaskCard(task);
+        columns[task.status].appendChild(taskCard);
+    });
+    
+    updateColumnCounts();
+}
+
+// Modal functions
+function openTaskModal() {
+    document.getElementById('taskModal').classList.remove('hidden');
+    document.getElementById('taskDueDate').value = new Date().toISOString().split('T')[0];
+}
+
+function closeTaskModal() {
+    document.getElementById('taskModal').classList.add('hidden');
+    document.getElementById('taskForm').reset();
+}
+
+async function createTask() {
+    const formData = {
+        title: document.getElementById('taskTitle').value,
+        description: document.getElementById('taskDescription').value,
+        priority: document.getElementById('taskPriority').value,
+        status: document.getElementById('taskStatus').value,
+        assignee: document.getElementById('taskAssignee').value,
+        dueDate: document.getElementById('taskDueDate').value,
+        client: document.getElementById('taskClient').value,
+        tags: document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag)
+    };
+    
+    try {
+        const response = await fetch('/api/tasks/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Add new task to local array
+            const assigneeNames = {
+                'sarah': 'Sarah Johnson',
+                'michael': 'Michael Chen',
+                'emily': 'Emily Rodriguez',
+                'david': 'David Kim'
+            };
+            
+            const newTask = {
+                id: data.task_id,
+                ...formData,
+                assigneeName: assigneeNames[formData.assignee],
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+            
+            tasks.push(newTask);
+            loadTasks();
+            closeTaskModal();
+            
+            alert('Task created successfully!');
+        } else {
+            alert('Failed to create task: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error creating task:', error);
+        alert('Failed to create task. Please try again.');
+    }
+}
+
+// Task actions
+function viewTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        alert(`Task Details:\n\nTitle: ${task.title}\nDescription: ${task.description}\nAssignee: ${task.assigneeName}\nDue: ${task.dueDate}\nStatus: ${task.status}`);
+    }
+}
+
+function editTask(taskId) {
+    alert(`Edit task ${taskId} - functionality would open edit modal`);
+}
+
+function moveTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        const statuses = ['todo', 'progress', 'review', 'done'];
+        const currentIndex = statuses.indexOf(task.status);
+        const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+        
+        task.status = nextStatus;
+        loadTasks();
+    }
+}
+
+function createFromTemplate(templateType) {
+    const templates = {
+        litigation: {
+            name: 'Litigation Workflow',
+            tasks: [
+                'File initial complaint',
+                'Serve defendant',
+                'Answer and counterclaims',
+                'Discovery requests',
+                'Depositions',
+                'Expert witness prep',
+                'Motion practice',
+                'Trial preparation',
+                'Trial',
+                'Post-trial motions',
+                'Appeal considerations',
+                'Settlement negotiations'
+            ]
+        },
+        contract: {
+            name: 'Contract Review',
+            tasks: [
+                'Initial contract review',
+                'Risk assessment',
+                'Term negotiation',
+                'Redlining',
+                'Client consultation',
+                'Final review',
+                'Execution',
+                'Filing and storage'
+            ]
+        },
+        compliance: {
+            name: 'Compliance Audit',
+            tasks: [
+                'Compliance assessment',
+                'Document review',
+                'Policy analysis',
+                'Risk identification',
+                'Remediation plan',
+                'Implementation',
+                'Training',
+                'Documentation',
+                'Follow-up review'
+            ]
+        },
+        incorporation: {
+            name: 'Business Incorporation',
+            tasks: [
+                'Entity selection',
+                'Name reservation',
+                'Articles of incorporation',
+                'Bylaws creation',
+                'Operating agreements',
+                'EIN application',
+                'Banking setup',
+                'Compliance filings',
+                'Share certificates',
+                'Corporate records'
+            ]
+        }
+    };
+    
+    const template = templates[templateType];
+    if (template) {
+        alert(`Creating workflow: ${template.name}\n\nThis will create ${template.tasks.length} tasks:\n${template.tasks.slice(0, 5).join('\n')}${template.tasks.length > 5 ? '\n...' : ''}`);
+    }
+}
+</script>
+{% endblock %}
