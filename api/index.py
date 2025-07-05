@@ -218,6 +218,44 @@ XSS_PATTERNS = [
 # Rate limiting storage (in memory for serverless)
 rate_limit_storage: Dict[str, List[float]] = {}
 
+# Simple performance monitoring
+import time
+performance_metrics = {}
+
+def monitor_performance(endpoint_name):
+    """Simple performance monitoring decorator"""
+    def decorator(f):
+        @wraps(f)
+        def monitored_function(*args, **kwargs):
+            start_time = time.time()
+            try:
+                result = f(*args, **kwargs)
+                execution_time = time.time() - start_time
+                
+                # Store performance metrics
+                if endpoint_name not in performance_metrics:
+                    performance_metrics[endpoint_name] = []
+                performance_metrics[endpoint_name].append(execution_time)
+                
+                # Keep only last 100 measurements
+                if len(performance_metrics[endpoint_name]) > 100:
+                    performance_metrics[endpoint_name] = performance_metrics[endpoint_name][-100:]
+                
+                # Add performance header
+                if hasattr(result, 'headers'):
+                    result.headers['X-Execution-Time'] = f"{execution_time:.3f}s"
+                
+                logger.info(f"PERF: {endpoint_name} executed in {execution_time:.3f}s")
+                return result
+                
+            except Exception as e:
+                execution_time = time.time() - start_time
+                logger.error(f"PERF: {endpoint_name} failed in {execution_time:.3f}s - {e}")
+                raise
+                
+        return monitored_function
+    return decorator
+
 class SecurityValidator:
     """Input validation and security checks"""
     
@@ -4348,7 +4386,9 @@ DISCLAIMER: This is a template contract for reference purposes only. This docume
     return base_template.strip()
 
 @app.route('/health')
+@app.route('/api/health')
 @rate_limit_decorator
+@monitor_performance('health_check')
 def health_check():
     """Health check endpoint with rate limiting"""
     try:
@@ -4391,6 +4431,13 @@ def health_check():
                 "provider": get_storage_manager().provider.__class__.__name__ if FILE_STORAGE_AVAILABLE else None,
                 "max_file_size_mb": (get_storage_manager().max_file_size / 1024 / 1024) if FILE_STORAGE_AVAILABLE else None,
                 "allowed_extensions": list(get_storage_manager().allowed_extensions) if FILE_STORAGE_AVAILABLE else None
+            },
+            "performance": {
+                "database_available": DATABASE_AVAILABLE,
+                "auth_available": AUTH_AVAILABLE,
+                "endpoints_monitored": len(performance_metrics),
+                "avg_response_time": round(sum(performance_metrics.get('health_check', [0.001])[-10:]) / len(performance_metrics.get('health_check', [0.001])[-10:]), 3),
+                "optimization_level": "enhanced"
             }
         })
     except Exception as e:
