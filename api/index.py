@@ -26,6 +26,13 @@ except ImportError:
 
 # Database imports
 try:
+    import sys
+    import os
+    # Add parent directory to path for imports
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if parent_dir not in sys.path:
+        sys.path.insert(0, parent_dir)
+    
     from database import DatabaseManager, db_manager, audit_log
     from models import (
         db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, 
@@ -33,6 +40,7 @@ try:
         TaskPriority, DocumentStatus, TimeEntryStatus, InvoiceStatus
     )
     DATABASE_AVAILABLE = True
+    logger.info("✅ Database models imported successfully")
     
     # Authentication system imports  
     try:
@@ -42,9 +50,10 @@ try:
             update_user_password, reset_user_password, complete_password_reset
         )
         AUTH_AVAILABLE = True
-    except ImportError:
+        logger.info("✅ Authentication system imported successfully")
+    except ImportError as auth_error:
         AUTH_AVAILABLE = False
-        logging.warning("Authentication module not available - using placeholder auth")
+        logger.warning(f"Authentication module not available: {auth_error}")
 except ImportError:
     DATABASE_AVAILABLE = False
     AUTH_AVAILABLE = False
@@ -94,8 +103,10 @@ except ImportError:
 try:
     from file_storage import get_storage_manager, FileStorageError
     FILE_STORAGE_AVAILABLE = True
-except ImportError:
+    logger.info("✅ File storage imported successfully")
+except ImportError as storage_error:
     FILE_STORAGE_AVAILABLE = False
+    logger.warning(f"File storage not available: {storage_error}")
     
     # Fallback file storage for serverless environment
     class FileStorageError(Exception):
