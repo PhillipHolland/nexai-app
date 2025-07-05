@@ -33,8 +33,17 @@ try:
         TaskPriority, DocumentStatus, TimeEntryStatus, InvoiceStatus
     )
     DATABASE_AVAILABLE = True
+    
+    # Authentication system imports  
+    from auth import (
+        AuthManager, login_required, admin_required, get_current_user as auth_get_current_user,
+        create_user_session, destroy_user_session, register_user, authenticate_user,
+        update_user_password, reset_user_password, complete_password_reset
+    )
+    AUTH_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
+    AUTH_AVAILABLE = False
     logging.warning("Database models not available - using mock data fallback")
     
     # Create fallback enums when database models are not available
@@ -67,6 +76,13 @@ app = Flask(__name__,
            static_folder='../static',
            template_folder='../templates')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
+
+# Session configuration
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'lexai_'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 # API configuration (from working local version)
 XAI_API_KEY = (os.environ.get('XAI_API_KEY') or os.environ.get('xai_api_key') or '').strip()
@@ -967,16 +983,20 @@ PERMISSION_MAP = {
 
 def get_current_user():
     """Get current user from session or database"""
-    if not DATABASE_AVAILABLE:
-        return None
+    if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+        # Return mock admin user for development mode
+        class MockUser:
+            def __init__(self):
+                self.id = 'admin'
+                self.email = 'admin@lexai.com'
+                self.role = UserRole.ADMIN
+                self.first_name = 'Admin'
+                self.last_name = 'User'
+                self.is_active = True
+        return MockUser()
     
-    # This is a placeholder - implement based on your authentication system
-    # For now, return default admin user for testing
-    try:
-        admin_user = User.query.filter_by(email='admin@lexai.com').first()
-        return admin_user
-    except:
-        return None
+    # Use real authentication system
+    return auth_get_current_user()
 
 def has_permission(user_role: UserRole, permission: str) -> bool:
     """Check if a user role has a specific permission"""
@@ -11939,6 +11959,315 @@ def get_team_availability():
     except Exception as e:
         logger.error(f"Error getting team availability: {e}")
         return jsonify({'success': False, 'error': 'Failed to get team availability'}), 500
+
+# ================================
+# AUTHENTICATION ENDPOINTS
+# ================================
+
+@app.route('/api/auth/register', methods=['POST'])
+@rate_limit_decorator
+def auth_register():
+    """User registration endpoint"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        # Extract required fields
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        firm_name = data.get('firm_name', '').strip()
+        
+        # Validate required fields
+        if not all([email, password, first_name, last_name]):
+            return jsonify({
+                'success': False, 
+                'error': 'Email, password, first name, and last name are required'
+            }), 400
+        
+        # Register user
+        success, message = register_user(email, password, first_name, last_name, firm_name)
+        
+        if success:
+            audit_log(None, 'user_registration', {'email': email})
+            return jsonify({'success': True, 'message': message}), 201
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+            
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        return jsonify({'success': False, 'error': 'Registration failed'}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+@rate_limit_decorator
+def auth_login():
+    """User login endpoint"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        
+        if not email or not password:
+            return jsonify({
+                'success': False, 
+                'error': 'Email and password are required'
+            }), 400
+        
+        # Authenticate user
+        user, message = authenticate_user(email, password)
+        
+        if user:
+            # Create session
+            create_user_session(user)
+            
+            audit_log(user.id, 'user_login', {'email': email})
+            
+            return jsonify({
+                'success': True, 
+                'message': message,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'role': user.role,
+                    'firm_name': user.firm_name
+                }
+            }), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 401
+            
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        return jsonify({'success': False, 'error': 'Login failed'}), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+@rate_limit_decorator
+def auth_logout():
+    """User logout endpoint"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({'success': True, 'message': 'Logged out'}), 200
+        
+        # Get current user for audit log
+        current_user = get_current_user()
+        if current_user:
+            audit_log(current_user.id, 'user_logout', {'email': current_user.email})
+        
+        # Destroy session
+        destroy_user_session()
+        
+        return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
+        
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        return jsonify({'success': False, 'error': 'Logout failed'}), 500
+
+@app.route('/api/auth/me', methods=['GET'])
+@rate_limit_decorator
+def auth_me():
+    """Get current user info"""
+    try:
+        current_user = get_current_user()
+        
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': current_user.id,
+                'email': current_user.email,
+                'first_name': current_user.first_name,
+                'last_name': current_user.last_name,
+                'role': current_user.role,
+                'firm_name': getattr(current_user, 'firm_name', None),
+                'last_login': getattr(current_user, 'last_login', None)
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Get current user error: {e}")
+        return jsonify({'success': False, 'error': 'Failed to get user info'}), 500
+
+@app.route('/api/auth/change-password', methods=['POST'])
+@rate_limit_decorator
+def auth_change_password():
+    """Change user password"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        current_password = data.get('current_password', '')
+        new_password = data.get('new_password', '')
+        
+        if not current_password or not new_password:
+            return jsonify({
+                'success': False, 
+                'error': 'Current password and new password are required'
+            }), 400
+        
+        # Update password
+        success, message = update_user_password(current_user.id, current_password, new_password)
+        
+        if success:
+            audit_log(current_user.id, 'password_change', {'email': current_user.email})
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+            
+    except Exception as e:
+        logger.error(f"Password change error: {e}")
+        return jsonify({'success': False, 'error': 'Password change failed'}), 500
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+@rate_limit_decorator
+def auth_reset_password():
+    """Initiate password reset"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        email = data.get('email', '').strip()
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email is required'}), 400
+        
+        # Initiate reset
+        success, message = reset_user_password(email)
+        
+        # Always return success for security (don't reveal if email exists)
+        return jsonify({'success': True, 'message': message}), 200
+        
+    except Exception as e:
+        logger.error(f"Password reset error: {e}")
+        return jsonify({'success': False, 'error': 'Password reset failed'}), 500
+
+@app.route('/api/auth/verify-token/<token>', methods=['GET'])
+@rate_limit_decorator
+def auth_verify_token(token):
+    """Verify password reset token"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        from auth import verify_reset_token
+        user, message = verify_reset_token(token)
+        
+        if user:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+            
+    except Exception as e:
+        logger.error(f"Token verification error: {e}")
+        return jsonify({'success': False, 'error': 'Token verification failed'}), 500
+
+@app.route('/api/auth/complete-reset', methods=['POST'])
+@rate_limit_decorator
+def auth_complete_reset():
+    """Complete password reset with new password"""
+    try:
+        if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
+            return jsonify({
+                'success': False, 
+                'error': 'Authentication system not available'
+            }), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        token = data.get('token', '')
+        new_password = data.get('new_password', '')
+        
+        if not token or not new_password:
+            return jsonify({
+                'success': False, 
+                'error': 'Token and new password are required'
+            }), 400
+        
+        # Complete reset
+        success, message = complete_password_reset(token, new_password)
+        
+        if success:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'error': message}), 400
+            
+    except Exception as e:
+        logger.error(f"Password reset completion error: {e}")
+        return jsonify({'success': False, 'error': 'Password reset completion failed'}), 500
+
+# Authentication UI Routes
+@app.route('/login')
+def login():
+    """Login page"""
+    return render_template('auth_login.html')
+
+@app.route('/register')
+def register():
+    """Registration page"""
+    return render_template('auth_register.html')
+
+@app.route('/logout')
+def logout():
+    """Logout route"""
+    try:
+        # Get current user for audit log
+        current_user = get_current_user()
+        if current_user and DATABASE_AVAILABLE:
+            audit_log(current_user.id, 'user_logout', {'email': current_user.email})
+        
+        # Destroy session
+        if AUTH_AVAILABLE:
+            destroy_user_session()
+        
+        flash('You have been logged out successfully', 'success')
+        return redirect(url_for('login'))
+        
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        flash('Logout error occurred', 'error')
+        return redirect(url_for('login'))
 
 # Redirect routes for compatibility
 @app.route('/research')

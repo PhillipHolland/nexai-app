@@ -1,0 +1,45 @@
+🚀 VERCEL ENVIRONMENT VARIABLES SETUP
+=====================================================
+
+Go to: https://vercel.com/dashboard
+Select: lexai-app project
+Click: Settings → Environment Variables
+
+For each variable below:
+1. Click "Add" 
+2. Name: [copy variable name]
+3. Value: [copy exact value]
+4. Environment: Production
+5. Click "Save"
+
+CRITICAL VARIABLES (Copy these exactly):
+=====================================================
+
+1. DATABASE_URL
+postgres://neondb_owner:npg_9OENS6QdCUoM@ep-weathered-voice-afzm9t1s-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+
+2. POSTGRES_URL  
+postgres://neondb_owner:npg_9OENS6QdCUoM@ep-weathered-voice-afzm9t1s-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require
+
+3. REDIS_URL
+redis://default:mIFwUfqGu4ZMOwSWaT4lgSpVF6gMocmA@redis-13345.c241.us-east-1-4.ec2.redns.redis-cloud.com:13345
+
+4. XAI_API_KEY
+xai-JXfs7xIBbPhA4a4yPyCFWhjmjbGab31orEzwGnvYNih2V5nmAIlvkSSuIAv047TjBYGwu1CdU7NVtAUi
+
+5. FILE_STORAGE_PROVIDER
+gcs
+
+6. GCS_BUCKET_NAME
+lexai-465013-bucket
+
+7. GCP_PROJECT_ID
+lexai-465013
+
+AFTER ADDING ALL VARIABLES:
+=====================================================
+✅ Trigger new deployment (push to main or redeploy)
+✅ Check deployment logs for DATABASE_AVAILABLE=True
+✅ Run: python3 verify_production_env.py
+
+EXPECTED RESULT: 95%+ Production Readiness! 🎉
