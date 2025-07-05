@@ -6,6 +6,32 @@
     <title>LexAI Practice Partner - AI-Powered Legal Assistant for All Law Firms</title>
     <meta name="description" content="Transform your legal practice with LexAI's intelligent document analysis, contract drafting, and AI-powered legal research. Professional, secure, and built for all types of law firms.">
     
+    <!-- Google Analytics -->
+    {% if google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ google_analytics_id }}');
+        
+        // Custom event tracking functions
+        function trackEvent(action, category, label, value) {
+            gtag('event', action, {
+                event_category: category,
+                event_label: label,
+                value: value
+            });
+        }
+        
+        // Track landing page load
+        gtag('event', 'page_view', {
+            page_title: 'Landing Page',
+            page_location: window.location.href
+        });
+    </script>
+    {% endif %}
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/landing.css">
 </head>
@@ -24,7 +50,7 @@
                     <a href="#features" class="nav-link">Features</a>
                     <a href="#how-it-works" class="nav-link">How It Works</a>
                     <a href="#pricing" class="nav-link">Pricing</a>
-                    <a href="/dashboard" class="btn-primary">Enter Platform</a>
+                    <a href="/dashboard" class="btn-primary" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
                 </div>
             </div>
         </div>
@@ -42,7 +68,7 @@
                 and AI-powered research. Professional, secure, and built for practices of every size and specialty.
             </p>
             <div class="hero-buttons">
-                <a href="/dashboard" class="btn-primary">Start Free Trial</a>
+                <a href="/dashboard" class="btn-primary" onclick="trackEvent('click', 'conversion', 'start_free_trial_hero', 1)">Start Free Trial</a>
                 <a href="#features" class="btn-secondary">See Features</a>
             </div>
         </div>

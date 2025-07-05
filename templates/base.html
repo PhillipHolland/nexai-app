@@ -6,6 +6,43 @@
     <title>{% block title %}LexAI Practice Partner{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     
+    <!-- Google Analytics -->
+    {% if google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ google_analytics_id }}');
+        
+        // Custom event tracking functions
+        function trackEvent(action, category, label, value) {
+            gtag('event', action, {
+                event_category: category,
+                event_label: label,
+                value: value
+            });
+        }
+        
+        // Track page-specific events
+        function trackPageView(pageName) {
+            gtag('event', 'page_view', {
+                page_title: pageName,
+                page_location: window.location.href
+            });
+        }
+        
+        // Track user interactions
+        function trackUserAction(action, details) {
+            gtag('event', 'user_interaction', {
+                event_category: 'engagement',
+                event_label: action,
+                custom_parameter: details
+            });
+        }
+    </script>
+    {% endif %}
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/landing.css">
     

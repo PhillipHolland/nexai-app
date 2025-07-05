@@ -185,6 +185,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 XAI_API_KEY = (os.environ.get('XAI_API_KEY') or os.environ.get('xai_api_key') or '').strip()
 REDIS_URL = os.environ.get('REDIS_URL')
 DATABASE_URL = os.environ.get('DATABASE_URL')
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', 'G-EBPD82DJGP')
 
 if not XAI_API_KEY:
     logger.warning("XAI_API_KEY not set - AI features will not work")
@@ -195,6 +196,16 @@ if REDIS_URL:
     logger.info("Redis URL configured - conversation storage available")
 if DATABASE_URL:
     logger.info("Neon database URL configured - full database features available")
+
+# Template context processor for global variables
+@app.context_processor
+def inject_global_vars():
+    """Inject global variables into all templates"""
+    return {
+        'google_analytics_id': GOOGLE_ANALYTICS_ID,
+        'environment': os.environ.get('VERCEL_ENV', 'development'),
+        'app_version': 'v2.0-serverless'
+    }
 
 # Initialize database if available
 if DATABASE_AVAILABLE:
