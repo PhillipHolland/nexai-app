@@ -8297,57 +8297,118 @@ def api_get_events():
         end_date = request.args.get('end', '')
         event_type = request.args.get('type', '')
         
-        # Demo events data
-        demo_events = [
-            {
-                'id': 'court-1',
-                'title': 'Motion Hearing',
-                'type': 'court-date',
-                'date': '2025-01-15',
-                'time': '09:00',
-                'duration': 2,
-                'client': 'john-smith',
-                'location': 'Superior Court Room 3',
-                'description': 'Motion to dismiss hearing for Smith v. Jones case',
-                'reminder': True
-            },
-            {
-                'id': 'client-1',
-                'title': 'Client Meeting',
-                'type': 'client-meeting',
-                'date': '2025-01-16',
-                'time': '14:00',
-                'duration': 1.5,
-                'client': 'abc-corp',
-                'location': 'Conference Room A',
-                'description': 'Quarterly legal review meeting',
-                'reminder': True
-            },
-            {
-                'id': 'deadline-1',
-                'title': 'Discovery Deadline',
-                'type': 'deadline',
-                'date': '2025-01-20',
-                'time': '17:00',
-                'duration': 0,
-                'client': 'jane-doe',
-                'location': '',
-                'description': 'Final deadline for discovery responses in Johnson case',
-                'reminder': True
-            }
-        ]
-        
-        # Filter by type if specified
-        if event_type:
-            demo_events = [e for e in demo_events if e['type'] == event_type]
-        
-        logger.info(f"Retrieved {len(demo_events)} calendar events")
-        
-        return jsonify({
-            'success': True,
-            'events': demo_events,
-            'count': len(demo_events)
-        })
+        if DATABASE_AVAILABLE:
+            # Use database
+            query = CalendarEvent.query
+            
+            # Apply date range filter
+            if start_date and end_date:
+                from datetime import datetime
+                try:
+                    start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                    end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                    query = query.filter(
+                        CalendarEvent.start_datetime >= start_dt,
+                        CalendarEvent.start_datetime <= end_dt
+                    )
+                except ValueError:
+                    logger.warning(f"Invalid date format: start={start_date}, end={end_date}")
+            
+            # Apply event type filter
+            if event_type:
+                # Map frontend event types to database event types
+                type_mapping = {
+                    'court-date': 'court',
+                    'client-meeting': 'meeting',
+                    'deadline': 'deadline',
+                    'general': 'meeting'
+                }
+                db_event_type = type_mapping.get(event_type, event_type)
+                query = query.filter(CalendarEvent.event_type == db_event_type)
+            
+            # Get events from database
+            events_db = query.order_by(CalendarEvent.start_datetime).all()
+            
+            # Convert to frontend format
+            events = []
+            for event in events_db:
+                event_data = {
+                    'id': event.id,
+                    'title': event.title,
+                    'type': event.event_type,
+                    'date': event.start_datetime.strftime('%Y-%m-%d'),
+                    'time': event.start_datetime.strftime('%H:%M'),
+                    'duration': (event.end_datetime - event.start_datetime).total_seconds() / 3600 if event.end_datetime else 1,
+                    'client': event.client.get_display_name() if event.client else '',
+                    'location': event.location or '',
+                    'description': event.description or '',
+                    'reminder': bool(event.reminder_minutes),
+                    'all_day': event.all_day
+                }
+                events.append(event_data)
+            
+            logger.info(f"Retrieved {len(events)} calendar events from database")
+            
+            return jsonify({
+                'success': True,
+                'events': events,
+                'count': len(events),
+                'database_mode': True
+            })
+            
+        else:
+            # Fallback to mock data
+            demo_events = [
+                {
+                    'id': 'court-1',
+                    'title': 'Motion Hearing',
+                    'type': 'court-date',
+                    'date': '2025-01-15',
+                    'time': '09:00',
+                    'duration': 2,
+                    'client': 'john-smith',
+                    'location': 'Superior Court Room 3',
+                    'description': 'Motion to dismiss hearing for Smith v. Jones case',
+                    'reminder': True
+                },
+                {
+                    'id': 'client-1',
+                    'title': 'Client Meeting',
+                    'type': 'client-meeting',
+                    'date': '2025-01-16',
+                    'time': '14:00',
+                    'duration': 1.5,
+                    'client': 'abc-corp',
+                    'location': 'Conference Room A',
+                    'description': 'Quarterly legal review meeting',
+                    'reminder': True
+                },
+                {
+                    'id': 'deadline-1',
+                    'title': 'Discovery Deadline',
+                    'type': 'deadline',
+                    'date': '2025-01-20',
+                    'time': '17:00',
+                    'duration': 0,
+                    'client': 'jane-doe',
+                    'location': '',
+                    'description': 'Final deadline for discovery responses in Johnson case',
+                    'reminder': True
+                }
+            ]
+            
+            # Filter by type if specified
+            if event_type:
+                demo_events = [e for e in demo_events if e['type'] == event_type]
+            
+            logger.info(f"Retrieved {len(demo_events)} calendar events (mock mode)")
+            
+            return jsonify({
+                'success': True,
+                'events': demo_events,
+                'count': len(demo_events),
+                'database_mode': False
+            })
         
     except Exception as e:
         logger.error(f"Get events API error: {e}")
@@ -8384,35 +8445,126 @@ def api_create_event():
                 'error': f'Invalid event type. Must be one of: {", ".join(valid_types)}'
             }), 400
         
-        # Generate event ID
-        event_id = f"EVT-{datetime.now().strftime('%Y%m%d')}-{len(title)%100:03d}"
-        
-        # Demo event data structure
-        event_data = {
-            'id': event_id,
-            'title': title,
-            'type': event_type,
-            'date': date,
-            'time': time,
-            'duration': duration,
-            'client': client,
-            'case': case,
-            'priority': priority,
-            'location': location,
-            'description': description,
-            'reminder': reminder,
-            'created_at': datetime.now().isoformat(),
-            'status': 'scheduled'
-        }
-        
-        logger.info(f"Event created: {event_id} - {title} on {date} at {time}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Event created successfully',
-            'event_id': event_id,
-            'event_data': event_data
-        })
+        if DATABASE_AVAILABLE:
+            # Parse date and time into datetime objects
+            try:
+                from datetime import datetime, timedelta
+                event_datetime = datetime.strptime(f"{date} {time}", '%Y-%m-%d %H:%M')
+                end_datetime = event_datetime + timedelta(hours=duration)
+            except ValueError as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Invalid date/time format: {e}'
+                }), 400
+            
+            # Map frontend event types to database event types
+            type_mapping = {
+                'court-date': 'court',
+                'client-meeting': 'meeting',
+                'deadline': 'deadline',
+                'deposition': 'deposition',
+                'mediation': 'mediation',
+                'consultation': 'meeting',
+                'personal': 'meeting',
+                'other': 'meeting'
+            }
+            db_event_type = type_mapping.get(event_type, 'meeting')
+            
+            # Find client if specified
+            client_id = None
+            if client:
+                client_obj = Client.query.filter(
+                    (Client.first_name.ilike(f"%{client}%")) |
+                    (Client.last_name.ilike(f"%{client}%")) |
+                    (Client.company_name.ilike(f"%{client}%"))
+                ).first()
+                if client_obj:
+                    client_id = client_obj.id
+            
+            # Find case if specified
+            case_id = None
+            if case and client_id:
+                case_obj = Case.query.filter(
+                    Case.client_id == client_id,
+                    Case.title.ilike(f"%{case}%")
+                ).first()
+                if case_obj:
+                    case_id = case_obj.id
+            
+            # Create new calendar event
+            new_event = CalendarEvent(
+                title=title,
+                description=description,
+                event_type=db_event_type,
+                location=location,
+                start_datetime=event_datetime,
+                end_datetime=end_datetime,
+                all_day=False,
+                reminder_minutes=15 if reminder else None,
+                client_id=client_id,
+                case_id=case_id,
+                created_by='demo-user-id'  # TODO: Get from session
+            )
+            
+            try:
+                db.session.add(new_event)
+                db.session.commit()
+                
+                # Create audit log
+                if 'audit_log' in globals():
+                    audit_log(
+                        action='create',
+                        resource_type='calendar_event',
+                        resource_id=new_event.id,
+                        new_values={'title': title, 'date': date, 'time': time}
+                    )
+                
+                logger.info(f"Calendar event created in database: {title} on {date} at {time}")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Event created successfully',
+                    'event_id': new_event.id,
+                    'event_data': new_event.to_dict()
+                })
+                
+            except Exception as db_error:
+                db.session.rollback()
+                logger.error(f"Database error creating calendar event: {db_error}")
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to save event to database'
+                }), 500
+                
+        else:
+            # Fallback to mock data
+            event_id = f"EVT-{datetime.now().strftime('%Y%m%d')}-{len(title)%100:03d}"
+            
+            event_data = {
+                'id': event_id,
+                'title': title,
+                'type': event_type,
+                'date': date,
+                'time': time,
+                'duration': duration,
+                'client': client,
+                'case': case,
+                'priority': priority,
+                'location': location,
+                'description': description,
+                'reminder': reminder,
+                'created_at': datetime.now().isoformat(),
+                'status': 'scheduled'
+            }
+            
+            logger.info(f"Event created (mock): {event_id} - {title} on {date} at {time}")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Event created successfully (mock mode)',
+                'event_id': event_id,
+                'event_data': event_data
+            })
         
     except ValueError as e:
         logger.error(f"Event creation validation error: {e}")
