@@ -848,10 +848,6 @@ def apply_security_headers(response):
 
 # Practice areas (from working local version)
 PRACTICE_AREAS = {
-    from dotenv import load_dotenv
-
-# Practice areas (from working local version)
-PRACTICE_AREAS = {
     'family': {
         'name': 'Family Law',
         'description': 'Custody, divorce, and family legal matters',
