@@ -17,6 +17,10 @@ from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect
 from dotenv import load_dotenv
 
+# Set up logging early
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 try:
     import redis
     REDIS_AVAILABLE = True
@@ -125,9 +129,7 @@ except:
     # Fallback if dotenv fails - environment variables should still be available from Vercel
     pass
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Logger already configured above
 
 # Create Flask app with template folder support  
 try:
