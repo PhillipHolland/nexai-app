@@ -3,8 +3,7 @@
   "functions": {
     "api/index.py": {
       "memory": 1024,
-      "maxDuration": 30,
-      "maxLambdaSize": "50mb"
+      "maxDuration": 30
     }
   },
   "headers": [
