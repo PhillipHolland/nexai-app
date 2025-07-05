@@ -28,15 +28,8 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - conversation persistence disabled")
 
-# Database imports
+# Database imports - now using local copies in api directory
 try:
-    import sys
-    import os
-    # Add parent directory to path for imports
-    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if parent_dir not in sys.path:
-        sys.path.insert(0, parent_dir)
-    
     from database import DatabaseManager, db_manager, audit_log
     from models import (
         db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, 
@@ -106,7 +99,7 @@ except ImportError as db_error:
         # Fallback audit logging - just log to console
         logger.info(f"AUDIT: User {user_id} - {action} - {details}")
 
-# File storage imports
+# File storage imports - now using local copy in api directory
 try:
     from file_storage import get_storage_manager, FileStorageError
     FILE_STORAGE_AVAILABLE = True
@@ -160,17 +153,7 @@ def debug_info():
     try:
         import_tests = {}
         
-        # Test individual imports
-        try:
-            import sys
-            import os
-            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            if parent_dir not in sys.path:
-                sys.path.insert(0, parent_dir)
-            import_tests['sys_path_added'] = True
-        except Exception as e:
-            import_tests['sys_path_error'] = str(e)
-        
+        # Test individual imports (now local)
         try:
             import database
             import_tests['database_module'] = True
@@ -188,6 +171,12 @@ def debug_info():
             import_tests['auth_module'] = True
         except Exception as e:
             import_tests['auth_error'] = str(e)
+            
+        try:
+            import file_storage
+            import_tests['file_storage_module'] = True
+        except Exception as e:
+            import_tests['file_storage_error'] = str(e)
         
         return jsonify({
             'status': 'ok',
@@ -205,8 +194,8 @@ def debug_info():
             },
             'file_system': {
                 'working_dir': os.getcwd(),
-                'parent_dir': os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                'files_in_parent': os.listdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))[:10]
+                'api_dir': os.path.dirname(os.path.abspath(__file__)),
+                'files_in_api': [f for f in os.listdir(os.path.dirname(os.path.abspath(__file__))) if f.endswith('.py')]
             },
             'python_path': sys.path[:5]  # First 5 entries
         })

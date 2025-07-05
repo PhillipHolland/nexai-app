@@ -1,8 +1,13 @@
-# Simplified requirements for Vercel serverless deployment
+# Enhanced requirements for Vercel serverless deployment with database support
 Flask==3.1.0
+Flask-SQLAlchemy>=3.1.1
+Flask-Login>=0.6.3
 requests>=2.32.3
 python-dotenv>=1.0.1
 bcrypt>=4.0.0
 psycopg2-binary>=2.9.0
+redis>=5.0.0
 pyotp>=2.8.0
 qrcode[pil]>=7.4.2
+Werkzeug>=1.0.1
+SQLAlchemy>=2.0.0
