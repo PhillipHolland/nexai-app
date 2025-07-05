@@ -12010,7 +12010,7 @@ def get_team_availability():
 
 @app.route('/api/auth/register', methods=['POST'])
 @rate_limit_decorator
-def auth_register():
+def api_auth_register():
     """User registration endpoint"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12052,7 +12052,7 @@ def auth_register():
 
 @app.route('/api/auth/login', methods=['POST'])
 @rate_limit_decorator
-def auth_login():
+def api_auth_login():
     """User login endpoint"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12104,7 +12104,7 @@ def auth_login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 @rate_limit_decorator
-def auth_logout():
+def api_auth_logout():
     """User logout endpoint"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12126,7 +12126,7 @@ def auth_logout():
 
 @app.route('/api/auth/me', methods=['GET'])
 @rate_limit_decorator
-def auth_me():
+def api_auth_me():
     """Get current user info"""
     try:
         current_user = get_current_user()
@@ -12153,7 +12153,7 @@ def auth_me():
 
 @app.route('/api/auth/change-password', methods=['POST'])
 @rate_limit_decorator
-def auth_change_password():
+def api_auth_change_password():
     """Change user password"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12194,7 +12194,7 @@ def auth_change_password():
 
 @app.route('/api/auth/reset-password', methods=['POST'])
 @rate_limit_decorator
-def auth_reset_password():
+def api_auth_reset_password():
     """Initiate password reset"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12224,7 +12224,7 @@ def auth_reset_password():
 
 @app.route('/api/auth/verify-token/<token>', methods=['GET'])
 @rate_limit_decorator
-def auth_verify_token(token):
+def api_auth_verify_token(token):
     """Verify password reset token"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
@@ -12246,7 +12246,7 @@ def auth_verify_token(token):
 
 @app.route('/api/auth/complete-reset', methods=['POST'])
 @rate_limit_decorator
-def auth_complete_reset():
+def api_auth_complete_reset():
     """Complete password reset with new password"""
     try:
         if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
