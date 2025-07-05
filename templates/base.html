@@ -121,79 +121,43 @@
                         Dashboard
                     </a>
                     
-                    <!-- AI Assistant Dropdown -->
+                    <!-- AI Tools Dropdown -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
-                            AI Assistant
+                            AI Tools
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('chat_interface') }}" class="base-dropdown-item">Chat Interface</a>
+                            <a href="{{ url_for('chat_interface') }}" class="base-dropdown-item">AI Chat</a>
                             <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">Document Analysis</a>
                             <a href="{{ url_for('legal_research_page') }}" class="base-dropdown-item">Legal Research</a>
                             <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">Contract Generator</a>
-                            <a href="#" class="base-dropdown-item">Contract Review</a>
                         </div>
                     </div>
                     
-                    <!-- Practice Areas Dropdown -->
+                    <!-- Practice Management Dropdown -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
-                            Practice Areas
+                            Practice
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="#" class="base-dropdown-item">Family Law</a>
-                            <a href="#" class="base-dropdown-item">Personal Injury</a>
-                            <a href="#" class="base-dropdown-item">Corporate Law</a>
-                            <a href="#" class="base-dropdown-item">Criminal Defense</a>
-                            <a href="#" class="base-dropdown-item">Real Estate</a>
-                            <a href="#" class="base-dropdown-item">Immigration</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Clients & Cases Dropdown -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            Clients & Cases
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('clients_list') }}" class="base-dropdown-item">Client Directory</a>
-                            <a href="#" class="base-dropdown-item">Case Management</a>
-                            <a href="#" class="base-dropdown-item">Client Portal</a>
-                            <a href="#" class="base-dropdown-item">Intake Forms</a>
-                            <a href="#" class="base-dropdown-item">Communications</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Documents & Files Dropdown -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            Documents
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
+                            <a href="{{ url_for('clients_list') }}" class="base-dropdown-item">Clients & Cases</a>
                             <a href="{{ url_for('documents_list') }}" class="base-dropdown-item">Document Library</a>
-                            <a href="#" class="base-dropdown-item">Templates</a>
-                            <a href="#" class="base-dropdown-item">E-Discovery</a>
-                            <a href="#" class="base-dropdown-item">Version Control</a>
-                            <a href="#" class="base-dropdown-item">Secure Sharing</a>
+                            <a href="{{ url_for('calendar_page') }}" class="base-dropdown-item">Calendar</a>
+                            <a href="{{ url_for('court_deadlines_page') }}" class="base-dropdown-item">Court Deadlines</a>
+                            <a href="{{ url_for('appointment_booking_page') }}" class="base-dropdown-item">Book Appointment</a>
                         </div>
                     </div>
                     
-                    <!-- Time & Billing Dropdown -->
+                    <!-- Financial Management Dropdown -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
-                            Time & Billing
+                            Finance
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
@@ -201,41 +165,8 @@
                         <div class="base-dropdown-menu hidden">
                             <a href="{{ url_for('time_tracking_page') }}" class="base-dropdown-item">Time Tracking</a>
                             <a href="{{ url_for('billing_page') }}" class="base-dropdown-item">Billing & Invoices</a>
-                            <a href="{{ url_for('expense_tracking_page') }}" class="base-dropdown-item">Expense Tracking</a>
-                            <a href="#" class="base-dropdown-item">Payment Management</a>
-                            <a href="#" class="base-dropdown-item">Time Reports</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Calendar & Scheduling Dropdown -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            Calendar
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('calendar_page') }}" class="base-dropdown-item">Calendar View</a>
-                            <a href="{{ url_for('court_deadlines_page') }}" class="base-dropdown-item">Court Dates & Deadlines</a>
-                            <a href="{{ url_for('appointment_booking_page') }}" class="base-dropdown-item">Appointment Booking</a>
-                            <a href="#" class="base-dropdown-item">Team Schedule</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Analytics & Reports Dropdown -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            Analytics
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('analytics_dashboard') }}" class="base-dropdown-item">Performance Dashboard</a>
-                            <a href="#" class="base-dropdown-item">Financial Reports</a>
-                            <a href="#" class="base-dropdown-item">Client Insights</a>
-                            <a href="#" class="base-dropdown-item">Predictive Analytics</a>
+                            <a href="{{ url_for('expense_tracking_page') }}" class="base-dropdown-item">Expenses</a>
+                            <a href="{{ url_for('analytics_dashboard') }}" class="base-dropdown-item">Analytics</a>
                         </div>
                     </div>
                 </nav>
@@ -307,29 +238,21 @@
                    class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     Dashboard
                 </a>
+                <a href="{{ url_for('chat_interface') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'chat_interface' %}active{% endif %}">
+                    AI Tools
+                </a>
                 <a href="{{ url_for('clients_list') }}" 
                    class="base-mobile-link {% if request.endpoint == 'clients_list' %}active{% endif %}">
                     Clients
                 </a>
-                <a href="{{ url_for('chat_interface') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'chat_interface' %}active{% endif %}">
-                    AI Assistant
-                </a>
-                <a href="{{ url_for('documents_list') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'documents_list' %}active{% endif %}">
-                    Documents
-                </a>
-                <a href="{{ url_for('time_tracking_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
-                    Time Tracking
-                </a>
-                <a href="{{ url_for('expense_tracking_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'expense_tracking_page' %}active{% endif %}">
-                    Expenses
-                </a>
                 <a href="{{ url_for('calendar_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'calendar_page' %}active{% endif %}">
                     Calendar
+                </a>
+                <a href="{{ url_for('time_tracking_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
+                    Finance
                 </a>
                 <a href="{{ url_for('analytics_dashboard') }}" 
                    class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">

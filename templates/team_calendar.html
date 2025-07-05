@@ -1,0 +1,1123 @@
+{% extends "base.html" %}
+
+{% block title %}Team Calendar - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Team Calendar Specific Styles */
+        .team-calendar-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .team-header {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .team-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .team-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        /* Team Controls */
+        .team-controls {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        }
+
+        .current-period {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: #f3f4f6;
+            border-radius: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #6b7280;
+        }
+
+        .view-btn.active {
+            background: #2E4B3C;
+            color: white;
+        }
+
+        /* Team Member Filter */
+        .team-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .team-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .team-checkbox:hover {
+            background: #f9fafb;
+        }
+
+        .team-checkbox input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            accent-color: #2E4B3C;
+        }
+
+        .attorney-name {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        /* Team Calendar Grid */
+        .team-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .team-calendar-grid {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        /* Weekly View */
+        .weekly-header {
+            display: grid;
+            grid-template-columns: 120px repeat(7, 1fr);
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .time-column {
+            padding: 1rem;
+            font-weight: 600;
+            color: #374151;
+            border-right: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .day-header {
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .day-header:last-child {
+            border-right: none;
+        }
+
+        .day-date {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        /* Time Slots */
+        .time-slots {
+            display: grid;
+            grid-template-columns: 120px repeat(7, 1fr);
+        }
+
+        .time-slot {
+            border-right: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f3f4f6;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .time-slot:last-child {
+            border-right: none;
+        }
+
+        .time-label {
+            padding: 1rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            border-right: 1px solid #e5e7eb;
+            background: #fafafa;
+        }
+
+        .day-slot {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .day-slot:hover {
+            background: #f9fafb;
+        }
+
+        /* Events in Calendar */
+        .calendar-event {
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .calendar-event:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 20;
+        }
+
+        /* Attorney-specific colors */
+        .event-sarah {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+        }
+
+        .event-michael {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+        }
+
+        .event-emily {
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+            color: white;
+        }
+
+        .event-conflict {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+
+        /* Conflict Indicator */
+        .conflict-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background: #dc2626;
+            border-radius: 50%;
+            border: 1px solid white;
+        }
+
+        /* Team Members Panel */
+        .team-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .attorney-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .attorney-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .attorney-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .attorney-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .avatar-sarah {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+        }
+
+        .avatar-michael {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+        }
+
+        .avatar-emily {
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        }
+
+        .attorney-info h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .attorney-role {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .availability-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .status-available {
+            background: #16a34a;
+        }
+
+        .status-busy {
+            background: #dc2626;
+        }
+
+        .status-away {
+            background: #f59e0b;
+        }
+
+        .today-schedule {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Conflict Resolution Panel */
+        .conflict-panel {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #f59e0b;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .conflict-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .conflict-icon {
+            width: 2rem;
+            height: 2rem;
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .conflict-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .conflict-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .conflict-item {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conflict-details {
+            flex: 1;
+        }
+
+        .conflict-time {
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .conflict-description {
+            color: #7c2d12;
+            font-size: 0.875rem;
+        }
+
+        .resolve-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .resolve-btn:hover {
+            background: #d97706;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            text-decoration: none;
+            color: #374151;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .team-title {
+                font-size: 2rem;
+            }
+
+            .team-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .calendar-nav {
+                justify-content: center;
+            }
+
+            .team-filter {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .weekly-header,
+            .time-slots {
+                grid-template-columns: 80px repeat(7, 1fr);
+            }
+
+            .time-column,
+            .time-label {
+                padding: 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .day-header {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .weekly-header,
+            .time-slots {
+                display: none;
+            }
+
+            .mobile-calendar {
+                display: block;
+            }
+
+            .conflict-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+
+        .mobile-calendar {
+            display: none;
+            padding: 1rem;
+        }
+
+        .mobile-day {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-day-header {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-events {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .mobile-event {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="team-calendar-container">
+    <!-- Header -->
+    <div class="team-header">
+        <h1 class="team-title">Team Calendar</h1>
+        <p class="team-subtitle">Manage schedules, detect conflicts, and coordinate team availability</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="team-main">
+        <!-- Team Controls -->
+        <div class="team-controls">
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="previousWeek()">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                    Previous
+                </button>
+                <div class="current-period" id="currentWeek">January 13-19, 2025</div>
+                <button class="nav-btn" onclick="nextWeek()">
+                    Next
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="view-toggle">
+                <button class="view-btn active" onclick="setView('week')">Week</button>
+                <button class="view-btn" onclick="setView('month')">Month</button>
+                <button class="view-btn" onclick="setView('day')">Day</button>
+            </div>
+
+            <div class="team-filter">
+                <span class="filter-label">Show:</span>
+                <label class="team-checkbox">
+                    <input type="checkbox" id="show-sarah" checked onchange="toggleAttorney('sarah')">
+                    <span class="attorney-name">Sarah Johnson</span>
+                </label>
+                <label class="team-checkbox">
+                    <input type="checkbox" id="show-michael" checked onchange="toggleAttorney('michael')">
+                    <span class="attorney-name">Michael Chen</span>
+                </label>
+                <label class="team-checkbox">
+                    <input type="checkbox" id="show-emily" checked onchange="toggleAttorney('emily')">
+                    <span class="attorney-name">Emily Rodriguez</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Conflict Alert Panel -->
+        <div class="conflict-panel" id="conflictPanel">
+            <div class="conflict-header">
+                <div class="conflict-icon">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="conflict-title">Scheduling Conflicts Detected</div>
+            </div>
+            <ul class="conflict-list">
+                <li class="conflict-item">
+                    <div class="conflict-details">
+                        <div class="conflict-time">Wednesday, 2:00 PM - 3:00 PM</div>
+                        <div class="conflict-description">Sarah Johnson & Michael Chen - Both scheduled for court hearing</div>
+                    </div>
+                    <button class="resolve-btn" onclick="resolveConflict('conflict-1')">Resolve</button>
+                </li>
+                <li class="conflict-item">
+                    <div class="conflict-details">
+                        <div class="conflict-time">Friday, 10:00 AM - 11:00 AM</div>
+                        <div class="conflict-description">Conference room double-booked - Client meetings overlap</div>
+                    </div>
+                    <button class="resolve-btn" onclick="resolveConflict('conflict-2')">Resolve</button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Team Calendar Grid -->
+        <div class="team-calendar-grid">
+            <!-- Weekly Header -->
+            <div class="weekly-header">
+                <div class="time-column">Time</div>
+                <div class="day-header">
+                    Monday
+                    <div class="day-date">Jan 13</div>
+                </div>
+                <div class="day-header">
+                    Tuesday
+                    <div class="day-date">Jan 14</div>
+                </div>
+                <div class="day-header">
+                    Wednesday
+                    <div class="day-date">Jan 15</div>
+                </div>
+                <div class="day-header">
+                    Thursday
+                    <div class="day-date">Jan 16</div>
+                </div>
+                <div class="day-header">
+                    Friday
+                    <div class="day-date">Jan 17</div>
+                </div>
+                <div class="day-header">
+                    Saturday
+                    <div class="day-date">Jan 18</div>
+                </div>
+                <div class="day-header">
+                    Sunday
+                    <div class="day-date">Jan 19</div>
+                </div>
+            </div>
+
+            <!-- Time Slots -->
+            <div class="time-slots" id="timeSlots">
+                <!-- Time slots will be generated by JavaScript -->
+            </div>
+
+            <!-- Mobile Calendar View -->
+            <div class="mobile-calendar" id="mobileCalendar">
+                <!-- Mobile view will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Team Members Panel -->
+        <div class="team-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Team Members</h2>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="refreshSchedules()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="scheduleTeamMeeting()">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Schedule Meeting
+                    </button>
+                </div>
+            </div>
+
+            <div class="team-grid">
+                <div class="attorney-card">
+                    <div class="attorney-header">
+                        <div class="attorney-avatar avatar-sarah">SJ</div>
+                        <div class="attorney-info">
+                            <h3>Sarah Johnson</h3>
+                            <div class="attorney-role">Senior Partner</div>
+                        </div>
+                    </div>
+                    <div class="availability-status">
+                        <div class="status-indicator status-busy"></div>
+                        <span>In Court - Available after 4:00 PM</span>
+                    </div>
+                    <div class="today-schedule">
+                        <div class="schedule-item">
+                            <span>Motion Hearing</span>
+                            <span>9:00 AM - 11:00 AM</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span>Client Meeting</span>
+                            <span>2:00 PM - 3:00 PM</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span>Document Review</span>
+                            <span>4:00 PM - 5:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attorney-card">
+                    <div class="attorney-header">
+                        <div class="attorney-avatar avatar-michael">MC</div>
+                        <div class="attorney-info">
+                            <h3>Michael Chen</h3>
+                            <div class="attorney-role">Partner</div>
+                        </div>
+                    </div>
+                    <div class="availability-status">
+                        <div class="status-indicator status-available"></div>
+                        <span>Available - Next appointment at 2:00 PM</span>
+                    </div>
+                    <div class="today-schedule">
+                        <div class="schedule-item">
+                            <span>Client Consultation</span>
+                            <span>10:00 AM - 11:00 AM</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span>Deposition Prep</span>
+                            <span>2:00 PM - 4:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attorney-card">
+                    <div class="attorney-header">
+                        <div class="attorney-avatar avatar-emily">ER</div>
+                        <div class="attorney-info">
+                            <h3>Emily Rodriguez</h3>
+                            <div class="attorney-role">Associate</div>
+                        </div>
+                    </div>
+                    <div class="availability-status">
+                        <div class="status-indicator status-away"></div>
+                        <span>Out of Office - Returns tomorrow</span>
+                    </div>
+                    <div class="today-schedule">
+                        <div class="schedule-item">
+                            <span>CLE Seminar</span>
+                            <span>All Day</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Team calendar state
+let currentWeekStart = new Date();
+let currentView = 'week';
+let visibleAttorneys = {
+    sarah: true,
+    michael: true,
+    emily: true
+};
+
+// Sample team events data
+const teamEvents = [
+    {
+        id: 'event-1',
+        attorney: 'sarah',
+        title: 'Motion Hearing',
+        date: '2025-01-15',
+        startTime: '09:00',
+        endTime: '11:00',
+        type: 'court',
+        location: 'Superior Court Room 3'
+    },
+    {
+        id: 'event-2',
+        attorney: 'sarah',
+        title: 'Client Meeting',
+        date: '2025-01-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        type: 'meeting',
+        client: 'ABC Corp'
+    },
+    {
+        id: 'event-3',
+        attorney: 'michael',
+        title: 'Client Consultation',
+        date: '2025-01-15',
+        startTime: '10:00',
+        endTime: '11:00',
+        type: 'consultation',
+        client: 'John Smith'
+    },
+    {
+        id: 'event-4',
+        attorney: 'michael',
+        title: 'Deposition Prep',
+        date: '2025-01-15',
+        startTime: '14:00',
+        endTime: '16:00',
+        type: 'preparation'
+    },
+    {
+        id: 'event-5',
+        attorney: 'emily',
+        title: 'CLE Seminar',
+        date: '2025-01-15',
+        startTime: '09:00',
+        endTime: '17:00',
+        type: 'training'
+    },
+    // Conflict example
+    {
+        id: 'conflict-1',
+        attorney: 'sarah',
+        title: 'Court Hearing (CONFLICT)',
+        date: '2025-01-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        type: 'court',
+        conflict: true
+    }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    setWeekStart(new Date());
+    generateTimeSlots();
+    renderCalendar();
+    detectConflicts();
+});
+
+// Calendar navigation
+window.previousWeek = function() {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() - 7);
+    setWeekStart(newDate);
+    renderCalendar();
+};
+
+window.nextWeek = function() {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() + 7);
+    setWeekStart(newDate);
+    renderCalendar();
+};
+
+function setWeekStart(date) {
+    // Set to Monday of the week
+    const dayOfWeek = date.getDay();
+    const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    currentWeekStart = new Date(date.setDate(diff));
+    updateWeekDisplay();
+}
+
+function updateWeekDisplay() {
+    const endDate = new Date(currentWeekStart);
+    endDate.setDate(endDate.getDate() + 6);
+    
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const startMonth = monthNames[currentWeekStart.getMonth()];
+    const endMonth = monthNames[endDate.getMonth()];
+    const year = currentWeekStart.getFullYear();
+    
+    let weekDisplay;
+    if (startMonth === endMonth) {
+        weekDisplay = `${startMonth} ${currentWeekStart.getDate()}-${endDate.getDate()}, ${year}`;
+    } else {
+        weekDisplay = `${startMonth} ${currentWeekStart.getDate()} - ${endMonth} ${endDate.getDate()}, ${year}`;
+    }
+    
+    document.getElementById('currentWeek').textContent = weekDisplay;
+}
+
+// Generate time slots
+function generateTimeSlots() {
+    const timeSlotsContainer = document.getElementById('timeSlots');
+    timeSlotsContainer.innerHTML = '';
+    
+    for (let hour = 8; hour <= 18; hour++) {
+        const timeSlot = document.createElement('div');
+        timeSlot.className = 'time-slot';
+        
+        // Time label
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'time-label';
+        const timeString = hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`;
+        timeLabel.textContent = timeString;
+        timeSlot.appendChild(timeLabel);
+        
+        // Day slots
+        for (let day = 0; day < 7; day++) {
+            const daySlot = document.createElement('div');
+            daySlot.className = 'day-slot';
+            daySlot.dataset.day = day;
+            daySlot.dataset.hour = hour;
+            daySlot.onclick = () => createEvent(day, hour);
+            timeSlot.appendChild(daySlot);
+        }
+        
+        timeSlotsContainer.appendChild(timeSlot);
+    }
+}
+
+// Render calendar events
+function renderCalendar() {
+    // Clear existing events
+    document.querySelectorAll('.calendar-event').forEach(event => event.remove());
+    
+    teamEvents.forEach(event => {
+        if (!visibleAttorneys[event.attorney]) return;
+        
+        const eventDate = new Date(event.date);
+        const weekStart = new Date(currentWeekStart);
+        const dayDiff = Math.floor((eventDate - weekStart) / (1000 * 60 * 60 * 24));
+        
+        if (dayDiff >= 0 && dayDiff < 7) {
+            const startHour = parseInt(event.startTime.split(':')[0]);
+            const endHour = parseInt(event.endTime.split(':')[0]);
+            const duration = endHour - startHour;
+            
+            if (startHour >= 8 && startHour <= 18) {
+                const daySlot = document.querySelector(`[data-day="${dayDiff}"][data-hour="${startHour}"]`);
+                if (daySlot) {
+                    const eventElement = createEventElement(event, duration);
+                    daySlot.appendChild(eventElement);
+                }
+            }
+        }
+    });
+}
+
+function createEventElement(event, duration) {
+    const eventElement = document.createElement('div');
+    eventElement.className = `calendar-event event-${event.attorney}`;
+    if (event.conflict) {
+        eventElement.classList.add('event-conflict');
+    }
+    
+    eventElement.style.height = `${duration * 60 - 4}px`;
+    eventElement.textContent = event.title;
+    eventElement.title = `${event.title}\n${event.startTime} - ${event.endTime}`;
+    eventElement.onclick = (e) => {
+        e.stopPropagation();
+        viewEventDetails(event);
+    };
+    
+    if (event.conflict) {
+        const conflictIndicator = document.createElement('div');
+        conflictIndicator.className = 'conflict-indicator';
+        eventElement.appendChild(conflictIndicator);
+    }
+    
+    return eventElement;
+}
+
+// Team member visibility toggle
+window.toggleAttorney = function(attorney) {
+    visibleAttorneys[attorney] = document.getElementById(`show-${attorney}`).checked;
+    renderCalendar();
+};
+
+// View toggle
+window.setView = function(view) {
+    currentView = view;
+    
+    // Update active button
+    document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (view === 'week') {
+        renderCalendar();
+    }
+    // Other views would be implemented here
+};
+
+// Conflict detection
+function detectConflicts() {
+    const conflicts = [];
+    
+    // Simple conflict detection logic
+    for (let i = 0; i < teamEvents.length; i++) {
+        for (let j = i + 1; j < teamEvents.length; j++) {
+            const event1 = teamEvents[i];
+            const event2 = teamEvents[j];
+            
+            if (event1.date === event2.date && 
+                event1.startTime === event2.startTime && 
+                event1.attorney === event2.attorney) {
+                conflicts.push({
+                    event1: event1,
+                    event2: event2,
+                    type: 'schedule_overlap'
+                });
+            }
+        }
+    }
+    
+    // Show/hide conflict panel based on detected conflicts
+    const conflictPanel = document.getElementById('conflictPanel');
+    if (conflicts.length === 0) {
+        conflictPanel.style.display = 'none';
+    }
+}
+
+// Event handlers
+window.createEvent = function(day, hour) {
+    const eventDate = new Date(currentWeekStart);
+    eventDate.setDate(eventDate.getDate() + day);
+    
+    alert(`Create event on ${eventDate.toDateString()} at ${hour}:00`);
+    // This would open a modal to create an event
+};
+
+window.viewEventDetails = function(event) {
+    alert(`Event: ${event.title}\nAttorney: ${event.attorney}\nTime: ${event.startTime} - ${event.endTime}\nType: ${event.type}`);
+};
+
+window.resolveConflict = function(conflictId) {
+    alert(`Resolving conflict ${conflictId}...`);
+    // This would open a conflict resolution interface
+};
+
+window.refreshSchedules = function() {
+    renderCalendar();
+    alert('Team schedules refreshed!');
+};
+
+window.scheduleTeamMeeting = function() {
+    alert('Schedule team meeting functionality coming soon!');
+    // This would open the team meeting scheduler
+};
+</script>
+{% endblock %}

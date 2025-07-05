@@ -8796,6 +8796,205 @@ def api_check_conflicts():
                 '10:00', '11:00', '14:00', '15:00'
             ] if has_conflicts else []
         })
+
+@app.route('/team-calendar')
+def team_calendar_page():
+    """Team Calendar page with conflict checking"""
+    try:
+        return render_template('team_calendar.html')
+    except Exception as e:
+        logger.error(f"Team calendar page error: {e}")
+        return f"Error loading team calendar: {e}", 500
+
+@app.route('/api/team-calendar/events', methods=['GET'])
+@rate_limit_decorator
+def get_team_calendar_events():
+    """Get team calendar events for all attorneys"""
+    try:
+        start_date = request.args.get('start', '2024-01-01')
+        end_date = request.args.get('end', '2024-12-31')
+        attorney_filter = request.args.get('attorney', '')
+        
+        # Mock team calendar data
+        team_events = [
+            {
+                'id': 'team_1',
+                'title': 'Smith Deposition',
+                'start': '2024-01-15T09:00:00',
+                'end': '2024-01-15T11:00:00',
+                'attorney': 'Sarah Johnson',
+                'attorney_id': 'atty_1',
+                'client': 'Smith v. Johnson',
+                'type': 'deposition',
+                'status': 'confirmed',
+                'location': 'Conference Room A',
+                'priority': 'high'
+            },
+            {
+                'id': 'team_2',
+                'title': 'Court Hearing',
+                'start': '2024-01-15T14:00:00',
+                'end': '2024-01-15T16:00:00',
+                'attorney': 'Michael Chen',
+                'attorney_id': 'atty_2',
+                'client': 'ABC Corp',
+                'type': 'court',
+                'status': 'confirmed',
+                'location': 'Superior Court',
+                'priority': 'high'
+            },
+            {
+                'id': 'team_3',
+                'title': 'Client Meeting',
+                'start': '2024-01-16T10:00:00',
+                'end': '2024-01-16T11:00:00',
+                'attorney': 'Emily Rodriguez',
+                'attorney_id': 'atty_3',
+                'client': 'Williams Estate',
+                'type': 'meeting',
+                'status': 'tentative',
+                'location': 'Office',
+                'priority': 'medium'
+            },
+            {
+                'id': 'team_4',
+                'title': 'Document Review',
+                'start': '2024-01-16T13:00:00',
+                'end': '2024-01-16T17:00:00',
+                'attorney': 'Sarah Johnson',
+                'attorney_id': 'atty_1',
+                'client': 'Tech Startup LLC',
+                'type': 'review',
+                'status': 'confirmed',
+                'location': 'Office',
+                'priority': 'medium'
+            }
+        ]
+        
+        # Filter by attorney if specified
+        if attorney_filter:
+            team_events = [e for e in team_events if e['attorney_id'] == attorney_filter]
+        
+        logger.info(f"Retrieved {len(team_events)} team calendar events")
+        
+        return jsonify({
+            'success': True,
+            'events': team_events
+        })
+        
+    except Exception as e:
+        logger.error(f"Team calendar events error: {e}")
+        return jsonify({'error': 'Failed to retrieve team calendar events'}), 500
+
+@app.route('/api/team-calendar/attorneys', methods=['GET'])
+@rate_limit_decorator
+def get_team_attorneys():
+    """Get list of attorneys for team calendar filtering"""
+    try:
+        attorneys = [
+            {
+                'id': 'atty_1',
+                'name': 'Sarah Johnson',
+                'title': 'Senior Partner',
+                'practice_areas': ['Corporate Law', 'Mergers & Acquisitions'],
+                'status': 'available',
+                'color': '#3b82f6'
+            },
+            {
+                'id': 'atty_2',
+                'name': 'Michael Chen',
+                'title': 'Associate',
+                'practice_areas': ['Litigation', 'Employment Law'],
+                'status': 'in_meeting',
+                'color': '#10b981'
+            },
+            {
+                'id': 'atty_3',
+                'name': 'Emily Rodriguez',
+                'title': 'Partner',
+                'practice_areas': ['Estate Planning', 'Real Estate'],
+                'status': 'available',
+                'color': '#8b5cf6'
+            },
+            {
+                'id': 'atty_4',
+                'name': 'David Kim',
+                'title': 'Associate',
+                'practice_areas': ['Criminal Defense', 'Family Law'],
+                'status': 'unavailable',
+                'color': '#f59e0b'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'attorneys': attorneys
+        })
+        
+    except Exception as e:
+        logger.error(f"Team attorneys error: {e}")
+        return jsonify({'error': 'Failed to retrieve team attorneys'}), 500
+
+@app.route('/api/team-calendar/conflicts/check', methods=['POST'])
+@rate_limit_decorator
+def check_team_scheduling_conflicts():
+    """Check for team scheduling conflicts across all attorneys"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        proposed_event = data.get('event', {})
+        attorney_ids = data.get('attorney_ids', [])
+        
+        if not proposed_event or not attorney_ids:
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Mock conflict detection
+        conflicts = []
+        
+        # Check each attorney for conflicts
+        for attorney_id in attorney_ids:
+            if attorney_id == 'atty_1':  # Sarah Johnson has a conflict
+                conflicts.append({
+                    'attorney_id': attorney_id,
+                    'attorney_name': 'Sarah Johnson',
+                    'conflict_type': 'overlap',
+                    'conflicting_event': {
+                        'id': 'existing_1',
+                        'title': 'Client Meeting - Johnson Case',
+                        'start': '2024-01-15T14:00:00',
+                        'end': '2024-01-15T15:00:00',
+                        'client': 'Johnson v. Smith'
+                    }
+                })
+        
+        # Generate conflict resolution suggestions
+        suggestions = []
+        if conflicts:
+            suggestions = [
+                {
+                    'type': 'reschedule',
+                    'description': 'Reschedule to 3:00 PM when all attorneys are available',
+                    'proposed_time': '2024-01-15T15:00:00'
+                },
+                {
+                    'type': 'reassign',
+                    'description': 'Assign to Emily Rodriguez who is available',
+                    'suggested_attorney': 'atty_3'
+                }
+            ]
+        
+        return jsonify({
+            'success': True,
+            'has_conflicts': len(conflicts) > 0,
+            'conflicts': conflicts,
+            'suggestions': suggestions
+        })
+        
+    except Exception as e:
+        logger.error(f"Team conflict check error: {e}")
+        return jsonify({'error': 'Team conflict check failed'}), 500
         
     except Exception as e:
         logger.error(f"Conflict check API error: {e}")
