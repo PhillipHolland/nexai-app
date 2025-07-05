@@ -2194,6 +2194,26 @@ def dashboard():
 <p>Check logs for details</p>
 <a href="/">← Back to Home</a></body></html>"""
 
+@app.route('/chat')
+def chat_interface():
+    """Modern AI Chat Interface"""
+    try:
+        # Get practice area from query params
+        practice_area = request.args.get('area', 'general')
+        
+        return render_template('chat.html', 
+                             current_client=None,
+                             practice_areas=PRACTICE_AREAS,
+                             selected_area=practice_area)
+        
+    except Exception as e:
+        logger.error(f"Chat interface error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Chat</title></head>
+<body><h1>🏛️ LexAI Chat</h1>
+<p>Chat loading error: {e}</p>
+<a href="/dashboard">← Back to Dashboard</a></body></html>"""
+
 def old_chat_interface_deprecated(client_id=None):
     """Enhanced chat interface matching local version"""
     try:
