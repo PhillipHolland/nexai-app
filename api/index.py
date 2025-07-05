@@ -848,6 +848,10 @@ def apply_security_headers(response):
 
 # Practice areas (from working local version)
 PRACTICE_AREAS = {
+    from dotenv import load_dotenv
+
+# Practice areas (from working local version)
+PRACTICE_AREAS = {
     'family': {
         'name': 'Family Law',
         'description': 'Custody, divorce, and family legal matters',
@@ -927,6 +931,91 @@ PRACTICE_AREAS = {
         ]
     }
 }
+
+# RBAC Configuration
+# Define permissions for each role
+PERMISSION_MAP = {
+    UserRole.ADMIN: [
+        "admin_access", "manage_users", "manage_clients", "manage_cases",
+        "manage_tasks", "manage_documents", "manage_billing", "view_analytics",
+        "manage_settings", "full_ai_access"
+    ],
+    UserRole.PARTNER: [
+        "manage_clients", "manage_cases", "manage_tasks", "manage_documents",
+        "manage_billing", "view_analytics", "full_ai_access"
+    ],
+    UserRole.ASSOCIATE: [
+        "manage_clients", "manage_cases", "manage_tasks", "manage_documents",
+        "view_analytics", "limited_ai_access"
+    ],
+    UserRole.PARALEGAL: [
+        "view_clients", "view_cases", "manage_tasks", "upload_documents",
+        "limited_ai_access"
+    ],
+    UserRole.CLIENT: [
+        "view_own_clients", "view_own_cases", "view_own_documents",
+        "view_own_tasks", "basic_ai_access"
+    ],
+    UserRole.STAFF: [
+        "view_clients", "view_tasks", "view_documents"
+    ]
+}
+
+def has_permission(user_role: UserRole, permission: str) -> bool:
+    """Check if a user role has a specific permission"""
+    return permission in PERMISSION_MAP.get(user_role, [])
+
+def role_required(roles: List[UserRole]):
+    """Decorator to restrict access to specific roles"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not DATABASE_AVAILABLE:
+                # Allow access in mock mode for development
+                return f(*args, **kwargs)
+
+            current_user = get_current_user()
+            if not current_user:
+                if request.is_json:
+                    return jsonify({'error': 'Authentication required'}), 401
+                return redirect(url_for('login'))
+
+            if current_user.role not in roles:
+                if request.is_json:
+                    return jsonify({'error': 'Access denied: Insufficient role'}), 403
+                flash('Access denied: Insufficient role', 'error')
+                return redirect(url_for('dashboard'))
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def permission_required(permission: str):
+    """Decorator to restrict access based on specific permissions"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not DATABASE_AVAILABLE:
+                # Allow access in mock mode for development
+                return f(*args, **kwargs)
+
+            current_user = get_current_user()
+            if not current_user:
+                if request.is_json:
+                    return jsonify({'error': 'Authentication required'}), 401
+                return redirect(url_for('login'))
+
+            if not has_permission(current_user.role, permission):
+                if request.is_json:
+                    return jsonify({'error': f'Access denied: Missing {permission} permission'}), 403
+                flash(f'Access denied: Missing {permission} permission', 'error')
+                return redirect(url_for('dashboard'))
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# Enhanced mock data for production demo
 
 # RBAC Configuration
 # Define permissions for each role
