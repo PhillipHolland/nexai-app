@@ -4077,29 +4077,6 @@ def case_timeline(case_id):
         logger.error(f"Case timeline error: {e}")
         return jsonify({'error': 'Failed to retrieve case timeline'}), 500
 
-@app.route('/analytics')
-# @login_required  # Disabled for now
-@permission_required('view_analytics')
-def analytics_dashboard():
-    """Comprehensive analytics dashboard page"""
-    try:
-        analytics = get_analytics_data()
-        
-        # Get recent activity for the table
-        clients = get_mock_clients()
-        recent_activity = clients[:6]  # Show top 6 recent activities
-        
-        return render_template('analytics_dashboard.html',
-                             analytics=analytics,
-                             recent_activity=recent_activity)
-        
-    except Exception as e:
-        logger.error(f"Analytics dashboard error: {e}")
-        return f"""<!DOCTYPE html>
-<html><head><title>LexAI Analytics Dashboard</title></head>
-<body><h1>🏛️ LexAI Analytics Dashboard</h1>
-<p>Error loading analytics dashboard: {e}</p>
-<a href="/dashboard">Back to Dashboard</a></body></html>"""
 
 @app.route('/contract-generator')
 def contract_generator_page():
