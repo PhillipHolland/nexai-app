@@ -24,6 +24,19 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - conversation persistence disabled")
 
+# Database imports
+try:
+    from database import DatabaseManager, db_manager, audit_log
+    from models import (
+        db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, 
+        CalendarEvent, Tag, AuditLog, Session, UserRole, CaseStatus, TaskStatus, 
+        TaskPriority, DocumentStatus, TimeEntryStatus, InvoiceStatus
+    )
+    DATABASE_AVAILABLE = True
+except ImportError:
+    DATABASE_AVAILABLE = False
+    logging.warning("Database models not available - using mock data fallback")
+
 # Load environment variables
 load_dotenv()
 
@@ -51,6 +64,38 @@ if REDIS_URL:
     logger.info("Redis URL configured - conversation storage available")
 if DATABASE_URL:
     logger.info("Neon database URL configured - full database features available")
+
+# Initialize database if available
+if DATABASE_AVAILABLE:
+    try:
+        # Configure database URL
+        if DATABASE_URL:
+            app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+        else:
+            # Fallback to SQLite for development
+            app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///lexai_development.db'
+            logger.warning("No DATABASE_URL found, using SQLite fallback")
+        
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'pool_timeout': 20,
+            'max_overflow': 0
+        }
+        
+        # Initialize database with app
+        db.init_app(app)
+        db_manager.init_app(app)
+        
+        # Create tables
+        with app.app_context():
+            db.create_all()
+            logger.info("✅ Database initialized successfully")
+            
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        DATABASE_AVAILABLE = False
 
 # Redis connection for conversation persistence
 redis_client = None
@@ -3852,15 +3897,53 @@ def get_clients():
         status_filter = request.args.get('status')
         practice_filter = request.args.get('practice_area')
         
-        clients = get_mock_clients()
-        
-        # Apply filters
-        if status_filter:
-            clients = [c for c in clients if c['status'] == status_filter]
-        if practice_filter:
-            clients = [c for c in clients if c['practice_area'] == practice_filter]
-        
-        analytics = get_analytics_data()
+        if DATABASE_AVAILABLE:
+            # Use database
+            query = Client.query
+            
+            # Apply filters
+            if status_filter:
+                query = query.filter(Client.status == status_filter)
+            
+            clients_db = query.all()
+            clients = [client.to_dict() for client in clients_db]
+            
+            # Add practice area filter (stored in user's practice areas)
+            if practice_filter:
+                filtered_clients = []
+                for client_data in clients:
+                    # Get the attorney who created this client
+                    client_obj = next((c for c in clients_db if c.id == client_data['id']), None)
+                    if client_obj and client_obj.created_by_user:
+                        user_areas = client_obj.created_by_user.get_practice_areas_list()
+                        if practice_filter in user_areas:
+                            # Add practice area to client data
+                            client_data['practice_area'] = practice_filter
+                            filtered_clients.append(client_data)
+                clients = filtered_clients
+            
+            # Get analytics from database
+            total_clients = Client.query.count()
+            active_clients = Client.query.filter(Client.status == 'active').count()
+            
+            analytics = {
+                'total_clients': total_clients,
+                'active_clients': active_clients,
+                'revenue': {'total_ytd': 268500},  # TODO: Calculate from invoices
+                'cases': {'active': Case.query.filter(Case.status == CaseStatus.ACTIVE).count() if Case else 0}
+            }
+            
+        else:
+            # Fallback to mock data
+            clients = get_mock_clients()
+            
+            # Apply filters
+            if status_filter:
+                clients = [c for c in clients if c['status'] == status_filter]
+            if practice_filter:
+                clients = [c for c in clients if c['practice_area'] == practice_filter]
+            
+            analytics = get_analytics_data()
         
         return jsonify({
             "status": "success",
@@ -3870,8 +3953,10 @@ def get_clients():
             "filters": {
                 "status": status_filter,
                 "practice_area": practice_filter
-            }
+            },
+            "database_mode": DATABASE_AVAILABLE
         })
+        
     except Exception as e:
         logger.error(f"Failed to get clients: {e}")
         return jsonify({
@@ -3910,26 +3995,76 @@ def add_client():
         if '@' not in email or '.' not in email:
             return jsonify({'error': 'Invalid email format'}), 400
         
-        # In production, this would save to database
-        # For now, we'll simulate success
-        new_client_id = 100 + len(get_mock_clients())  # Generate mock ID
-        
-        logger.info(f"New client added: {name} ({email})")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Client added successfully',
-            'client_id': new_client_id,
-            'client': {
-                'id': new_client_id,
-                'name': name,
-                'email': email,
-                'phone': phone,
-                'practice_area': practice_area,
-                'status': status,
-                'notes': notes
-            }
-        })
+        if DATABASE_AVAILABLE:
+            # Check if client already exists
+            existing_client = Client.query.filter_by(email=email).first()
+            if existing_client:
+                return jsonify({'error': 'Client with this email already exists'}), 400
+            
+            # Parse name into first/last name for individual clients
+            name_parts = name.split(' ', 1)
+            first_name = name_parts[0]
+            last_name = name_parts[1] if len(name_parts) > 1 else ''
+            
+            # Create new client
+            new_client = Client(
+                client_type='individual',  # Default to individual
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                status=status,
+                notes=notes,
+                created_by='demo-user-id'  # TODO: Get from session
+            )
+            
+            try:
+                db.session.add(new_client)
+                db.session.commit()
+                
+                # Create audit log
+                if 'audit_log' in globals():
+                    audit_log(
+                        action='create',
+                        resource_type='client',
+                        resource_id=new_client.id,
+                        new_values={'name': name, 'email': email}
+                    )
+                
+                logger.info(f"New client created in database: {name} ({email})")
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Client added successfully',
+                    'client_id': new_client.id,
+                    'client': new_client.to_dict()
+                })
+                
+            except Exception as db_error:
+                db.session.rollback()
+                logger.error(f"Database error creating client: {db_error}")
+                return jsonify({'error': 'Failed to save client to database'}), 500
+                
+        else:
+            # Fallback to mock data
+            new_client_id = 100 + len(get_mock_clients())  # Generate mock ID
+            
+            logger.info(f"New client added (mock): {name} ({email})")
+            
+            return jsonify({
+                'success': True,
+                'message': 'Client added successfully (mock mode)',
+                'client_id': new_client_id,
+                'client': {
+                    'id': new_client_id,
+                    'name': name,
+                    'email': email,
+                    'phone': phone,
+                    'practice_area': practice_area,
+                    'status': status,
+                    'notes': notes
+                }
+            })
         
     except Exception as e:
         logger.error(f"Error adding client: {e}")
