@@ -1,0 +1,1121 @@
+{% extends "base.html" %}
+
+{% block title %}Appointment Booking - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Appointment Booking Specific Styles */
+        .booking-container {
+            background-color: #F7EDDA; /* light-cream */
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+
+        .booking-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .booking-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .booking-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .booking-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .booking-main {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* Booking Widget */
+        .booking-widget {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .widget-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .widget-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .widget-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Step Navigation */
+        .booking-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .step.active {
+            background: #2E4B3C;
+            color: white;
+        }
+
+        .step.completed {
+            background: #16a34a;
+            color: white;
+        }
+
+        .step.pending {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        /* Service Selection */
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .service-card:hover {
+            border-color: #2E4B3C;
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.1);
+        }
+
+        .service-card.selected {
+            border-color: #2E4B3C;
+            background: #f0fdf4;
+        }
+
+        .service-icon {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .service-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-duration {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-price {
+            color: #2E4B3C;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        /* Attorney Selection */
+        .attorney-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .attorney-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .attorney-card:hover {
+            border-color: #2E4B3C;
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.1);
+        }
+
+        .attorney-card.selected {
+            border-color: #2E4B3C;
+            background: #f0fdf4;
+        }
+
+        .attorney-avatar {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .attorney-info {
+            flex: 1;
+        }
+
+        .attorney-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .attorney-title {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .attorney-specialties {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .specialty-badge {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        /* Date & Time Selection */
+        .datetime-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .datetime-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .date-picker, .time-picker {
+            background: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+
+        .picker-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-mini {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .calendar-day:hover {
+            background: #e5e7eb;
+        }
+
+        .calendar-day.available {
+            background: white;
+            border: 1px solid #d1d5db;
+        }
+
+        .calendar-day.selected {
+            background: #2E4B3C;
+            color: white;
+        }
+
+        .calendar-day.unavailable {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .time-slot {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .time-slot:hover {
+            border-color: #2E4B3C;
+        }
+
+        .time-slot.selected {
+            background: #2E4B3C;
+            color: white;
+            border-color: #2E4B3C;
+        }
+
+        .time-slot.unavailable {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Client Information Form */
+        .client-form {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Booking Summary */
+        .booking-summary {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #15803d;
+            margin-bottom: 1rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .summary-item .label {
+            color: #374151;
+        }
+
+        .summary-item .value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        /* Action Buttons */
+        .booking-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        /* Sidebar */
+        .booking-sidebar {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        /* Contact Information */
+        .contact-info {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .contact-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .contact-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: #2E4B3C;
+        }
+
+        .contact-text {
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        /* Office Hours */
+        .hours-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .hours-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.875rem;
+        }
+
+        .hours-item:last-child {
+            border-bottom: none;
+        }
+
+        .day {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .time {
+            color: #6b7280;
+        }
+
+        /* Hidden Sections */
+        .booking-section {
+            display: none;
+        }
+
+        .booking-section.active {
+            display: block;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .booking-title {
+                font-size: 2rem;
+            }
+
+            .booking-main {
+                grid-template-columns: 1fr;
+            }
+
+            .service-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-container">
+    <!-- Header -->
+    <div class="booking-header">
+        <h1 class="booking-title">Schedule an Appointment</h1>
+        <p class="booking-subtitle">Book a consultation with our legal experts</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="booking-main">
+        <!-- Booking Widget -->
+        <div class="booking-widget">
+            <div class="widget-header">
+                <h2 class="widget-title">Book Your Consultation</h2>
+                <p class="widget-description">Schedule a meeting with our experienced attorneys</p>
+            </div>
+
+            <!-- Step Navigation -->
+            <div class="booking-steps">
+                <div class="step active" id="step1">1. Service</div>
+                <div class="step pending" id="step2">2. Attorney</div>
+                <div class="step pending" id="step3">3. Date & Time</div>
+                <div class="step pending" id="step4">4. Details</div>
+                <div class="step pending" id="step5">5. Confirm</div>
+            </div>
+
+            <!-- Step 1: Service Selection -->
+            <div class="booking-section active" id="section1">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Select a Service</h3>
+                <div class="service-grid">
+                    <div class="service-card" onclick="selectService('consultation')">
+                        <div class="service-icon">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <div class="service-title">Initial Consultation</div>
+                        <div class="service-duration">60 minutes</div>
+                        <div class="service-price">$300</div>
+                    </div>
+
+                    <div class="service-card" onclick="selectService('follow-up')">
+                        <div class="service-icon">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="service-title">Follow-up Meeting</div>
+                        <div class="service-duration">30 minutes</div>
+                        <div class="service-price">$200</div>
+                    </div>
+
+                    <div class="service-card" onclick="selectService('document-review')">
+                        <div class="service-icon">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="service-title">Document Review</div>
+                        <div class="service-duration">45 minutes</div>
+                        <div class="service-price">$250</div>
+                    </div>
+
+                    <div class="service-card" onclick="selectService('contract-review')">
+                        <div class="service-icon">
+                            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                        </div>
+                        <div class="service-title">Contract Review</div>
+                        <div class="service-duration">90 minutes</div>
+                        <div class="service-price">$450</div>
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <button class="btn btn-primary" onclick="nextStep()" id="nextBtn1" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Attorney Selection -->
+            <div class="booking-section" id="section2">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Choose Your Attorney</h3>
+                <div class="attorney-grid">
+                    <div class="attorney-card" onclick="selectAttorney('sarah-johnson')">
+                        <div class="attorney-avatar">SJ</div>
+                        <div class="attorney-info">
+                            <div class="attorney-name">Sarah Johnson</div>
+                            <div class="attorney-title">Senior Partner</div>
+                            <div class="attorney-specialties">
+                                <span class="specialty-badge">Corporate Law</span>
+                                <span class="specialty-badge">M&A</span>
+                                <span class="specialty-badge">Securities</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="attorney-card" onclick="selectAttorney('michael-chen')">
+                        <div class="attorney-avatar">MC</div>
+                        <div class="attorney-info">
+                            <div class="attorney-name">Michael Chen</div>
+                            <div class="attorney-title">Partner</div>
+                            <div class="attorney-specialties">
+                                <span class="specialty-badge">Litigation</span>
+                                <span class="specialty-badge">Employment</span>
+                                <span class="specialty-badge">Commercial</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="attorney-card" onclick="selectAttorney('emily-rodriguez')">
+                        <div class="attorney-avatar">ER</div>
+                        <div class="attorney-info">
+                            <div class="attorney-name">Emily Rodriguez</div>
+                            <div class="attorney-title">Associate</div>
+                            <div class="attorney-specialties">
+                                <span class="specialty-badge">Family Law</span>
+                                <span class="specialty-badge">Immigration</span>
+                                <span class="specialty-badge">Estate Planning</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="nextBtn2" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Date & Time Selection -->
+            <div class="booking-section" id="section3">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Select Date & Time</h3>
+                <div class="datetime-section">
+                    <div class="date-picker">
+                        <div class="picker-title">Choose Date</div>
+                        <div class="calendar-mini" id="calendarMini">
+                            <!-- Calendar will be generated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="time-picker">
+                        <div class="picker-title">Available Times</div>
+                        <div class="time-slots" id="timeSlots">
+                            <div class="time-slot" onclick="selectTime('09:00')">9:00 AM</div>
+                            <div class="time-slot" onclick="selectTime('10:00')">10:00 AM</div>
+                            <div class="time-slot unavailable">11:00 AM</div>
+                            <div class="time-slot" onclick="selectTime('14:00')">2:00 PM</div>
+                            <div class="time-slot" onclick="selectTime('15:00')">3:00 PM</div>
+                            <div class="time-slot" onclick="selectTime('16:00')">4:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-actions">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="nextBtn3" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Client Details -->
+            <div class="booking-section" id="section4">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Your Information</h3>
+                <form class="client-form" id="clientForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="firstName">First Name</label>
+                            <input type="text" id="firstName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name</label>
+                            <input type="text" id="lastName" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="company">Company (Optional)</label>
+                        <input type="text" id="company" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="legalMatter">Brief Description of Legal Matter</label>
+                        <textarea id="legalMatter" class="form-textarea" placeholder="Please provide a brief overview of your legal needs..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="preferredContact">Preferred Contact Method</label>
+                        <select id="preferredContact" class="form-select">
+                            <option value="email">Email</option>
+                            <option value="phone">Phone</option>
+                            <option value="either">Either</option>
+                        </select>
+                    </div>
+                </form>
+
+                <div class="booking-actions">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep()" id="nextBtn4">Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Confirmation -->
+            <div class="booking-section" id="section5">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: #1f2937;">Confirm Your Appointment</h3>
+                
+                <div class="booking-summary">
+                    <div class="summary-title">Appointment Summary</div>
+                    <div class="summary-item">
+                        <span class="label">Service:</span>
+                        <span class="value" id="summaryService">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Attorney:</span>
+                        <span class="value" id="summaryAttorney">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Date:</span>
+                        <span class="value" id="summaryDate">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Time:</span>
+                        <span class="value" id="summaryTime">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Duration:</span>
+                        <span class="value" id="summaryDuration">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Fee:</span>
+                        <span class="value" id="summaryFee">-</span>
+                    </div>
+                </div>
+
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: 0.5rem; padding: 1rem; margin-bottom: 2rem;">
+                    <p style="margin: 0; font-size: 0.875rem; color: #92400e;">
+                        <strong>Note:</strong> You will receive a confirmation email with appointment details and preparation instructions.
+                    </p>
+                </div>
+
+                <div class="booking-actions">
+                    <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                    <button class="btn btn-primary" onclick="confirmBooking()" id="confirmBtn">Confirm Appointment</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="booking-sidebar">
+            <!-- Contact Information -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Contact Information</h3>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <svg class="contact-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        <span class="contact-text">(555) 123-4567</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg class="contact-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="contact-text">info@lexai.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg class="contact-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="contact-text">123 Legal Plaza, Suite 456<br>San Francisco, CA 94102</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Office Hours -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Office Hours</h3>
+                <ul class="hours-list">
+                    <li class="hours-item">
+                        <span class="day">Monday - Friday</span>
+                        <span class="time">9:00 AM - 6:00 PM</span>
+                    </li>
+                    <li class="hours-item">
+                        <span class="day">Saturday</span>
+                        <span class="time">10:00 AM - 2:00 PM</span>
+                    </li>
+                    <li class="hours-item">
+                        <span class="day">Sunday</span>
+                        <span class="time">Closed</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">What to Expect</h3>
+                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
+                    <p>• Bring relevant documents and contracts</p>
+                    <p>• Prepare a list of questions</p>
+                    <p>• Arrive 10 minutes early</p>
+                    <p>• Consultation fee is applied to retainer if you engage our services</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Booking state
+let currentStep = 1;
+let bookingData = {
+    service: null,
+    attorney: null,
+    date: null,
+    time: null,
+    client: {}
+};
+
+// Service data
+const services = {
+    'consultation': { title: 'Initial Consultation', duration: '60 minutes', price: '$300' },
+    'follow-up': { title: 'Follow-up Meeting', duration: '30 minutes', price: '$200' },
+    'document-review': { title: 'Document Review', duration: '45 minutes', price: '$250' },
+    'contract-review': { title: 'Contract Review', duration: '90 minutes', price: '$450' }
+};
+
+const attorneys = {
+    'sarah-johnson': { name: 'Sarah Johnson', title: 'Senior Partner' },
+    'michael-chen': { name: 'Michael Chen', title: 'Partner' },
+    'emily-rodriguez': { name: 'Emily Rodriguez', title: 'Associate' }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    generateCalendar();
+    updateStepButtons();
+});
+
+// Service selection
+window.selectService = function(serviceId) {
+    document.querySelectorAll('.service-card').forEach(card => card.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    bookingData.service = serviceId;
+    document.getElementById('nextBtn1').disabled = false;
+};
+
+// Attorney selection
+window.selectAttorney = function(attorneyId) {
+    document.querySelectorAll('.attorney-card').forEach(card => card.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    bookingData.attorney = attorneyId;
+    document.getElementById('nextBtn2').disabled = false;
+};
+
+// Date selection
+window.selectDate = function(date) {
+    document.querySelectorAll('.calendar-day').forEach(day => day.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    bookingData.date = date;
+    checkDateTime();
+};
+
+// Time selection
+window.selectTime = function(time) {
+    if (event.currentTarget.classList.contains('unavailable')) return;
+    
+    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    bookingData.time = time;
+    checkDateTime();
+};
+
+function checkDateTime() {
+    if (bookingData.date && bookingData.time) {
+        document.getElementById('nextBtn3').disabled = false;
+    }
+}
+
+// Step navigation
+window.nextStep = function() {
+    if (currentStep === 4) {
+        // Validate form
+        if (!validateClientForm()) return;
+        collectClientData();
+        updateSummary();
+    }
+    
+    if (currentStep < 5) {
+        document.getElementById(`section${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.add('completed');
+        
+        currentStep++;
+        
+        document.getElementById(`section${currentStep}`).classList.add('active');
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateStepButtons();
+    }
+};
+
+window.previousStep = function() {
+    if (currentStep > 1) {
+        document.getElementById(`section${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${currentStep}`).classList.add('pending');
+        
+        currentStep--;
+        
+        document.getElementById(`section${currentStep}`).classList.add('active');
+        document.getElementById(`step${currentStep}`).classList.remove('completed');
+        document.getElementById(`step${currentStep}`).classList.add('active');
+        
+        updateStepButtons();
+    }
+};
+
+function updateStepButtons() {
+    // Update step button states based on current step and selections
+    const buttons = ['nextBtn1', 'nextBtn2', 'nextBtn3', 'nextBtn4'];
+    buttons.forEach((btnId, index) => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            if (index + 1 === currentStep) {
+                btn.style.display = 'inline-block';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Generate calendar
+function generateCalendar() {
+    const calendar = document.getElementById('calendarMini');
+    calendar.innerHTML = '';
+    
+    // Add day headers
+    const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    days.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.textContent = day;
+        dayHeader.style.fontWeight = '600';
+        dayHeader.style.color = '#6b7280';
+        dayHeader.style.fontSize = '0.75rem';
+        calendar.appendChild(dayHeader);
+    });
+    
+    // Generate calendar days for current month
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = date.getDate();
+        
+        if (date.getMonth() === currentMonth && date >= today) {
+            dayElement.classList.add('available');
+            dayElement.onclick = () => selectDate(date.toISOString().split('T')[0]);
+        } else {
+            dayElement.classList.add('unavailable');
+        }
+        
+        calendar.appendChild(dayElement);
+    }
+}
+
+// Form validation
+function validateClientForm() {
+    const required = ['firstName', 'lastName', 'email', 'phone', 'legalMatter'];
+    return required.every(field => {
+        const element = document.getElementById(field);
+        return element && element.value.trim() !== '';
+    });
+}
+
+function collectClientData() {
+    bookingData.client = {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        company: document.getElementById('company').value,
+        legalMatter: document.getElementById('legalMatter').value,
+        preferredContact: document.getElementById('preferredContact').value
+    };
+}
+
+function updateSummary() {
+    document.getElementById('summaryService').textContent = services[bookingData.service].title;
+    document.getElementById('summaryAttorney').textContent = attorneys[bookingData.attorney].name;
+    document.getElementById('summaryDate').textContent = new Date(bookingData.date).toLocaleDateString();
+    document.getElementById('summaryTime').textContent = formatTime(bookingData.time);
+    document.getElementById('summaryDuration').textContent = services[bookingData.service].duration;
+    document.getElementById('summaryFee').textContent = services[bookingData.service].price;
+}
+
+function formatTime(time) {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
+}
+
+// Confirm booking
+window.confirmBooking = async function() {
+    try {
+        const response = await fetch('/api/appointments/book', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookingData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`Appointment confirmed! Reference: ${data.appointment_id}\n\nYou will receive a confirmation email shortly.`);
+            // Reset form or redirect
+            window.location.reload();
+        } else {
+            alert('Booking failed: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Booking error:', error);
+        alert('Booking failed. Please try again or call us directly.');
+    }
+};
+</script>
+{% endblock %}

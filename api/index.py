@@ -8145,6 +8145,16 @@ def court_deadlines_page():
         logger.error(f"Court deadlines template error: {e}")
         return f"<h1>Court Deadlines</h1><p>Template error: {e}</p>", 500
 
+@app.route('/book-appointment')
+def appointment_booking_page():
+    """Client appointment booking page"""
+    try:
+        from flask import render_template
+        return render_template('appointment_booking.html')
+    except Exception as e:
+        logger.error(f"Appointment booking template error: {e}")
+        return f"<h1>Appointment Booking</h1><p>Template error: {e}</p>", 500
+
 @app.route('/api/calendar/events', methods=['GET'])
 @rate_limit_decorator
 def api_get_events():
@@ -8509,6 +8519,222 @@ def api_create_deadline():
         return jsonify({
             'success': False,
             'error': 'Failed to create deadline'
+        }), 500
+
+@app.route('/api/appointments/book', methods=['POST'])
+@rate_limit_decorator
+@validate_json_input(['service', 'attorney', 'date', 'time'])
+def api_book_appointment():
+    """Book a client appointment"""
+    try:
+        data = g.validated_data
+        service = data.get('service', '')
+        attorney = data.get('attorney', '')
+        date = data.get('date', '')
+        time = data.get('time', '')
+        client_data = data.get('client', {})
+        
+        # Validate service type
+        valid_services = ['consultation', 'follow-up', 'document-review', 'contract-review']
+        if service not in valid_services:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid service type. Must be one of: {", ".join(valid_services)}'
+            }), 400
+        
+        # Validate attorney
+        valid_attorneys = ['sarah-johnson', 'michael-chen', 'emily-rodriguez']
+        if attorney not in valid_attorneys:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid attorney selection. Must be one of: {", ".join(valid_attorneys)}'
+            }), 400
+        
+        # Validate required client information
+        required_client_fields = ['firstName', 'lastName', 'email', 'phone', 'legalMatter']
+        for field in required_client_fields:
+            if not client_data.get(field, '').strip():
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required client field: {field}'
+                }), 400
+        
+        # Generate appointment ID
+        appointment_id = f"APT-{datetime.now().strftime('%Y%m%d')}-{len(client_data.get('lastName', ''))%100:03d}"
+        
+        # Demo appointment data structure
+        appointment_data = {
+            'id': appointment_id,
+            'service': service,
+            'attorney': attorney,
+            'date': date,
+            'time': time,
+            'client': client_data,
+            'status': 'confirmed',
+            'created_at': datetime.now().isoformat(),
+            'confirmation_sent': True
+        }
+        
+        logger.info(f"Appointment booked: {appointment_id} - {client_data.get('firstName')} {client_data.get('lastName')} with {attorney} on {date} at {time}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Appointment booked successfully',
+            'appointment_id': appointment_id,
+            'appointment_data': appointment_data,
+            'confirmation_email_sent': True
+        })
+        
+    except Exception as e:
+        logger.error(f"Appointment booking API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to book appointment'
+        }), 500
+
+@app.route('/api/appointments/availability', methods=['GET'])
+@rate_limit_decorator
+def api_get_availability():
+    """Get attorney availability for appointment booking"""
+    try:
+        attorney = request.args.get('attorney', '')
+        date = request.args.get('date', '')
+        
+        # Demo availability data
+        if date and attorney:
+            # Sample unavailable times
+            unavailable_times = ['11:00', '13:00'] if date == '2025-01-15' else []
+            
+            available_slots = [
+                {'time': '09:00', 'available': '09:00' not in unavailable_times},
+                {'time': '10:00', 'available': '10:00' not in unavailable_times},
+                {'time': '11:00', 'available': '11:00' not in unavailable_times},
+                {'time': '13:00', 'available': '13:00' not in unavailable_times},
+                {'time': '14:00', 'available': '14:00' not in unavailable_times},
+                {'time': '15:00', 'available': '15:00' not in unavailable_times},
+                {'time': '16:00', 'available': '16:00' not in unavailable_times},
+                {'time': '17:00', 'available': '17:00' not in unavailable_times}
+            ]
+        else:
+            available_slots = []
+        
+        logger.info(f"Retrieved availability for {attorney} on {date}: {len([s for s in available_slots if s['available']])} slots available")
+        
+        return jsonify({
+            'success': True,
+            'attorney': attorney,
+            'date': date,
+            'available_slots': available_slots
+        })
+        
+    except Exception as e:
+        logger.error(f"Availability API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve availability'
+        }), 500
+
+@app.route('/api/appointments', methods=['GET'])
+@rate_limit_decorator
+def api_get_appointments():
+    """Get list of appointments"""
+    try:
+        attorney = request.args.get('attorney', '')
+        date = request.args.get('date', '')
+        status = request.args.get('status', '')
+        
+        # Demo appointments data
+        demo_appointments = [
+            {
+                'id': 'APT-20250112-001',
+                'service': 'consultation',
+                'attorney': 'sarah-johnson',
+                'date': '2025-01-15',
+                'time': '09:00',
+                'duration': 60,
+                'client': {
+                    'firstName': 'John',
+                    'lastName': 'Smith',
+                    'email': 'john.smith@email.com',
+                    'phone': '(555) 123-4567',
+                    'company': 'Tech Startup Inc.',
+                    'legalMatter': 'Contract review and incorporation questions'
+                },
+                'status': 'confirmed',
+                'created_at': '2025-01-12T10:30:00Z'
+            },
+            {
+                'id': 'APT-20250112-002',
+                'service': 'follow-up',
+                'attorney': 'michael-chen',
+                'date': '2025-01-16',
+                'time': '14:00',
+                'duration': 30,
+                'client': {
+                    'firstName': 'Sarah',
+                    'lastName': 'Johnson',
+                    'email': 'sarah.j@email.com',
+                    'phone': '(555) 987-6543',
+                    'legalMatter': 'Employment contract negotiations follow-up'
+                },
+                'status': 'confirmed',
+                'created_at': '2025-01-12T14:15:00Z'
+            }
+        ]
+        
+        # Filter by parameters
+        if attorney:
+            demo_appointments = [a for a in demo_appointments if a['attorney'] == attorney]
+        if date:
+            demo_appointments = [a for a in demo_appointments if a['date'] == date]
+        if status:
+            demo_appointments = [a for a in demo_appointments if a['status'] == status]
+        
+        logger.info(f"Retrieved {len(demo_appointments)} appointments")
+        
+        return jsonify({
+            'success': True,
+            'appointments': demo_appointments,
+            'count': len(demo_appointments)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get appointments API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve appointments'
+        }), 500
+
+@app.route('/api/appointments/<appointment_id>/confirm', methods=['POST'])
+@rate_limit_decorator
+def api_confirm_appointment(appointment_id):
+    """Confirm or reschedule an appointment"""
+    try:
+        data = request.get_json() or {}
+        action = data.get('action', 'confirm')  # 'confirm', 'reschedule', 'cancel'
+        
+        if action not in ['confirm', 'reschedule', 'cancel']:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid action. Must be confirm, reschedule, or cancel'
+            }), 400
+        
+        # Demo confirmation logic
+        logger.info(f"Appointment {appointment_id} {action}ed")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Appointment {action}ed successfully',
+            'appointment_id': appointment_id,
+            'action': action,
+            'updated_at': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Appointment confirmation API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update appointment'
         }), 500
 
 @app.route('/api/calendar/deadlines/<deadline_id>/reminder', methods=['POST'])
