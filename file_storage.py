@@ -350,11 +350,32 @@ class LocalFileProvider(FileStorageProvider):
     
     def __init__(self, base_path: str = 'uploads'):
         self.base_path = os.path.abspath(base_path)
-        os.makedirs(self.base_path, exist_ok=True)
-        logger.info(f"✅ Local file provider initialized: {self.base_path}")
+        
+        # Try to create directory, but handle read-only filesystem gracefully
+        try:
+            os.makedirs(self.base_path, exist_ok=True)
+            logger.info(f"✅ Local file provider initialized: {self.base_path}")
+        except (OSError, PermissionError) as e:
+            # In serverless environments (like Vercel), filesystem is read-only
+            # Use /tmp directory which is writable, or disable local storage
+            if '/var/task' in str(e) or 'read-only file system' in str(e).lower():
+                logger.warning(f"Read-only filesystem detected, using /tmp for local storage")
+                self.base_path = '/tmp/uploads'
+                try:
+                    os.makedirs(self.base_path, exist_ok=True)
+                    logger.info(f"✅ Local file provider initialized with /tmp: {self.base_path}")
+                except Exception as tmp_error:
+                    logger.error(f"❌ Failed to create /tmp directory: {tmp_error}")
+                    # Make provider non-functional but don't crash
+                    self.base_path = None
+            else:
+                logger.error(f"❌ Local file provider initialization failed: {e}")
+                raise FileStorageError(f"Failed to initialize local storage: {e}")
     
     def _get_file_path(self, key: str) -> str:
         """Get full file path for a key"""
+        if self.base_path is None:
+            raise FileStorageError("Local file storage not available in this environment")
         # Ensure key doesn't escape base directory
         safe_key = secure_filename(key.replace('/', '_'))
         return os.path.join(self.base_path, safe_key)
@@ -364,8 +385,12 @@ class LocalFileProvider(FileStorageProvider):
         try:
             file_path = self._get_file_path(key)
             
-            # Create directory if needed
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            # Create directory if needed (with error handling for read-only filesystem)
+            try:
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            except (OSError, PermissionError):
+                # If we can't create directories, storage is not available
+                raise FileStorageError("Cannot create directories in read-only filesystem")
             
             # Write file
             with open(file_path, 'wb') as f:
@@ -593,8 +618,19 @@ def create_storage_manager(provider_type: str = None) -> FileStorageManager:
             provider = GoogleCloudProvider(bucket_name=bucket_name, project_id=project_id)
             
     else:
-        # Default to local storage
+        # Default to local storage, but handle serverless environments
         upload_path = os.getenv('LOCAL_UPLOAD_PATH', 'uploads')
+        
+        # Detect serverless environment (Vercel, AWS Lambda, etc.)
+        is_serverless = (
+            os.getenv('VERCEL') == '1' or 
+            os.getenv('AWS_LAMBDA_FUNCTION_NAME') or
+            '/var/task' in os.getcwd()
+        )
+        
+        if is_serverless:
+            logger.warning("Serverless environment detected - local file storage may not work reliably")
+        
         provider = LocalFileProvider(base_path=upload_path)
     
     return FileStorageManager(provider)
