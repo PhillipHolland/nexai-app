@@ -130,7 +130,7 @@
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('chat_interface') }}" class="base-dropdown-item">AI Chat</a>
+                            <a href="{{ url_for('search_interface') }}" class="base-dropdown-item">AI Search</a>
                             <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">Document Analysis</a>
                             <a href="{{ url_for('legal_research_page') }}" class="base-dropdown-item">Legal Research</a>
                             <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">Contract Generator</a>
@@ -239,8 +239,8 @@
                    class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     Dashboard
                 </a>
-                <a href="{{ url_for('chat_interface') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'chat_interface' %}active{% endif %}">
+                <a href="{{ url_for('search_interface') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'search_interface' %}active{% endif %}">
                     AI Tools
                 </a>
                 <a href="{{ url_for('clients_list') }}" 
