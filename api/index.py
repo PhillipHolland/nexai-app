@@ -929,6 +929,8 @@ PRACTICE_AREAS = {
 }
 
 # RBAC Configuration
+
+# RBAC Configuration
 # Define permissions for each role
 PERMISSION_MAP = {
     UserRole.ADMIN: [
