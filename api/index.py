@@ -10792,29 +10792,117 @@ def create_task_new():
             if field not in data:
                 return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
         
-        # Generate task ID
-        task_id = f"task-{int(time.time())}"
-        
-        # Mock task creation - replace with database insert
-        new_task = {
-            'id': task_id,
-            'title': data['title'],
-            'description': data.get('description', ''),
-            'priority': data['priority'],
-            'status': data['status'],
-            'assignee': data['assignee'],
-            'due_date': data['dueDate'],
-            'client': data.get('client', ''),
-            'tags': data.get('tags', []),
-            'created_at': datetime.now().isoformat()
-        }
-        
-        return jsonify({
-            'success': True,
-            'task_id': task_id,
-            'task': new_task,
-            'message': 'Task created successfully'
-        })
+        if DATABASE_AVAILABLE:
+            # Parse due date
+            from datetime import datetime
+            try:
+                due_date = datetime.strptime(data['dueDate'], '%Y-%m-%d').date()
+            except ValueError:
+                return jsonify({'success': False, 'error': 'Invalid due date format. Use YYYY-MM-DD'}), 400
+            
+            # Map priority and status to enum values
+            priority_map = {
+                'low': TaskPriority.LOW,
+                'medium': TaskPriority.MEDIUM,
+                'high': TaskPriority.HIGH,
+                'urgent': TaskPriority.URGENT
+            }
+            
+            status_map = {
+                'todo': TaskStatus.TODO,
+                'in_progress': TaskStatus.IN_PROGRESS,
+                'progress': TaskStatus.IN_PROGRESS,
+                'review': TaskStatus.REVIEW,
+                'done': TaskStatus.DONE
+            }
+            
+            priority = priority_map.get(data['priority'].lower(), TaskPriority.MEDIUM)
+            status = status_map.get(data['status'].lower(), TaskStatus.TODO)
+            
+            # Find assignee user by first name (simplified lookup)
+            assignee_user = User.query.filter(User.first_name.ilike(f"%{data['assignee']}%")).first()
+            if not assignee_user:
+                return jsonify({'success': False, 'error': 'Assignee not found'}), 400
+            
+            # Find client if specified
+            client_id = None
+            case_id = None
+            if data.get('client'):
+                client = Client.query.filter(
+                    (Client.first_name.ilike(f"%{data['client']}%")) |
+                    (Client.last_name.ilike(f"%{data['client']}%")) |
+                    (Client.company_name.ilike(f"%{data['client']}%"))
+                ).first()
+                if client:
+                    client_id = client.id
+                    # Try to find an active case for this client
+                    case = Case.query.filter_by(client_id=client_id, status=CaseStatus.ACTIVE).first()
+                    if case:
+                        case_id = case.id
+            
+            # Create new task
+            new_task = Task(
+                title=data['title'],
+                description=data.get('description', ''),
+                priority=priority,
+                status=status,
+                due_date=due_date,
+                assignee_id=assignee_user.id,
+                client_id=client_id,
+                case_id=case_id,
+                created_by=assignee_user.id  # TODO: Get from session
+            )
+            
+            try:
+                db.session.add(new_task)
+                db.session.commit()
+                
+                # Create audit log
+                if 'audit_log' in globals():
+                    audit_log(
+                        action='create',
+                        resource_type='task',
+                        resource_id=new_task.id,
+                        new_values={'title': data['title'], 'assignee': assignee_user.get_full_name()}
+                    )
+                
+                logger.info(f"New task created in database: {data['title']}")
+                
+                return jsonify({
+                    'success': True,
+                    'task_id': new_task.id,
+                    'task': new_task.to_dict(),
+                    'message': 'Task created successfully'
+                })
+                
+            except Exception as db_error:
+                db.session.rollback()
+                logger.error(f"Database error creating task: {db_error}")
+                return jsonify({'success': False, 'error': 'Failed to save task to database'}), 500
+                
+        else:
+            # Fallback to mock data
+            task_id = f"task-{int(time.time())}"
+            
+            new_task = {
+                'id': task_id,
+                'title': data['title'],
+                'description': data.get('description', ''),
+                'priority': data['priority'],
+                'status': data['status'],
+                'assignee': data['assignee'],
+                'due_date': data['dueDate'],
+                'client': data.get('client', ''),
+                'tags': data.get('tags', []),
+                'created_at': datetime.now().isoformat()
+            }
+            
+            return jsonify({
+                'success': True,
+                'task_id': task_id,
+                'task': new_task,
+                'message': 'Task created successfully (mock mode)'
+            })
         
     except Exception as e:
         logger.error(f"Error creating task: {e}")
@@ -10830,50 +10918,105 @@ def get_tasks_list():
         priority_filter = request.args.get('priority')
         status_filter = request.args.get('status')
         
-        # Mock task data - replace with database query
-        tasks = [
-            {
-                'id': 'task-1',
-                'title': 'Review Discovery Documents',
-                'description': 'Analyze and categorize discovery documents for Smith v. Johnson case',
-                'priority': 'high',
-                'status': 'todo',
-                'assignee': 'sarah',
-                'assignee_name': 'Sarah Johnson',
-                'due_date': '2024-01-20',
-                'client': 'john-smith',
-                'tags': ['litigation', 'discovery', 'urgent'],
-                'created_at': '2024-01-15'
-            },
-            {
-                'id': 'task-2',
-                'title': 'Draft Employment Contract',
-                'description': 'Create employment agreement for senior developer position',
-                'priority': 'medium',
-                'status': 'in_progress',
-                'assignee': 'michael',
-                'assignee_name': 'Michael Chen',
-                'due_date': '2024-01-18',
-                'client': 'tech-startup',
-                'tags': ['contract', 'employment'],
-                'created_at': '2024-01-12'
-            }
-        ]
-        
-        # Apply filters
-        filtered_tasks = tasks
-        if assignee_filter:
-            filtered_tasks = [t for t in filtered_tasks if t['assignee'] == assignee_filter]
-        if priority_filter:
-            filtered_tasks = [t for t in filtered_tasks if t['priority'] == priority_filter]
-        if status_filter:
-            filtered_tasks = [t for t in filtered_tasks if t['status'] == status_filter]
-        
-        return jsonify({
-            'success': True,
-            'tasks': filtered_tasks,
-            'total': len(filtered_tasks)
-        })
+        if DATABASE_AVAILABLE:
+            # Use database
+            query = Task.query
+            
+            # Apply filters
+            if assignee_filter:
+                # Find user by first name
+                assignee_user = User.query.filter(User.first_name.ilike(f"%{assignee_filter}%")).first()
+                if assignee_user:
+                    query = query.filter(Task.assignee_id == assignee_user.id)
+                else:
+                    # No matching user found, return empty result
+                    return jsonify({
+                        'success': True,
+                        'tasks': [],
+                        'total': 0,
+                        'database_mode': True
+                    })
+            
+            if priority_filter:
+                priority_map = {
+                    'low': TaskPriority.LOW,
+                    'medium': TaskPriority.MEDIUM,
+                    'high': TaskPriority.HIGH,
+                    'urgent': TaskPriority.URGENT
+                }
+                priority_enum = priority_map.get(priority_filter.lower())
+                if priority_enum:
+                    query = query.filter(Task.priority == priority_enum)
+            
+            if status_filter:
+                status_map = {
+                    'todo': TaskStatus.TODO,
+                    'in_progress': TaskStatus.IN_PROGRESS,
+                    'progress': TaskStatus.IN_PROGRESS,
+                    'review': TaskStatus.REVIEW,
+                    'done': TaskStatus.DONE
+                }
+                status_enum = status_map.get(status_filter.lower())
+                if status_enum:
+                    query = query.filter(Task.status == status_enum)
+            
+            # Get tasks from database
+            tasks_db = query.all()
+            tasks = [task.to_dict() for task in tasks_db]
+            
+            return jsonify({
+                'success': True,
+                'tasks': tasks,
+                'total': len(tasks),
+                'database_mode': True
+            })
+            
+        else:
+            # Fallback to mock data
+            tasks = [
+                {
+                    'id': 'task-1',
+                    'title': 'Review Discovery Documents',
+                    'description': 'Analyze and categorize discovery documents for Smith v. Johnson case',
+                    'priority': 'high',
+                    'status': 'todo',
+                    'assignee': 'sarah',
+                    'assignee_name': 'Sarah Johnson',
+                    'due_date': '2024-01-20',
+                    'client': 'john-smith',
+                    'tags': ['litigation', 'discovery', 'urgent'],
+                    'created_at': '2024-01-15'
+                },
+                {
+                    'id': 'task-2',
+                    'title': 'Draft Employment Contract',
+                    'description': 'Create employment agreement for senior developer position',
+                    'priority': 'medium',
+                    'status': 'in_progress',
+                    'assignee': 'michael',
+                    'assignee_name': 'Michael Chen',
+                    'due_date': '2024-01-18',
+                    'client': 'tech-startup',
+                    'tags': ['contract', 'employment'],
+                    'created_at': '2024-01-12'
+                }
+            ]
+            
+            # Apply filters
+            filtered_tasks = tasks
+            if assignee_filter:
+                filtered_tasks = [t for t in filtered_tasks if t['assignee'] == assignee_filter]
+            if priority_filter:
+                filtered_tasks = [t for t in filtered_tasks if t['priority'] == priority_filter]
+            if status_filter:
+                filtered_tasks = [t for t in filtered_tasks if t['status'] == status_filter]
+            
+            return jsonify({
+                'success': True,
+                'tasks': filtered_tasks,
+                'total': len(filtered_tasks),
+                'database_mode': False
+            })
         
     except Exception as e:
         logger.error(f"Error getting tasks: {e}")
