@@ -160,7 +160,7 @@ body {
         display: flex; /* Horizontal layout */
         align-items: center;
         gap: 1.5rem; /* Slightly smaller gap for mobile landscape */
-        flex-direction: row-reverse; /* Reverse order: Enter Platform, Pricing, How It Works, Features */
+        flex-direction: row; /* Normal order: Features, How It Works, Pricing, Enter Platform */
     }
     
     .hamburger-menu {
@@ -168,7 +168,7 @@ body {
     }
     
     .nav-enter-platform {
-        order: 1; /* Rightmost position */
+        order: 4; /* Rightmost position after nav links */
     }
 }
 
@@ -197,7 +197,7 @@ body {
         display: flex; /* Horizontal layout */
         align-items: center;
         gap: 2rem;
-        flex-direction: row-reverse; /* Reverse order: Enter Platform, Pricing, How It Works, Features */
+        flex-direction: row; /* Normal order: Features, How It Works, Pricing, Enter Platform */
     }
     
     .hamburger-menu {
@@ -205,7 +205,7 @@ body {
     }
     
     .nav-enter-platform {
-        order: 1; /* Rightmost position */
+        order: 4; /* Rightmost position after nav links */
     }
 }
 
