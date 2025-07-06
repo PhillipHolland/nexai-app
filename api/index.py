@@ -13057,5 +13057,21 @@ def server_error(e):
 # For Vercel - Deployment v2.1
 app.debug = False
 
+# Add a root route to handle base requests
+@app.route('/')
+def home():
+    """Home page route"""
+    return jsonify({
+        "name": "LexAI Practice Partner",
+        "version": "v2.1 STABLE",
+        "status": "running",
+        "database_available": DATABASE_AVAILABLE,
+        "auth_available": AUTH_AVAILABLE,
+        "features": ["2FA", "Google Analytics", "File Storage"]
+    })
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
+# Vercel expects this exact variable name
+app = app
