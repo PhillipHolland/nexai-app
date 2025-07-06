@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Overview - LexAI Practice Partner</title>
+    <meta name="description" content="Comprehensive overview of LexAI's AI-powered legal platform. Advanced evidence analysis, document authentication, AI detection, and professional legal tools.">
+    
+    <!-- Google Analytics -->
+    {% if google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ google_analytics_id }}');
+        
+        function trackEvent(action, category, label, value) {
+            gtag('event', action, {
+                event_category: category,
+                event_label: label,
+                value: value
+            });
+        }
+        
+        // Track platform page engagement
+        gtag('event', 'page_view', {
+            page_title: 'Platform Overview',
+            page_location: window.location.href
+        });
+    </script>
+    {% endif %}
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/landing.css">
+    <style>
+        /* Platform Overview Specific Styles */
+        .platform-hero {
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+            padding: 6rem 0 4rem 0;
+            text-align: center;
+        }
+        
+        .platform-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        
+        .platform-hero p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .platform-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #FFA74F;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .platform-section {
+            padding: 5rem 0;
+        }
+        
+        .platform-section:nth-child(even) {
+            background-color: white;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 1rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .tool-showcase {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-showcase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FFA74F, #F0531C);
+        }
+        
+        .tool-showcase:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #FFA74F;
+        }
+        
+        .tool-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2E4B3C;
+            margin-bottom: 1rem;
+        }
+        
+        .tool-description {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tool-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+        
+        .tool-features li {
+            padding: 0.5rem 0;
+            color: #374151;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .tool-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #FFA74F;
+            font-weight: bold;
+        }
+        
+        .tool-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #2E4B3C;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .tool-status.coming-soon {
+            background: #FFA74F;
+            color: #2E4B3C;
+        }
+        
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .security-feature {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .security-icon {
+            width: 3rem;
+            height: 3rem;
+            background: #F0531C;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .security-title {
+            font-weight: 600;
+            color: #2E4B3C;
+            margin-bottom: 0.5rem;
+        }
+        
+        .security-desc {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .faq-section {
+            background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
+        }
+        
+        .faq-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            color: #2E4B3C;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-answer {
+            color: #6b7280;
+            line-height: 1.6;
+            display: none;
+        }
+        
+        .faq-answer.show {
+            display: block;
+            margin-top: 1rem;
+        }
+        
+        .faq-toggle {
+            font-size: 1.2rem;
+            color: #FFA74F;
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-toggle.rotate {
+            transform: rotate(45deg);
+        }
+        
+        .cta-platform {
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+        }
+        
+        .cta-platform h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .cta-platform p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (min-width: 640px) {
+            .cta-buttons {
+                flex-direction: row;
+            }
+        }
+        
+        .btn-platform {
+            background: #FFA74F;
+            color: #2E4B3C;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 2px solid #FFA74F;
+        }
+        
+        .btn-platform:hover {
+            background: #F0531C;
+            border-color: #F0531C;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-platform.secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+        
+        .btn-platform.secondary:hover {
+            background: white;
+            color: #2E4B3C;
+        }
+        
+        /* Mobile Adjustments */
+        @media (max-width: 767px) {
+            .platform-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .tool-showcase {
+                padding: 2rem;
+            }
+            
+            .platform-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand" href="/">
+                <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+            </a>
+            
+            <!-- Mobile hamburger button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="#features" class="nav-link">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/platform" class="nav-link" style="color: #FFA74F !important; font-weight: 600;">Platform</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#how-it-works" class="nav-link">How It Works</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#pricing" class="nav-link">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/dashboard" class="btn btn-primary ms-2" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="platform-hero">
+        <div class="container">
+            <h1>Complete Legal AI Platform</h1>
+            <p>Professional-grade AI tools designed specifically for legal professionals. From evidence analysis to document authentication, everything you need in one integrated platform.</p>
+            
+            <div class="platform-stats">
+                <div class="stat-item">
+                    <div class="stat-number">99.2%</div>
+                    <div class="stat-label">AI Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">256-bit</div>
+                    <div class="stat-label">Encryption</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">SOC 2</div>
+                    <div class="stat-label">Compliant</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Availability</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Tools Suite -->
+    <section class="platform-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🤖 AI-Powered Legal Tools</h2>
+                <p class="section-subtitle">Advanced artificial intelligence tools built specifically for legal professionals and court proceedings</p>
+            </div>
+            
+            <div class="tools-grid">
+                <div class="tool-showcase">
+                    <div class="tool-icon">🧠</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">AI Legal Assistant</h3>
+                    <p class="tool-description">
+                        Conversational AI trained on legal knowledge across all practice areas. Get instant answers, research support, and document drafting assistance.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Legal research and case law analysis</li>
+                        <li>Document drafting and review</li>
+                        <li>Contract analysis and generation</li>
+                        <li>Multi-jurisdictional support</li>
+                        <li>Practice area specialization</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">🔍</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">AI Content Detection</h3>
+                    <p class="tool-description">
+                        Advanced pattern recognition to detect AI-generated text, identify deepfakes, and authenticate digital communications for legal proceedings.
+                    </p>
+                    <ul class="tool-features">
+                        <li>GPT/AI-generated text detection</li>
+                        <li>Writing style analysis</li>
+                        <li>Authenticity confidence scoring</li>
+                        <li>Pattern recognition algorithms</li>
+                        <li>Court-admissible reports</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">🔐</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Document Authentication</h3>
+                    <p class="tool-description">
+                        Comprehensive document integrity verification using hash analysis, metadata extraction, and digital forensics techniques.
+                    </p>
+                    <ul class="tool-features">
+                        <li>MD5/SHA256 hash verification</li>
+                        <li>Metadata analysis and extraction</li>
+                        <li>File tampering detection</li>
+                        <li>Chain of custody tracking</li>
+                        <li>Security threat analysis</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">⚖️</div>
+                    <span class="tool-status coming-soon">Coming Soon</span>
+                    <h3 class="tool-title">Legal Admissibility Checker</h3>
+                    <p class="tool-description">
+                        Automated analysis of evidence for hearsay issues, authentication requirements, and Federal Rules of Evidence compliance.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Hearsay rule analysis</li>
+                        <li>Authentication requirements</li>
+                        <li>Federal Rules compliance</li>
+                        <li>Objection prediction</li>
+                        <li>Expert testimony guidance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security & Compliance -->
+    <section class="platform-section" style="background: #F7EDDA;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🛡️ Enterprise Security & Compliance</h2>
+                <p class="section-subtitle">Military-grade security designed for sensitive legal data and attorney-client privilege protection</p>
+            </div>
+            
+            <div class="security-grid">
+                <div class="security-feature">
+                    <div class="security-icon">🔒</div>
+                    <h4 class="security-title">End-to-End Encryption</h4>
+                    <p class="security-desc">256-bit AES encryption for all data in transit and at rest</p>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="security-icon">🏛️</div>
+                    <h4 class="security-title">SOC 2 Type II Compliant</h4>
+                    <p class="security-desc">Independently audited security controls and processes</p>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="security-icon">⚖️</div>
+                    <h4 class="security-title">Attorney-Client Privilege</h4>
+                    <p class="security-desc">Designed to maintain confidentiality and privilege protection</p>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="security-icon">🔄</div>
+                    <h4 class="security-title">Chain of Custody</h4>
+                    <p class="security-desc">Immutable evidence tracking for court admissibility</p>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="security-icon">🌐</div>
+                    <h4 class="security-title">Zero-Knowledge Architecture</h4>
+                    <p class="security-desc">We cannot access your confidential client data</p>
+                </div>
+                
+                <div class="security-feature">
+                    <div class="security-icon">📋</div>
+                    <h4 class="security-title">Audit Trails</h4>
+                    <p class="security-desc">Complete activity logging for compliance and discovery</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="platform-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🔧 Technical Specifications</h2>
+                <p class="section-subtitle">Professional-grade infrastructure built for legal practice demands</p>
+            </div>
+            
+            <div class="tools-grid">
+                <div class="tool-showcase">
+                    <div class="tool-icon">📁</div>
+                    <h3 class="tool-title">File Format Support</h3>
+                    <p class="tool-description">
+                        Comprehensive support for legal document formats with advanced parsing and analysis capabilities.
+                    </p>
+                    <ul class="tool-features">
+                        <li>PDF documents (all versions)</li>
+                        <li>Microsoft Word (.docx, .doc)</li>
+                        <li>Images (JPEG, PNG, TIFF)</li>
+                        <li>Text files and transcripts</li>
+                        <li>Email formats (EML, MSG)</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">🔗</div>
+                    <h3 class="tool-title">Integration Capabilities</h3>
+                    <p class="tool-description">
+                        Seamless integration with existing legal technology stack and practice management systems.
+                    </p>
+                    <ul class="tool-features">
+                        <li>REST API access</li>
+                        <li>Webhook notifications</li>
+                        <li>Practice management integration</li>
+                        <li>Document management systems</li>
+                        <li>eDiscovery platform support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="platform-section faq-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">❓ Frequently Asked Questions</h2>
+                <p class="section-subtitle">Common questions about LexAI's platform, security, and legal applications</p>
+            </div>
+            
+            <div class="faq-grid">
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        How accurate is the AI content detection?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Our AI content detection achieves 99.2% accuracy in identifying AI-generated text through advanced pattern recognition, writing style analysis, and linguistic markers. The system is continuously updated to detect new AI models and generation techniques.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        Can the analysis reports be used in court?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, our reports are designed for legal proceedings and include technical documentation, chain of custody tracking, and expert testimony support. However, we recommend consulting with legal experts for specific case requirements and jurisdictional rules.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        How is my client data protected?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        All data is protected with 256-bit encryption, SOC 2 compliance, and zero-knowledge architecture. We cannot access your confidential data, and all processing maintains attorney-client privilege. Complete audit trails are available for compliance.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        What file formats are supported?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        We support PDF documents, Microsoft Word files, images (JPEG, PNG), text files, and email formats. Our system can analyze metadata, extract content, and perform security analysis across all supported formats.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        How does pricing work?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        We offer tiered pricing starting at $99/month for solo practitioners, with unlimited access to all AI tools for higher tiers. All plans include core security features, and enterprise options are available for larger firms with custom requirements.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        What makes LexAI different from other legal AI tools?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        LexAI is purpose-built for legal evidence analysis and court proceedings. Unlike general AI tools, we focus on authentication, integrity verification, and legal admissibility. Our platform combines multiple analysis techniques with professional reporting for legal use.
+                    </div>
+                </div>
+                
+                <div class="faq-item" onclick="toggleFAQ(this)">
+                    <div class="faq-question">
+                        Do you offer training and support?
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, we provide comprehensive onboarding, training materials, and ongoing support. Professional and Enterprise plans include priority support, and we offer expert consultation for complex cases requiring specialized analysis.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-platform">
+        <div class="container">
+            <h2>Ready to Transform Your Legal Practice?</h2>
+            <p>
+                Join hundreds of legal professionals using LexAI's advanced AI platform for evidence analysis, 
+                document authentication, and legal research. Start your free trial today.
+            </p>
+            <div class="cta-buttons">
+                <a href="/dashboard" class="btn-platform" onclick="trackEvent('click', 'conversion', 'start_trial_platform', 1)">
+                    Start Free Trial
+                </a>
+                <a href="mailto:sales@lexai.com" class="btn-platform secondary" onclick="trackEvent('click', 'engagement', 'contact_sales_platform', 1)">
+                    Contact Sales
+                </a>
+            </div>
+            <p style="margin-top: 1.5rem; opacity: 0.8; font-size: 0.9rem;">
+                No credit card required • 14-day free trial • Enterprise demos available
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+            <p>AI-Powered Legal Assistant for Legal Practices</p>
+            <p>© 2025 LexAI Practice Partner. Professional legal AI technology.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function toggleFAQ(element) {
+            const answer = element.querySelector('.faq-answer');
+            const toggle = element.querySelector('.faq-toggle');
+            
+            if (answer.classList.contains('show')) {
+                answer.classList.remove('show');
+                toggle.textContent = '+';
+                toggle.classList.remove('rotate');
+            } else {
+                // Close all other FAQs
+                document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('show'));
+                document.querySelectorAll('.faq-toggle').forEach(t => {
+                    t.textContent = '+';
+                    t.classList.remove('rotate');
+                });
+                
+                // Open this FAQ
+                answer.classList.add('show');
+                toggle.textContent = '×';
+                toggle.classList.add('rotate');
+            }
+            
+            // Track FAQ engagement
+            trackEvent('click', 'engagement', 'faq_toggle', 1);
+        }
+        
+        // Track scroll depth for engagement
+        let maxScroll = 0;
+        window.addEventListener('scroll', () => {
+            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+            if (scrollPercent > maxScroll) {
+                maxScroll = scrollPercent;
+                if (maxScroll >= 75) {
+                    trackEvent('scroll', 'engagement', 'platform_scroll_75', 1);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

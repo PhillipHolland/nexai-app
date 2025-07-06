@@ -2497,6 +2497,20 @@ EMBEDDED_DASHBOARD_TEMPLATE = """
 </html>
 """
 
+@app.route('/platform')
+def platform_overview():
+    """Platform Overview page with comprehensive tools showcase"""
+    try:
+        logger.info("Platform overview page accessed")
+        return render_template('platform_overview.html')
+    except Exception as e:
+        logger.error(f"Platform overview error: {e}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Platform</title></head>
+<body><h1>🚀 LexAI Platform Overview</h1>
+<p>Platform page loading error: {e}</p>
+<a href="/">← Back to Home</a></body></html>"""
+
 @app.route('/')
 def landing_page():
     """Clean landing page with Clio-inspired design"""
