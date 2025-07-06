@@ -1,17 +1,40 @@
-{% extends "landing.html" %}
-
-{% block title %}Platform Overview - LexAI Practice Partner{% endblock %}
-
-{% block extra_head %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Overview - LexAI Practice Partner</title>
     <meta name="description" content="Comprehensive overview of LexAI's AI-powered legal platform. Advanced evidence analysis, document authentication, AI detection, and professional legal tools.">
+    
+    <!-- Google Analytics -->
+    {% if google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ google_analytics_id }}');
+        
+        function trackEvent(action, category, label, value) {
+            gtag('event', action, {
+                event_category: category,
+                event_label: label,
+                value: value
+            });
+        }
+        
+        // Track platform page engagement
+        gtag('event', 'page_view', {
+            page_title: 'Platform Overview',
+            page_location: window.location.href
+        });
+    </script>
+    {% endif %}
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/landing.css">
     <style>
         /* Platform Overview Specific Styles */
-        
-        /* Override any base styles for platform page */
-        .navbar .nav-link[href="/platform"] {
-            color: #FFA74F !important;
-            font-weight: 600;
-        }
         .platform-hero {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
             color: white;
@@ -394,9 +417,41 @@
             }
         }
     </style>
-{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-content">
+                <!-- Hamburger Menu Button (Mobile Only) -->
+                <button class="hamburger-menu" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                </button>
 
-{% block content %}
+                <!-- Logo -->
+                <div class="logo">
+                    <a href="/">
+                        <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+                    </a>
+                </div>
+                
+                <!-- Enter Platform Button (Desktop & Mobile) -->
+                <a href="/dashboard" class="btn-primary nav-enter-platform" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+
+                <!-- Navigation Links (Collapsible on Mobile) -->
+                <div class="nav-links-mobile-container">
+                    <div class="nav-links">
+                        <a href="/#features" class="nav-link">Features</a>
+                        <a href="/platform" class="nav-link" style="color: #FFA74F; font-weight: 600;">Platform</a>
+                        <a href="/#how-it-works" class="nav-link">How It Works</a>
+                        <a href="/#pricing" class="nav-link">Pricing</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <!-- Hero Section -->
     <section class="platform-hero">
@@ -695,9 +750,35 @@
         </div>
     </section>
 
-{% endblock %}
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+            <p>AI-Powered Legal Assistant for Legal Practices</p>
+            <p>© 2025 LexAI Practice Partner. Professional legal AI technology.</p>
+        </div>
+    </footer>
 
-{% block extra_js %}
+    <script>
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const navLinksContainer = document.querySelector('.nav-links-mobile-container');
+
+            hamburgerMenu.addEventListener('click', function() {
+                const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
+                this.setAttribute('aria-expanded', !isExpanded);
+                navLinksContainer.classList.toggle('open');
+            });
+
+            // Close menu when a link is clicked
+            navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinksContainer.classList.remove('open');
+                    hamburgerMenu.setAttribute('aria-expanded', 'false');
+                });
+            });
+        });
     <script>
         function toggleFAQ(element) {
             const answer = element.querySelector('.faq-answer');
@@ -739,6 +820,7 @@
             }
         });
         
+        
         // Track platform page view
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof trackEvent === 'function') {
@@ -746,4 +828,5 @@
             }
         });
     </script>
-{% endblock %}
+</body>
+</html>
