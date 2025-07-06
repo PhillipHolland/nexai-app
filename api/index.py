@@ -1,5 +1,6 @@
 """
-LexAI Practice Partner - Enhanced Serverless Version
+LexAI Practice Partner - Enhanced Serverless Version v2.1
+Simplified database connection with 2FA support
 Matches localhost:5002 functionality with modern templates and full feature set
 Includes comprehensive security middleware and input validation
 """
