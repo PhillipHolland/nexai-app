@@ -15,6 +15,7 @@
         gtag('js', new Date());
         gtag('config', '{{ google_analytics_id }}');
         
+        // Custom event tracking functions
         function trackEvent(action, category, label, value) {
             gtag('event', action, {
                 event_category: category,
@@ -23,7 +24,7 @@
             });
         }
         
-        // Track platform page engagement
+        // Track landing page load
         gtag('event', 'page_view', {
             page_title: 'Platform Overview',
             page_location: window.location.href
@@ -32,7 +33,7 @@
     {% endif %}
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/landing.css">
+    <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
     <style>
         /* Platform Overview Specific Styles */
         .platform-hero {
@@ -105,13 +106,6 @@
             color: #6b7280;
             max-width: 500px;
             margin: 0 auto;
-        }
-        
-        .compact-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 3rem;
-            align-items: start;
         }
         
         .tools-grid {
@@ -208,11 +202,6 @@
         .tool-status.coming-soon {
             background: #FFA74F;
             color: #2E4B3C;
-        }
-        
-        .info-sidebar {
-            position: sticky;
-            top: 2rem;
         }
         
         .security-grid {
@@ -411,9 +400,8 @@
                 padding: 1rem;
             }
             
-            .compact-grid {
+            .tools-grid {
                 grid-template-columns: 1fr;
-                gap: 2rem;
             }
         }
     </style>
@@ -441,10 +429,10 @@
                 <!-- Navigation Links (Collapsible on Mobile) -->
                 <div class="nav-links-mobile-container">
                     <div class="nav-links">
-                        <a href="#features" class="nav-link">Features</a>
+                        <a href="/#features" class="nav-link">Features</a>
                         <a href="/platform" class="nav-link" onclick="trackEvent('click', 'navigation', 'platform_overview', 1)">Platform</a>
-                        <a href="#how-it-works" class="nav-link">How It Works</a>
-                        <a href="#pricing" class="nav-link">Pricing</a>
+                        <a href="/#how-it-works" class="nav-link">How It Works</a>
+                        <a href="/#pricing" class="nav-link">Pricing</a>
                     </div>
                 </div>
             </div>
@@ -758,7 +746,6 @@
     </footer>
 
     <script>
-        // Mobile menu functionality
         document.addEventListener('DOMContentLoaded', function() {
             const hamburgerMenu = document.querySelector('.hamburger-menu');
             const navLinksContainer = document.querySelector('.nav-links-mobile-container');
@@ -769,7 +756,7 @@
                 navLinksContainer.classList.toggle('open');
             });
 
-            // Close menu when a link is clicked
+            // Close menu when a link is clicked (for single-page navigation)
             navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', () => {
                     navLinksContainer.classList.remove('open');
@@ -777,7 +764,7 @@
                 });
             });
         });
-    <script>
+        
         function toggleFAQ(element) {
             const answer = element.querySelector('.faq-answer');
             const toggle = element.querySelector('.faq-toggle');
@@ -805,26 +792,6 @@
                 trackEvent('click', 'engagement', 'faq_toggle', 1);
             }
         }
-        
-        // Track scroll depth for engagement
-        let maxScroll = 0;
-        window.addEventListener('scroll', () => {
-            const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
-            if (scrollPercent > maxScroll) {
-                maxScroll = scrollPercent;
-                if (maxScroll >= 75 && typeof trackEvent === 'function') {
-                    trackEvent('scroll', 'engagement', 'platform_scroll_75', 1);
-                }
-            }
-        });
-        
-        
-        // Track platform page view
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof trackEvent === 'function') {
-                trackEvent('page_view', 'platform', 'platform_overview', 1);
-            }
-        });
     </script>
 </body>
 </html>
