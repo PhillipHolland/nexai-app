@@ -2553,6 +2553,174 @@ def dashboard():
 <p>Check logs for details</p>
 <a href="/">← Back to Home</a></body></html>"""
 
+@app.route('/evidence-analysis')
+def evidence_analysis():
+    """Digital Evidence Analysis Suite"""
+    try:
+        # Check if user is authenticated
+        current_user = get_current_user()
+        if not current_user:
+            logger.info("Unauthenticated user trying to access evidence analysis, redirecting to login")
+            flash('Please log in to access evidence analysis tools', 'info')
+            return redirect(url_for('login'))
+        
+        logger.info(f"User {current_user.email} accessing evidence analysis suite")
+        
+        return render_template('evidence_analysis.html',
+                             current_user=current_user,
+                             user_name=f"{current_user.first_name} {current_user.last_name}")
+        
+    except Exception as e:
+        logger.error(f"Evidence analysis error: {e}")
+        import traceback
+        logger.error(f"Evidence analysis traceback: {traceback.format_exc()}")
+        return f"""<!DOCTYPE html>
+<html><head><title>LexAI Evidence Analysis</title></head>
+<body><h1>🔍 LexAI Evidence Analysis</h1>
+<p>Evidence analysis loading error: {e}</p>
+<p>Check logs for details</p>
+<a href="/dashboard">← Back to Dashboard</a></body></html>"""
+
+@app.route('/api/evidence/ai-detect', methods=['POST'])
+def api_ai_content_detection():
+    """AI Content Detection API endpoint"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data or not data.get('text'):
+            return jsonify({'error': 'Text content required'}), 400
+        
+        text = data.get('text', '').strip()
+        if len(text) < 10:
+            return jsonify({'error': 'Text too short for analysis (minimum 10 characters)'}), 400
+        
+        # AI Content Detection Analysis
+        analysis_result = analyze_ai_content(text)
+        
+        # Log the analysis
+        logger.info(f"AI content analysis performed by user {current_user.email}")
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis_result,
+            'timestamp': datetime.utcnow().isoformat(),
+            'user_id': current_user.id
+        })
+        
+    except Exception as e:
+        logger.error(f"AI content detection error: {e}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+def analyze_ai_content(text):
+    """Analyze text for AI-generated content indicators"""
+    
+    # Basic AI detection patterns
+    ai_indicators = []
+    confidence_score = 0
+    
+    # Pattern 1: Repetitive phrases common in AI text
+    repetitive_patterns = [
+        "it's important to", "it's worth noting", "furthermore", "moreover", 
+        "in conclusion", "to summarize", "it should be noted", "additionally"
+    ]
+    repetitive_count = sum(1 for pattern in repetitive_patterns if pattern.lower() in text.lower())
+    if repetitive_count > 2:
+        ai_indicators.append(f"High use of AI-common phrases ({repetitive_count} instances)")
+        confidence_score += min(repetitive_count * 10, 30)
+    
+    # Pattern 2: Overly formal/perfect grammar
+    sentences = text.split('.')
+    avg_sentence_length = sum(len(s.split()) for s in sentences if s.strip()) / max(len([s for s in sentences if s.strip()]), 1)
+    if avg_sentence_length > 20:
+        ai_indicators.append("Unusually long average sentence length")
+        confidence_score += 15
+    
+    # Pattern 3: Lack of personal pronouns (common in AI text)
+    personal_pronouns = ['I', 'me', 'my', 'we', 'us', 'our']
+    pronoun_count = sum(1 for pronoun in personal_pronouns if f' {pronoun} ' in f' {text} ')
+    if len(text.split()) > 50 and pronoun_count == 0:
+        ai_indicators.append("Absence of personal pronouns in long text")
+        confidence_score += 20
+    
+    # Pattern 4: Generic/vague language
+    vague_terms = ['various', 'numerous', 'multiple', 'several', 'different', 'certain']
+    vague_count = sum(1 for term in vague_terms if term.lower() in text.lower())
+    if vague_count > 3:
+        ai_indicators.append(f"High use of vague terminology ({vague_count} instances)")
+        confidence_score += min(vague_count * 5, 20)
+    
+    # Pattern 5: Perfect punctuation and formatting
+    if text.count(',') > len(text.split()) * 0.1:  # Very high comma usage
+        ai_indicators.append("Unusually high comma usage")
+        confidence_score += 10
+    
+    # Determine overall assessment
+    if confidence_score >= 60:
+        assessment = "HIGHLY LIKELY AI-Generated"
+        risk_level = "HIGH"
+        color = "#F0531C"  # Red
+    elif confidence_score >= 30:
+        assessment = "POSSIBLY AI-Generated"
+        risk_level = "MEDIUM"
+        color = "#FFA74F"  # Orange
+    else:
+        assessment = "LIKELY Human-Written"
+        risk_level = "LOW"
+        color = "#2E4B3C"  # Green
+    
+    return {
+        'confidence_score': min(confidence_score, 100),
+        'assessment': assessment,
+        'risk_level': risk_level,
+        'color': color,
+        'indicators': ai_indicators,
+        'text_stats': {
+            'word_count': len(text.split()),
+            'sentence_count': len([s for s in text.split('.') if s.strip()]),
+            'avg_sentence_length': round(avg_sentence_length, 1),
+            'character_count': len(text)
+        },
+        'recommendations': generate_ai_recommendations(confidence_score, ai_indicators)
+    }
+
+def generate_ai_recommendations(score, indicators):
+    """Generate recommendations based on AI detection analysis"""
+    recommendations = []
+    
+    if score >= 60:
+        recommendations.extend([
+            "🚨 Strong indicators of AI generation detected",
+            "📋 Request additional documentation or verification",
+            "🔍 Consider forensic analysis of source documents",
+            "⚖️ May face admissibility challenges in court"
+        ])
+    elif score >= 30:
+        recommendations.extend([
+            "⚠️ Some AI indicators present - exercise caution",
+            "📝 Request clarification on document creation process",
+            "🔍 Consider additional authentication measures",
+            "📋 Document analysis findings thoroughly"
+        ])
+    else:
+        recommendations.extend([
+            "✅ Low AI indicators - appears authentic",
+            "📋 Standard authentication procedures recommended",
+            "✅ Likely suitable for legal proceedings",
+            "📝 Document analysis for chain of custody"
+        ])
+    
+    # Add specific recommendations based on indicators
+    if any("phrases" in ind for ind in indicators):
+        recommendations.append("💡 High AI phrase usage - cross-reference with known AI outputs")
+    
+    if any("pronoun" in ind for ind in indicators):
+        recommendations.append("💡 Lack of personal voice - investigate author background")
+    
+    return recommendations
+
 @app.route('/chat')
 def chat_interface():
     """Modern AI Chat Interface"""

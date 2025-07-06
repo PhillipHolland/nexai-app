@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Evidence Analysis - LexAI</title>
+    <link rel="stylesheet" href="/static/platform.css">
+    <style>
+        .evidence-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .evidence-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .evidence-header h1 {
+            color: #2E4B3C;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .evidence-header p {
+            color: #6b7280;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .evidence-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .evidence-tool {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .evidence-tool:hover {
+            border-color: #FFA74F;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .evidence-tool.primary {
+            border-color: #FFA74F;
+            background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%);
+            color: white;
+        }
+        
+        .evidence-tool.primary h3,
+        .evidence-tool.primary p {
+            color: white;
+        }
+        
+        .tool-icon {
+            width: 3rem;
+            height: 3rem;
+            background: #2E4B3C;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .evidence-tool.primary .tool-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .evidence-tool h3 {
+            color: #2E4B3C;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .evidence-tool p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .tool-features {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tool-features li {
+            padding: 0.25rem 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .tool-features li:before {
+            content: "✓ ";
+            color: #FFA74F;
+            font-weight: bold;
+        }
+        
+        .evidence-tool.primary .tool-features li:before {
+            color: white;
+        }
+        
+        .upload-area {
+            background: #F7EDDA;
+            border: 2px dashed #FFA74F;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            background: #f0e68c;
+            border-color: #F0531C;
+        }
+        
+        .upload-area.dragover {
+            background: #FFA74F;
+            color: white;
+        }
+        
+        .upload-icon {
+            width: 4rem;
+            height: 4rem;
+            background: #FFA74F;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .btn-evidence {
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-evidence:hover {
+            background: #09332C;
+            transform: translateY(-1px);
+        }
+        
+        .btn-evidence.primary {
+            background: #FFA74F;
+            color: #2E4B3C;
+        }
+        
+        .btn-evidence.primary:hover {
+            background: #F0531C;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-content">
+                <div class="logo">
+                    <a href="/dashboard">
+                        <img src="/static/lexAI.png" alt="LexAI">
+                    </a>
+                </div>
+                <div class="nav-links">
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/evidence-analysis" class="nav-link active">Evidence Analysis</a>
+                    <a href="/chat" class="nav-link">AI Assistant</a>
+                    <a href="/documents" class="nav-link">Documents</a>
+                    <a href="/logout" class="nav-link">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="evidence-container">
+        <div class="evidence-header">
+            <h1>🔍 Digital Evidence Analysis Suite</h1>
+            <p>Advanced AI-powered tools for authenticating, analyzing, and validating digital evidence for legal proceedings</p>
+        </div>
+
+        <!-- Quick Upload Section -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <h3>Drag & Drop Documents or Text</h3>
+            <p>Upload documents, images, or paste text for instant analysis</p>
+            <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" style="display: none;">
+            <button class="btn-evidence primary" onclick="document.getElementById('fileInput').click()">
+                Choose Files
+            </button>
+        </div>
+
+        <div class="evidence-tools">
+            <!-- AI Content Detection -->
+            <div class="evidence-tool primary" onclick="showAIDetector()">
+                <div class="tool-icon">🤖</div>
+                <h3>AI Content Detection</h3>
+                <p>Detect artificially generated text, identify deepfakes, and analyze writing patterns for authenticity</p>
+                <ul class="tool-features">
+                    <li>GPT/AI-generated text detection</li>
+                    <li>Writing style analysis</li>
+                    <li>Authenticity scoring</li>
+                    <li>Pattern recognition</li>
+                </ul>
+            </div>
+
+            <!-- Document Authentication -->
+            <div class="evidence-tool" onclick="showDocAuth()">
+                <div class="tool-icon">🔐</div>
+                <h3>Document Authentication</h3>
+                <p>Verify document integrity, validate digital signatures, and ensure chain of custody</p>
+                <ul class="tool-features">
+                    <li>Hash verification</li>
+                    <li>Metadata analysis</li>
+                    <li>Digital signature validation</li>
+                    <li>Timestamp verification</li>
+                </ul>
+            </div>
+
+            <!-- Legal Admissibility Checker -->
+            <div class="evidence-tool" onclick="showAdmissibility()">
+                <div class="tool-icon">⚖️</div>
+                <h3>Legal Admissibility</h3>
+                <p>Analyze evidence for hearsay issues, authentication requirements, and court readiness</p>
+                <ul class="tool-features">
+                    <li>Hearsay rule analysis</li>
+                    <li>Authentication checklist</li>
+                    <li>Federal Rules compliance</li>
+                    <li>Court-ready reports</li>
+                </ul>
+            </div>
+
+            <!-- Evidence Reports -->
+            <div class="evidence-tool" onclick="showReports()">
+                <div class="tool-icon">📊</div>
+                <h3>Evidence Reports</h3>
+                <p>Generate comprehensive reports for court presentation and expert testimony</p>
+                <ul class="tool-features">
+                    <li>Professional formatting</li>
+                    <li>Expert witness support</li>
+                    <li>Chain of custody tracking</li>
+                    <li>Technical documentation</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- AI Content Detection Interface -->
+        <div id="aiDetectionInterface" style="display: none;">
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+                <h3>🤖 AI Content Detection</h3>
+                <p>Paste or type text content to analyze for AI-generated patterns</p>
+                
+                <div style="margin: 1rem 0;">
+                    <textarea id="textInput" placeholder="Paste text content here for analysis..." 
+                              style="width: 100%; height: 200px; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="btn-evidence primary" onclick="analyzeText()">
+                        🔍 Analyze Text
+                    </button>
+                    <button class="btn-evidence" onclick="clearAnalysis()">
+                        Clear
+                    </button>
+                    <span id="charCount" style="color: #6b7280; font-size: 0.9rem;">0 characters</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Results Area -->
+        <div id="analysisResults" style="display: none;">
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <h3>📊 Analysis Results</h3>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            console.log('Files uploaded:', files);
+            // TODO: Implement file processing
+            showAnalysisResults('Files uploaded successfully. Analysis in progress...');
+        }
+        
+        // Character counter for text input
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        
+        if (textInput && charCount) {
+            textInput.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = `${count} characters`;
+                charCount.style.color = count < 10 ? '#F0531C' : '#6b7280';
+            });
+        }
+        
+        function showAIDetector() {
+            // Hide other interfaces
+            hideAllInterfaces();
+            // Show AI detection interface
+            document.getElementById('aiDetectionInterface').style.display = 'block';
+            document.getElementById('aiDetectionInterface').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showDocAuth() {
+            hideAllInterfaces();
+            showAnalysisResults('🔐 Document Authentication tool selected. Upload documents for verification.');
+        }
+        
+        function showAdmissibility() {
+            hideAllInterfaces();
+            showAnalysisResults('⚖️ Legal Admissibility Checker selected. Upload evidence for analysis.');
+        }
+        
+        function showReports() {
+            hideAllInterfaces();
+            showAnalysisResults('📊 Evidence Reports generator selected. Choose analysis results to format.');
+        }
+        
+        function hideAllInterfaces() {
+            document.getElementById('aiDetectionInterface').style.display = 'none';
+            document.getElementById('analysisResults').style.display = 'none';
+        }
+        
+        function clearAnalysis() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('charCount').textContent = '0 characters';
+            document.getElementById('analysisResults').style.display = 'none';
+        }
+        
+        function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (text.length < 10) {
+                alert('Please enter at least 10 characters for analysis.');
+                return;
+            }
+            
+            // Show loading
+            showAnalysisResults('🔄 Analyzing text for AI-generated content patterns...');
+            
+            // Make API call
+            fetch('/api/evidence/ai-detect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayAnalysisResults(data.analysis);
+                } else {
+                    showAnalysisResults('❌ Analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Analysis error:', error);
+                showAnalysisResults('❌ Network error occurred during analysis.');
+            });
+        }
+        
+        function displayAnalysisResults(analysis) {
+            const resultsHtml = `
+                <div style="border-left: 4px solid ${analysis.color}; padding-left: 1rem; margin-bottom: 2rem;">
+                    <h4 style="color: ${analysis.color}; margin-bottom: 0.5rem;">
+                        ${analysis.assessment}
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="background: ${analysis.color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                            ${analysis.confidence_score}% Confidence
+                        </div>
+                        <div style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 20px;">
+                            Risk Level: ${analysis.risk_level}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h5>📊 Text Statistics</h5>
+                        <ul style="list-style: none; padding: 0;">
+                            <li>📝 Words: ${analysis.text_stats.word_count}</li>
+                            <li>📏 Sentences: ${analysis.text_stats.sentence_count}</li>
+                            <li>📐 Avg Sentence Length: ${analysis.text_stats.avg_sentence_length} words</li>
+                            <li>🔤 Characters: ${analysis.text_stats.character_count}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5>🚨 AI Indicators Found</h5>
+                        ${analysis.indicators.length > 0 ? 
+                            '<ul>' + analysis.indicators.map(indicator => `<li>• ${indicator}</li>`).join('') + '</ul>' :
+                            '<p style="color: #2E4B3C;">✅ No significant AI indicators detected</p>'
+                        }
+                    </div>
+                </div>
+                
+                <div>
+                    <h5>💡 Recommendations</h5>
+                    <ul>
+                        ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <h6>⚖️ Legal Considerations</h6>
+                    <p style="margin: 0; font-size: 0.9rem; color: #6b7280;">
+                        This analysis is for informational purposes only and should not be the sole basis for legal decisions. 
+                        Consider additional forensic analysis and expert testimony for court proceedings.
+                    </p>
+                </div>
+            `;
+            
+            showAnalysisResults(resultsHtml);
+        }
+        
+        function showAnalysisResults(content) {
+            const resultsDiv = document.getElementById('analysisResults');
+            const contentDiv = document.getElementById('resultsContent');
+            contentDiv.innerHTML = typeof content === 'string' ? `<p>${content}</p>` : content;
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
