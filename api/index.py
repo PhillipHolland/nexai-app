@@ -40,27 +40,43 @@ if DATABASE_AVAILABLE:
 else:
     logger.warning("❌ No database URL - using mock data mode")
 
-# Enable 2FA with database detection
-if DATABASE_AVAILABLE:
-    DATABASE_AVAILABLE = True
-    AUTH_AVAILABLE = True
-    
-    # Create fallback enums when database models are not available
-    from enum import Enum
-    
-    class UserRole(Enum):
-        ADMIN = "admin"
-        PARTNER = "partner" 
-        ASSOCIATE = "associate"
-        PARALEGAL = "paralegal"
-        CLIENT = "client"
-        STAFF = "staff"
-    
+# Import dependencies that might not be available
+try:
     import psycopg2
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    logger.warning("psycopg2 not available - database features disabled")
+
+try:
     import pyotp
+    PYOTP_AVAILABLE = True
+except ImportError:
+    PYOTP_AVAILABLE = False
+    logger.warning("pyotp not available - 2FA features disabled")
+
+try:
     import secrets
-    import json
-    from werkzeug.security import generate_password_hash, check_password_hash
+    SECRETS_AVAILABLE = True
+except ImportError:
+    SECRETS_AVAILABLE = False
+    logger.warning("secrets not available - using fallback")
+
+import json
+from werkzeug.security import generate_password_hash, check_password_hash
+from enum import Enum
+
+# Create enums for user roles
+class UserRole(Enum):
+    ADMIN = "admin"
+    PARTNER = "partner" 
+    ASSOCIATE = "associate"
+    PARALEGAL = "paralegal"
+    CLIENT = "client"
+    STAFF = "staff"
+
+# Enable 2FA with database detection
+if DATABASE_AVAILABLE and PSYCOPG2_AVAILABLE:
     
     # Simplified database operations using raw SQL
     def get_db_connection():
@@ -73,13 +89,20 @@ if DATABASE_AVAILABLE:
     
     def register_user(email, password, first_name, last_name, firm_name=None):
         """Simple user registration"""
+        if not PSYCOPG2_AVAILABLE:
+            return False, "Database not available"
+        
         conn = get_db_connection()
         if not conn:
             return False, "Database connection failed"
         
         try:
             cursor = conn.cursor()
-            user_id = secrets.token_urlsafe(16)
+            if SECRETS_AVAILABLE:
+                user_id = secrets.token_urlsafe(16)
+            else:
+                import uuid
+                user_id = str(uuid.uuid4())
             password_hash = generate_password_hash(password)
             
             cursor.execute("""
@@ -136,6 +159,9 @@ if DATABASE_AVAILABLE:
     
     def enable_2fa_for_user(user_id):
         """Enable 2FA for user"""
+        if not PSYCOPG2_AVAILABLE or not PYOTP_AVAILABLE:
+            return None, "2FA not available - missing dependencies"
+        
         conn = get_db_connection()
         if not conn:
             return None, "Database connection failed"
@@ -160,6 +186,9 @@ if DATABASE_AVAILABLE:
     
     def verify_2fa_token(user_id, token):
         """Verify 2FA token"""
+        if not PSYCOPG2_AVAILABLE or not PYOTP_AVAILABLE:
+            return False
+        
         conn = get_db_connection()
         if not conn:
             return False
