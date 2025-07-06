@@ -6885,6 +6885,392 @@ USER_SUBSCRIPTIONS = {
 
 # Old billing dashboard removed - now using billing.html template
 # @app.route('/billing') - moved to line 10577
+            <style>
+                .billing-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+                
+                .billing-header {
+                    text-align: center;
+                    margin-bottom: 48px;
+                }
+                
+                .billing-title {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: var(--text-dark);
+                    margin-bottom: 16px;
+                }
+                
+                .billing-subtitle {
+                    font-size: 1.125rem;
+                    color: var(--text-light);
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                
+                .current-plan-section {
+                    background: linear-gradient(135deg, var(--primary-green), #22c55e);
+                    border-radius: 16px;
+                    padding: 32px;
+                    color: white;
+                    margin-bottom: 48px;
+                    text-align: center;
+                }
+                
+                .current-plan-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                }
+                
+                .current-plan-name {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    margin-bottom: 16px;
+                }
+                
+                .usage-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 24px;
+                    margin-top: 24px;
+                }
+                
+                .usage-card {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 12px;
+                    padding: 20px;
+                    text-align: center;
+                }
+                
+                .usage-number {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                }
+                
+                .usage-label {
+                    font-size: 0.875rem;
+                    opacity: 0.9;
+                }
+                
+                .plans-section {
+                    margin-bottom: 48px;
+                }
+                
+                .section-title {
+                    font-size: 2rem;
+                    font-weight: 700;
+                    text-align: center;
+                    margin-bottom: 32px;
+                    color: var(--text-dark);
+                }
+                
+                .plans-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                    gap: 32px;
+                    margin-bottom: 48px;
+                }
+                
+                .plan-card {
+                    background: white;
+                    border: 2px solid var(--border-light);
+                    border-radius: 16px;
+                    padding: 32px;
+                    position: relative;
+                    transition: all 0.3s ease;
+                }
+                
+                .plan-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                }
+                
+                .plan-card.popular {
+                    border-color: var(--primary-green);
+                    transform: scale(1.05);
+                }
+                
+                .plan-card.current {
+                    border-color: var(--primary-green);
+                    background: var(--gray-50);
+                }
+                
+                .popular-badge {
+                    position: absolute;
+                    top: -12px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--primary-green);
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                }
+                
+                .current-badge {
+                    position: absolute;
+                    top: -12px;
+                    right: 16px;
+                    background: var(--primary-green);
+                    color: white;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                }
+                
+                .plan-name {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    margin-bottom: 8px;
+                    color: var(--text-dark);
+                }
+                
+                .plan-price {
+                    font-size: 3rem;
+                    font-weight: 700;
+                    color: var(--primary-green);
+                    margin-bottom: 4px;
+                }
+                
+                .plan-cycle {
+                    color: var(--text-light);
+                    margin-bottom: 24px;
+                }
+                
+                .plan-features {
+                    list-style: none;
+                    padding: 0;
+                    margin-bottom: 32px;
+                }
+                
+                .plan-features li {
+                    padding: 8px 0;
+                    position: relative;
+                    padding-left: 24px;
+                }
+                
+                .plan-features li::before {
+                    content: "✓";
+                    position: absolute;
+                    left: 0;
+                    color: var(--primary-green);
+                    font-weight: bold;
+                }
+                
+                .plan-button {
+                    width: 100%;
+                    padding: 12px 24px;
+                    background: var(--primary-green);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                }
+                
+                .plan-button:hover {
+                    background: #1e3a2e;
+                }
+                
+                .plan-button.current {
+                    background: var(--gray-400);
+                    cursor: not-allowed;
+                }
+                
+                .billing-history {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 32px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                }
+                
+                .billing-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                
+                .billing-table th,
+                .billing-table td {
+                    padding: 16px;
+                    text-align: left;
+                    border-bottom: 1px solid var(--border-light);
+                }
+                
+                .billing-table th {
+                    font-weight: 600;
+                    color: var(--text-dark);
+                    background: var(--gray-50);
+                }
+                
+                .status-paid {
+                    color: var(--primary-green);
+                    font-weight: 600;
+                }
+                
+                .back-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--primary-green);
+                    text-decoration: none;
+                    font-weight: 600;
+                    margin-bottom: 24px;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .back-link:hover {
+                    opacity: 0.8;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="billing-container">
+                <a href="{{ url_for('dashboard') }}" class="back-link">
+                    ← Back to Dashboard
+                </a>
+                
+                <div class="billing-header">
+                    <h1 class="billing-title">Billing & Subscription</h1>
+                    <p class="billing-subtitle">Manage your LexAI subscription and billing preferences</p>
+                </div>
+                
+                <!-- Current Plan Status -->
+                <div class="current-plan-section">
+                    <div class="current-plan-title">Current Plan</div>
+                    <div class="current-plan-name">{{ plans[current_plan]['name'] }}</div>
+                    <div>Next billing date: {{ subscription.get('current_period_end', 'N/A') }}</div>
+                    
+                    <div class="usage-grid">
+                        <div class="usage-card">
+                            <div class="usage-number">{{ subscription.get('usage', {}).get('ai_consultations', 0) }}</div>
+                            <div class="usage-label">AI Consultations</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">{{ subscription.get('usage', {}).get('document_uploads', 0) }}</div>
+                            <div class="usage-label">Documents Uploaded</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">{{ "%.1f"|format(subscription.get('usage', {}).get('storage_used_gb', 0)) }}GB</div>
+                            <div class="usage-label">Storage Used</div>
+                        </div>
+                        <div class="usage-card">
+                            <div class="usage-number">${{ plans[current_plan]['price'] }}</div>
+                            <div class="usage-label">Monthly Cost</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Available Plans -->
+                <div class="plans-section">
+                    <h2 class="section-title">Choose Your Plan</h2>
+                    <div class="plans-grid">
+                        {% for plan_id, plan in plans.items() %}
+                        <div class="plan-card {{ 'popular' if plan.get('popular') else '' }} {{ 'current' if plan_id == current_plan else '' }}">
+                            {% if plan.get('popular') %}
+                            <div class="popular-badge">Most Popular</div>
+                            {% endif %}
+                            
+                            {% if plan_id == current_plan %}
+                            <div class="current-badge">Current Plan</div>
+                            {% endif %}
+                            
+                            <div class="plan-name">{{ plan['name'] }}</div>
+                            <div class="plan-price">${{ plan['price'] }}</div>
+                            <div class="plan-cycle">per month</div>
+                            
+                            <ul class="plan-features">
+                                {% for feature in plan['features'] %}
+                                <li>{{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <button class="plan-button {{ 'current' if plan_id == current_plan else '' }}" 
+                                    onclick="{% if plan_id != current_plan %}changePlan('{{ plan_id }}'){% endif %}"
+                                    {% if plan_id == current_plan %}disabled{% endif %}>
+                                {% if plan_id == current_plan %}
+                                Current Plan
+                                {% else %}
+                                {% if plan['price'] > plans[current_plan]['price'] %}Upgrade{% else %}Downgrade{% endif %}
+                                {% endif %}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Billing History -->
+                <div class="billing-history">
+                    <h2 class="section-title">Billing History</h2>
+                    <table class="billing-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in subscription.get('billing_history', []) %}
+                            <tr>
+                                <td>{{ invoice['date'] }}</td>
+                                <td>${{ invoice['amount'] }}</td>
+                                <td class="status-paid">{{ invoice['status'].title() }}</td>
+                                <td>{{ invoice['invoice_id'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <script>
+                function changePlan(planId) {
+                    if (confirm(`Are you sure you want to change to the ${planId} plan?`)) {
+                        fetch('/api/billing/change-plan', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ plan: planId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Plan changed successfully!');
+                                location.reload();
+                            } else {
+                                alert('Failed to change plan: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            alert('Error changing plan: ' + error.message);
+                        });
+                    }
+                }
+            </script>
+        </body>
+        </html>
+        """, 
+        plans=SUBSCRIPTION_PLANS,
+        current_plan=current_plan,
+        subscription=subscription)
+        
+    except Exception as e:
+        logger.error(f"Billing dashboard error: {e}")
+        return f"""<!DOCTYPE html>
+        <html><head><title>LexAI Billing</title></head>
+        <body style="font-family: Inter, sans-serif; padding: 40px; text-align: center;">
+        <h1>🏛️ LexAI Billing Dashboard</h1>
+        <p>Error loading billing information: {e}</p>
+        <a href="/" style="color: #2E4B3C;">← Back to Dashboard</a>
+        </body></html>"""
 
 @app.route('/api/billing/plans', methods=['GET'])
 @rate_limit_decorator
