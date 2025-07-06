@@ -6,7 +6,6 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "echo 'Force rebuild v2.1'",
   "headers": [
     {
       "source": "/api/(.*)",
