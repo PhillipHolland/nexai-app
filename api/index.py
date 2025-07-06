@@ -3016,6 +3016,194 @@ def generate_doc_recommendations(integrity_score, security_analysis):
     
     return recommendations
 
+@app.route('/api/evidence/legal-admissibility', methods=['POST'])
+def api_legal_admissibility():
+    """Legal Admissibility Checker API endpoint"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Evidence data required'}), 400
+        
+        evidence_type = data.get('evidence_type', 'document')
+        evidence_description = data.get('description', '')
+        source_information = data.get('source', '')
+        
+        if len(evidence_description) < 10:
+            return jsonify({'error': 'Evidence description too short (minimum 10 characters)'}), 400
+        
+        # Legal Admissibility Analysis
+        admissibility_result = analyze_legal_admissibility(
+            evidence_type, 
+            evidence_description, 
+            source_information
+        )
+        
+        # Log the analysis
+        logger.info(f"Legal admissibility analysis performed by user {current_user.email}")
+        
+        return jsonify({
+            'success': True,
+            'analysis': admissibility_result,
+            'timestamp': datetime.utcnow().isoformat(),
+            'user_id': current_user.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Legal admissibility analysis error: {e}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+def analyze_legal_admissibility(evidence_type, description, source):
+    """Analyze evidence for legal admissibility under Federal Rules of Evidence"""
+    
+    issues = []
+    recommendations = []
+    admissibility_score = 100
+    
+    # Rule 401 - Relevance Analysis
+    relevance_keywords = ['relevant', 'material', 'probative', 'tends to prove', 'disputed fact']
+    has_relevance_indication = any(keyword in description.lower() for keyword in relevance_keywords)
+    
+    if not has_relevance_indication:
+        issues.append("⚠️ Relevance not clearly established (Rule 401)")
+        recommendations.append("Establish how evidence makes a fact more or less probable")
+        admissibility_score -= 15
+    
+    # Rule 403 - Prejudicial Effect Analysis
+    prejudicial_indicators = ['inflammatory', 'shocking', 'emotional', 'graphic', 'disturbing']
+    has_prejudicial_content = any(indicator in description.lower() for indicator in prejudicial_indicators)
+    
+    if has_prejudicial_content:
+        issues.append("⚠️ Potential Rule 403 exclusion risk - prejudicial effect")
+        recommendations.append("Consider redaction or limiting instruction to reduce prejudicial impact")
+        admissibility_score -= 20
+    
+    # Authentication Requirements (Rule 901)
+    authentication_indicators = ['authenticated', 'verified', 'original', 'copy', 'signature']
+    needs_authentication = evidence_type in ['document', 'photograph', 'recording', 'digital']
+    
+    if needs_authentication:
+        has_authentication = any(indicator in description.lower() or indicator in source.lower() 
+                               for indicator in authentication_indicators)
+        if not has_authentication:
+            issues.append("❌ Authentication required but not established (Rule 901)")
+            recommendations.append("Provide foundation witness or circumstantial evidence for authentication")
+            admissibility_score -= 25
+    
+    # Hearsay Analysis (Rule 802)
+    hearsay_indicators = ['statement', 'said', 'told', 'testified', 'declared', 'reported']
+    potential_hearsay = any(indicator in description.lower() for indicator in hearsay_indicators)
+    
+    if potential_hearsay:
+        issues.append("⚠️ Potential hearsay concerns (Rule 802)")
+        recommendations.extend([
+            "Identify applicable hearsay exception (Rules 803, 804, 807)",
+            "Consider present sense impression, excited utterance, or business records exception",
+            "Establish declarant's unavailability if needed for Rule 804 exceptions"
+        ])
+        admissibility_score -= 20
+    
+    # Business Records Analysis
+    if 'business' in description.lower() or 'record' in description.lower():
+        business_requirements = ['regular course', 'routine', 'contemporaneous', 'custodian']
+        has_business_foundation = any(req in description.lower() or req in source.lower() 
+                                    for req in business_requirements)
+        
+        if not has_business_foundation:
+            issues.append("⚠️ Business records foundation incomplete (Rule 803(6))")
+            recommendations.append("Establish: made in regular course, contemporaneous creation, qualified custodian")
+            admissibility_score -= 15
+    
+    # Expert Testimony Requirements (Rule 702)
+    if 'expert' in description.lower() or 'opinion' in description.lower():
+        expert_requirements = ['qualified', 'specialized knowledge', 'reliable method', 'sufficient facts']
+        has_expert_foundation = any(req in description.lower() for req in expert_requirements)
+        
+        if not has_expert_foundation:
+            issues.append("⚠️ Expert testimony foundation insufficient (Rule 702)")
+            recommendations.extend([
+                "Establish expert's qualifications and specialized knowledge",
+                "Demonstrate reliable methodology (Daubert standard)",
+                "Show opinion based on sufficient facts or data"
+            ])
+            admissibility_score -= 20
+    
+    # Digital Evidence Considerations
+    if evidence_type == 'digital' or any(term in description.lower() for term in ['email', 'text', 'digital', 'electronic']):
+        digital_concerns = []
+        if 'metadata' not in description.lower():
+            digital_concerns.append("Metadata preservation and analysis")
+        if 'hash' not in description.lower():
+            digital_concerns.append("Hash verification for integrity")
+        if 'chain of custody' not in description.lower():
+            digital_concerns.append("Digital chain of custody documentation")
+        
+        if digital_concerns:
+            issues.append("⚠️ Digital evidence authentication concerns")
+            recommendations.extend([f"Address: {concern}" for concern in digital_concerns])
+            admissibility_score -= 10
+    
+    # Best Evidence Rule (Rule 1002)
+    if evidence_type == 'document' and 'copy' in description.lower():
+        if 'original unavailable' not in description.lower():
+            issues.append("⚠️ Best Evidence Rule - original may be required (Rule 1002)")
+            recommendations.append("Explain why original is unavailable or establish copy as duplicate under Rule 1003")
+            admissibility_score -= 10
+    
+    # Determine overall assessment
+    if admissibility_score >= 85:
+        assessment = "✅ High Admissibility - Evidence likely admissible"
+        color = "#2E4B3C"
+        risk_level = "Low"
+    elif admissibility_score >= 70:
+        assessment = "⚠️ Moderate Admissibility - Some concerns to address"
+        color = "#FFA74F"
+        risk_level = "Medium"
+    elif admissibility_score >= 50:
+        assessment = "⚠️ Low Admissibility - Significant issues present"
+        color = "#F0531C"
+        risk_level = "High"
+    else:
+        assessment = "❌ Poor Admissibility - Major evidentiary problems"
+        color = "#DC2626"
+        risk_level = "Very High"
+    
+    # Add general recommendations
+    if not issues:
+        recommendations.insert(0, "✅ No obvious evidentiary issues identified")
+    
+    recommendations.extend([
+        "📋 Prepare detailed foundation questions for witness examination",
+        "📚 Review applicable state evidence rules for variations",
+        "⚖️ Consider pre-trial motion in limine to address concerns",
+        "📝 Prepare alternative theories of admissibility"
+    ])
+    
+    return {
+        'assessment': assessment,
+        'admissibility_score': admissibility_score,
+        'color': color,
+        'risk_level': risk_level,
+        'issues': issues,
+        'recommendations': recommendations,
+        'rules_analysis': {
+            'relevance': 'Analyzed under Rule 401/403',
+            'authentication': 'Analyzed under Rule 901',
+            'hearsay': 'Analyzed under Rule 802-807',
+            'best_evidence': 'Analyzed under Rule 1002-1008',
+            'expert_opinion': 'Analyzed under Rule 702' if 'expert' in description.lower() else 'Not applicable'
+        },
+        'evidence_summary': {
+            'type': evidence_type,
+            'description_length': len(description),
+            'source_provided': bool(source.strip()) if source else False,
+            'analysis_timestamp': datetime.utcnow().isoformat()
+        }
+    }
+
 @app.route('/chat')
 def chat_interface():
     """Modern AI Chat Interface"""

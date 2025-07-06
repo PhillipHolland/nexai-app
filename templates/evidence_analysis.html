@@ -291,6 +291,49 @@
             </div>
         </div>
 
+        <!-- Legal Admissibility Checker Interface -->
+        <div id="admissibilityInterface" style="display: none;">
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+                <h3>⚖️ Legal Admissibility Checker</h3>
+                <p>Analyze evidence for Federal Rules of Evidence compliance, hearsay issues, and court admissibility</p>
+                
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2E4B3C;">Evidence Type:</label>
+                    <select id="evidenceType" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit;">
+                        <option value="document">Document</option>
+                        <option value="photograph">Photograph</option>
+                        <option value="recording">Audio/Video Recording</option>
+                        <option value="digital">Digital Evidence</option>
+                        <option value="testimony">Witness Testimony</option>
+                        <option value="physical">Physical Evidence</option>
+                        <option value="expert">Expert Opinion</option>
+                    </select>
+                </div>
+                
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2E4B3C;">Evidence Description:</label>
+                    <textarea id="evidenceDescription" placeholder="Describe the evidence, how it was obtained, and what it tends to prove. Include any relevant circumstances..."
+                              style="width: 100%; height: 120px; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2E4B3C;">Source Information (Optional):</label>
+                    <textarea id="sourceInfo" placeholder="Provide information about the source, custodian, or witness who can authenticate this evidence..."
+                              style="width: 100%; height: 80px; padding: 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="btn-evidence primary" onclick="analyzeAdmissibility()">
+                        ⚖️ Analyze Admissibility
+                    </button>
+                    <button class="btn-evidence" onclick="clearAdmissibility()">
+                        Clear
+                    </button>
+                    <span id="descriptionCount" style="color: #6b7280; font-size: 0.9rem;">0 characters</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Analysis Results Area -->
         <div id="analysisResults" style="display: none;">
             <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -512,7 +555,8 @@
         
         function showAdmissibility() {
             hideAllInterfaces();
-            showAnalysisResults('⚖️ Legal Admissibility Checker selected. Upload evidence for analysis.');
+            document.getElementById('admissibilityInterface').style.display = 'block';
+            document.getElementById('admissibilityInterface').scrollIntoView({ behavior: 'smooth' });
         }
         
         function showReports() {
@@ -523,6 +567,7 @@
         function hideAllInterfaces() {
             document.getElementById('aiDetectionInterface').style.display = 'none';
             document.getElementById('docAuthInterface').style.display = 'none';
+            document.getElementById('admissibilityInterface').style.display = 'none';
             document.getElementById('analysisResults').style.display = 'none';
         }
         
@@ -612,6 +657,136 @@
                     <p style="margin: 0; font-size: 0.9rem; color: #6b7280;">
                         This analysis is for informational purposes only and should not be the sole basis for legal decisions. 
                         Consider additional forensic analysis and expert testimony for court proceedings.
+                    </p>
+                </div>
+            `;
+            
+            showAnalysisResults(resultsHtml);
+        }
+        
+        // Character counter for evidence description
+        const evidenceDescription = document.getElementById('evidenceDescription');
+        const descriptionCount = document.getElementById('descriptionCount');
+        
+        if (evidenceDescription && descriptionCount) {
+            evidenceDescription.addEventListener('input', function() {
+                const count = this.value.length;
+                descriptionCount.textContent = `${count} characters`;
+                descriptionCount.style.color = count < 10 ? '#F0531C' : '#6b7280';
+            });
+        }
+        
+        function clearAdmissibility() {
+            document.getElementById('evidenceType').value = 'document';
+            document.getElementById('evidenceDescription').value = '';
+            document.getElementById('sourceInfo').value = '';
+            document.getElementById('descriptionCount').textContent = '0 characters';
+            document.getElementById('analysisResults').style.display = 'none';
+        }
+        
+        function analyzeAdmissibility() {
+            const evidenceType = document.getElementById('evidenceType').value;
+            const description = document.getElementById('evidenceDescription').value.trim();
+            const source = document.getElementById('sourceInfo').value.trim();
+            
+            if (description.length < 10) {
+                alert('Please provide at least 10 characters for evidence description.');
+                return;
+            }
+            
+            // Show loading
+            showAnalysisResults('🔄 Analyzing evidence for legal admissibility under Federal Rules of Evidence...');
+            
+            // Make API call
+            fetch('/api/evidence/legal-admissibility', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    evidence_type: evidenceType,
+                    description: description,
+                    source: source
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayAdmissibilityResults(data.analysis);
+                } else {
+                    showAnalysisResults('❌ Analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Admissibility analysis error:', error);
+                showAnalysisResults('❌ Network error occurred during analysis.');
+            });
+        }
+        
+        function displayAdmissibilityResults(analysis) {
+            const resultsHtml = `
+                <div style="border-left: 4px solid ${analysis.color}; padding-left: 1rem; margin-bottom: 2rem;">
+                    <h4 style="color: ${analysis.color}; margin-bottom: 0.5rem;">
+                        ${analysis.assessment}
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <div style="background: ${analysis.color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                            ${analysis.admissibility_score}/100 Score
+                        </div>
+                        <div style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 20px;">
+                            Risk: ${analysis.risk_level}
+                        </div>
+                        <div style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 20px;">
+                            Type: ${analysis.evidence_summary.type}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h5>⚠️ Issues Identified</h5>
+                        ${analysis.issues.length > 0 ? 
+                            '<ul style="list-style: none; padding: 0; font-size: 0.9rem;">' + 
+                            analysis.issues.map(issue => `<li style="padding: 0.25rem 0;">• ${issue}</li>`).join('') + 
+                            '</ul>' :
+                            '<p style="color: #2E4B3C;">✅ No issues identified</p>'
+                        }
+                    </div>
+                    <div>
+                        <h5>📋 Rules Analysis</h5>
+                        <ul style="list-style: none; padding: 0; font-size: 0.85rem;">
+                            <li><strong>Relevance:</strong> ${analysis.rules_analysis.relevance}</li>
+                            <li><strong>Authentication:</strong> ${analysis.rules_analysis.authentication}</li>
+                            <li><strong>Hearsay:</strong> ${analysis.rules_analysis.hearsay}</li>
+                            <li><strong>Best Evidence:</strong> ${analysis.rules_analysis.best_evidence}</li>
+                            <li><strong>Expert Opinion:</strong> ${analysis.rules_analysis.expert_opinion}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h5>💡 Legal Recommendations</h5>
+                    <ul>
+                        ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h5>📊 Evidence Summary</h5>
+                    <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+                        <p><strong>Evidence Type:</strong> ${analysis.evidence_summary.type}</p>
+                        <p><strong>Description Length:</strong> ${analysis.evidence_summary.description_length} characters</p>
+                        <p><strong>Source Information:</strong> ${analysis.evidence_summary.source_provided ? 'Provided' : 'Not provided'}</p>
+                        <p><strong>Analysis Time:</strong> ${new Date(analysis.evidence_summary.analysis_timestamp).toLocaleString()}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <h6>⚖️ Legal Disclaimer</h6>
+                    <p style="margin: 0; font-size: 0.9rem; color: #6b7280;">
+                        This analysis is based on Federal Rules of Evidence and provides general guidance. Consult with 
+                        qualified legal counsel for specific case requirements, state rule variations, and jurisdiction-specific 
+                        considerations. Rules of evidence may vary by court and case type.
                     </p>
                 </div>
             `;
