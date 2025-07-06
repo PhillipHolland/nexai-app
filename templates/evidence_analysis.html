@@ -1,15 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Evidence Analysis - LexAI</title>
-    <link rel="stylesheet" href="/static/platform.css">
+{% extends "base.html" %}
+
+{% block title %}Digital Evidence Analysis - LexAI{% endblock %}
+
+{% block extra_head %}
     <style>
+        /* Evidence page uses base layout - no need for custom navigation */
         .evidence-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
+            background-color: #F7EDDA; /* Match landing page background */
+            min-height: calc(100vh - 4rem); /* Account for navbar height */
         }
         
         .evidence-header {
@@ -171,27 +172,9 @@
             background: #F0531C;
         }
     </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-content">
-                <div class="logo">
-                    <a href="/dashboard">
-                        <img src="/static/lexAI.png" alt="LexAI">
-                    </a>
-                </div>
-                <div class="nav-links">
-                    <a href="/dashboard" class="nav-link">Dashboard</a>
-                    <a href="/evidence-analysis" class="nav-link active">Evidence Analysis</a>
-                    <a href="/chat" class="nav-link">AI Assistant</a>
-                    <a href="/documents" class="nav-link">Documents</a>
-                    <a href="/logout" class="nav-link">Logout</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+{% endblock %}
 
+{% block content %}
     <main class="evidence-container">
         <div class="evidence-header">
             <h1>🔍 Digital Evidence Analysis Suite</h1>
@@ -466,5 +449,4 @@
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
-</body>
-</html>
+{% endblock %}
