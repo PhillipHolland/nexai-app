@@ -29,16 +29,20 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - conversation persistence disabled")
 
-# Simplified database approach - detect availability via environment
-DATABASE_URL = os.environ.get('DATABASE_URL')
-DATABASE_AVAILABLE = bool(DATABASE_URL)
-AUTH_AVAILABLE = DATABASE_AVAILABLE  # Auth depends on database
+# Dynamic database detection - check at runtime
+def get_database_status():
+    """Check database availability at runtime"""
+    return bool(os.environ.get('DATABASE_URL'))
 
-if DATABASE_AVAILABLE:
-    logger.info("✅ Database URL detected - enabling database features")
-    # We'll implement simplified database operations below
-else:
-    logger.warning("❌ No database URL - using mock data mode")
+def get_auth_status():
+    """Check auth availability at runtime"""
+    return get_database_status() and PSYCOPG2_AVAILABLE
+
+# Set initial values (will be updated dynamically)
+DATABASE_AVAILABLE = get_database_status()
+AUTH_AVAILABLE = get_auth_status()
+
+logger.info(f"Database status: {DATABASE_AVAILABLE}, Auth status: {AUTH_AVAILABLE}")
 
 # Import dependencies that might not be available
 try:
@@ -317,8 +321,8 @@ def env_status():
     
     return jsonify({
         'environment_variables': env_vars,
-        'database_available': DATABASE_AVAILABLE,
-        'auth_available': AUTH_AVAILABLE,
+        'database_available': get_database_status(),
+        'auth_available': get_auth_status(),
         'psycopg2_available': PSYCOPG2_AVAILABLE,
         'pyotp_available': PYOTP_AVAILABLE
     })
