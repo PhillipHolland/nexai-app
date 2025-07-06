@@ -39,8 +39,12 @@ body {
     width: auto;
 }
 
+.nav-links {
+    display: none; /* Hidden by default on mobile */
+}
+
 .hamburger-menu {
-    display: none; /* Hidden by default, shown in media query */
+    display: none; /* Hidden by default, shown in mobile media query */
     flex-direction: column;
     justify-content: space-around;
     width: 2rem;
@@ -132,6 +136,8 @@ body {
 @media (min-width: 768px) {
     .nav-links {
         display: flex; /* Ensure desktop nav links are visible */
+        align-items: center; /* Align items vertically */
+        gap: 2rem; /* Space between links */
     }
     .hamburger-menu {
         display: none;
