@@ -40,7 +40,7 @@ body {
 }
 
 .nav-links {
-    /* No global display: none; - controlled by media queries */
+    display: none; /* Hidden by default on mobile */
 }
 
 .hamburger-menu {
@@ -139,12 +139,14 @@ body {
         display: flex; /* Ensure desktop nav links are visible */
         align-items: center; /* Align items vertically */
         gap: 2rem; /* Space between links */
+        order: 2; /* Position after the logo */
     }
     .hamburger-menu {
         display: none;
     }
     .nav-enter-platform {
         display: block; /* Ensure button is visible on desktop */
+        order: 3; /* Position after the nav links */
     }
     .nav-links-mobile-container {
         display: block; /* Ensure desktop nav links are visible */
@@ -156,6 +158,7 @@ body {
     .nav-content .logo {
         position: static;
         transform: none;
+        order: 1; /* Position to the far left */
     }
 }
 
