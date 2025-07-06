@@ -1383,20 +1383,48 @@ PERMISSION_MAP = {
 
 def get_current_user():
     """Get current user from session or database"""
-    if not DATABASE_AVAILABLE or not AUTH_AVAILABLE:
-        # Return mock admin user for development mode
-        class MockUser:
-            def __init__(self):
-                self.id = 'admin'
-                self.email = 'admin@lexai.com'
-                self.role = UserRole.ADMIN
-                self.first_name = 'Admin'
-                self.last_name = 'User'
-                self.is_active = True
-        return MockUser()
+    # Check if user is logged in via session
+    user_id = session.get('user_id')
+    user_email = session.get('user_email')
     
-    # Use real authentication system
-    return auth_get_current_user()
+    if not user_id or not user_email:
+        return None  # Not logged in
+    
+    if DATABASE_AVAILABLE and AUTH_AVAILABLE:
+        # Use real authentication system - get user from database
+        try:
+            conn = get_db_connection()
+            if conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, email, first_name, last_name, role FROM users WHERE id = %s AND email = %s", (user_id, user_email))
+                user_data = cursor.fetchone()
+                cursor.close()
+                conn.close()
+                
+                if user_data:
+                    class DatabaseUser:
+                        def __init__(self, data):
+                            self.id = data[0]
+                            self.email = data[1]
+                            self.first_name = data[2]
+                            self.last_name = data[3]
+                            self.role = UserRole(data[4]) if data[4] else UserRole.CLIENT
+                            self.is_active = True
+                    return DatabaseUser(user_data)
+        except Exception as e:
+            logger.error(f"Error getting current user from database: {e}")
+    
+    # Return session-based user for demo/development mode
+    class SessionUser:
+        def __init__(self):
+            self.id = session.get('user_id')
+            self.email = session.get('user_email')
+            self.first_name = session.get('user_name', 'Demo')
+            self.last_name = 'User'
+            self.role = UserRole.CLIENT
+            self.is_active = True
+    
+    return SessionUser() if user_id and user_email else None
 
 def has_permission(user_role: UserRole, permission: str) -> bool:
     """Check if a user role has a specific permission"""
@@ -2477,13 +2505,23 @@ def dashboard():
     try:
         logger.info("Dashboard route accessed")
         
+        # Check if user is authenticated
+        current_user = get_current_user()
+        if not current_user:
+            logger.info("Unauthenticated user trying to access dashboard, redirecting to login")
+            flash('Please log in to access the dashboard', 'info')
+            return redirect(url_for('login'))
+        
+        logger.info(f"Authenticated user {current_user.email} accessing dashboard")
+        
         # Get mock stats for dashboard
         stats = get_mock_stats()
         logger.info("Mock stats retrieved successfully")
         
         result = render_template('dashboard.html', 
                                stats=stats,
-                               user_name="Demo User")
+                               user_name=f"{current_user.first_name} {current_user.last_name}",
+                               current_user=current_user)
         logger.info("Dashboard template rendered successfully")
         return result
         
@@ -9015,6 +9053,12 @@ def api_login():
         }
         
         if email in demo_credentials and demo_credentials[email] == password:
+            # Set session data for successful login
+            session['user_id'] = email  # Use email as ID for demo users
+            session['user_email'] = email
+            session['user_name'] = 'Demo User'
+            session.permanent = True
+            
             # Successful login - return user data
             user_data = {
                 'email': email,
@@ -13049,15 +13093,19 @@ def logout():
         if current_user and DATABASE_AVAILABLE:
             audit_log(current_user.id, 'user_logout', {'email': current_user.email})
         
-        # Destroy session
-        if AUTH_AVAILABLE:
-            destroy_user_session()
+        # Always destroy session regardless of database availability
+        session.pop('user_id', None)
+        session.pop('user_email', None)
+        session.pop('user_name', None)
+        session.clear()  # Clear entire session
         
         flash('You have been logged out successfully', 'success')
         return redirect(url_for('login'))
         
     except Exception as e:
         logger.error(f"Logout error: {e}")
+        # Still clear session even on error
+        session.clear()
         flash('Logout error occurred', 'error')
         return redirect(url_for('login'))
 
