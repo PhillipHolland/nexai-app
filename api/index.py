@@ -86,7 +86,7 @@ if DATABASE_AVAILABLE and PSYCOPG2_AVAILABLE:
     def get_db_connection():
         """Get database connection"""
         try:
-            return psycopg2.connect(DATABASE_URL)
+            return psycopg2.connect(os.environ.get('DATABASE_URL'))
         except Exception as e:
             logger.error(f"Database connection failed: {e}")
             return None
@@ -432,7 +432,7 @@ else:
 
 if REDIS_URL:
     logger.info("Redis URL configured - conversation storage available")
-if DATABASE_URL:
+if get_database_status():
     logger.info("Neon database URL configured - full database features available")
 
 # Template context processor for global variables
@@ -449,13 +449,13 @@ def inject_global_vars():
 if DATABASE_AVAILABLE:
     try:
         # Configure database URL
-        if DATABASE_URL:
-            app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-            logger.info(f"Using production database: {DATABASE_URL[:20]}...")
+        db_url = os.environ.get('DATABASE_URL')
+        if db_url:
+            app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+            logger.info(f"Using production database: {db_url[:20]}...")
         else:
             # In serverless environment, don't use SQLite due to read-only filesystem
             logger.error("No DATABASE_URL found - database features unavailable in serverless")
-            DATABASE_AVAILABLE = False
         
         if DATABASE_AVAILABLE:
             app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -4722,7 +4722,7 @@ def health_check():
             "resources": {
                 "xai_api": bool(XAI_API_KEY),
                 "redis": bool(REDIS_URL),
-                "neon_database": bool(DATABASE_URL)
+                "neon_database": get_database_status()
             },
             "features": {
                 "ai_chat": bool(XAI_API_KEY),
