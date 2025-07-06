@@ -45,20 +45,22 @@
                     <img src="/static/lexAI.png" alt="LexAI Practice Partner">
                 </div>
                 
-                <!-- Mobile Menu Toggle - CSS Checkbox Method for Better Safari Support -->
-                <input type="checkbox" id="mobileMenuToggle" class="mobile-menu-checkbox" aria-label="Toggle mobile menu">
-                <label for="mobileMenuToggle" class="mobile-menu-toggle">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </label>
-                
-                <!-- Navigation Links -->
-                <div class="nav-links" id="navLinks">
-                    <a href="#features" class="nav-link">Features</a>
-                    <a href="#how-it-works" class="nav-link">How It Works</a>
-                    <a href="#pricing" class="nav-link">Pricing</a>
-                    <a href="/dashboard" class="btn-primary" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+                <!-- Mobile Menu Structure -->
+                <div class="mobile-nav-container">
+                    <input type="checkbox" id="mobileMenuToggle" class="mobile-menu-checkbox" aria-label="Toggle mobile menu">
+                    <label for="mobileMenuToggle" class="mobile-menu-toggle">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </label>
+                    
+                    <!-- Navigation Links -->
+                    <div class="nav-links" id="navLinks">
+                        <a href="#features" class="nav-link">Features</a>
+                        <a href="#how-it-works" class="nav-link">How It Works</a>
+                        <a href="#pricing" class="nav-link">Pricing</a>
+                        <a href="/dashboard" class="btn-primary" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -402,20 +404,6 @@
                         }
                     });
                 });
-                
-                // Handle touch events for better Safari support
-                const mobileMenuLabel = document.querySelector('.mobile-menu-toggle');
-                if (mobileMenuLabel) {
-                    mobileMenuLabel.addEventListener('touchstart', function(e) {
-                        // Prevent double-tap zoom on iOS
-                        e.preventDefault();
-                        mobileMenuCheckbox.checked = !mobileMenuCheckbox.checked;
-                        
-                        if (typeof trackEvent === 'function') {
-                            trackEvent('touch', 'navigation', 'mobile_menu_touch', 1);
-                        }
-                    }, { passive: false });
-                }
             }
         });
     </script>

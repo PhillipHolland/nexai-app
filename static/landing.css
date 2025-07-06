@@ -41,7 +41,10 @@ body {
 
 /* Mobile Menu Toggle - CSS-First Approach for Safari Compatibility */
 .mobile-menu-checkbox {
-    display: none;
+    display: none !important;
+    opacity: 0;
+    position: absolute;
+    pointer-events: none;
 }
 
 .mobile-menu-toggle {
@@ -72,6 +75,13 @@ body {
     /* iOS 14+ Safari fix */
     height: 0.1px;
     min-height: 3px;
+}
+
+/* Mobile Navigation Container */
+.mobile-nav-container {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 /* Hamburger Animation - Using checkbox state */
@@ -123,7 +133,11 @@ body {
 @media (min-width: 768px) {
     .mobile-menu-checkbox,
     .mobile-menu-toggle {
-        display: none;
+        display: none !important;
+    }
+    
+    .mobile-nav-container {
+        display: block;
     }
     
     .nav-links {
