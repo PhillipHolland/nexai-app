@@ -455,10 +455,12 @@ if get_database_status():
 @app.context_processor
 def inject_global_vars():
     """Inject global variables into all templates"""
+    import time
     return {
         'google_analytics_id': GOOGLE_ANALYTICS_ID,
         'environment': os.environ.get('VERCEL_ENV', 'development'),
-        'app_version': 'v2.0-serverless'
+        'app_version': 'v2.0-serverless',
+        'cache_buster': str(int(time.time()))
     }
 
 # Initialize database if available
@@ -13181,11 +13183,10 @@ def server_error(e):
 app.debug = False
 
 # Add routes to handle both root and /api/ requests
-@app.route('/')
 @app.route('/api')
 @app.route('/api/')
-def home():
-    """Home page route - render the actual web interface"""
+def api_home():
+    """API home page route - render the actual web interface"""
     try:
         return render_template('landing.html', 
                              database_available=DATABASE_AVAILABLE,
