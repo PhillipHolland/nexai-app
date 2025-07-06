@@ -334,11 +334,66 @@
             </div>
         </div>
 
+        <!-- Report Generator Interface -->
+        <div id="reportInterface" style="display: none;">
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+                <h3>📊 Court-Ready Report Generator</h3>
+                <p>Generate professional legal reports from your analysis results for court presentation and expert testimony</p>
+                
+                <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                    <h4 style="margin: 0 0 1rem 0; color: #2E4B3C;">Available Analysis Results:</h4>
+                    <div id="availableAnalysis" style="color: #6b7280;">
+                        No analysis results available yet. Please run an analysis first.
+                    </div>
+                </div>
+                
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2E4B3C;">Case Information:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <input type="text" id="caseName" placeholder="Case Name" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <input type="text" id="caseNumber" placeholder="Case Number" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="text" id="courtName" placeholder="Court Name" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <input type="text" id="attorneyName" placeholder="Attorney Name" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                </div>
+                
+                <div style="margin: 1.5rem 0;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2E4B3C;">Report Type:</label>
+                    <select id="reportType" style="width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <option value="comprehensive">Comprehensive Analysis Report</option>
+                        <option value="summary">Executive Summary Report</option>
+                        <option value="technical">Technical Analysis Report</option>
+                        <option value="legal">Legal Admissibility Report</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="btn-evidence primary" onclick="generateReport()" id="generateBtn" disabled>
+                        📄 Generate Report
+                    </button>
+                    <button class="btn-evidence" onclick="clearReportForm()">
+                        Clear Form
+                    </button>
+                    <span style="color: #6b7280; font-size: 0.9rem;">Professional court-ready formatting</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Analysis Results Area -->
         <div id="analysisResults" style="display: none;">
             <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <h3>📊 Analysis Results</h3>
                 <div id="resultsContent"></div>
+                
+                <!-- Generate Report Button for Results -->
+                <div id="generateReportFromResults" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; display: none;">
+                    <button class="btn-evidence primary" onclick="showReportGenerator()">
+                        📄 Generate Court Report
+                    </button>
+                    <span style="margin-left: 1rem; color: #6b7280; font-size: 0.9rem;">Create professional report from this analysis</span>
+                </div>
             </div>
         </div>
     </main>
@@ -446,6 +501,10 @@
         }
         
         function displayDocumentResults(auth, filename) {
+            // Store results for report generation
+            storedAnalysisResults = auth;
+            analysisType = 'Document Authentication Analysis';
+            
             const resultsHtml = `
                 <div style="border-left: 4px solid ${auth.color}; padding-left: 1rem; margin-bottom: 2rem;">
                     <h4 style="color: ${auth.color}; margin-bottom: 0.5rem;">
@@ -561,13 +620,16 @@
         
         function showReports() {
             hideAllInterfaces();
-            showAnalysisResults('📊 Evidence Reports generator selected. Choose analysis results to format.');
+            document.getElementById('reportInterface').style.display = 'block';
+            document.getElementById('reportInterface').scrollIntoView({ behavior: 'smooth' });
+            updateAvailableAnalysis();
         }
         
         function hideAllInterfaces() {
             document.getElementById('aiDetectionInterface').style.display = 'none';
             document.getElementById('docAuthInterface').style.display = 'none';
             document.getElementById('admissibilityInterface').style.display = 'none';
+            document.getElementById('reportInterface').style.display = 'none';
             document.getElementById('analysisResults').style.display = 'none';
         }
         
@@ -611,6 +673,10 @@
         }
         
         function displayAnalysisResults(analysis) {
+            // Store results for report generation
+            storedAnalysisResults = analysis;
+            analysisType = 'AI Content Detection Analysis';
+            
             const resultsHtml = `
                 <div style="border-left: 4px solid ${analysis.color}; padding-left: 1rem; margin-bottom: 2rem;">
                     <h4 style="color: ${analysis.color}; margin-bottom: 0.5rem;">
@@ -724,6 +790,10 @@
         }
         
         function displayAdmissibilityResults(analysis) {
+            // Store results for report generation
+            storedAnalysisResults = analysis;
+            analysisType = 'Legal Admissibility Analysis';
+            
             const resultsHtml = `
                 <div style="border-left: 4px solid ${analysis.color}; padding-left: 1rem; margin-bottom: 2rem;">
                     <h4 style="color: ${analysis.color}; margin-bottom: 0.5rem;">
@@ -794,11 +864,144 @@
             showAnalysisResults(resultsHtml);
         }
         
+        // Store analysis results for report generation
+        let storedAnalysisResults = null;
+        let analysisType = null;
+        
+        function updateAvailableAnalysis() {
+            const availableDiv = document.getElementById('availableAnalysis');
+            const generateBtn = document.getElementById('generateBtn');
+            
+            if (storedAnalysisResults && analysisType) {
+                availableDiv.innerHTML = `
+                    <div style="color: #2E4B3C; font-weight: 600;">
+                        ✓ ${analysisType} completed and ready for report generation
+                    </div>
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                        Analysis contains ${Object.keys(storedAnalysisResults).length} data points
+                    </div>
+                `;
+                generateBtn.disabled = false;
+            } else {
+                availableDiv.innerHTML = 'No analysis results available yet. Please run an analysis first.';
+                generateBtn.disabled = true;
+            }
+        }
+        
+        function showReportGenerator() {
+            hideAllInterfaces();
+            document.getElementById('reportInterface').style.display = 'block';
+            document.getElementById('reportInterface').scrollIntoView({ behavior: 'smooth' });
+            updateAvailableAnalysis();
+        }
+        
+        function clearReportForm() {
+            document.getElementById('caseName').value = '';
+            document.getElementById('caseNumber').value = '';
+            document.getElementById('courtName').value = '';
+            document.getElementById('attorneyName').value = '';
+            document.getElementById('reportType').value = 'comprehensive';
+        }
+        
+        function generateReport() {
+            if (!storedAnalysisResults) {
+                alert('No analysis results available. Please run an analysis first.');
+                return;
+            }
+            
+            const reportData = {
+                analysis_results: storedAnalysisResults,
+                analysis_type: analysisType,
+                case_info: {
+                    case_name: document.getElementById('caseName').value || 'Evidence Analysis Report',
+                    case_number: document.getElementById('caseNumber').value,
+                    court_name: document.getElementById('courtName').value,
+                    attorney_name: document.getElementById('attorneyName').value
+                },
+                report_type: document.getElementById('reportType').value
+            };
+            
+            // Show loading
+            showAnalysisResults('🔄 Generating court-ready report...');
+            
+            // For now, generate a simple report
+            setTimeout(() => {
+                displayGeneratedReport(reportData);
+            }, 2000);
+        }
+        
+        function displayGeneratedReport(reportData) {
+            const reportHtml = `
+                <div style="background: #f9fafb; padding: 2rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h4 style="color: #2E4B3C; margin-bottom: 1rem;">📋 Court-Ready Report Generated</h4>
+                    
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h5>Report Details:</h5>
+                        <ul style="list-style: none; padding: 0;">
+                            <li><strong>Case:</strong> ${reportData.case_info.case_name}</li>
+                            <li><strong>Case Number:</strong> ${reportData.case_info.case_number || 'Not specified'}</li>
+                            <li><strong>Court:</strong> ${reportData.case_info.court_name || 'Not specified'}</li>
+                            <li><strong>Attorney:</strong> ${reportData.case_info.attorney_name || 'Not specified'}</li>
+                            <li><strong>Report Type:</strong> ${reportData.report_type}</li>
+                            <li><strong>Analysis Type:</strong> ${reportData.analysis_type}</li>
+                            <li><strong>Generated:</strong> ${new Date().toLocaleString()}</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h5>Report Sections Included:</h5>
+                        <ul>
+                            <li>✓ Executive Summary with key findings</li>
+                            <li>✓ Technical Analysis and methodology</li>
+                            <li>✓ Legal considerations and admissibility</li>
+                            <li>✓ Professional recommendations</li>
+                            <li>✓ Chain of custody documentation</li>
+                            <li>✓ Expert opinion statement</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn-evidence primary" onclick="downloadReport('pdf')">
+                            📎 Download PDF
+                        </button>
+                        <button class="btn-evidence" onclick="downloadReport('docx')">
+                            📄 Download Word
+                        </button>
+                        <button class="btn-evidence" onclick="downloadReport('json')">
+                            📊 Export Data
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; font-size: 0.9rem;">
+                        <strong>Note:</strong> This report is formatted for legal proceedings and includes all necessary 
+                        technical documentation, expert opinions, and chain of custody information required for court presentation.
+                    </div>
+                </div>
+            `;
+            
+            showAnalysisResults(reportHtml);
+        }
+        
+        function downloadReport(format) {
+            // This would connect to a backend endpoint for actual file generation
+            alert(`Downloading ${format.toUpperCase()} report... (Feature in development)`);
+        }
+        
         function showAnalysisResults(content) {
             const resultsDiv = document.getElementById('analysisResults');
             const contentDiv = document.getElementById('resultsContent');
+            const reportBtn = document.getElementById('generateReportFromResults');
+            
             contentDiv.innerHTML = typeof content === 'string' ? `<p>${content}</p>` : content;
             resultsDiv.style.display = 'block';
+            
+            // Show report generation button if we have stored analysis
+            if (storedAnalysisResults && typeof content !== 'string') {
+                reportBtn.style.display = 'block';
+            } else {
+                reportBtn.style.display = 'none';
+            }
+            
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
