@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Dict, Any, Optional, List
-from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect
+from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
 
 # Set up logging early
@@ -28,36 +28,21 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - conversation persistence disabled")
 
-# Database imports - now using local copies in api directory
-try:
-    from database import DatabaseManager, db_manager, audit_log
-    from models import (
-        db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, 
-        CalendarEvent, Tag, AuditLog, Session, UserRole, CaseStatus, TaskStatus, 
-        TaskPriority, DocumentStatus, TimeEntryStatus, InvoiceStatus
-    )
+# Simplified database approach - detect availability via environment
+DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_AVAILABLE = bool(DATABASE_URL)
+AUTH_AVAILABLE = DATABASE_AVAILABLE  # Auth depends on database
+
+if DATABASE_AVAILABLE:
+    logger.info("✅ Database URL detected - enabling database features")
+    # We'll implement simplified database operations below
+else:
+    logger.warning("❌ No database URL - using mock data mode")
+
+# Enable 2FA with database detection
+if DATABASE_AVAILABLE:
     DATABASE_AVAILABLE = True
-    logger.info("✅ Database models imported successfully")
-    
-    # Authentication system imports  
-    try:
-        from auth import (
-            AuthManager, login_required, admin_required, get_current_user as auth_get_current_user,
-            create_user_session, destroy_user_session, register_user, authenticate_user,
-            update_user_password, reset_user_password, complete_password_reset
-        )
-        AUTH_AVAILABLE = True
-        logger.info("✅ Authentication system imported successfully")
-    except ImportError as auth_error:
-        AUTH_AVAILABLE = False
-        logger.warning(f"Authentication module not available: {auth_error}")
-except ImportError as db_error:
-    DATABASE_AVAILABLE = False
-    AUTH_AVAILABLE = False
-    logger.error(f"Database models import failed: {db_error}")
-    # Log more details about the import error
-    import traceback
-    logger.error(f"Database import traceback: {traceback.format_exc()}")
+    AUTH_AVAILABLE = True
     
     # Create fallback enums when database models are not available
     from enum import Enum
@@ -70,12 +55,164 @@ except ImportError as db_error:
         CLIENT = "client"
         STAFF = "staff"
     
-    # Fallback authentication functions for serverless environment
+    import psycopg2
+    import pyotp
+    import secrets
+    import json
+    from werkzeug.security import generate_password_hash, check_password_hash
+    
+    # Simplified database operations using raw SQL
+    def get_db_connection():
+        """Get database connection"""
+        try:
+            return psycopg2.connect(DATABASE_URL)
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
+            return None
+    
+    def register_user(email, password, first_name, last_name, firm_name=None):
+        """Simple user registration"""
+        conn = get_db_connection()
+        if not conn:
+            return False, "Database connection failed"
+        
+        try:
+            cursor = conn.cursor()
+            user_id = secrets.token_urlsafe(16)
+            password_hash = generate_password_hash(password)
+            
+            cursor.execute("""
+                INSERT INTO users (id, email, password_hash, first_name, last_name, firm_name, role, is_active, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, email, password_hash, first_name, last_name, firm_name, 'associate', True, datetime.utcnow()))
+            
+            conn.commit()
+            return True, "User registered successfully"
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Registration failed: {e}")
+            return False, f"Registration failed: {str(e)}"
+        finally:
+            conn.close()
+    
+    def authenticate_user(email, password):
+        """Simple user authentication"""
+        conn = get_db_connection()
+        if not conn:
+            return None, "Database connection failed"
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, email, password_hash, first_name, last_name, two_factor_enabled 
+                FROM users WHERE email = %s AND is_active = true
+            """, (email,))
+            
+            user_data = cursor.fetchone()
+            if not user_data:
+                return None, "Invalid credentials"
+            
+            user_id, user_email, password_hash, first_name, last_name, two_factor_enabled = user_data
+            
+            if not check_password_hash(password_hash, password):
+                return None, "Invalid credentials"
+            
+            user = {
+                'id': user_id,
+                'email': user_email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'two_factor_enabled': two_factor_enabled,
+                'full_name': f"{first_name} {last_name}"
+            }
+            
+            return user, "Authentication successful"
+        except Exception as e:
+            logger.error(f"Authentication failed: {e}")
+            return None, f"Authentication failed: {str(e)}"
+        finally:
+            conn.close()
+    
+    def enable_2fa_for_user(user_id):
+        """Enable 2FA for user"""
+        conn = get_db_connection()
+        if not conn:
+            return None, "Database connection failed"
+        
+        try:
+            cursor = conn.cursor()
+            secret = pyotp.random_base32()
+            
+            cursor.execute("""
+                UPDATE users SET two_factor_secret = %s, two_factor_enabled = true
+                WHERE id = %s
+            """, (secret, user_id))
+            
+            conn.commit()
+            return secret, "2FA enabled successfully"
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"2FA enable failed: {e}")
+            return None, f"2FA enable failed: {str(e)}"
+        finally:
+            conn.close()
+    
+    def verify_2fa_token(user_id, token):
+        """Verify 2FA token"""
+        conn = get_db_connection()
+        if not conn:
+            return False
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT two_factor_secret FROM users 
+                WHERE id = %s AND two_factor_enabled = true
+            """, (user_id,))
+            
+            result = cursor.fetchone()
+            if not result:
+                return False
+            
+            secret = result[0]
+            totp = pyotp.TOTP(secret)
+            return totp.verify(token, valid_window=1)
+        except Exception as e:
+            logger.error(f"2FA verification failed: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    def create_user_session(user):
+        """Create session for user"""
+        session['user_id'] = user['id']
+        session['user_email'] = user['email']
+        session['user_name'] = user['full_name']
+        session.permanent = True
+    
+    def destroy_user_session():
+        """Destroy user session"""
+        session.pop('user_id', None)
+        session.pop('user_email', None)
+        session.pop('user_name', None)
+    
+    def audit_log(user_id, action, details=None):
+        """Simple audit logging"""
+        logger.info(f"AUDIT: User {user_id} - {action} - {details}")
+
+else:
+    # Fallback functions when database is not available
     def register_user(email, password, first_name, last_name, firm_name=None):
         return False, "Registration not available - database required"
     
     def authenticate_user(email, password):
         return None, "Authentication not available - database required"
+    
+    def enable_2fa_for_user(user_id):
+        return None, "2FA not available - database required"
+    
+    def verify_2fa_token(user_id, token):
+        return False
     
     def create_user_session(user):
         pass  # No-op for fallback
@@ -83,20 +220,7 @@ except ImportError as db_error:
     def destroy_user_session():
         pass  # No-op for fallback
     
-    def update_user_password(user_id, current_password, new_password):
-        return False, "Password update not available - database required"
-    
-    def reset_user_password(email):
-        return True, "Password reset not available in demo mode"
-    
-    def complete_password_reset(token, new_password):
-        return False, "Password reset not available - database required"
-    
-    def verify_reset_token(token):
-        return None, "Token verification not available - database required"
-    
     def audit_log(user_id, action, details=None):
-        # Fallback audit logging - just log to console
         logger.info(f"AUDIT: User {user_id} - {action} - {details}")
 
 # File storage imports - now using local copy in api directory
@@ -209,7 +333,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 # API configuration (from working local version)
 XAI_API_KEY = (os.environ.get('XAI_API_KEY') or os.environ.get('xai_api_key') or '').strip()
 REDIS_URL = os.environ.get('REDIS_URL')
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# DATABASE_URL already defined above
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', 'G-EBPD82DJGP')
 
 if not XAI_API_KEY:
