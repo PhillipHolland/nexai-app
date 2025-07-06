@@ -13062,15 +13062,31 @@ app.debug = False
 @app.route('/api')
 @app.route('/api/')
 def home():
-    """Home page route"""
-    return jsonify({
-        "name": "LexAI Practice Partner",
-        "version": "v2.1 STABLE",
-        "status": "running",
-        "database_available": DATABASE_AVAILABLE,
-        "auth_available": AUTH_AVAILABLE,
-        "features": ["2FA", "Google Analytics", "File Storage"]
-    })
+    """Home page route - render the actual web interface"""
+    try:
+        return render_template('landing.html', 
+                             database_available=DATABASE_AVAILABLE,
+                             auth_available=AUTH_AVAILABLE,
+                             version="v2.1 STABLE")
+    except Exception as e:
+        logger.error(f"Template rendering failed: {e}")
+        # Fallback to dashboard if landing.html doesn't exist
+        try:
+            return render_template('dashboard.html',
+                                 database_available=DATABASE_AVAILABLE,
+                                 auth_available=AUTH_AVAILABLE,
+                                 version="v2.1 STABLE")
+        except:
+            # Final fallback - return JSON status
+            return jsonify({
+                "name": "LexAI Practice Partner",
+                "version": "v2.1 STABLE",
+                "status": "running",
+                "database_available": DATABASE_AVAILABLE,
+                "auth_available": AUTH_AVAILABLE,
+                "features": ["2FA", "Google Analytics", "File Storage"],
+                "note": "Template rendering failed - check template directory"
+            })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
