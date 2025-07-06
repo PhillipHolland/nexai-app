@@ -323,6 +323,39 @@ def env_status():
         'pyotp_available': PYOTP_AVAILABLE
     })
 
+@app.route('/api/db-test')
+def db_test():
+    """Test database connection"""
+    if not PSYCOPG2_AVAILABLE:
+        return jsonify({'error': 'psycopg2 not available'})
+    
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        return jsonify({'error': 'DATABASE_URL not set'})
+    
+    try:
+        # Try to connect and run a simple query
+        import psycopg2
+        conn = psycopg2.connect(db_url)
+        cursor = conn.cursor()
+        cursor.execute('SELECT version();')
+        result = cursor.fetchone()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'database_url_format': db_url[:20] + '...',
+            'postgres_version': result[0] if result else 'unknown',
+            'connection': 'successful'
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'database_url_format': db_url[:20] + '...',
+            'error': str(e),
+            'connection': 'failed'
+        })
+
 @app.route('/api/debug')
 def debug_info():
     """Debug endpoint to check import status"""
