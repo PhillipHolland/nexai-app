@@ -269,6 +269,28 @@
             </div>
         </div>
 
+        <!-- Document Authentication Interface -->
+        <div id="docAuthInterface" style="display: none;">
+            <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem;">
+                <h3>🔐 Document Authentication</h3>
+                <p>Upload documents for integrity verification, hash analysis, and metadata extraction</p>
+                
+                <div class="upload-area" id="docUploadArea" style="margin: 1rem 0;">
+                    <div class="upload-icon">📄</div>
+                    <h4>Drop Document Here or Click to Upload</h4>
+                    <p>Supports: PDF, Word (.docx/.doc), Text, Images (.jpg/.png)</p>
+                    <input type="file" id="docFileInput" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg" style="display: none;">
+                    <button class="btn-evidence primary" onclick="document.getElementById('docFileInput').click()">
+                        📁 Choose Document
+                    </button>
+                </div>
+                
+                <div id="docUploadStatus" style="display: none; margin: 1rem 0; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <p id="docStatusText">Ready to analyze...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Analysis Results Area -->
         <div id="analysisResults" style="display: none;">
             <div style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -320,6 +342,160 @@
             });
         }
         
+        // Document authentication handling
+        const docFileInput = document.getElementById('docFileInput');
+        const docUploadArea = document.getElementById('docUploadArea');
+        
+        if (docFileInput && docUploadArea) {
+            docUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                docUploadArea.classList.add('dragover');
+            });
+            
+            docUploadArea.addEventListener('dragleave', () => {
+                docUploadArea.classList.remove('dragover');
+            });
+            
+            docUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                docUploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    analyzeDocument(files[0]);
+                }
+            });
+            
+            docFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    analyzeDocument(e.target.files[0]);
+                }
+            });
+        }
+        
+        function analyzeDocument(file) {
+            // Show upload status
+            const statusDiv = document.getElementById('docUploadStatus');
+            const statusText = document.getElementById('docStatusText');
+            statusDiv.style.display = 'block';
+            statusText.textContent = `Analyzing ${file.name}...`;
+            
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Make API call
+            fetch('/api/evidence/doc-auth', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayDocumentResults(data.authentication, data.filename);
+                } else {
+                    showAnalysisResults('❌ Document analysis failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Document analysis error:', error);
+                showAnalysisResults('❌ Network error occurred during document analysis.');
+            });
+        }
+        
+        function displayDocumentResults(auth, filename) {
+            const resultsHtml = `
+                <div style="border-left: 4px solid ${auth.color}; padding-left: 1rem; margin-bottom: 2rem;">
+                    <h4 style="color: ${auth.color}; margin-bottom: 0.5rem;">
+                        ${auth.assessment}
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <div style="background: ${auth.color}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold;">
+                            ${auth.integrity_score}% Integrity
+                        </div>
+                        <div style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 20px;">
+                            Risk: ${auth.risk_level}
+                        </div>
+                        <div style="background: #f3f4f6; padding: 0.5rem 1rem; border-radius: 20px; font-family: monospace;">
+                            ${auth.file_info.size_readable}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h5>📄 File Information</h5>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li><strong>Filename:</strong> ${auth.file_info.filename}</li>
+                            <li><strong>Type:</strong> ${auth.file_info.detected_type}</li>
+                            <li><strong>Extension:</strong> ${auth.file_info.extension}</li>
+                            <li><strong>Size:</strong> ${auth.file_info.size_readable}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5>🔐 Hash Values</h5>
+                        <div style="font-family: monospace; font-size: 0.8rem; background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                            <p><strong>MD5:</strong><br>${auth.hashes.md5}</p>
+                            <p><strong>SHA256:</strong><br>${auth.hashes.sha256}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h5>📋 Document Metadata</h5>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                            <li><strong>Creator:</strong> ${auth.metadata.creator}</li>
+                            <li><strong>Software:</strong> ${auth.metadata.software}</li>
+                            <li><strong>Created:</strong> ${auth.metadata.creation_date}</li>
+                            <li><strong>Modified:</strong> ${auth.metadata.modification_date}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5>🛡️ Security Analysis</h5>
+                        ${auth.security_analysis.safe ? 
+                            '<p style="color: #2E4B3C;">✅ No security issues detected</p>' :
+                            '<div><p style="color: #F0531C;">⚠️ Security Issues:</p><ul>' + 
+                            auth.security_analysis.security_issues.map(issue => `<li>• ${issue}</li>`).join('') + 
+                            '</ul></div>'
+                        }
+                        ${auth.security_analysis.warnings.length > 0 ?
+                            '<div><p><strong>Warnings:</strong></p><ul>' +
+                            auth.security_analysis.warnings.map(warning => `<li>• ${warning}</li>`).join('') +
+                            '</ul></div>' : ''
+                        }
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <h5>📋 Chain of Custody</h5>
+                    <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; font-size: 0.9rem;">
+                        <p><strong>Timestamp:</strong> ${auth.chain_of_custody.timestamp}</p>
+                        <p><strong>Action:</strong> ${auth.chain_of_custody.action}</p>
+                        <p><strong>Officer:</strong> ${auth.chain_of_custody.officer}</p>
+                        <p><strong>Hash:</strong> <code>${auth.chain_of_custody.hash}</code></p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h5>💡 Legal Recommendations</h5>
+                    <ul>
+                        ${auth.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <h6>⚖️ Court Considerations</h6>
+                    <p style="margin: 0; font-size: 0.9rem; color: #6b7280;">
+                        Document authentication analysis provides technical evidence of integrity. Chain of custody 
+                        documentation and expert testimony may be required for court admissibility. Hash values 
+                        can be used to verify document integrity throughout legal proceedings.
+                    </p>
+                </div>
+            `;
+            
+            showAnalysisResults(resultsHtml);
+        }
+        
         function showAIDetector() {
             // Hide other interfaces
             hideAllInterfaces();
@@ -330,7 +506,8 @@
         
         function showDocAuth() {
             hideAllInterfaces();
-            showAnalysisResults('🔐 Document Authentication tool selected. Upload documents for verification.');
+            document.getElementById('docAuthInterface').style.display = 'block';
+            document.getElementById('docAuthInterface').scrollIntoView({ behavior: 'smooth' });
         }
         
         function showAdmissibility() {
@@ -345,6 +522,7 @@
         
         function hideAllInterfaces() {
             document.getElementById('aiDetectionInterface').style.display = 'none';
+            document.getElementById('docAuthInterface').style.display = 'none';
             document.getElementById('analysisResults').style.display = 'none';
         }
         

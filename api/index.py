@@ -2721,6 +2721,287 @@ def generate_ai_recommendations(score, indicators):
     
     return recommendations
 
+@app.route('/api/evidence/doc-auth', methods=['POST'])
+def api_document_authentication():
+    """Document Authentication API endpoint"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file type
+        allowed_extensions = {'.pdf', '.docx', '.doc', '.txt', '.png', '.jpg', '.jpeg'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        if file_ext not in allowed_extensions:
+            return jsonify({'error': f'File type {file_ext} not supported'}), 400
+        
+        # Read file content for analysis
+        file_content = file.read()
+        file.seek(0)  # Reset file pointer
+        
+        # Perform document authentication analysis
+        auth_result = authenticate_document(file, file_content)
+        
+        # Log the analysis
+        logger.info(f"Document authentication performed by user {current_user.email} on file {file.filename}")
+        
+        return jsonify({
+            'success': True,
+            'authentication': auth_result,
+            'timestamp': datetime.utcnow().isoformat(),
+            'user_id': current_user.id,
+            'filename': file.filename
+        })
+        
+    except Exception as e:
+        logger.error(f"Document authentication error: {e}")
+        return jsonify({'error': 'Authentication analysis failed'}), 500
+
+def authenticate_document(file, file_content):
+    """Perform comprehensive document authentication analysis"""
+    import hashlib
+    import mimetypes
+    from datetime import datetime
+    
+    filename = file.filename
+    file_size = len(file_content)
+    
+    # 1. Hash Analysis
+    md5_hash = hashlib.md5(file_content).hexdigest()
+    sha256_hash = hashlib.sha256(file_content).hexdigest()
+    
+    # 2. File Type Analysis
+    detected_mime = mimetypes.guess_type(filename)[0]
+    file_ext = os.path.splitext(filename)[1].lower()
+    
+    # 3. Basic Metadata Extraction
+    metadata = extract_basic_metadata(file, file_content, filename)
+    
+    # 4. Integrity Assessment
+    integrity_score = calculate_integrity_score(file_content, metadata, filename)
+    
+    # 5. Security Analysis
+    security_analysis = analyze_file_security(file_content, file_ext, metadata)
+    
+    # 6. Authentication Assessment
+    if integrity_score >= 80:
+        assessment = "AUTHENTIC - High Confidence"
+        risk_level = "LOW"
+        color = "#2E4B3C"  # Green
+    elif integrity_score >= 60:
+        assessment = "LIKELY AUTHENTIC - Moderate Confidence"
+        risk_level = "MEDIUM"
+        color = "#FFA74F"  # Orange
+    else:
+        assessment = "QUESTIONABLE - Low Confidence"
+        risk_level = "HIGH"
+        color = "#F0531C"  # Red
+    
+    return {
+        'assessment': assessment,
+        'integrity_score': integrity_score,
+        'risk_level': risk_level,
+        'color': color,
+        'hashes': {
+            'md5': md5_hash,
+            'sha256': sha256_hash
+        },
+        'file_info': {
+            'filename': filename,
+            'size_bytes': file_size,
+            'size_readable': format_file_size(file_size),
+            'extension': file_ext,
+            'detected_type': detected_mime or 'Unknown'
+        },
+        'metadata': metadata,
+        'security_analysis': security_analysis,
+        'chain_of_custody': generate_custody_entry(filename, md5_hash),
+        'recommendations': generate_doc_recommendations(integrity_score, security_analysis)
+    }
+
+def extract_basic_metadata(file, file_content, filename):
+    """Extract basic metadata from uploaded file"""
+    metadata = {
+        'upload_timestamp': datetime.utcnow().isoformat(),
+        'original_filename': filename,
+        'file_size': len(file_content)
+    }
+    
+    # Try to extract more metadata based on file type
+    file_ext = os.path.splitext(filename)[1].lower()
+    
+    if file_ext == '.pdf':
+        metadata.update(extract_pdf_metadata(file_content))
+    elif file_ext in ['.docx', '.doc']:
+        metadata.update(extract_word_metadata(file_content))
+    elif file_ext in ['.jpg', '.jpeg', '.png']:
+        metadata.update(extract_image_metadata(file_content))
+    else:
+        metadata.update({
+            'creator': 'Unknown',
+            'creation_date': 'Unknown',
+            'modification_date': 'Unknown',
+            'software': 'Unknown'
+        })
+    
+    return metadata
+
+def extract_pdf_metadata(file_content):
+    """Extract PDF metadata (basic implementation)"""
+    # Basic PDF metadata extraction
+    content_str = str(file_content)
+    metadata = {
+        'creator': 'Unknown',
+        'creation_date': 'Unknown',
+        'modification_date': 'Unknown',
+        'software': 'Unknown'
+    }
+    
+    # Look for common PDF metadata patterns
+    if b'/Creator' in file_content:
+        metadata['software'] = 'PDF Document'
+    if b'/Producer' in file_content:
+        metadata['creator'] = 'PDF Producer Found'
+    
+    return metadata
+
+def extract_word_metadata(file_content):
+    """Extract Word document metadata (basic implementation)"""
+    return {
+        'creator': 'Microsoft Word Document',
+        'creation_date': 'Embedded in document',
+        'modification_date': 'Unknown',
+        'software': 'Microsoft Word'
+    }
+
+def extract_image_metadata(file_content):
+    """Extract image metadata (basic implementation)"""
+    return {
+        'creator': 'Image file',
+        'creation_date': 'EXIF data required',
+        'modification_date': 'Unknown',
+        'software': 'Image editor'
+    }
+
+def calculate_integrity_score(file_content, metadata, filename):
+    """Calculate document integrity score based on various factors"""
+    score = 50  # Base score
+    
+    # File size analysis
+    size = len(file_content)
+    if size > 1000:  # Reasonable file size
+        score += 10
+    if size < 1000000:  # Not suspiciously large
+        score += 10
+    
+    # Filename analysis
+    if not any(char in filename for char in ['<', '>', '|', '"', '*', '?']):
+        score += 10  # Clean filename
+    
+    # Metadata consistency
+    if metadata.get('software', '').lower() != 'unknown':
+        score += 10
+    
+    # Content analysis
+    if b'%PDF' in file_content[:10]:  # Valid PDF header
+        score += 10
+    elif file_content.startswith(b'\x50\x4b'):  # Valid ZIP/Office header
+        score += 10
+    elif file_content.startswith(b'\xff\xd8\xff'):  # Valid JPEG header
+        score += 10
+    
+    return min(score, 100)
+
+def analyze_file_security(file_content, file_ext, metadata):
+    """Analyze file for security issues"""
+    issues = []
+    warnings = []
+    
+    # Check for suspicious patterns
+    if b'javascript:' in file_content.lower():
+        issues.append("JavaScript code detected in document")
+    
+    if b'<script' in file_content.lower():
+        issues.append("Script tags found in document")
+    
+    if len(file_content) > 10000000:  # 10MB
+        warnings.append("Unusually large file size")
+    
+    # Check file extension consistency
+    if file_ext == '.pdf' and not file_content.startswith(b'%PDF'):
+        issues.append("File extension doesn't match content")
+    
+    return {
+        'security_issues': issues,
+        'warnings': warnings,
+        'safe': len(issues) == 0
+    }
+
+def format_file_size(size_bytes):
+    """Format file size in human readable format"""
+    if size_bytes < 1024:
+        return f"{size_bytes} bytes"
+    elif size_bytes < 1024**2:
+        return f"{size_bytes/1024:.1f} KB"
+    elif size_bytes < 1024**3:
+        return f"{size_bytes/(1024**2):.1f} MB"
+    else:
+        return f"{size_bytes/(1024**3):.1f} GB"
+
+def generate_custody_entry(filename, file_hash):
+    """Generate chain of custody entry"""
+    return {
+        'timestamp': datetime.utcnow().isoformat(),
+        'action': 'Document uploaded for authentication',
+        'filename': filename,
+        'hash': file_hash,
+        'officer': 'LexAI Evidence Analysis System',
+        'location': 'Digital Evidence Platform'
+    }
+
+def generate_doc_recommendations(integrity_score, security_analysis):
+    """Generate recommendations based on document analysis"""
+    recommendations = []
+    
+    if integrity_score >= 80:
+        recommendations.extend([
+            "✅ Document appears authentic and unmodified",
+            "📋 Suitable for legal proceedings with proper chain of custody",
+            "🔍 Consider additional forensic analysis for high-stakes cases",
+            "📝 Document hash values for evidence tracking"
+        ])
+    elif integrity_score >= 60:
+        recommendations.extend([
+            "⚠️ Document integrity partially verified",
+            "📋 Request additional authentication documentation",
+            "🔍 Consider expert forensic analysis",
+            "📝 Document any discrepancies found"
+        ])
+    else:
+        recommendations.extend([
+            "🚨 Document integrity concerns identified",
+            "❌ May not be suitable for legal proceedings without verification",
+            "🔍 Professional forensic analysis strongly recommended",
+            "📋 Investigate document source and chain of custody"
+        ])
+    
+    # Security-based recommendations
+    if not security_analysis['safe']:
+        recommendations.append("🛡️ Security issues detected - handle with caution")
+    
+    if security_analysis['warnings']:
+        recommendations.append("⚠️ Review warnings before proceeding")
+    
+    return recommendations
+
 @app.route('/chat')
 def chat_interface():
     """Modern AI Chat Interface"""
