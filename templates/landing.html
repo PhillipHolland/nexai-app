@@ -40,17 +40,28 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-content">
+                <!-- Hamburger Menu Button (Mobile Only) -->
+                <button class="hamburger-menu" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                </button>
+
                 <!-- Logo -->
                 <div class="logo">
                     <img src="/static/lexAI.png" alt="LexAI Practice Partner">
                 </div>
                 
-                <!-- Navigation Links -->
-                <div class="nav-links">
-                    <a href="#features" class="nav-link">Features</a>
-                    <a href="#how-it-works" class="nav-link">How It Works</a>
-                    <a href="#pricing" class="nav-link">Pricing</a>
-                    <a href="/dashboard" class="btn-primary" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+                <!-- Enter Platform Button (Desktop & Mobile) -->
+                <a href="/dashboard" class="btn-primary nav-enter-platform" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
+
+                <!-- Navigation Links (Collapsible on Mobile) -->
+                <div class="nav-links-mobile-container">
+                    <div class="nav-links">
+                        <a href="#features" class="nav-link">Features</a>
+                        <a href="#how-it-works" class="nav-link">How It Works</a>
+                        <a href="#pricing" class="nav-link">Pricing</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -370,5 +381,25 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const navLinksContainer = document.querySelector('.nav-links-mobile-container');
+
+            hamburgerMenu.addEventListener('click', function() {
+                const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
+                this.setAttribute('aria-expanded', !isExpanded);
+                navLinksContainer.classList.toggle('open');
+            });
+
+            // Close menu when a link is clicked (for single-page navigation)
+            navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinksContainer.classList.remove('open');
+                    hamburgerMenu.setAttribute('aria-expanded', 'false');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

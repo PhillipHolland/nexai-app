@@ -40,14 +40,116 @@ body {
 }
 
 .nav-links {
-    display: none;
-    align-items: center;
-    gap: 2rem;
+    display: none; /* Hidden by default */
+}
+
+.hamburger-menu {
+    display: none; /* Hidden by default, shown in media query */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 100;
+}
+
+.hamburger-menu:focus {
+    outline: none;
+}
+
+.hamburger-icon {
+    width: 2rem;
+    height: 3px;
+    background-color: #F7EDDA; /* light-cream */
+    border-radius: 10px;
+    transition: all 0.3s linear;
+    position: relative;
+    transform-origin: 1px;
+}
+
+/* Mobile Navigation Specifics */
+@media (max-width: 767px) {
+    .nav-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 4rem;
+        position: relative; /* For absolute positioning of mobile menu */
+    }
+
+    .hamburger-menu {
+        display: flex; /* Show hamburger on mobile */
+        order: 1; /* Position to the left */
+    }
+
+    .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        order: 2; /* Center the logo */
+    }
+
+    .nav-enter-platform {
+        order: 3; /* Position to the right */
+    }
+
+    .nav-links-mobile-container {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        position: absolute;
+        top: 4rem; /* Below the navbar */
+        left: 0;
+        width: 100%;
+        background-color: #2E4B3C; /* dark-green */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 99;
+        padding: 1rem 0;
+    }
+
+    .nav-links-mobile-container.open {
+        display: flex; /* Show when open */
+    }
+
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 0;
+    }
+
+    .nav-link {
+        padding: 0.75rem 1rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-link:hover {
+        background-color: #09332C; /* darkest-green */
+    }
 }
 
 @media (min-width: 768px) {
     .nav-links {
         display: flex;
+    }
+    .hamburger-menu {
+        display: none;
+    }
+    .nav-enter-platform {
+        display: block; /* Ensure button is visible on desktop */
+    }
+    .nav-links-mobile-container {
+        display: block; /* Ensure desktop nav links are visible */
+        position: static;
+        background-color: transparent;
+        box-shadow: none;
+        padding: 0;
+    }
+    .nav-content .logo {
+        position: static;
+        transform: none;
     }
 }
 
