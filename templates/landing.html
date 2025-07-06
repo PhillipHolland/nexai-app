@@ -45,15 +45,8 @@
                     <img src="/static/lexAI.png" alt="LexAI Practice Partner">
                 </div>
                 
-                <!-- Mobile hamburger button -->
-                <button class="mobile-menu-btn" id="mobileMenuBtn">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                
                 <!-- Navigation Links -->
-                <div class="nav-links" id="navLinks">
+                <div class="nav-links">
                     <a href="#features" class="nav-link">Features</a>
                     <a href="#how-it-works" class="nav-link">How It Works</a>
                     <a href="#pricing" class="nav-link">Pricing</a>
@@ -377,23 +370,5 @@
         </div>
     </footer>
 
-    <script>
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const navLinks = document.getElementById('navLinks');
-            
-            mobileMenuBtn.addEventListener('click', function() {
-                navLinks.classList.toggle('active');
-            });
-            
-            // Close menu when clicking on a link
-            navLinks.addEventListener('click', function(e) {
-                if (e.target.classList.contains('nav-link')) {
-                    navLinks.classList.remove('active');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
