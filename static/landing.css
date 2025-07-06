@@ -39,15 +39,113 @@ body {
     width: auto;
 }
 
-.nav-links {
+/* Mobile Portrait Layout: Hamburger - Logo - Enter Platform */
+.mobile-hamburger {
     display: none;
+    flex-direction: column;
+    justify-content: space-around;
     align-items: center;
-    gap: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    -webkit-tap-highlight-color: transparent;
 }
 
-@media (min-width: 768px) {
+.hamburger-line {
+    width: 1.5rem;
+    height: 3px;
+    background-color: #F7EDDA;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-hamburger.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+.mobile-enter-platform {
+    display: none;
+    background-color: #FFA74F;
+    color: #2E4B3C;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-enter-platform:hover {
+    background-color: #FF9A3C;
+    transform: translateY(-1px);
+}
+
+/* Portrait Mobile Only */
+@media (max-width: 768px) and (orientation: portrait) {
+    .nav-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        align-items: center;
+        justify-items: center;
+    }
+    
+    .mobile-hamburger {
+        display: flex;
+        justify-self: start;
+    }
+    
+    .logo {
+        justify-self: center;
+    }
+    
+    .mobile-enter-platform {
+        display: block;
+        justify-self: end;
+    }
+    
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #2E4B3C;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        grid-column: 1 / -1;
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+}
+
+/* Landscape Mobile + Desktop */
+@media (min-width: 768px), (orientation: landscape) {
+    .mobile-hamburger,
+    .mobile-enter-platform {
+        display: none;
+    }
+    
     .nav-links {
         display: flex;
+        align-items: center;
+        gap: 2rem;
     }
 }
 
