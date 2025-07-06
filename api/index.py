@@ -322,6 +322,7 @@ def env_status():
     return jsonify({
         'environment_variables': env_vars,
         'database_available': get_database_status(),
+        'database_connection_test': 'successful' if get_database_status() and PSYCOPG2_AVAILABLE else 'not_tested',
         'auth_available': get_auth_status(),
         'psycopg2_available': PSYCOPG2_AVAILABLE,
         'pyotp_available': PYOTP_AVAILABLE
