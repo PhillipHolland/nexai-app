@@ -13,60 +13,77 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Navigation */
+/* Navigation - Bootstrap Override */
 .navbar {
-    background-color: #2E4B3C; /* dark-green */
+    background-color: #2E4B3C !important; /* dark-green */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    position: relative;
+    padding: 1rem 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
 }
 
-.nav-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    position: relative;
-}
-
-.nav-content {
+.navbar-brand {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    height: 4rem;
+    padding: 0;
+    transition: opacity 0.2s ease;
 }
 
-.logo img {
+.navbar-brand img {
     height: 3rem;
     width: auto;
 }
 
-.nav-links {
-    display: none;
-    align-items: center;
-    gap: 2rem;
+.navbar-nav .nav-link {
+    color: #F7EDDA !important; /* light-cream */
+    font-weight: 500;
+    transition: color 0.2s ease;
+    padding: 0.75rem;
 }
 
-@media (min-width: 768px) {
-    .nav-links {
-        display: flex;
+.navbar-nav .nav-link:hover {
+    color: #FFA74F !important; /* warm-orange */
+}
+
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23F7EDDA' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Mobile navbar adjustments */
+@media (max-width: 991.98px) {
+    .navbar-brand img {
+        height: 2.5rem;
+    }
+    
+    .navbar-collapse {
+        background-color: #2E4B3C;
+        margin-top: 0.5rem;
+        border-radius: 0.5rem;
+        padding: 1rem;
     }
 }
 
-.nav-link {
-    color: #F7EDDA; /* light-cream */
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.nav-link:hover {
-    color: #FFA74F; /* warm-orange */
+/* Add padding to body to account for fixed navbar */
+body {
+    padding-top: 5rem;
 }
 
 .btn-primary {
-    background-color: #FFA74F; /* warm-orange */
-    color: #2E4B3C; /* dark-green */
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.5rem;
+    background-color: #FFA74F !important; /* warm-orange */
+    border-color: #FFA74F !important;
+    color: #2E4B3C !important; /* dark-green */
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -74,7 +91,9 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #F0531C; /* bright-coral */
+    background-color: #F0531C !important; /* bright-coral */
+    border-color: #F0531C !important;
+    color: #2E4B3C !important;
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
@@ -103,7 +122,7 @@ body {
 
 /* Hero Section */
 .hero {
-    padding: 6rem 0;
+    padding: 4rem 0 6rem 0;
     text-align: center;
 }
 
@@ -704,6 +723,14 @@ body {
 
 /* Mobile adjustments */
 @media (max-width: 767px) {
+    body {
+        padding-top: 4rem;
+    }
+    
+    .hero {
+        padding: 2rem 0 4rem 0;
+    }
+    
     .hero h1 {
         font-size: 2.5rem;
     }
