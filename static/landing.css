@@ -77,23 +77,23 @@ body {
         justify-content: space-between;
         align-items: center;
         height: 4rem;
-        position: relative; /* For absolute positioning of mobile menu */
+        position: relative;
     }
 
     .hamburger-menu {
-        display: flex; /* Show hamburger on mobile */
-        order: 1; /* Position to the left */
+        display: flex;
+        order: 2; /* Position to the left of the button */
     }
 
     .logo {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        order: 2; /* Center the logo */
+        position: static; /* Remove absolute positioning */
+        left: auto;
+        transform: none;
+        order: 1; /* Position to the far left */
     }
 
     .nav-enter-platform {
-        order: 3; /* Position to the right */
+        order: 3; /* Position to the far right */
     }
 
     .nav-links-mobile-container {
