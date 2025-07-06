@@ -169,6 +169,7 @@ body {
     
     .nav-enter-platform {
         order: 4; /* Rightmost position after nav links */
+        margin-left: 2rem; /* Add space between Pricing and Enter Platform */
     }
 }
 
@@ -206,6 +207,7 @@ body {
     
     .nav-enter-platform {
         order: 4; /* Rightmost position after nav links */
+        margin-left: 2rem; /* Add space between Pricing and Enter Platform */
     }
 }
 
