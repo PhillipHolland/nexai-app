@@ -301,6 +301,28 @@ app.config['SESSION_TYPE'] = 'filesystem'
 def test_route():
     return "Flask app is working!"
 
+@app.route('/api/env-status')
+def env_status():
+    """Check environment variable status"""
+    env_vars = {
+        'DATABASE_URL': bool(os.environ.get('DATABASE_URL')),
+        'XAI_API_KEY': bool(os.environ.get('XAI_API_KEY')),
+        'REDIS_URL': bool(os.environ.get('REDIS_URL')),
+        'GOOGLE_ANALYTICS_ID': bool(os.environ.get('GOOGLE_ANALYTICS_ID')),
+        'FILE_STORAGE_PROVIDER': os.environ.get('FILE_STORAGE_PROVIDER', 'not_set'),
+        'GCS_BUCKET_NAME': bool(os.environ.get('GCS_BUCKET_NAME')),
+        'GCP_PROJECT_ID': bool(os.environ.get('GCP_PROJECT_ID')),
+        'VERCEL_ENV': os.environ.get('VERCEL_ENV', 'not_vercel')
+    }
+    
+    return jsonify({
+        'environment_variables': env_vars,
+        'database_available': DATABASE_AVAILABLE,
+        'auth_available': AUTH_AVAILABLE,
+        'psycopg2_available': PSYCOPG2_AVAILABLE,
+        'pyotp_available': PYOTP_AVAILABLE
+    })
+
 @app.route('/api/debug')
 def debug_info():
     """Debug endpoint to check import status"""
