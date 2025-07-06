@@ -13057,8 +13057,10 @@ def server_error(e):
 # For Vercel - Deployment v2.1
 app.debug = False
 
-# Add a root route to handle base requests
+# Add routes to handle both root and /api/ requests
 @app.route('/')
+@app.route('/api')
+@app.route('/api/')
 def home():
     """Home page route"""
     return jsonify({
