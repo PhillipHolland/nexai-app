@@ -29,6 +29,14 @@ except ImportError:
     REDIS_AVAILABLE = False
     logging.warning("Redis not available - conversation persistence disabled")
 
+# Import dependencies that might not be available
+try:
+    import psycopg2
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    logger.warning("psycopg2 not available - database features disabled")
+
 # Dynamic database detection - check at runtime
 def get_database_status():
     """Check database availability at runtime"""
@@ -43,14 +51,6 @@ DATABASE_AVAILABLE = get_database_status()
 AUTH_AVAILABLE = get_auth_status()
 
 logger.info(f"Database status: {DATABASE_AVAILABLE}, Auth status: {AUTH_AVAILABLE}")
-
-# Import dependencies that might not be available
-try:
-    import psycopg2
-    PSYCOPG2_AVAILABLE = True
-except ImportError:
-    PSYCOPG2_AVAILABLE = False
-    logger.warning("psycopg2 not available - database features disabled")
 
 try:
     import pyotp
