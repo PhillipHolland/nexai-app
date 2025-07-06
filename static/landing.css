@@ -40,7 +40,7 @@ body {
 }
 
 .nav-links {
-    display: none; /* Hidden by default on mobile */
+    /* No global display: none; - controlled by media queries */
 }
 
 .hamburger-menu {
@@ -63,7 +63,7 @@ body {
 .hamburger-icon {
     width: 2rem;
     height: 3px;
-    background-color: #2E4B3C; /* dark-green for contrast */
+    background-color: #F7EDDA; /* light-cream for contrast */
     border-radius: 10px;
     transition: all 0.3s linear;
     position: relative;
@@ -140,6 +140,7 @@ body {
         align-items: center; /* Align items vertically */
         gap: 2rem; /* Space between links */
         order: 2; /* Position after the logo */
+        margin-left: auto; /* Push links to the right */
     }
     .hamburger-menu {
         display: none;
