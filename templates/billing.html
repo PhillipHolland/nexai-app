@@ -595,11 +595,96 @@
             <div class="action-card" onclick="viewReports()">
                 <div class="action-icon">
                     <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </div>
                 <div class="action-title">Billing Reports</div>
                 <div class="action-description">Revenue and payment analytics</div>
+            </div>
+
+            <div class="action-card" onclick="toggleClientPayments()" style="border: 2px solid #FFA74F;">
+                <div class="action-icon" style="background: #FFA74F;">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </div>
+                <div class="action-title">Client Payments</div>
+                <div class="action-description">Enable online payments (2.9% fee)</div>
+            </div>
+        </div>
+
+        <!-- Client Payment Integration Section -->
+        <div class="invoice-section" id="clientPaymentSection" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">💳 Client Payment Integration</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="toggleClientPayments()">Close</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #2563eb;">
+                    <h3 style="color: #2563eb; margin-bottom: 1rem;">✅ Benefits</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="padding: 0.25rem 0;">• Get paid faster with instant online payments</li>
+                        <li style="padding: 0.25rem 0;">• Automatic payment confirmation and receipts</li>
+                        <li style="padding: 0.25rem 0;">• Reduce collection time from 30+ days to 3 days</li>
+                        <li style="padding: 0.25rem 0;">• Professional payment experience for clients</li>
+                        <li style="padding: 0.25rem 0;">• Secure payment processing with fraud protection</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <h3 style="color: #d97706; margin-bottom: 1rem;">💰 Simple Pricing</h3>
+                    <div style="font-size: 1.1rem; margin-bottom: 1rem;">
+                        <strong>2.9% + $0.30</strong> per successful payment
+                    </div>
+                    <div style="font-size: 0.9rem; color: #6b7280;">
+                        <div>• No monthly fees or setup costs</div>
+                        <div>• Only pay when you get paid</div>
+                        <div>• Funds deposited to your bank in 2 business days</div>
+                        <div>• Full transaction reporting and tax documents</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stripeAccountStatus" style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                <h4 style="margin: 0 0 1rem 0; color: #2E4B3C;">Account Status:</h4>
+                <div id="accountStatusContent">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #fbbf24;"></div>
+                        <div>
+                            <strong>Not Connected</strong> - Connect your Stripe account to start accepting payments
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="connectStripeAccount()" id="connectButton">
+                        🔗 Connect Stripe Account
+                    </button>
+                    
+                    <div style="margin-top: 1rem; font-size: 0.9rem; color: #6b7280;">
+                        <strong>What happens next:</strong><br>
+                        1. You'll be redirected to Stripe to create/connect your account<br>
+                        2. Verify your business information (takes 1-2 business days)<br>
+                        3. Start adding payment links to your invoices
+                    </div>
+                </div>
+            </div>
+
+            <div id="paymentLinkDemo" style="display: none; background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                <h4 style="margin: 0 0 1rem 0; color: #2E4B3C;">Invoice Payment Demo:</h4>
+                <div style="border: 2px dashed #d1d5db; padding: 1.5rem; border-radius: 8px; text-align: center;">
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Invoice INV-2025-003</strong><br>
+                        Amount Due: <span style="color: #2E4B3C; font-size: 1.2rem; font-weight: bold;">$2,142.88</span>
+                    </div>
+                    <button class="btn btn-primary" style="background: #635bff; color: white;">
+                        💳 Pay with Card
+                    </button>
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #6b7280;">
+                        Secure payment powered by Stripe
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -843,6 +928,67 @@ window.sendReminders = function() {
 
 window.viewReports = function() {
     alert('Billing reports functionality coming soon!');
+};
+
+// Client Payment Integration Functions
+window.toggleClientPayments = function() {
+    const section = document.getElementById('clientPaymentSection');
+    const isVisible = section.style.display !== 'none';
+    
+    if (isVisible) {
+        section.style.display = 'none';
+    } else {
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+window.connectStripeAccount = function() {
+    // Simulate Stripe Connect onboarding
+    const connectButton = document.getElementById('connectButton');
+    const statusContent = document.getElementById('accountStatusContent');
+    
+    connectButton.textContent = '🔄 Connecting...';
+    connectButton.disabled = true;
+    
+    // Simulate API call delay
+    setTimeout(() => {
+        statusContent.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;"></div>
+                <div>
+                    <strong>Connected Successfully!</strong> - Ready to accept payments
+                </div>
+            </div>
+            
+            <div style="background: white; padding: 1rem; border-radius: 6px; border: 1px solid #e5e7eb; margin-bottom: 1rem;">
+                <div style="font-size: 0.9rem;">
+                    <strong>Account:</strong> law-firm-demo@stripe.com<br>
+                    <strong>Status:</strong> <span style="color: #10b981;">Active</span><br>
+                    <strong>Processing:</strong> 2.9% + $0.30 per transaction
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="disconnectStripe()" style="margin-right: 1rem;">
+                Disconnect Account
+            </button>
+            <button class="btn btn-primary" onclick="showPaymentDemo()">
+                View Payment Demo
+            </button>
+        `;
+    }, 2000);
+};
+
+window.disconnectStripe = function() {
+    if (confirm('Disconnect Stripe account? You will no longer be able to accept online payments.')) {
+        location.reload(); // Reset to initial state
+    }
+};
+
+window.showPaymentDemo = function() {
+    const demo = document.getElementById('paymentLinkDemo');
+    demo.style.display = 'block';
+    demo.scrollIntoView({ behavior: 'smooth' });
 };
 
 window.refreshInvoices = function() {

@@ -66,6 +66,14 @@ except ImportError:
     SECRETS_AVAILABLE = False
     logger.warning("secrets not available - using fallback")
 
+try:
+    import stripe
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
+    logger.warning("Stripe not available - billing features disabled")
+
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
@@ -3286,6 +3294,109 @@ def api_export_report():
     except Exception as e:
         logger.error(f"Export error: {e}")
         return jsonify({'error': 'Export failed'}), 500
+
+# Simple Stripe Connect Integration for Client Payments
+@app.route('/api/billing/stripe-connect', methods=['POST'])
+def stripe_connect_onboard():
+    """Create Stripe Connect account for law firm to accept client payments"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        firm_name = data.get('firm_name', f"{current_user.first_name} {current_user.last_name} Law")
+        
+        # Create Stripe Express account
+        account = stripe.Account.create(
+            type='express',
+            country='US',
+            email=current_user.email,
+            business_type='company',
+            company={
+                'name': firm_name,
+            },
+            metadata={
+                'lexai_user_id': str(current_user.id),
+                'firm_name': firm_name,
+                'integration_type': 'client_payments'
+            }
+        )
+        
+        # Create account link for onboarding
+        account_link = stripe.AccountLink.create(
+            account=account.id,
+            refresh_url=f"{request.host_url}billing?refresh=true",
+            return_url=f"{request.host_url}billing?success=true",
+            type='account_onboarding',
+        )
+        
+        # Store account ID for this user (in production, save to database)
+        # For now, just return the onboarding URL
+        
+        return jsonify({
+            'success': True,
+            'onboarding_url': account_link.url,
+            'account_id': account.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Stripe Connect error: {e}")
+        return jsonify({'error': 'Failed to create payment account'}), 500
+
+@app.route('/api/billing/create-payment-link', methods=['POST'])
+def create_payment_link():
+    """Create Stripe payment link for invoice"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        invoice_amount = data.get('amount')  # Amount in cents
+        invoice_number = data.get('invoice_number')
+        client_email = data.get('client_email')
+        stripe_account_id = data.get('stripe_account_id')
+        
+        if not all([invoice_amount, invoice_number, stripe_account_id]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Calculate platform fee (2.9% + $0.30 - our small percentage)
+        platform_fee = int(invoice_amount * 0.005)  # 0.5% platform fee
+        
+        # Create payment intent with application fee
+        payment_intent = stripe.PaymentIntent.create(
+            amount=invoice_amount,
+            currency='usd',
+            application_fee_amount=platform_fee,
+            transfer_data={
+                'destination': stripe_account_id,
+            },
+            metadata={
+                'invoice_number': invoice_number,
+                'client_email': client_email or '',
+                'law_firm_user_id': str(current_user.id)
+            },
+            receipt_email=client_email
+        )
+        
+        return jsonify({
+            'success': True,
+            'payment_intent_id': payment_intent.id,
+            'client_secret': payment_intent.client_secret,
+            'amount': invoice_amount,
+            'platform_fee': platform_fee
+        })
+        
+    except Exception as e:
+        logger.error(f"Payment link creation error: {e}")
+        return jsonify({'error': 'Failed to create payment link'}), 500
 
 def generate_html_export(report_data):
     """Generate HTML file for report download"""
