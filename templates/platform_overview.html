@@ -1,66 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platform Overview - LexAI Practice Partner</title>
+{% extends "landing.html" %}
+
+{% block title %}Platform Overview - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
     <meta name="description" content="Comprehensive overview of LexAI's AI-powered legal platform. Advanced evidence analysis, document authentication, AI detection, and professional legal tools.">
-    
-    <!-- Google Analytics -->
-    {% if google_analytics_id %}
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '{{ google_analytics_id }}');
-        
-        function trackEvent(action, category, label, value) {
-            gtag('event', action, {
-                event_category: category,
-                event_label: label,
-                value: value
-            });
-        }
-        
-        // Track platform page engagement
-        gtag('event', 'page_view', {
-            page_title: 'Platform Overview',
-            page_location: window.location.href
-        });
-    </script>
-    {% endif %}
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/landing.css">
     <style>
         /* Platform Overview Specific Styles */
+        
+        /* Override any base styles for platform page */
+        .navbar .nav-link[href="/platform"] {
+            color: #FFA74F !important;
+            font-weight: 600;
+        }
         .platform-hero {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
             color: white;
-            padding: 6rem 0 4rem 0;
+            padding: 3rem 0 2rem 0;
             text-align: center;
         }
         
         .platform-hero h1 {
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             color: white;
         }
         
         .platform-hero p {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto 2rem;
+            max-width: 500px;
+            margin: 0 auto 1.5rem;
         }
         
         .platform-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
         }
         
         .stat-item {
@@ -68,123 +45,119 @@
         }
         
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #FFA74F;
         }
         
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0.8;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .platform-section {
-            padding: 5rem 0;
+            padding: 2rem 0;
         }
         
         .platform-section:nth-child(even) {
-            background-color: white;
+            background-color: #F7EDDA;
         }
         
         .section-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 1.5rem;
         }
         
         .section-title {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #2E4B3C;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
         
         .section-subtitle {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #6b7280;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
+        }
+        
+        .compact-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            align-items: start;
         }
         
         .tools-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 3rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        @media (min-width: 768px) {
-            .tools-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
         }
         
         .tool-showcase {
             background: white;
-            border-radius: 16px;
-            padding: 3rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #FFA74F;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
-        }
-        
-        .tool-showcase::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #FFA74F, #F0531C);
         }
         
         .tool-showcase:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            border-color: #FFA74F;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+        
+        .tool-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
         }
         
         .tool-icon {
-            width: 4rem;
-            height: 4rem;
+            width: 2.5rem;
+            height: 2.5rem;
             background: linear-gradient(135deg, #2E4B3C, #4a7c59);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: white;
-            margin-bottom: 1.5rem;
+            flex-shrink: 0;
         }
         
         .tool-title {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: #2E4B3C;
-            margin-bottom: 1rem;
+            margin: 0;
         }
         
         .tool-description {
             color: #6b7280;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
         
         .tool-features {
             list-style: none;
             padding: 0;
-            margin-bottom: 2rem;
+            margin: 0;
         }
         
         .tool-features li {
-            padding: 0.5rem 0;
+            padding: 0.25rem 0;
             color: #374151;
             position: relative;
-            padding-left: 1.5rem;
+            padding-left: 1rem;
+            font-size: 0.85rem;
         }
         
         .tool-features li::before {
@@ -197,13 +170,16 @@
         
         .tool-status {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
+            padding: 0.2rem 0.6rem;
             background: #2E4B3C;
             color: white;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
             font-weight: 500;
             text-transform: uppercase;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
         }
         
         .tool-status.coming-soon {
@@ -211,44 +187,51 @@
             color: #2E4B3C;
         }
         
+        .info-sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+        
         .security-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
         
         .security-feature {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
+            padding: 1.5rem;
+            border-radius: 8px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
         }
         
         .security-icon {
-            width: 3rem;
-            height: 3rem;
+            width: 2.5rem;
+            height: 2.5rem;
             background: #F0531C;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
+            margin: 0 auto 0.75rem;
             color: white;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         
         .security-title {
             font-weight: 600;
             color: #2E4B3C;
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
         
         .security-desc {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #6b7280;
+            line-height: 1.4;
         }
         
         .faq-section {
@@ -257,16 +240,16 @@
         
         .faq-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            max-width: 800px;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
         .faq-item {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 8px;
+            padding: 1rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: all 0.3s ease;
@@ -283,12 +266,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.9rem;
         }
         
         .faq-answer {
             color: #6b7280;
-            line-height: 1.6;
+            line-height: 1.5;
             display: none;
+            font-size: 0.85rem;
         }
         
         .faq-answer.show {
@@ -309,22 +294,22 @@
         .cta-platform {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
             color: white;
-            padding: 5rem 0;
+            padding: 3rem 0;
             text-align: center;
         }
         
         .cta-platform h2 {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: white;
         }
         
         .cta-platform p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            margin-bottom: 2rem;
-            max-width: 600px;
+            margin-bottom: 1.5rem;
+            max-width: 500px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -375,59 +360,43 @@
         /* Mobile Adjustments */
         @media (max-width: 767px) {
             .platform-hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .section-title {
                 font-size: 2rem;
             }
             
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
             .tool-showcase {
-                padding: 2rem;
+                padding: 1.5rem;
             }
             
             .platform-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .security-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .security-feature {
+                padding: 1rem;
+            }
+            
+            .compact-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
         }
     </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <!-- Logo -->
-            <a class="navbar-brand" href="/">
-                <img src="/static/lexAI.png" alt="LexAI Practice Partner">
-            </a>
-            
-            <!-- Mobile hamburger button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <!-- Navigation Links -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a href="#features" class="nav-link">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/platform" class="nav-link" style="color: #FFA74F !important; font-weight: 600;">Platform</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#how-it-works" class="nav-link">How It Works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#pricing" class="nav-link">Pricing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/dashboard" class="btn btn-primary ms-2" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% endblock %}
+
+{% block content %}
 
     <!-- Hero Section -->
     <section class="platform-hero">
@@ -726,18 +695,9 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <img src="/static/lexAI.png" alt="LexAI Practice Partner">
-            <p>AI-Powered Legal Assistant for Legal Practices</p>
-            <p>© 2025 LexAI Practice Partner. Professional legal AI technology.</p>
-        </div>
-    </footer>
+{% endblock %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+{% block extra_js %}
     <script>
         function toggleFAQ(element) {
             const answer = element.querySelector('.faq-answer');
@@ -762,7 +722,9 @@
             }
             
             // Track FAQ engagement
-            trackEvent('click', 'engagement', 'faq_toggle', 1);
+            if (typeof trackEvent === 'function') {
+                trackEvent('click', 'engagement', 'faq_toggle', 1);
+            }
         }
         
         // Track scroll depth for engagement
@@ -771,11 +733,17 @@
             const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
             if (scrollPercent > maxScroll) {
                 maxScroll = scrollPercent;
-                if (maxScroll >= 75) {
+                if (maxScroll >= 75 && typeof trackEvent === 'function') {
                     trackEvent('scroll', 'engagement', 'platform_scroll_75', 1);
                 }
             }
         });
+        
+        // Track platform page view
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof trackEvent === 'function') {
+                trackEvent('page_view', 'platform', 'platform_overview', 1);
+            }
+        });
     </script>
-</body>
-</html>
+{% endblock %}
