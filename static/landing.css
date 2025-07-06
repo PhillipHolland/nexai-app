@@ -39,10 +39,6 @@ body {
     width: auto;
 }
 
-.nav-links {
-    display: none; /* Hidden by default */
-}
-
 .hamburger-menu {
     display: none; /* Hidden by default, shown in media query */
     flex-direction: column;
@@ -68,6 +64,10 @@ body {
     transition: all 0.3s linear;
     position: relative;
     transform-origin: 1px;
+}
+
+.nav-links-mobile-container {
+    display: none; /* Hidden by default, shown by JS on mobile */
 }
 
 /* Mobile Navigation Specifics */
@@ -97,7 +97,6 @@ body {
     }
 
     .nav-links-mobile-container {
-        display: none; /* Hidden by default */
         flex-direction: column;
         position: absolute;
         top: 4rem; /* Below the navbar */
@@ -132,7 +131,7 @@ body {
 
 @media (min-width: 768px) {
     .nav-links {
-        display: flex;
+        display: flex; /* Ensure desktop nav links are visible */
     }
     .hamburger-menu {
         display: none;
