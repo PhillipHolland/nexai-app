@@ -361,9 +361,23 @@ def db_test():
             'connection': 'failed'
         })
 
+@app.route('/api/analytics/status')
+def analytics_status():
+    """Check Google Analytics configuration status"""
+    try:
+        return jsonify({
+            'google_analytics_id': GOOGLE_ANALYTICS_ID,
+            'env_variable_set': bool(os.environ.get('GOOGLE_ANALYTICS_ID')),
+            'template_variable': GOOGLE_ANALYTICS_ID if GOOGLE_ANALYTICS_ID else None,
+            'status': 'configured' if GOOGLE_ANALYTICS_ID else 'missing'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e), 'status': 'error'}), 500
+
 @app.route('/api/debug')
 def debug_info():
     """Debug endpoint to check import status"""
+    import sys
     try:
         import_tests = {}
         
@@ -424,7 +438,8 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 XAI_API_KEY = (os.environ.get('XAI_API_KEY') or os.environ.get('xai_api_key') or '').strip()
 REDIS_URL = os.environ.get('REDIS_URL')
 # DATABASE_URL already defined above
-GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', 'G-EBPD82DJGP')
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID') or 'G-EBPD82DJGP'
+logger.info(f"Google Analytics ID loaded: {GOOGLE_ANALYTICS_ID}")
 
 if not XAI_API_KEY:
     logger.warning("XAI_API_KEY not set - AI features will not work")
