@@ -74,8 +74,8 @@ body {
     display: none; /* Hidden by default, shown by JS on mobile */
 }
 
-/* Mobile Navigation Specifics */
-@media (max-width: 767px) {
+/* Mobile Portrait Navigation */
+@media (max-width: 767px) and (orientation: portrait) {
     .nav-content {
         display: flex;
         justify-content: space-between;
@@ -86,11 +86,11 @@ body {
 
     .hamburger-menu {
         display: flex;
-        order: 2; /* Position to the left of the button */
+        order: 2; /* Position in center */
     }
 
     .logo {
-        position: static; /* Remove absolute positioning */
+        position: static;
         left: auto;
         transform: none;
         order: 1; /* Position to the far left */
@@ -134,32 +134,78 @@ body {
     }
 }
 
-@media (min-width: 768px) {
-    .nav-links {
-        display: flex; /* Ensure desktop nav links are visible */
-        align-items: center; /* Align items vertically */
-        gap: 2rem; /* Space between links */
-        order: 2; /* Position after the logo */
-        margin-left: auto; /* Push links to the right */
+/* Mobile Landscape Navigation */
+@media (max-width: 767px) and (orientation: landscape) {
+    .nav-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-    .hamburger-menu {
-        display: none;
+    
+    .logo {
+        order: 1; /* Logo on the far left */
     }
-    .nav-enter-platform {
-        display: block; /* Ensure button is visible on desktop */
-        order: 3; /* Position after the nav links */
-    }
+    
     .nav-links-mobile-container {
-        display: block; /* Ensure desktop nav links are visible */
+        display: flex; /* Show navigation container */
         position: static;
         background-color: transparent;
         box-shadow: none;
         padding: 0;
+        order: 2; /* Navigation in the middle */
+        margin-left: auto; /* Push to the right side */
     }
-    .nav-content .logo {
+    
+    .nav-links {
+        display: flex; /* Horizontal layout */
+        align-items: center;
+        gap: 1.5rem; /* Slightly smaller gap for mobile landscape */
+        flex-direction: row-reverse; /* Reverse order: Enter Platform, Pricing, How It Works, Features */
+    }
+    
+    .hamburger-menu {
+        display: none; /* Hide hamburger in landscape */
+    }
+    
+    .nav-enter-platform {
+        order: 1; /* Rightmost position */
+    }
+}
+
+@media (min-width: 768px) {
+    .nav-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .logo {
+        order: 1; /* Logo on the far left */
+    }
+    
+    .nav-links-mobile-container {
+        display: flex; /* Show navigation container */
         position: static;
-        transform: none;
-        order: 1; /* Position to the far left */
+        background-color: transparent;
+        box-shadow: none;
+        padding: 0;
+        order: 2; /* Navigation in the middle */
+        margin-left: auto; /* Push to the right side */
+    }
+    
+    .nav-links {
+        display: flex; /* Horizontal layout */
+        align-items: center;
+        gap: 2rem;
+        flex-direction: row-reverse; /* Reverse order: Enter Platform, Pricing, How It Works, Features */
+    }
+    
+    .hamburger-menu {
+        display: none; /* Hide hamburger on desktop */
+    }
+    
+    .nav-enter-platform {
+        order: 1; /* Rightmost position */
     }
 }
 
