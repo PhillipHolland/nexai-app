@@ -3245,6 +3245,109 @@ def api_generate_court_report():
         logger.error(f"Court report generation error: {e}")
         return jsonify({'error': 'Report generation failed'}), 500
 
+@app.route('/api/evidence/export', methods=['POST'])
+def api_export_report():
+    """Export court report as downloadable file"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Export data required'}), 400
+        
+        export_format = data.get('format', 'html').lower()
+        report_data = data.get('report_data', {})
+        
+        if not report_data:
+            return jsonify({'error': 'Report data required for export'}), 400
+        
+        # Generate export content based on format
+        if export_format == 'html':
+            content = generate_html_export(report_data)
+            mimetype = 'text/html'
+            filename = f"Evidence_Report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.html"
+        else:
+            return jsonify({'error': 'Format not supported in lightweight version'}), 400
+        
+        # Return file content as base64 for download
+        import base64
+        content_b64 = base64.b64encode(content.encode()).decode()
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'content': content_b64,
+            'mimetype': mimetype,
+            'format': export_format
+        })
+        
+    except Exception as e:
+        logger.error(f"Export error: {e}")
+        return jsonify({'error': 'Export failed'}), 500
+
+def generate_html_export(report_data):
+    """Generate HTML file for report download"""
+    case_info = report_data.get('case_info', {})
+    sections = report_data.get('sections', [])
+    metadata = report_data.get('metadata', {})
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evidence Analysis Report - {case_info.get('case_name', 'Report')}</title>
+    <style>
+        body {{ font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; margin: 1in; }}
+        .header {{ text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #000; padding-bottom: 1rem; }}
+        .case-info {{ margin-bottom: 2rem; }}
+        .section {{ margin-bottom: 2rem; page-break-inside: avoid; }}
+        .section-title {{ font-size: 14pt; font-weight: bold; margin-bottom: 1rem; color: #2E4B3C; }}
+        .metadata {{ margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc; font-size: 10pt; color: #666; }}
+        .signature-line {{ margin-top: 3rem; border-bottom: 1px solid #000; width: 300px; }}
+        @media print {{ body {{ margin: 0.5in; }} }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>EVIDENCE ANALYSIS REPORT</h1>
+        <h2>{case_info.get('case_name', 'Professional Legal Analysis')}</h2>
+        <p><strong>Case Number:</strong> {case_info.get('case_number', 'N/A')}</p>
+        <p><strong>Court:</strong> {case_info.get('court_name', 'N/A')}</p>
+    </div>
+    
+    <div class="case-info">
+        <p><strong>Prepared by:</strong> {case_info.get('attorney_name', 'Legal Professional')}</p>
+        <p><strong>Firm:</strong> {case_info.get('firm_name', 'Law Firm')}</p>
+        <p><strong>Date:</strong> {metadata.get('generated_date', 'N/A')}</p>
+        <p><strong>Report ID:</strong> {report_data.get('report_id', 'N/A')}</p>
+    </div>"""
+    
+    # Add sections
+    for section in sections:
+        html_content += f"""
+    <div class="section">
+        <h3 class="section-title">{section.get('title', 'Section')}</h3>
+        <div>{section.get('content', '').replace('\n', '<br>')}</div>
+    </div>"""
+    
+    # Add metadata footer
+    html_content += f"""
+    <div class="metadata">
+        <p><strong>Platform:</strong> {metadata.get('platform', 'LexAI Evidence Analysis Platform')}</p>
+        <p><strong>Version:</strong> {metadata.get('report_version', '1.0')}</p>
+        <p><strong>Certification:</strong> {metadata.get('certification', 'Professional Grade Analysis')}</p>
+    </div>
+    
+    <div class="signature-line"></div>
+    <p style="margin-top: 0.5rem; font-size: 10pt;">Attorney Signature</p>
+</body>
+</html>"""
+    
+    return html_content
+
 def generate_court_report(report_type, analysis_results, case_info, user):
     """Generate professional court-ready evidence analysis report"""
     
@@ -3352,6 +3455,24 @@ def generate_court_report(report_type, analysis_results, case_info, user):
         'legal_disclaimer': generate_legal_disclaimer()
     }
 
+def _get_integrity_conclusion(integrity):
+    """Helper function to get integrity conclusion"""
+    if integrity >= 80:
+        return 'confirms the document\'s integrity and authenticity'
+    elif integrity >= 60:
+        return 'indicates potential concerns with document integrity'
+    else:
+        return 'raises significant questions about document authenticity'
+
+def _get_confidence_conclusion(confidence):
+    """Helper function to get confidence conclusion"""
+    if confidence > 70:
+        return 'shows significant indicators'
+    elif confidence > 40:
+        return 'shows moderate indicators'
+    else:
+        return 'shows minimal indicators'
+
 def generate_executive_summary(analysis, analysis_type):
     """Generate executive summary based on analysis type"""
     
@@ -3369,7 +3490,7 @@ def generate_executive_summary(analysis, analysis_type):
         • Analysis Method: Pattern recognition, linguistic analysis, and writing style assessment
 
         **Conclusion:**
-        Based on the technical analysis, the examined content {'shows significant indicators' if confidence > 70 else 'shows moderate indicators' if confidence > 40 else 'shows minimal indicators'} of AI generation. This finding is based on established patterns and markers commonly associated with AI-generated text.
+        Based on the technical analysis, the examined content {_get_confidence_conclusion(confidence)} of AI generation. This finding is based on established patterns and markers commonly associated with AI-generated text.
         """
     
     elif analysis_type == "Document Authentication Analysis":
@@ -3386,7 +3507,7 @@ def generate_executive_summary(analysis, analysis_type):
         • Analysis Method: Hash verification, metadata analysis, and digital forensics
 
         **Conclusion:**
-        The document authentication analysis {'confirms the document's integrity and authenticity' if integrity >= 80 else 'indicates potential concerns with document integrity' if integrity >= 60 else 'raises significant questions about document authenticity'}. All findings are based on industry-standard digital forensics practices.
+        The document authentication analysis {_get_integrity_conclusion(integrity)}. All findings are based on industry-standard digital forensics practices.
         """
     
     elif analysis_type == "Legal Admissibility Analysis":
