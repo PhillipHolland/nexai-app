@@ -45,12 +45,13 @@
                     <img src="/static/lexAI.png" alt="LexAI Practice Partner">
                 </div>
                 
-                <!-- Mobile Menu Toggle -->
-                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle mobile menu">
+                <!-- Mobile Menu Toggle - CSS Checkbox Method for Better Safari Support -->
+                <input type="checkbox" id="mobileMenuToggle" class="mobile-menu-checkbox" aria-label="Toggle mobile menu">
+                <label for="mobileMenuToggle" class="mobile-menu-toggle">
                     <span class="hamburger-line"></span>
                     <span class="hamburger-line"></span>
                     <span class="hamburger-line"></span>
-                </button>
+                </label>
                 
                 <!-- Navigation Links -->
                 <div class="nav-links" id="navLinks">
@@ -377,31 +378,44 @@
         </div>
     </footer>
 
-    <!-- Mobile Menu Script -->
+    <!-- Mobile Menu Script - Simplified for CSS-first approach -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenuCheckbox = document.getElementById('mobileMenuToggle');
             const navLinks = document.getElementById('navLinks');
             
-            if (mobileMenuToggle && navLinks) {
-                mobileMenuToggle.addEventListener('click', function() {
-                    navLinks.classList.toggle('active');
-                    mobileMenuToggle.classList.toggle('active');
-                    
-                    // Track menu toggle
+            if (mobileMenuCheckbox && navLinks) {
+                // Track menu toggle
+                mobileMenuCheckbox.addEventListener('change', function() {
                     if (typeof trackEvent === 'function') {
                         trackEvent('click', 'navigation', 'mobile_menu_toggle', 1);
                     }
                 });
                 
-                // Close menu when clicking on nav links
+                // Close menu when clicking on nav links (mobile only)
                 const navLinksElements = navLinks.querySelectorAll('.nav-link, .btn-primary');
                 navLinksElements.forEach(link => {
                     link.addEventListener('click', function() {
-                        navLinks.classList.remove('active');
-                        mobileMenuToggle.classList.remove('active');
+                        // Only close on mobile (when checkbox is visible)
+                        if (window.innerWidth < 768) {
+                            mobileMenuCheckbox.checked = false;
+                        }
                     });
                 });
+                
+                // Handle touch events for better Safari support
+                const mobileMenuLabel = document.querySelector('.mobile-menu-toggle');
+                if (mobileMenuLabel) {
+                    mobileMenuLabel.addEventListener('touchstart', function(e) {
+                        // Prevent double-tap zoom on iOS
+                        e.preventDefault();
+                        mobileMenuCheckbox.checked = !mobileMenuCheckbox.checked;
+                        
+                        if (typeof trackEvent === 'function') {
+                            trackEvent('touch', 'navigation', 'mobile_menu_touch', 1);
+                        }
+                    }, { passive: false });
+                }
             }
         });
     </script>
