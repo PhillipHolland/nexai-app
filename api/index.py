@@ -2602,6 +2602,7 @@ def dashboard():
         result = render_template('dashboard.html', 
                                stats=stats,
                                user_name=f"{current_user.first_name} {current_user.last_name}",
+                               user_role=user_role,
                                current_user=current_user)
         logger.info("Dashboard template rendered successfully")
         return result
@@ -3939,7 +3940,9 @@ def chat_interface():
         return render_template('chat.html', 
                              current_client=None,
                              practice_areas=PRACTICE_AREAS,
-                             selected_area=practice_area)
+                             selected_area=practice_area,
+                             user_role=session.get('user_role', ''),
+                             user_name=session.get('user_name', 'User'))
         
     except Exception as e:
         logger.error(f"Chat interface error: {e}")
@@ -3959,7 +3962,9 @@ def old_chat_interface_deprecated(client_id=None):
             return render_template('chat.html', 
                                  current_client=client_id,
                                  practice_areas=PRACTICE_AREAS,
-                                 selected_area=practice_area)
+                                 selected_area=practice_area,
+                                 user_role=session.get('user_role', ''),
+                                 user_name=session.get('user_name', 'User'))
         except Exception as template_error:
             logger.warning(f"Chat template render failed: {template_error}, using embedded template")
             # Enhanced fallback chat interface with modern styling
@@ -4335,7 +4340,9 @@ def clients_page():
                              clients=clients,
                              active_count=active_count,
                              total_cases=total_cases,
-                             pending_tasks=pending_tasks)
+                             pending_tasks=pending_tasks,
+                             user_role=session.get('user_role', ''),
+                             user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Clients page error: {e}")
         return f"""<!DOCTYPE html>
@@ -4791,7 +4798,9 @@ def clients_list():
 def document_analysis_page():
     """Document analysis page"""
     try:
-        return render_template('document_analysis.html')
+        return render_template('document_analysis.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Document analysis page error: {e}")
         return f"""<!DOCTYPE html>
@@ -4804,7 +4813,9 @@ def document_analysis_page():
 def legal_research_page():
     """Legal research page with AI-powered case law and statute search"""
     try:
-        return render_template('legal_research.html')
+        return render_template('legal_research.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Legal research page error: {e}")
         return f"""<!DOCTYPE html>
@@ -4878,7 +4889,9 @@ def documents_list():
                              documents=documents,
                              analyzed_count=analyzed_count,
                              pending_count=pending_count,
-                             total_size=total_size)
+                             total_size=total_size,
+                             user_role=session.get('user_role', ''),
+                             user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Document list error: {e}")
         return f"""<!DOCTYPE html>
@@ -5845,7 +5858,9 @@ def case_timeline(case_id):
 def contract_generator_page():
     """Contract Generator page"""
     try:
-        return render_template('contract_generator.html')
+        return render_template('contract_generator.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Contract generator page error: {e}")
         return f"""<!DOCTYPE html>
@@ -9438,7 +9453,11 @@ def search_interface():
         'immigration': {'name': 'Immigration', 'color': '#6366F1'}
     }
     try:
-        return render_template('search.html', practice_areas=practice_areas, SEARCH_TEMPLATE=SEARCH_TEMPLATE)
+        return render_template('search.html', 
+                               practice_areas=practice_areas, 
+                               SEARCH_TEMPLATE=SEARCH_TEMPLATE,
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except:
         # Fallback to inline template if file doesn't exist
         return render_template_string(SEARCH_TEMPLATE, practice_areas=practice_areas)
@@ -11113,7 +11132,9 @@ def stripe_webhook():
 def expense_tracking_page():
     """Expense tracking and reimbursement page"""
     try:
-        return render_template('expense_tracking.html')
+        return render_template('expense_tracking.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Expense tracking template error: {e}")
         return f"<h1>Expense Tracking</h1><p>Template error: {e}</p>", 500
@@ -11122,7 +11143,9 @@ def expense_tracking_page():
 def calendar_page():
     """Calendar and scheduling page"""
     try:
-        return render_template('calendar.html')
+        return render_template('calendar.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Calendar template error: {e}")
         return f"<h1>Calendar</h1><p>Template error: {e}</p>", 500
@@ -11131,7 +11154,9 @@ def calendar_page():
 def court_deadlines_page():
     """Court dates and deadlines management page"""
     try:
-        return render_template('court_deadlines.html')
+        return render_template('court_deadlines.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Court deadlines template error: {e}")
         return f"<h1>Court Deadlines</h1><p>Template error: {e}</p>", 500
@@ -15126,7 +15151,9 @@ def client_portal():
             'next_hearing': 'March 15, 2024 at 2:00 PM'
         }
         
-        return render_template('client_portal.html', **client_info)
+        return render_template('client_portal.html', 
+                               user_role=user_role,
+                               **client_info)
     except Exception as e:
         logger.error(f"Client portal error: {e}")
         return jsonify({"error": "Client portal unavailable"}), 500
