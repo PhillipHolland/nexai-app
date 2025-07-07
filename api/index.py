@@ -10507,7 +10507,9 @@ def invoice_payment_page():
                         }}
                     }} catch (error) {{
                         console.error('Error:', error);
-                        alert('Unable to create payment session. Please try again.');
+                        // Show the actual error message from the API
+                        const errorMessage = error.message || 'Unable to create payment session. Please try again.';
+                        alert(errorMessage);
                         button.disabled = false;
                         button.textContent = '💳 Pay ${amount} Securely with Stripe';
                     }}
