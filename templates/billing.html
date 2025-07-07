@@ -579,7 +579,7 @@
                     </svg>
                 </div>
                 <div class="action-title">From Time Entries</div>
-                <div class="action-description">Auto-generate from unbilled time</div>
+                <div class="action-description">Generate from unbilled time</div>
             </div>
 
             <div class="action-card" onclick="sendReminders()">
@@ -919,7 +919,69 @@ window.createNewInvoice = function() {
 };
 
 window.generateFromTime = function() {
-    alert('Generate from time entries functionality coming soon!');
+    const timeEntries = JSON.parse(localStorage.getItem('lexai_time_entries') || '[]');
+    const unbilledEntries = timeEntries.filter(entry => entry.status !== 'billed');
+    
+    if (unbilledEntries.length === 0) {
+        alert('No unbilled time entries found. Please track some billable hours first.');
+        return;
+    }
+    
+    // Show invoice creator
+    document.getElementById('invoiceCreator').style.display = 'block';
+    document.getElementById('invoiceCreator').scrollIntoView({ behavior: 'smooth' });
+    
+    // Clear existing line items
+    const container = document.getElementById('lineItemsContainer');
+    container.innerHTML = '';
+    
+    // Group entries by client
+    const clientGroups = {};
+    unbilledEntries.forEach(entry => {
+        if (!clientGroups[entry.client]) {
+            clientGroups[entry.client] = [];
+        }
+        clientGroups[entry.client].push(entry);
+    });
+    
+    // Add line items for each client group
+    Object.keys(clientGroups).forEach(client => {
+        const entries = clientGroups[client];
+        const totalHours = entries.reduce((sum, entry) => sum + entry.duration, 0);
+        const amount = entries.reduce((sum, entry) => sum + entry.amount, 0);
+        
+        const lineItem = document.createElement('div');
+        lineItem.className = 'line-item';
+        lineItem.innerHTML = `
+            <input type="text" value="Legal Services - ${client}">
+            <input type="number" value="${totalHours.toFixed(2)}" step="0.25" min="0">
+            <input type="number" value="${entries[0].rate}" step="0.01" min="0">
+            <input type="text" value="$${amount.toFixed(2)}" readonly>
+            <button type="button" class="line-item-remove" onclick="removeLineItem(this)">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        `;
+        container.appendChild(lineItem);
+    });
+    
+    // Auto-select first client if available
+    if (Object.keys(clientGroups).length > 0) {
+        const firstClient = Object.keys(clientGroups)[0];
+        const clientSelect = document.getElementById('invoiceClient');
+        for (let option of clientSelect.options) {
+            if (option.text.toLowerCase().includes(firstClient.toLowerCase())) {
+                option.selected = true;
+                break;
+            }
+        }
+    }
+    
+    // Recalculate totals
+    calculateInvoiceTotal();
+    
+    console.log(`Generated invoice from ${unbilledEntries.length} time entries for ${Object.keys(clientGroups).length} clients`);
 };
 
 window.sendReminders = function() {
@@ -1017,8 +1079,18 @@ window.saveInvoice = function() {
         return;
     }
     
+    // Mark time entries as billed
+    const timeEntries = JSON.parse(localStorage.getItem('lexai_time_entries') || '[]');
+    const updatedEntries = timeEntries.map(entry => {
+        if (entry.status !== 'billed') {
+            return { ...entry, status: 'billed', invoiceNumber: 'INV-2025-003' };
+        }
+        return entry;
+    });
+    localStorage.setItem('lexai_time_entries', JSON.stringify(updatedEntries));
+    
     // Simulate saving
-    alert('Invoice created successfully! Invoice number: INV-2025-003');
+    alert('Invoice created successfully! Invoice number: INV-2025-003\nTime entries have been marked as billed.');
     document.getElementById('invoiceCreator').style.display = 'none';
     
     // In a real app, this would send the invoice data to the server
