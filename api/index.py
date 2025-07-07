@@ -507,6 +507,10 @@ if DATABASE_AVAILABLE:
                 'echo': False
             }
             
+            # Import database models
+            from models import db
+            from database import db_manager
+            
             # Initialize database with app
             db.init_app(app)
             db_manager.init_app(app)
@@ -515,7 +519,8 @@ if DATABASE_AVAILABLE:
             with app.app_context():
                 try:
                     # Just test the connection without creating tables
-                    result = db.engine.execute("SELECT 1")
+                    from sqlalchemy import text
+                    result = db.session.execute(text("SELECT 1"))
                     logger.info("✅ Database connection tested successfully")
                 except Exception as e:
                     logger.warning(f"Database connection test failed: {e}")
@@ -6900,7 +6905,7 @@ USER_SUBSCRIPTIONS = {
 # @app.route('/billing') - moved to line 10577
 
 @app.route('/api/init-database', methods=['POST'])
-def init_database():
+def initialize_database():
     """Initialize Neon database tables and seed with subscription plans"""
     try:
         # Import database models
@@ -10333,75 +10338,6 @@ def billing_page():
     except Exception as e:
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
-
-@app.route('/api/init-database', methods=['POST'])
-def init_database():
-    """Initialize database tables and seed subscription plans"""
-    if not DATABASE_AVAILABLE:
-        return jsonify({'error': 'Database not available'}), 503
-    
-    try:
-        from models import db, SubscriptionPlan
-        
-        # Create all tables
-        db.create_all()
-        
-        # Seed subscription plans if they don't exist
-        if SubscriptionPlan.query.count() == 0:
-            plans = [
-                SubscriptionPlan(
-                    name='Basic',
-                    description='Perfect for solo practitioners',
-                    monthly_price=29.00,
-                    yearly_price=290.00,
-                    max_cases=50,
-                    max_clients=100,
-                    max_storage_gb=10,
-                    ai_analysis_credits=100,
-                    has_billing_integration=False
-                ),
-                SubscriptionPlan(
-                    name='Professional',
-                    description='For growing law firms',
-                    monthly_price=79.00,
-                    yearly_price=790.00,
-                    max_cases=250,
-                    max_clients=500,
-                    max_storage_gb=50,
-                    ai_analysis_credits=500,
-                    has_billing_integration=True,
-                    has_advanced_analytics=True
-                ),
-                SubscriptionPlan(
-                    name='Enterprise',
-                    description='Unlimited access for large firms',
-                    monthly_price=199.00,
-                    yearly_price=1990.00,
-                    max_cases=None,
-                    max_clients=None,
-                    max_storage_gb=None,
-                    ai_analysis_credits=2000,
-                    has_billing_integration=True,
-                    has_advanced_analytics=True,
-                    has_api_access=True,
-                    has_custom_branding=True
-                )
-            ]
-            
-            for plan in plans:
-                db.session.add(plan)
-            
-            db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Database initialized successfully',
-            'plans_count': SubscriptionPlan.query.count()
-        })
-        
-    except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
