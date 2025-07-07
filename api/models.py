@@ -61,6 +61,23 @@ class InvoiceStatus(enum.Enum):
     OVERDUE = "overdue"
     CANCELLED = "cancelled"
 
+class SubscriptionStatus(enum.Enum):
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
+    PAST_DUE = "past_due"
+    PAUSED = "paused"
+    TRIAL = "trial"
+
+class BillingCycle(enum.Enum):
+    MONTHLY = "monthly"
+    YEARLY = "yearly"
+
+class PaymentStatus(enum.Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
 # Association Tables for Many-to-Many Relationships
 case_attorneys = db.Table('case_attorneys',
     db.Column('case_id', db.String(36), db.ForeignKey('cases.id'), primary_key=True),
@@ -574,6 +591,95 @@ class Invoice(db.Model):
             'client_name': self.client.get_display_name() if self.client else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+# Subscription Plans Model
+class SubscriptionPlan(db.Model):
+    __tablename__ = 'subscription_plans'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    monthly_price = db.Column(Numeric(10, 2), nullable=False)
+    yearly_price = db.Column(Numeric(10, 2))
+    max_cases = db.Column(db.Integer)
+    max_clients = db.Column(db.Integer)
+    max_storage_gb = db.Column(db.Integer)
+    ai_analysis_credits = db.Column(db.Integer)
+    has_billing_integration = db.Column(db.Boolean, default=False)
+    has_advanced_analytics = db.Column(db.Boolean, default=False)
+    has_api_access = db.Column(db.Boolean, default=False)
+    has_custom_branding = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class UserSubscription(db.Model):
+    __tablename__ = 'user_subscriptions'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    plan_id = db.Column(db.String(36), db.ForeignKey('subscription_plans.id'), nullable=False)
+    stripe_subscription_id = db.Column(db.String(255))
+    stripe_customer_id = db.Column(db.String(255))
+    start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime)
+    next_billing_date = db.Column(db.DateTime)
+    status = db.Column(db.Enum(SubscriptionStatus), default=SubscriptionStatus.ACTIVE)
+    billing_cycle = db.Column(db.Enum(BillingCycle), default=BillingCycle.MONTHLY)
+    current_cases = db.Column(db.Integer, default=0)
+    current_clients = db.Column(db.Integer, default=0)
+    current_storage_gb = db.Column(Numeric(10, 2), default=0)
+    monthly_ai_credits_used = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = db.relationship('User', backref='subscription')
+    plan = db.relationship('SubscriptionPlan', backref='subscriptions')
+
+class PaymentRecord(db.Model):
+    __tablename__ = 'payment_records'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    stripe_payment_intent_id = db.Column(db.String(255), unique=True)
+    stripe_charge_id = db.Column(db.String(255))
+    amount = db.Column(Numeric(10, 2), nullable=False)
+    currency = db.Column(db.String(3), default='USD')
+    stripe_fee = db.Column(Numeric(10, 2))
+    net_amount = db.Column(Numeric(10, 2))
+    payment_method_type = db.Column(db.String(50))
+    last_four = db.Column(db.String(4))
+    brand = db.Column(db.String(20))
+    status = db.Column(db.Enum(PaymentStatus), default=PaymentStatus.PENDING)
+    payment_date = db.Column(db.DateTime)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    subscription_id = db.Column(db.String(36), db.ForeignKey('user_subscriptions.id'))
+    invoice_id = db.Column(db.String(36), db.ForeignKey('invoices.id'))
+    description = db.Column(db.Text)
+    metadata = db.Column(db.JSON)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = db.relationship('User', backref='payments')
+    subscription = db.relationship('UserSubscription', backref='payments')
+    invoice = db.relationship('Invoice', backref='payments')
+
+class UsageLog(db.Model):
+    __tablename__ = 'usage_logs'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    subscription_id = db.Column(db.String(36), db.ForeignKey('user_subscriptions.id'))
+    action = db.Column(db.String(100), nullable=False)
+    resource_type = db.Column(db.String(50))
+    resource_id = db.Column(db.String(36))
+    quantity = db.Column(db.Integer, default=1)
+    cost_credits = db.Column(db.Integer, default=0)
+    metadata = db.Column(db.JSON)
+    ip_address = db.Column(db.String(45))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    
+    user = db.relationship('User', backref='usage_logs')
+    subscription = db.relationship('UserSubscription', backref='usage_logs')
 
 # Expense Model
 class Expense(db.Model):

@@ -6899,6 +6899,147 @@ USER_SUBSCRIPTIONS = {
 # Old billing dashboard removed - now using billing.html template
 # @app.route('/billing') - moved to line 10577
 
+@app.route('/api/init-database', methods=['POST'])
+def init_database():
+    """Initialize Neon database tables and seed with subscription plans"""
+    try:
+        # Import database models
+        from database import db_manager
+        from models import SubscriptionPlan, db
+        
+        # Initialize database tables
+        db_manager.create_tables()
+        
+        # Create subscription plans
+        subscription_plans_data = [
+            {
+                'id': 'basic',
+                'name': 'Basic',
+                'description': 'Perfect for solo practitioners and small firms getting started',
+                'monthly_price': 29.00,
+                'yearly_price': 290.00,
+                'max_cases': 10,
+                'max_clients': 25,
+                'max_storage_gb': 5,
+                'ai_analysis_credits': 100,
+                'has_billing_integration': False,
+                'has_advanced_analytics': False,
+                'has_api_access': False,
+                'has_custom_branding': False
+            },
+            {
+                'id': 'professional', 
+                'name': 'Professional',
+                'description': 'For growing practices with advanced case management needs',
+                'monthly_price': 79.00,
+                'yearly_price': 790.00,
+                'max_cases': 50,
+                'max_clients': 100,
+                'max_storage_gb': 50,
+                'ai_analysis_credits': 500,
+                'has_billing_integration': True,
+                'has_advanced_analytics': True,
+                'has_api_access': False,
+                'has_custom_branding': False
+            },
+            {
+                'id': 'enterprise',
+                'name': 'Enterprise', 
+                'description': 'For large firms requiring unlimited access and custom features',
+                'monthly_price': 199.00,
+                'yearly_price': 1990.00,
+                'max_cases': None,  # Unlimited
+                'max_clients': None,  # Unlimited
+                'max_storage_gb': None,  # Unlimited
+                'ai_analysis_credits': None,  # Unlimited
+                'has_billing_integration': True,
+                'has_advanced_analytics': True,
+                'has_api_access': True,
+                'has_custom_branding': True
+            }
+        ]
+        
+        # Add subscription plans to database
+        for plan_data in subscription_plans_data:
+            existing_plan = SubscriptionPlan.query.filter_by(id=plan_data['id']).first()
+            if not existing_plan:
+                plan = SubscriptionPlan(
+                    id=plan_data['id'],
+                    name=plan_data['name'],
+                    description=plan_data['description'],
+                    monthly_price=plan_data['monthly_price'],
+                    yearly_price=plan_data['yearly_price'],
+                    max_cases=plan_data['max_cases'],
+                    max_clients=plan_data['max_clients'],
+                    max_storage_gb=plan_data['max_storage_gb'],
+                    ai_analysis_credits=plan_data['ai_analysis_credits'],
+                    has_billing_integration=plan_data['has_billing_integration'],
+                    has_advanced_analytics=plan_data['has_advanced_analytics'],
+                    has_api_access=plan_data['has_api_access'],
+                    has_custom_branding=plan_data['has_custom_branding']
+                )
+                db.session.add(plan)
+                logger.info(f"Created subscription plan: {plan_data['name']}")
+        
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Database initialized successfully",
+            "plans_created": len(subscription_plans_data)
+        })
+        
+    except Exception as e:
+        logger.error(f"Database initialization error: {e}")
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/database/status', methods=['GET'])
+def database_status():
+    """Check database status and subscription plans"""
+    try:
+        from database import db_manager
+        from models import SubscriptionPlan
+        
+        # Get health check
+        health = db_manager.health_check()
+        
+        # Get existing plans
+        plans = []
+        try:
+            plans_query = SubscriptionPlan.query.all()
+            plans = [
+                {
+                    'id': plan.id,
+                    'name': plan.name,
+                    'monthly_price': float(plan.monthly_price),
+                    'max_cases': plan.max_cases,
+                    'has_billing': plan.has_billing_integration
+                }
+                for plan in plans_query
+            ]
+        except Exception as e:
+            logger.warning(f"Could not fetch plans: {e}")
+        
+        return jsonify({
+            "success": True,
+            "health": health,
+            "plans_count": len(plans),
+            "plans": plans,
+            "database_available": DATABASE_AVAILABLE
+        })
+        
+    except Exception as e:
+        logger.error(f"Database status error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "database_available": DATABASE_AVAILABLE
+        }), 500
+
 @app.route('/api/billing/plans', methods=['GET'])
 @rate_limit_decorator
 @permission_required('view_billing')
@@ -10192,6 +10333,75 @@ def billing_page():
     except Exception as e:
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
+
+@app.route('/api/init-database', methods=['POST'])
+def init_database():
+    """Initialize database tables and seed subscription plans"""
+    if not DATABASE_AVAILABLE:
+        return jsonify({'error': 'Database not available'}), 503
+    
+    try:
+        from models import db, SubscriptionPlan
+        
+        # Create all tables
+        db.create_all()
+        
+        # Seed subscription plans if they don't exist
+        if SubscriptionPlan.query.count() == 0:
+            plans = [
+                SubscriptionPlan(
+                    name='Basic',
+                    description='Perfect for solo practitioners',
+                    monthly_price=29.00,
+                    yearly_price=290.00,
+                    max_cases=50,
+                    max_clients=100,
+                    max_storage_gb=10,
+                    ai_analysis_credits=100,
+                    has_billing_integration=False
+                ),
+                SubscriptionPlan(
+                    name='Professional',
+                    description='For growing law firms',
+                    monthly_price=79.00,
+                    yearly_price=790.00,
+                    max_cases=250,
+                    max_clients=500,
+                    max_storage_gb=50,
+                    ai_analysis_credits=500,
+                    has_billing_integration=True,
+                    has_advanced_analytics=True
+                ),
+                SubscriptionPlan(
+                    name='Enterprise',
+                    description='Unlimited access for large firms',
+                    monthly_price=199.00,
+                    yearly_price=1990.00,
+                    max_cases=None,
+                    max_clients=None,
+                    max_storage_gb=None,
+                    ai_analysis_credits=2000,
+                    has_billing_integration=True,
+                    has_advanced_analytics=True,
+                    has_api_access=True,
+                    has_custom_branding=True
+                )
+            ]
+            
+            for plan in plans:
+                db.session.add(plan)
+            
+            db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Database initialized successfully',
+            'plans_count': SubscriptionPlan.query.count()
+        })
+        
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
