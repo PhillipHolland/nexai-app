@@ -18,6 +18,10 @@ from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
 
+# Set up logging early
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Import Stripe with fallback
 try:
     import stripe
@@ -25,10 +29,6 @@ try:
 except ImportError:
     STRIPE_AVAILABLE = False
     logger.warning("Stripe not available - payment features disabled")
-
-# Set up logging early
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 try:
     import redis
