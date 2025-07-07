@@ -10207,111 +10207,34 @@ def invoice_payment_page():
     <head>
         <title>Invoice Payment - LexAI Practice Partner</title>
         <style>
-            body {{ 
-                font-family: system-ui, sans-serif; 
-                background: #F7EDDA; 
-                margin: 0; 
-                padding: 2rem; 
-                min-height: 100vh;
-            }}
-            .payment-container {{ 
-                max-width: 600px; 
-                margin: 0 auto; 
-                background: white; 
-                border-radius: 1rem; 
-                box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-                overflow: hidden;
-            }}
-            .payment-header {{ 
-                background: linear-gradient(135deg, #2E4B3C, #4a7c59); 
-                color: white; 
-                padding: 2rem; 
-                text-align: center; 
-            }}
-            .payment-body {{ padding: 2rem; }}
-            .invoice-details {{ 
-                background: #f9fafb; 
-                padding: 1.5rem; 
-                border-radius: 0.5rem; 
-                margin-bottom: 2rem;
-                border-left: 4px solid #2E4B3C;
-            }}
-            .total-amount {{ 
-                font-size: 1.5rem; 
-                font-weight: bold; 
-                color: #2E4B3C; 
-                text-align: center; 
-                padding: 1rem; 
-                background: #f0f9ff; 
-                border-radius: 0.5rem; 
-                margin: 1rem 0;
-            }}
-            .payment-methods {{ text-align: center; margin: 2rem 0; }}
-            .btn {{ 
-                background: linear-gradient(135deg, #2E4B3C, #4a7c59); 
-                color: white; 
-                padding: 1rem 2rem; 
-                border: none; 
-                border-radius: 0.75rem; 
-                font-size: 1.1rem; 
-                cursor: pointer; 
-                text-decoration: none; 
-                display: inline-block; 
-                margin: 0.5rem;
-                transition: transform 0.2s;
-            }}
-            .btn:hover {{ transform: translateY(-2px); }}
-            .btn-secondary {{ 
-                background: #6b7280; 
-                color: white; 
-            }}
-            .status-message {{
-                background: #fef3c7;
-                border: 1px solid #f59e0b;
-                color: #92400e;
-                padding: 1rem;
-                border-radius: 0.5rem;
-                margin: 1rem 0;
-                text-align: center;
-            }}
+            body {{ font-family: system-ui, sans-serif; background: #F7EDDA; margin: 0; padding: 2rem; }}
+            .container {{ max-width: 600px; margin: 0 auto; background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+            .header {{ background: linear-gradient(135deg, #2E4B3C, #4a7c59); color: white; padding: 2rem; text-align: center; border-radius: 1rem 1rem 0 0; }}
+            .body {{ padding: 2rem; }}
+            .details {{ background: #f9fafb; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem; border-left: 4px solid #2E4B3C; }}
+            .amount {{ font-size: 1.5rem; font-weight: bold; color: #2E4B3C; text-align: center; padding: 1rem; background: #f0f9ff; border-radius: 0.5rem; margin: 1rem 0; }}
+            .btn {{ background: #6b7280; color: white; padding: 1rem 2rem; border: none; border-radius: 0.5rem; text-decoration: none; display: inline-block; }}
+            .message {{ background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; text-align: center; }}
         </style>
     </head>
     <body>
-        <div class="payment-container">
-            <div class="payment-header">
-                <h1>Secure Invoice Payment</h1>
-                <p>Complete your payment below</p>
+        <div class="container">
+            <div class="header">
+                <h1>Invoice Payment</h1>
+                <p>Secure payment processing</p>
             </div>
-            
-            <div class="payment-body">
-                <div class="invoice-details">
-                    <h3>Invoice Summary</h3>
-                    <p><strong>Invoice Number:</strong> {invoice_number}</p>
+            <div class="body">
+                <div class="details">
+                    <h3>Invoice Details</h3>
+                    <p><strong>Invoice:</strong> {invoice_number}</p>
                     <p><strong>Client:</strong> {client}</p>
-                    <p><strong>Law Firm:</strong> LexAI Practice Partner</p>
-                    <div class="total-amount">
-                        Total Due: ${amount}
-                    </div>
+                    <div class="amount">Amount Due: ${amount}</div>
                 </div>
-                
-                <div class="status-message">
+                <div class="message">
                     ⚠️ Stripe integration is being configured. Payment processing will be available shortly.
                 </div>
-                
-                <div class="payment-methods">
-                    <h3>Payment Options</h3>
-                    <p>Once configured, you'll be able to pay securely with:</p>
-                    <div style="margin: 1rem 0;">
-                        💳 Credit/Debit Cards<br>
-                        🏦 Bank Transfers<br>
-                        📱 Digital Wallets
-                    </div>
-                    
-                    <a href="/billing" class="btn btn-secondary">← Back to Billing</a>
-                </div>
-                
-                <div style="text-align: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-size: 0.9rem; color: #6b7280;">
-                    🔒 SSL Secured • PCI Compliant • Powered by Stripe
+                <div style="text-align: center;">
+                    <a href="/billing" class="btn">← Back to Billing</a>
                 </div>
             </div>
         </div>
