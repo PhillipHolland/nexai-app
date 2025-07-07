@@ -3262,6 +3262,7 @@ def analyze_legal_admissibility(evidence_type, description, source):
     }
 
 @app.route('/api/evidence/generate-report', methods=['POST'])
+@require_role('attorney', 'admin')
 def api_generate_court_report():
     """Generate court-ready evidence analysis report"""
     try:
@@ -3303,6 +3304,7 @@ def api_generate_court_report():
         return jsonify({'error': 'Report generation failed'}), 500
 
 @app.route('/api/evidence/export', methods=['POST'])
+@require_role('attorney', 'admin')
 def api_export_report():
     """Export court report as downloadable file"""
     try:
@@ -14857,12 +14859,10 @@ def api_2fa_status():
 @app.route('/api/analytics/performance', methods=['GET'])
 @rate_limit_decorator
 @monitor_performance('analytics_performance')
+@require_role('attorney', 'admin')
 def get_performance_analytics():
     """Get performance analytics data"""
     try:
-        current_user = get_current_user()
-        if not current_user or (hasattr(current_user, 'role') and current_user.role not in ['admin', 'partner']):
-            return jsonify({'error': 'Admin access required'}), 403
         
         # Calculate performance statistics
         analytics_data = {
@@ -14958,14 +14958,13 @@ def get_usage_analytics():
         return jsonify({'error': 'Usage analytics unavailable'}), 500
 
 @app.route('/analytics')
+@require_role('attorney', 'admin')
 def analytics_dashboard():
-    """Analytics dashboard page (admin only)"""
+    """Analytics dashboard page (attorney/admin only)"""
     try:
-        current_user = get_current_user()
-        if not current_user or (hasattr(current_user, 'role') and current_user.role not in ['admin', 'partner']):
-            return redirect(url_for('login'))
-        
-        return render_template('analytics_dashboard.html')
+        return render_template('analytics_dashboard.html',
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Analytics dashboard error: {e}")
         return f"<h1>Analytics Dashboard</h1><p>Error loading dashboard: {e}</p>", 500
@@ -15449,6 +15448,265 @@ def client_case_updates():
     except Exception as e:
         logger.error(f"Client case updates error: {e}")
         return jsonify({"error": "Failed to load case updates"}), 500
+
+# ============================================
+# ADMIN-ONLY ROUTES
+# ============================================
+
+@app.route('/admin/users')
+@require_role('admin')
+def admin_users():
+    """User management page - Admin only"""
+    try:
+        # Mock user data - in real implementation, query database
+        users = [
+            {
+                'id': 'user-001',
+                'name': 'John Smith',
+                'email': 'client@lexai.com',
+                'role': 'client',
+                'status': 'active',
+                'last_login': '2024-02-15',
+                'cases_count': 2
+            },
+            {
+                'id': 'user-002', 
+                'name': 'Sarah Johnson',
+                'email': 'paralegal@lexai.com',
+                'role': 'paralegal',
+                'status': 'active',
+                'last_login': '2024-02-16',
+                'cases_count': 8
+            },
+            {
+                'id': 'user-003',
+                'name': 'Michael Davis', 
+                'email': 'attorney@lexai.com',
+                'role': 'attorney',
+                'status': 'active',
+                'last_login': '2024-02-16',
+                'cases_count': 15
+            }
+        ]
+        
+        return render_template('admin_users.html',
+                               users=users,
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'Admin'))
+    except Exception as e:
+        logger.error(f"Admin users page error: {e}")
+        return f"<h1>User Management</h1><p>Error loading users: {e}</p>", 500
+
+@app.route('/admin/settings')
+@require_role('admin')
+def admin_settings():
+    """Firm settings page - Admin only"""
+    try:
+        # Mock firm settings
+        settings = {
+            'firm_name': 'Demo Law Firm',
+            'address': '123 Legal Street, Law City, LC 12345',
+            'phone': '(555) 123-4567',
+            'email': 'contact@demolawfirm.com',
+            'billing_rate_attorney': 350.00,
+            'billing_rate_paralegal': 150.00,
+            'auto_backup': True,
+            'email_notifications': True,
+            'sms_notifications': False,
+            'document_retention_days': 2555  # 7 years
+        }
+        
+        return render_template('admin_settings.html',
+                               settings=settings,
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'Admin'))
+    except Exception as e:
+        logger.error(f"Admin settings page error: {e}")
+        return f"<h1>Firm Settings</h1><p>Error loading settings: {e}</p>", 500
+
+@app.route('/admin/subscriptions')
+@require_role('admin')
+def admin_subscriptions():
+    """Subscription management page - Admin only"""
+    try:
+        # Mock subscription data
+        subscription = {
+            'plan': 'Professional',
+            'status': 'active',
+            'billing_cycle': 'monthly',
+            'amount': 299.00,
+            'next_billing_date': '2024-03-15',
+            'features': [
+                'Unlimited AI consultations',
+                'Advanced evidence analysis',
+                'Client portal access',
+                'Document management',
+                'Time tracking & billing',
+                'Analytics dashboard'
+            ],
+            'usage': {
+                'api_calls': 1250,
+                'storage_gb': 15.6,
+                'users': 4
+            }
+        }
+        
+        return render_template('admin_subscriptions.html',
+                               subscription=subscription,
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'Admin'))
+    except Exception as e:
+        logger.error(f"Admin subscriptions page error: {e}")
+        return f"<h1>Subscription Management</h1><p>Error loading subscription: {e}</p>", 500
+
+@app.route('/admin/audit-logs')
+@require_role('admin')
+def admin_audit_logs():
+    """Audit logs page - Admin only"""
+    try:
+        # Mock audit log data
+        logs = [
+            {
+                'timestamp': '2024-02-16T15:30:00Z',
+                'user': 'attorney@lexai.com',
+                'action': 'Evidence Analysis',
+                'details': 'Analyzed document: contract_v2.pdf',
+                'ip_address': '192.168.1.100',
+                'status': 'success'
+            },
+            {
+                'timestamp': '2024-02-16T14:15:00Z',
+                'user': 'paralegal@lexai.com',
+                'action': 'Invoice Created',
+                'details': 'Created invoice INV-2024-045 for $2,500',
+                'ip_address': '192.168.1.101',
+                'status': 'success'
+            },
+            {
+                'timestamp': '2024-02-16T13:45:00Z',
+                'user': 'client@lexai.com',
+                'action': 'Document Upload',
+                'details': 'Uploaded: medical_records.pdf',
+                'ip_address': '203.0.113.45',
+                'status': 'success'
+            },
+            {
+                'timestamp': '2024-02-16T10:22:00Z',
+                'user': 'unknown@example.com',
+                'action': 'Login Attempt',
+                'details': 'Failed login attempt',
+                'ip_address': '198.51.100.50',
+                'status': 'failed'
+            }
+        ]
+        
+        return render_template('admin_audit_logs.html',
+                               logs=logs,
+                               user_role=session.get('user_role', ''),
+                               user_name=session.get('user_name', 'Admin'))
+    except Exception as e:
+        logger.error(f"Admin audit logs page error: {e}")
+        return f"<h1>Audit Logs</h1><p>Error loading logs: {e}</p>", 500
+
+# Admin API endpoints
+@app.route('/api/admin/users', methods=['GET'])
+@require_role('admin')
+def api_admin_get_users():
+    """Get all users - Admin only"""
+    try:
+        # Mock user data - in real implementation, query database
+        users = [
+            {
+                'id': 'user-001',
+                'name': 'John Smith',
+                'email': 'client@lexai.com', 
+                'role': 'client',
+                'status': 'active',
+                'created_at': '2024-01-15T10:00:00Z',
+                'last_login': '2024-02-15T14:30:00Z'
+            },
+            {
+                'id': 'user-002',
+                'name': 'Sarah Johnson',
+                'email': 'paralegal@lexai.com',
+                'role': 'paralegal', 
+                'status': 'active',
+                'created_at': '2024-01-10T09:00:00Z',
+                'last_login': '2024-02-16T09:15:00Z'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'users': users,
+            'total': len(users)
+        })
+        
+    except Exception as e:
+        logger.error(f"Admin get users error: {e}")
+        return jsonify({'error': 'Failed to retrieve users'}), 500
+
+@app.route('/api/admin/users/<user_id>', methods=['PUT'])
+@require_role('admin')
+def api_admin_update_user(user_id):
+    """Update user details - Admin only"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # In real implementation, update user in database
+        logger.info(f"Admin updating user {user_id}: {data}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {user_id} updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Admin update user error: {e}")
+        return jsonify({'error': 'Failed to update user'}), 500
+
+@app.route('/api/admin/users/<user_id>', methods=['DELETE'])
+@require_role('admin')
+def api_admin_delete_user(user_id):
+    """Delete user - Admin only"""
+    try:
+        # In real implementation, delete user from database
+        logger.info(f"Admin deleting user {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'User {user_id} deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Admin delete user error: {e}")
+        return jsonify({'error': 'Failed to delete user'}), 500
+
+@app.route('/api/admin/settings', methods=['POST'])
+@require_role('admin')
+def api_admin_update_settings():
+    """Update firm settings - Admin only"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No settings data provided'}), 400
+            
+        # In real implementation, update settings in database
+        logger.info(f"Admin updating firm settings: {data}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Firm settings updated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Admin update settings error: {e}")
+        return jsonify({'error': 'Failed to update settings'}), 500
 
 # Error handlers
 @app.errorhandler(404)
