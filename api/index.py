@@ -7066,10 +7066,21 @@ def database_status():
 @app.route('/api/system/status', methods=['GET'])
 def system_status():
     """Get system status for debugging"""
+    # Test Stripe import with detailed error info
+    stripe_error = None
+    stripe_test_available = False
+    try:
+        import stripe as stripe_test
+        stripe_test_available = True
+    except Exception as e:
+        stripe_error = str(e)
+    
     return jsonify({
         "success": True,
         "status": {
             "stripe_available": STRIPE_AVAILABLE,
+            "stripe_test_import": stripe_test_available,
+            "stripe_import_error": stripe_error,
             "database_available": DATABASE_AVAILABLE,
             "auth_available": AUTH_AVAILABLE,
             "redis_available": REDIS_AVAILABLE,
