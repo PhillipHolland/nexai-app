@@ -95,6 +95,20 @@ class UserRole(Enum):
     CLIENT = "client"
     STAFF = "staff"
 
+# Role-based access control decorator
+def require_role(*allowed_roles):
+    """Decorator to require specific user roles"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_role = session.get('user_role', '')
+            if user_role not in allowed_roles:
+                flash('Access denied. Insufficient permissions.', 'error')
+                return redirect('/login')
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 # Enable 2FA with database detection
 if DATABASE_AVAILABLE and PSYCOPG2_AVAILABLE:
     
@@ -15394,20 +15408,6 @@ def not_found(e):
 def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
-
-# Role-based access control decorator
-def require_role(*allowed_roles):
-    """Decorator to require specific user roles"""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            user_role = session.get('user_role', '')
-            if user_role not in allowed_roles:
-                flash('Access denied. Insufficient permissions.', 'error')
-                return redirect('/login')
-            return f(*args, **kwargs)
-        return decorated_function
-    return decorator
 
 # For Vercel - Deployment v2.1
 app.debug = False
