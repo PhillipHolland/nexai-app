@@ -730,6 +730,7 @@
                         <td><span class="status-badge status-sent">Sent</span></td>
                         <td>
                             <button class="btn btn-secondary" onclick="viewInvoice(1)">View</button>
+                            <button class="btn btn-primary" onclick="payInvoice('INV-2025-001', '8750.00', 'ABC Corporation')" style="margin-left: 0.5rem;">Pay Now</button>
                         </td>
                     </tr>
                     <tr>
@@ -1059,6 +1060,12 @@ window.refreshInvoices = function() {
 
 window.viewInvoice = function(id) {
     alert(`Viewing invoice ${id} - full invoice view coming soon!`);
+};
+
+window.payInvoice = function(invoiceNumber, amount, client) {
+    // Redirect to payment page with invoice details
+    const paymentUrl = `/invoice/payment?invoice=${invoiceNumber}&amount=${amount}&client=${encodeURIComponent(client)}`;
+    window.location.href = paymentUrl;
 };
 
 window.cancelInvoice = function() {

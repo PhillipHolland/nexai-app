@@ -17,6 +17,7 @@ from functools import wraps
 from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
+import stripe
 
 # Set up logging early
 logging.basicConfig(level=logging.INFO)
@@ -304,6 +305,10 @@ except Exception as e:
     # Fallback app creation
     app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
+
+# Configure Stripe
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
 
 # Session configuration
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -10179,6 +10184,92 @@ def billing_page():
     except Exception as e:
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
+
+@app.route('/invoice/payment')
+def invoice_payment_page():
+    """Invoice payment page with Stripe Elements"""
+    try:
+        return render_template('invoice_payment.html', 
+                             stripe_publishable_key=STRIPE_PUBLISHABLE_KEY)
+    except Exception as e:
+        logger.error(f"Invoice payment template error: {e}")
+        return f"<h1>Invoice Payment</h1><p>Template error: {e}</p>", 500
+
+@app.route('/api/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    """Create Stripe payment intent for invoice payment"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('amount') or not data.get('currency'):
+            return jsonify({'error': 'Amount and currency are required'}), 400
+        
+        # Create payment intent
+        intent = stripe.PaymentIntent.create(
+            amount=int(data['amount']),  # Amount in cents
+            currency=data.get('currency', 'usd'),
+            automatic_payment_methods={'enabled': True},
+            metadata={
+                'invoice_number': data.get('invoice_number', ''),
+                'customer_email': data.get('customer_email', ''),
+                'customer_name': data.get('customer_name', ''),
+                'integration': 'lexai_billing'
+            }
+        )
+        
+        return jsonify({
+            'client_secret': intent.client_secret,
+            'payment_intent_id': intent.id
+        })
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Payment intent creation failed: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    # Note: In production, you should verify webhook signatures
+    # endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        event = stripe.Event.construct_from(
+            json.loads(payload), stripe.api_key
+        )
+        
+        # Handle different event types
+        if event['type'] == 'payment_intent.succeeded':
+            payment_intent = event['data']['object']
+            invoice_number = payment_intent['metadata'].get('invoice_number')
+            
+            # Here you would update your database to mark invoice as paid
+            logger.info(f"Payment succeeded for invoice {invoice_number}")
+            
+            # TODO: Add database update logic here
+            
+        elif event['type'] == 'payment_intent.payment_failed':
+            payment_intent = event['data']['object']
+            invoice_number = payment_intent['metadata'].get('invoice_number')
+            
+            logger.warning(f"Payment failed for invoice {invoice_number}")
+            
+            # TODO: Add failure handling logic here
+            
+        return jsonify({'status': 'success'})
+        
+    except ValueError as e:
+        logger.error(f"Invalid payload: {e}")
+        return jsonify({'error': 'Invalid payload'}), 400
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return jsonify({'error': 'Webhook error'}), 400
 
 @app.route('/expenses')
 def expense_tracking_page():
