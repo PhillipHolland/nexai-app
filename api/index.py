@@ -17,7 +17,14 @@ from functools import wraps
 from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
-import stripe
+
+# Import Stripe with fallback
+try:
+    import stripe
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
+    logger.warning("Stripe not available - payment features disabled")
 
 # Set up logging early
 logging.basicConfig(level=logging.INFO)
@@ -307,7 +314,8 @@ except Exception as e:
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'lexai-serverless-enhanced-2025')
 
 # Configure Stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+if STRIPE_AVAILABLE:
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
 
 # Session configuration
@@ -10188,6 +10196,9 @@ def billing_page():
 @app.route('/invoice/payment')
 def invoice_payment_page():
     """Invoice payment page with Stripe Elements"""
+    if not STRIPE_AVAILABLE:
+        return f"<h1>Payment Unavailable</h1><p>Stripe integration not configured</p>", 503
+    
     try:
         return render_template('invoice_payment.html', 
                              stripe_publishable_key=STRIPE_PUBLISHABLE_KEY)
@@ -10198,6 +10209,9 @@ def invoice_payment_page():
 @app.route('/api/create-payment-intent', methods=['POST'])
 def create_payment_intent():
     """Create Stripe payment intent for invoice payment"""
+    if not STRIPE_AVAILABLE:
+        return jsonify({'error': 'Stripe not available'}), 503
+    
     try:
         data = request.get_json()
         
@@ -10233,6 +10247,9 @@ def create_payment_intent():
 @app.route('/api/stripe/webhook', methods=['POST'])
 def stripe_webhook():
     """Handle Stripe webhook events"""
+    if not STRIPE_AVAILABLE:
+        return jsonify({'error': 'Stripe not available'}), 503
+    
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     
