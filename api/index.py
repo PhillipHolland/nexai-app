@@ -10257,7 +10257,7 @@ def invoice_payment_page():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Invoice Payment - LexAI Practice Partner</title>
+        <title>Secure Invoice Payment - LexAI Practice Partner</title>
         <style>
             body {{ font-family: system-ui, sans-serif; background: #F7EDDA; margin: 0; padding: 2rem; }}
             .container {{ max-width: 600px; margin: 0 auto; background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
