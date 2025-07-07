@@ -10391,12 +10391,14 @@ def billing_page():
 
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
-    """Create Stripe checkout session for invoice payment"""
-    if not STRIPE_AVAILABLE:
+    """Create Stripe checkout session for invoice payment using direct API"""
+    stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+    
+    if not stripe_secret_key:
         return jsonify({
             'error': 'Stripe integration is being configured. Payment processing will be available shortly.',
-            'details': 'The Stripe payment module is still installing on our servers. Please check back in a few minutes or contact support if this persists.',
-            'status': 'stripe_unavailable'
+            'details': 'Stripe secret key not configured. Please add STRIPE_SECRET_KEY to environment variables.',
+            'status': 'stripe_key_missing'
         }), 503
     
     try:
@@ -10405,42 +10407,55 @@ def create_checkout_session():
         amount = float(data.get('amount', 0))
         client = data.get('client', 'Client')
         
-        # Create Stripe checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': f'Legal Invoice {invoice_number}',
-                        'description': f'Legal services for {client}'
-                    },
-                    'unit_amount': int(amount * 100),  # Convert to cents
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=request.host_url + 'billing?payment=success&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=request.host_url + 'billing?payment=cancelled',
-            client_reference_id=invoice_number,
-            metadata={
-                'invoice_number': invoice_number,
-                'client': client,
-                'integration': 'lexai_billing'
-            }
+        # Create Stripe checkout session using direct API call (no Python package needed)
+        stripe_payload = {
+            'payment_method_types[]': 'card',
+            'line_items[0][price_data][currency]': 'usd',
+            'line_items[0][price_data][product_data][name]': f'Legal Invoice {invoice_number}',
+            'line_items[0][price_data][product_data][description]': f'Legal services for {client}',
+            'line_items[0][price_data][unit_amount]': int(amount * 100),
+            'line_items[0][quantity]': 1,
+            'mode': 'payment',
+            'success_url': request.host_url + 'billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}',
+            'cancel_url': request.host_url + 'billing?payment=cancelled',
+            'client_reference_id': invoice_number,
+            'metadata[invoice_number]': invoice_number,
+            'metadata[client]': client,
+            'metadata[integration]': 'lexai_billing'
+        }
+        
+        # Make direct API call to Stripe
+        import requests as req
+        response = req.post(
+            'https://api.stripe.com/v1/checkout/sessions',
+            headers={
+                'Authorization': f'Bearer {stripe_secret_key}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data=stripe_payload
         )
         
-        return jsonify({
-            'checkout_url': session.url,
-            'session_id': session.id
-        })
+        if response.status_code == 200:
+            session_data = response.json()
+            return jsonify({
+                'checkout_url': session_data['url'],
+                'session_id': session_data['id']
+            })
+        else:
+            logger.error(f"Stripe API error: {response.status_code} - {response.text}")
+            return jsonify({
+                'error': 'Payment session creation failed',
+                'details': f'Stripe API returned {response.status_code}',
+                'status': 'stripe_api_error'
+            }), 500
         
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error: {e}")
-        return jsonify({'error': str(e)}), 400
     except Exception as e:
         logger.error(f"Checkout session creation failed: {e}")
-        return jsonify({'error': 'Failed to create checkout session'}), 500
+        return jsonify({
+            'error': 'Failed to create checkout session',
+            'details': str(e),
+            'status': 'api_error'
+        }), 500
 
 @app.route('/invoice/payment')
 def invoice_payment_page():
