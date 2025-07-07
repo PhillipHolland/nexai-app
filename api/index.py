@@ -2558,7 +2558,7 @@ def landing_page():
 
 @app.route('/dashboard')
 def dashboard():
-    """Main dashboard with comprehensive navigation"""
+    """Main dashboard with comprehensive navigation (Attorney-focused)"""
     try:
         logger.info("Dashboard route accessed")
         
@@ -2568,6 +2568,16 @@ def dashboard():
             logger.info("Unauthenticated user trying to access dashboard, redirecting to login")
             flash('Please log in to access the dashboard', 'info')
             return redirect(url_for('login'))
+        
+        # Role-based redirection for demo users
+        user_role = session.get('user_role', '')
+        if user_role == 'client':
+            return redirect('/client-portal')
+        elif user_role == 'paralegal':
+            return redirect('/paralegal-dashboard')
+        elif user_role == 'admin':
+            return redirect('/admin-dashboard')
+        # Attorney role or legacy users stay on main dashboard
         
         logger.info(f"Authenticated user {current_user.email} accessing dashboard")
         
@@ -2594,8 +2604,9 @@ def dashboard():
 <a href="/">← Back to Home</a></body></html>"""
 
 @app.route('/evidence-analysis')
+@require_role('attorney', 'admin')
 def evidence_analysis():
-    """Digital Evidence Analysis Suite"""
+    """Digital Evidence Analysis Suite - Attorney/Admin only"""
     try:
         # Check if user is authenticated
         current_user = get_current_user()
@@ -2604,10 +2615,12 @@ def evidence_analysis():
             flash('Please log in to access evidence analysis tools', 'info')
             return redirect(url_for('login'))
         
-        logger.info(f"User {current_user.email} accessing evidence analysis suite")
+        user_role = session.get('user_role', '')
+        logger.info(f"User {current_user.email} (role: {user_role}) accessing evidence analysis suite")
         
         return render_template('evidence_analysis.html',
                              current_user=current_user,
+                             user_role=user_role,
                              user_name=f"{current_user.first_name} {current_user.last_name}")
         
     except Exception as e:
@@ -2622,8 +2635,9 @@ def evidence_analysis():
 <a href="/dashboard">← Back to Dashboard</a></body></html>"""
 
 @app.route('/api/evidence/ai-detect', methods=['POST'])
+@require_role('attorney', 'admin')
 def api_ai_content_detection():
-    """AI Content Detection API endpoint"""
+    """AI Content Detection API endpoint - Attorney/Admin only"""
     try:
         current_user = get_current_user()
         if not current_user:
@@ -2762,6 +2776,7 @@ def generate_ai_recommendations(score, indicators):
     return recommendations
 
 @app.route('/api/evidence/doc-auth', methods=['POST'])
+@require_role('attorney', 'admin')
 def api_document_authentication():
     """Document Authentication API endpoint"""
     try:
@@ -3043,6 +3058,7 @@ def generate_doc_recommendations(integrity_score, security_analysis):
     return recommendations
 
 @app.route('/api/evidence/legal-admissibility', methods=['POST'])
+@require_role('attorney', 'admin')
 def api_legal_admissibility():
     """Legal Admissibility Checker API endpoint"""
     try:
@@ -7098,6 +7114,7 @@ def system_status():
 @app.route('/api/billing/plans', methods=['GET'])
 @rate_limit_decorator
 @permission_required('view_billing')
+@require_role('paralegal', 'attorney', 'admin')
 def get_billing_plans():
     """Get available subscription plans"""
     try:
@@ -10196,42 +10213,92 @@ def api_login():
         password = data.get('password', '')
         remember = data.get('remember', False)
         
-        # Demo credentials validation
-        demo_credentials = {
-            'demo@lexai.com': 'demo123',
-            'admin@lexai.com': 'admin123',
-            'user@lexai.com': 'password'
-        }
-        
-        if email in demo_credentials and demo_credentials[email] == password:
-            # Set session data for successful login
-            session['user_id'] = email  # Use email as ID for demo users
-            session['user_email'] = email
-            session['user_name'] = 'Demo User'
-            session.permanent = True
-            
-            # Successful login - return user data
-            user_data = {
-                'email': email,
+        # Demo credentials with role-based access
+        demo_users = {
+            'client@lexai.com': {
+                'password': 'client123',
+                'role': 'client',
+                'first_name': 'John',
+                'last_name': 'Smith',
+                'firm_name': 'Demo Law Firm',
+                'dashboard': '/client-portal'
+            },
+            'paralegal@lexai.com': {
+                'password': 'paralegal123', 
+                'role': 'paralegal',
+                'first_name': 'Sarah',
+                'last_name': 'Johnson',
+                'firm_name': 'Demo Law Firm',
+                'dashboard': '/paralegal-dashboard'
+            },
+            'attorney@lexai.com': {
+                'password': 'attorney123',
+                'role': 'attorney', 
+                'first_name': 'Michael',
+                'last_name': 'Davis',
+                'firm_name': 'Demo Law Firm',
+                'dashboard': '/dashboard'
+            },
+            'admin@lexai.com': {
+                'password': 'admin123',
+                'role': 'admin',
+                'first_name': 'Admin',
+                'last_name': 'User', 
+                'firm_name': 'Demo Law Firm',
+                'dashboard': '/admin-dashboard'
+            },
+            # Legacy demo accounts for backward compatibility
+            'demo@lexai.com': {
+                'password': 'demo123',
+                'role': 'attorney',
+                'first_name': 'Demo',
+                'last_name': 'User',
+                'firm_name': 'Demo Law Firm', 
+                'dashboard': '/dashboard'
+            },
+            'user@lexai.com': {
+                'password': 'password',
+                'role': 'attorney',
                 'first_name': 'Demo',
                 'last_name': 'User',
                 'firm_name': 'Demo Law Firm',
-                'role': 'Legal Professional',
+                'dashboard': '/dashboard'
+            }
+        }
+        
+        if email in demo_users and demo_users[email]['password'] == password:
+            user_info = demo_users[email]
+            
+            # Set session data for successful login
+            session['user_id'] = email  # Use email as ID for demo users
+            session['user_email'] = email
+            session['user_name'] = f"{user_info['first_name']} {user_info['last_name']}"
+            session['user_role'] = user_info['role']
+            session.permanent = True
+            
+            # Successful login - return user data with role-based redirect
+            user_data = {
+                'email': email,
+                'first_name': user_info['first_name'],
+                'last_name': user_info['last_name'],
+                'firm_name': user_info['firm_name'],
+                'role': user_info['role'],
+                'dashboard_route': user_info['dashboard'],
                 'login_time': datetime.utcnow().isoformat()
             }
             
-            logger.info(f"Successful login: {email}")
+            logger.info(f"Successful login: {email} (role: {user_info['role']})")
             return jsonify({
                 'success': True,
                 'message': 'Login successful',
                 'user': user_data,
-                'redirect': '/dashboard'
+                'redirect': user_info['dashboard']
             })
         else:
             logger.warning(f"Failed login attempt: {email}")
             return jsonify({
                 'success': False,
-                'error': 'Invalid email or password. Try demo@lexai.com / demo123'
+                'error': 'Invalid email or password. Try: client@lexai.com/client123, paralegal@lexai.com/paralegal123, attorney@lexai.com/attorney123, or admin@lexai.com/admin123'
             }), 401
             
     except Exception as e:
@@ -10372,19 +10439,27 @@ def api_update_profile():
         }), 500
 
 @app.route('/time-tracking')
+@require_role('paralegal', 'attorney', 'admin')
 def time_tracking_page():
-    """Time tracking page"""
+    """Time tracking page - Requires billing access"""
     try:
-        return render_template('time_tracking.html')
+        user_role = session.get('user_role', '')
+        return render_template('time_tracking.html',
+                             user_role=user_role,
+                             user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Time tracking template error: {e}")
         return f"<h1>Time Tracking</h1><p>Template error: {e}</p>", 500
 
 @app.route('/billing')
+@require_role('paralegal', 'attorney', 'admin')
 def billing_page():
-    """Billing and invoices page"""
+    """Billing and invoices page - Requires billing access"""
     try:
-        return render_template('billing.html')
+        user_role = session.get('user_role', '')
+        return render_template('billing.html', 
+                             user_role=user_role,
+                             user_name=session.get('user_name', 'User'))
     except Exception as e:
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
@@ -14810,6 +14885,7 @@ def get_performance_analytics():
 @app.route('/api/analytics/usage', methods=['GET'])
 @rate_limit_decorator
 @monitor_performance('analytics_usage')
+@require_role('admin')
 def get_usage_analytics():
     """Get usage analytics data"""
     try:
@@ -14938,10 +15014,69 @@ def research_redirect():
 # CLIENT PORTAL API ENDPOINTS
 # ============================================
 
+@app.route('/paralegal-dashboard')
+def paralegal_dashboard():
+    """Paralegal-focused dashboard with billing emphasis"""
+    try:
+        # Check if user has paralegal role
+        user_role = session.get('user_role', '')
+        if user_role not in ['paralegal', 'attorney', 'admin']:
+            return redirect('/client-portal' if user_role == 'client' else '/login')
+        
+        # Paralegal dashboard focuses on billing, time tracking, case management
+        return render_template('dashboard.html',
+                             user_name=session.get('user_name', 'Paralegal'),
+                             user_role='paralegal',
+                             dashboard_type='paralegal',
+                             featured_sections=['billing', 'time_tracking', 'document_management', 'client_communication'])
+    except Exception as e:
+        logger.error(f"Paralegal dashboard error: {e}")
+        return jsonify({"error": "Dashboard unavailable"}), 500
+
+@app.route('/admin-dashboard')
+def admin_dashboard():
+    """Admin dashboard with firm management features"""
+    try:
+        # Check if user has admin role
+        user_role = session.get('user_role', '')
+        if user_role != 'admin':
+            # Redirect based on actual role
+            if user_role == 'client':
+                return redirect('/client-portal')
+            elif user_role == 'paralegal':
+                return redirect('/paralegal-dashboard') 
+            elif user_role == 'attorney':
+                return redirect('/dashboard')
+            else:
+                return redirect('/login')
+        
+        # Admin dashboard focuses on user management, analytics, firm settings
+        return render_template('dashboard.html',
+                             user_name=session.get('user_name', 'Admin'),
+                             user_role='admin',
+                             dashboard_type='admin',
+                             featured_sections=['user_management', 'analytics', 'firm_settings', 'subscription_management'])
+    except Exception as e:
+        logger.error(f"Admin dashboard error: {e}")
+        return jsonify({"error": "Dashboard unavailable"}), 500
+
 @app.route('/client-portal')
 def client_portal():
     """Render client portal dashboard"""
     try:
+        # Check if user has client role
+        user_role = session.get('user_role', '')
+        if user_role != 'client':
+            # Redirect based on actual role
+            if user_role == 'paralegal':
+                return redirect('/paralegal-dashboard')
+            elif user_role == 'attorney':
+                return redirect('/dashboard') 
+            elif user_role == 'admin':
+                return redirect('/admin-dashboard')
+            else:
+                return redirect('/login')
+        
         # Get client info from session or defaults
         client_info = {
             'client_name': session.get('client_name', 'Demo Client'),
@@ -15259,6 +15394,20 @@ def not_found(e):
 def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
+
+# Role-based access control decorator
+def require_role(*allowed_roles):
+    """Decorator to require specific user roles"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            user_role = session.get('user_role', '')
+            if user_role not in allowed_roles:
+                flash('Access denied. Insufficient permissions.', 'error')
+                return redirect('/login')
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 # For Vercel - Deployment v2.1
 app.debug = False

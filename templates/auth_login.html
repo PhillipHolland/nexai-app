@@ -347,6 +347,32 @@
                 </button>
             </form>
 
+            <!-- Demo Credentials Section -->
+            <div style="margin: 2rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 0.875rem; font-weight: 600; color: #374151; text-align: center;">Demo Account Access</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; font-size: 0.75rem;">
+                    <div style="padding: 0.5rem; background: white; border-radius: 0.25rem; border: 1px solid #d1d5db;">
+                        <strong style="color: #2563eb;">Client Portal:</strong><br>
+                        client@lexai.com / client123
+                    </div>
+                    <div style="padding: 0.5rem; background: white; border-radius: 0.25rem; border: 1px solid #d1d5db;">
+                        <strong style="color: #059669;">Paralegal:</strong><br>
+                        paralegal@lexai.com / paralegal123
+                    </div>
+                    <div style="padding: 0.5rem; background: white; border-radius: 0.25rem; border: 1px solid #d1d5db;">
+                        <strong style="color: #dc2626;">Attorney:</strong><br>
+                        attorney@lexai.com / attorney123
+                    </div>
+                    <div style="padding: 0.5rem; background: white; border-radius: 0.25rem; border: 1px solid #d1d5db;">
+                        <strong style="color: #7c3aed;">Admin:</strong><br>
+                        admin@lexai.com / admin123
+                    </div>
+                </div>
+                <p style="margin: 1rem 0 0 0; font-size: 0.625rem; color: #6b7280; text-align: center;">
+                    Keyboard shortcuts: Ctrl+Shift+C (Client), P (Paralegal), D (Attorney), A (Admin)
+                </p>
+            </div>
+
             <div class="auth-divider">
                 <span>Or continue with</span>
             </div>
@@ -385,10 +411,14 @@
             const successMessage = document.getElementById('successMessage');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Demo credentials for testing
+            // Demo credentials for testing (role-based access)
             const demoCredentials = {
-                'demo@lexai.com': 'demo123',
+                'client@lexai.com': 'client123',
+                'paralegal@lexai.com': 'paralegal123', 
+                'attorney@lexai.com': 'attorney123',
                 'admin@lexai.com': 'admin123',
+                // Legacy credentials for backward compatibility
+                'demo@lexai.com': 'demo123',
                 'user@lexai.com': 'password'
             };
 
@@ -542,9 +572,25 @@
             // Pre-fill demo credentials for easy testing
             document.addEventListener('keydown', function(e) {
                 if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-                    emailInput.value = 'demo@lexai.com';
-                    passwordInput.value = 'demo123';
+                    emailInput.value = 'attorney@lexai.com';
+                    passwordInput.value = 'attorney123';
                     showSuccess('Demo credentials filled! Click Sign In to continue.');
+                }
+                // Role-specific shortcuts
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    emailInput.value = 'client@lexai.com';
+                    passwordInput.value = 'client123';
+                    showSuccess('Client demo credentials filled!');
+                }
+                if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                    emailInput.value = 'paralegal@lexai.com';
+                    passwordInput.value = 'paralegal123';
+                    showSuccess('Paralegal demo credentials filled!');
+                }
+                if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                    emailInput.value = 'admin@lexai.com';
+                    passwordInput.value = 'admin123';
+                    showSuccess('Admin demo credentials filled!');
                 }
             });
         });

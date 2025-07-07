@@ -17,12 +17,15 @@ db = SQLAlchemy()
 
 # Enum classes for database constraints
 class UserRole(enum.Enum):
-    ADMIN = "admin"
-    PARTNER = "partner"
-    ASSOCIATE = "associate"
-    PARALEGAL = "paralegal"
-    CLIENT = "client"
-    STAFF = "staff"
+    CLIENT = "client"           # Read-only access to own cases/documents, can upload docs & pay invoices
+    PARALEGAL = "paralegal"     # Full billing access, case management for assigned cases
+    ATTORNEY = "attorney"       # Full practice management, case oversight, strategic decisions
+    ADMIN = "admin"             # Full system access, user management, firm settings
+    
+    # Legacy roles for backward compatibility
+    PARTNER = "admin"           # Maps to admin
+    ASSOCIATE = "attorney"      # Maps to attorney  
+    STAFF = "paralegal"         # Maps to paralegal
 
 class CaseStatus(enum.Enum):
     ACTIVE = "active"
@@ -208,6 +211,94 @@ class User(UserMixin, db.Model):
         """Set practice areas from list"""
         self.practice_areas = json.dumps(areas_list)
     
+    # Role-based permission methods
+    def has_role(self, *roles):
+        """Check if user has any of the specified roles"""
+        user_role = self.role.value
+        # Handle legacy role mappings
+        if user_role == "partner":
+            user_role = "admin"
+        elif user_role == "associate":
+            user_role = "attorney"
+        elif user_role == "staff":
+            user_role = "paralegal"
+        
+        return user_role in [role.value if hasattr(role, 'value') else role for role in roles]
+    
+    def can_access_billing(self):
+        """Check if user can access billing features"""
+        return self.has_role(UserRole.PARALEGAL, UserRole.ATTORNEY, UserRole.ADMIN)
+    
+    def can_manage_cases(self):
+        """Check if user can manage cases"""
+        return self.has_role(UserRole.PARALEGAL, UserRole.ATTORNEY, UserRole.ADMIN)
+    
+    def can_access_all_cases(self):
+        """Check if user can access all cases (vs. only assigned ones)"""
+        return self.has_role(UserRole.ATTORNEY, UserRole.ADMIN)
+    
+    def can_manage_users(self):
+        """Check if user can manage other users"""
+        return self.has_role(UserRole.ADMIN)
+    
+    def can_access_analytics(self):
+        """Check if user can access firm analytics"""
+        return self.has_role(UserRole.ATTORNEY, UserRole.ADMIN)
+    
+    def can_modify_firm_settings(self):
+        """Check if user can modify firm-wide settings"""
+        return self.has_role(UserRole.ADMIN)
+    
+    def can_access_case(self, case_id):
+        """Check if user can access a specific case"""
+        if self.has_role(UserRole.CLIENT):
+            # Clients can only access their own cases
+            # This would need to be implemented based on a client-user relationship
+            return False  # TODO: Implement client-case access check
+        elif self.has_role(UserRole.PARALEGAL):
+            # Paralegals can access assigned cases
+            return str(case_id) in [str(case.id) for case in self.cases]
+        else:
+            # Attorneys and admins can access all cases
+            return self.can_access_all_cases()
+    
+    def get_dashboard_route(self):
+        """Get the appropriate dashboard route for user's role"""
+        if self.has_role(UserRole.CLIENT):
+            return '/client-portal'
+        elif self.has_role(UserRole.PARALEGAL):
+            return '/paralegal-dashboard'
+        elif self.has_role(UserRole.ATTORNEY):
+            return '/dashboard'
+        elif self.has_role(UserRole.ADMIN):
+            return '/admin-dashboard'
+        else:
+            return '/dashboard'  # Default fallback
+    
+    def get_allowed_features(self):
+        """Get list of features this user can access"""
+        features = []
+        
+        if self.has_role(UserRole.CLIENT):
+            features.extend(['client_portal', 'document_upload', 'invoice_payment', 'messaging'])
+        
+        if self.can_manage_cases():
+            features.extend(['case_management', 'document_management', 'task_management', 'calendar'])
+        
+        if self.can_access_billing():
+            features.extend(['billing', 'time_tracking', 'expense_tracking', 'invoice_management'])
+        
+        if self.has_role(UserRole.ATTORNEY, UserRole.ADMIN):
+            features.extend(['evidence_analysis', 'legal_research', 'contract_generation'])
+        
+        if self.can_access_analytics():
+            features.extend(['analytics', 'reporting'])
+        
+        if self.can_manage_users():
+            features.extend(['user_management', 'firm_settings', 'subscription_management'])
+        
+        return features
+    
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -220,6 +311,8 @@ class User(UserMixin, db.Model):
             'role': self.role.value,
             'firm_name': self.firm_name,
             'is_active': self.is_active,
+            'dashboard_route': self.get_dashboard_route(),
+            'allowed_features': self.get_allowed_features(),
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
