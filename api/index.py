@@ -14934,6 +14934,322 @@ def research_redirect():
     from flask import redirect
     return redirect('/search', code=301)
 
+# ============================================
+# CLIENT PORTAL API ENDPOINTS
+# ============================================
+
+@app.route('/client-portal')
+def client_portal():
+    """Render client portal dashboard"""
+    try:
+        # Get client info from session or defaults
+        client_info = {
+            'client_name': session.get('client_name', 'Demo Client'),
+            'client_id': session.get('client_id', 'demo-client-001'),
+            'case_number': 'LC-2024-001',
+            'case_type': 'Civil Litigation',
+            'attorney_name': 'Sarah Johnson, Esq.',
+            'case_status': 'active',
+            'next_hearing': 'March 15, 2024 at 2:00 PM'
+        }
+        
+        return render_template('client_portal.html', **client_info)
+    except Exception as e:
+        logger.error(f"Client portal error: {e}")
+        return jsonify({"error": "Client portal unavailable"}), 500
+
+@app.route('/api/client-upload', methods=['POST'])
+def client_upload():
+    """Handle client document uploads"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "No file provided"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"}), 400
+        
+        client_id = request.form.get('client_id', 'unknown')
+        case_id = request.form.get('case_id', 'unknown')
+        
+        # Validate file type
+        allowed_extensions = {'.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.txt'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        
+        if file_ext not in allowed_extensions:
+            return jsonify({
+                "success": False, 
+                "error": f"File type {file_ext} not allowed. Allowed: {', '.join(allowed_extensions)}"
+            }), 400
+        
+        # Read file content
+        file_content = file.read()
+        file_size = len(file_content)
+        
+        # Security check - basic validation
+        if file_size > 50 * 1024 * 1024:  # 50MB limit
+            return jsonify({
+                "success": False,
+                "error": "File too large. Maximum size is 50MB."
+            }), 400
+        
+        # Generate hash for tracking
+        import hashlib
+        file_hash = hashlib.md5(file_content).hexdigest()
+        
+        # Here you would typically save to database and/or file storage
+        logger.info(f"Client {client_id} uploaded {file.filename} ({file_size} bytes) for case {case_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"File {file.filename} uploaded successfully",
+            "file_info": {
+                "filename": file.filename,
+                "size": file_size,
+                "type": file_ext,
+                "hash": file_hash,
+                "client_id": client_id,
+                "case_id": case_id
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Client upload error: {e}")
+        return jsonify({"success": False, "error": "Upload failed"}), 500
+
+@app.route('/api/client-message', methods=['POST'])
+def client_message():
+    """Handle client messages to attorney"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'message' not in data:
+            return jsonify({"success": False, "error": "No message provided"}), 400
+        
+        message = data['message'].strip()
+        client_id = data.get('client_id', 'unknown')
+        case_id = data.get('case_id', 'unknown')
+        
+        if len(message) < 5:
+            return jsonify({"success": False, "error": "Message too short"}), 400
+        
+        if len(message) > 5000:
+            return jsonify({"success": False, "error": "Message too long. Maximum 5000 characters."}), 400
+        
+        # Here you would typically save to database and send notification to attorney
+        message_data = {
+            "message_id": f"msg_{int(time.time())}",
+            "client_id": client_id,
+            "case_id": case_id,
+            "message": message,
+            "timestamp": datetime.now().isoformat(),
+            "status": "sent"
+        }
+        
+        logger.info(f"Message from client {client_id}: {message[:50]}...")
+        
+        # Could integrate with email/SMS notification system here
+        
+        return jsonify({
+            "success": True,
+            "message": "Message sent successfully",
+            "message_data": message_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Client message error: {e}")
+        return jsonify({"success": False, "error": "Failed to send message"}), 500
+
+@app.route('/api/client-portal/documents/<doc_id>/view')
+def client_view_document(doc_id):
+    """View client document"""
+    try:
+        # Here you would typically retrieve document from database/storage
+        # For demo, return placeholder
+        logger.info(f"Client viewing document: {doc_id}")
+        
+        # Demo response - in real implementation, serve actual document
+        return jsonify({
+            "success": True,
+            "document_id": doc_id,
+            "message": "Document viewing would be implemented here",
+            "note": "In production, this would serve the actual document file"
+        })
+        
+    except Exception as e:
+        logger.error(f"Client document view error: {e}")
+        return jsonify({"error": "Document not available"}), 404
+
+@app.route('/api/client-portal/documents/<doc_id>/download')
+def client_download_document(doc_id):
+    """Download client document"""
+    try:
+        # Here you would typically retrieve and serve document from database/storage
+        logger.info(f"Client downloading document: {doc_id}")
+        
+        # Demo response - in real implementation, serve actual file
+        return jsonify({
+            "success": True,
+            "document_id": doc_id,
+            "message": "Document download would be implemented here",
+            "note": "In production, this would serve the actual document file for download"
+        })
+        
+    except Exception as e:
+        logger.error(f"Client document download error: {e}")
+        return jsonify({"error": "Download failed"}), 500
+
+@app.route('/api/client-portal/invoices')
+def client_invoices():
+    """Get client invoices"""
+    try:
+        client_id = request.args.get('client_id', 'demo-client-001')
+        
+        # Demo invoice data - in real implementation, query database
+        invoices = [
+            {
+                "invoice_id": "INV-001",
+                "amount": 2500.00,
+                "status": "unpaid",
+                "due_date": "2024-03-15",
+                "description": "Legal services for February 2024",
+                "items": [
+                    {"description": "Legal consultation", "hours": 5, "rate": 350, "amount": 1750},
+                    {"description": "Document review", "hours": 3, "rate": 250, "amount": 750}
+                ]
+            },
+            {
+                "invoice_id": "INV-002", 
+                "amount": 1800.00,
+                "status": "paid",
+                "due_date": "2024-02-15",
+                "paid_date": "2024-02-10",
+                "description": "Legal services for January 2024"
+            }
+        ]
+        
+        return jsonify({
+            "success": True,
+            "client_id": client_id,
+            "invoices": invoices
+        })
+        
+    except Exception as e:
+        logger.error(f"Client invoices error: {e}")
+        return jsonify({"error": "Failed to load invoices"}), 500
+
+@app.route('/api/client-portal/pay-invoice', methods=['POST'])
+def client_pay_invoice():
+    """Process client invoice payment"""
+    try:
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        
+        if not invoice_id:
+            return jsonify({"success": False, "error": "Invoice ID required"}), 400
+        
+        # Demo invoice lookup
+        demo_invoices = {
+            "INV-001": {"amount": 2500.00, "description": "Legal services for February 2024"},
+            "INV-002": {"amount": 1800.00, "description": "Legal services for January 2024"}
+        }
+        
+        if invoice_id not in demo_invoices:
+            return jsonify({"success": False, "error": "Invoice not found"}), 404
+        
+        invoice = demo_invoices[invoice_id]
+        
+        # Create Stripe checkout session using direct API (like existing billing system)
+        stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        if not stripe_secret_key:
+            return jsonify({"success": False, "error": "Payment system not configured"}), 500
+        
+        # Create Stripe checkout session
+        stripe_payload = {
+            'payment_method_types[]': 'card',
+            'line_items[0][price_data][currency]': 'usd',
+            'line_items[0][price_data][product_data][name]': f'Invoice {invoice_id} - {invoice["description"]}',
+            'line_items[0][price_data][unit_amount]': int(invoice["amount"] * 100),
+            'line_items[0][quantity]': '1',
+            'mode': 'payment',
+            'success_url': request.host_url + f'client-portal?payment=success&invoice={invoice_id}',
+            'cancel_url': request.host_url + f'client-portal?payment=cancelled&invoice={invoice_id}',
+            'metadata[invoice_id]': invoice_id,
+            'metadata[client_portal]': 'true'
+        }
+        
+        import requests as req
+        response = req.post(
+            'https://api.stripe.com/v1/checkout/sessions',
+            headers={
+                'Authorization': f'Bearer {stripe_secret_key}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data=stripe_payload
+        )
+        
+        if response.status_code == 200:
+            session_data = response.json()
+            return jsonify({
+                "success": True,
+                "payment_url": session_data.get('url'),
+                "session_id": session_data.get('id')
+            })
+        else:
+            logger.error(f"Stripe error: {response.text}")
+            return jsonify({"success": False, "error": "Payment session creation failed"}), 500
+            
+    except Exception as e:
+        logger.error(f"Client payment error: {e}")
+        return jsonify({"success": False, "error": "Payment processing failed"}), 500
+
+@app.route('/api/client-portal/case-updates')
+def client_case_updates():
+    """Get client case updates"""
+    try:
+        client_id = request.args.get('client_id', 'demo-client-001')
+        case_id = request.args.get('case_id', 'demo-case-001')
+        
+        # Demo case updates - in real implementation, query database
+        updates = [
+            {
+                "update_id": "upd-001",
+                "timestamp": "2024-02-15T14:30:00Z",
+                "type": "appointment",
+                "title": "Deposition scheduled for March 15th",
+                "description": "Court deposition scheduled. Please review preparation materials.",
+                "attorney": "Sarah Johnson, Esq."
+            },
+            {
+                "update_id": "upd-002", 
+                "timestamp": "2024-02-14T10:15:00Z",
+                "type": "filing",
+                "title": "Discovery documents filed",
+                "description": "Initial discovery documents have been filed with the court.",
+                "attorney": "Sarah Johnson, Esq."
+            },
+            {
+                "update_id": "upd-003",
+                "timestamp": "2024-02-10T16:45:00Z", 
+                "type": "status",
+                "title": "Case status updated to Active",
+                "description": "Your case is now in active litigation phase.",
+                "attorney": "Sarah Johnson, Esq."
+            }
+        ]
+        
+        return jsonify({
+            "success": True,
+            "client_id": client_id,
+            "case_id": case_id,
+            "updates": updates
+        })
+        
+    except Exception as e:
+        logger.error(f"Client case updates error: {e}")
+        return jsonify({"error": "Failed to load case updates"}), 500
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(e):

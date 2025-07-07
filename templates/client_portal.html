@@ -554,6 +554,16 @@
 
     <!-- Documents Tab -->
     <div id="documents" class="tab-content">
+        <!-- Upload Section -->
+        <div class="overview-card" style="margin-bottom: 2rem;">
+            <h3>Upload Documents</h3>
+            <div class="upload-area" onclick="document.getElementById('file-input').click()" style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                <div style="font-size: 1.125rem; color: #374151; margin-bottom: 0.5rem;">Click to upload documents</div>
+                <div style="font-size: 0.875rem; color: #6b7280;">or drag and drop files here (PDF, DOC, DOCX, JPG, PNG)</div>
+            </div>
+            <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;" onchange="handleFileUpload(this)">
+        </div>
+
         <div class="documents-list">
             <div class="document-item">
                 <div class="doc-icon pdf">PDF</div>
@@ -589,6 +599,10 @@
                     <button class="action-btn" onclick="viewDocument('doc-3')">View</button>
                     <button class="action-btn" onclick="downloadDocument('doc-3')">Download</button>
                 </div>
+            </div>
+
+            <div id="uploaded-documents">
+                <!-- Dynamically uploaded documents will appear here -->
             </div>
         </div>
     </div>
@@ -735,47 +749,139 @@ function downloadDocument(docId) {
 function sendMessage() {
     const messageText = document.getElementById('messageText');
     const messagesList = document.getElementById('messagesList');
+    const message = messageText.value.trim();
     
-    if (messageText.value.trim()) {
-        const messageItem = document.createElement('div');
-        messageItem.className = 'message-item';
-        messageItem.innerHTML = `
-            <div class="message-header">
-                <span class="message-author">You</span>
-                <span class="message-time">Just now</span>
-            </div>
-            <div class="message-content">
-                ${messageText.value.trim()}
-            </div>
-        `;
-        
-        messagesList.appendChild(messageItem);
-        messageText.value = '';
-        
-        // Scroll to bottom
-        messagesList.scrollTop = messagesList.scrollHeight;
-        
-        // Simulate attorney response (demo)
-        setTimeout(() => {
-            const responseItem = document.createElement('div');
-            responseItem.className = 'message-item';
-            responseItem.innerHTML = `
+    if (!message) return;
+    
+    // Send message to API
+    fetch('/api/client-message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: message,
+            client_id: 'demo-client-001',
+            case_id: 'demo-case-001'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add message to UI
+            const messageItem = document.createElement('div');
+            messageItem.className = 'message-item';
+            messageItem.innerHTML = `
                 <div class="message-header">
-                    <span class="message-author">Sarah Johnson, Esq.</span>
+                    <span class="message-author">You</span>
                     <span class="message-time">Just now</span>
                 </div>
                 <div class="message-content">
-                    Thank you for your message. I'll review this and get back to you within 24 hours.
+                    ${message}
                 </div>
             `;
-            messagesList.appendChild(responseItem);
+            
+            messagesList.appendChild(messageItem);
+            messageText.value = '';
+            
+            // Scroll to bottom
             messagesList.scrollTop = messagesList.scrollHeight;
-        }, 2000);
-    }
+            
+            // Show success notification
+            showNotification('Message sent successfully', 'success');
+            
+            // Simulate attorney response (demo)
+            setTimeout(() => {
+                const responseItem = document.createElement('div');
+                responseItem.className = 'message-item';
+                responseItem.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-author">Sarah Johnson, Esq.</span>
+                        <span class="message-time">Just now</span>
+                    </div>
+                    <div class="message-content">
+                        Thank you for your message. I'll review this and get back to you within 24 hours.
+                    </div>
+                `;
+                messagesList.appendChild(responseItem);
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }, 2000);
+        } else {
+            showNotification('Failed to send message: ' + (data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Message error:', error);
+        showNotification('Failed to send message', 'error');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    
+    // Set background color based on type
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+    notification.style.backgroundColor = colors[type] || colors.info;
+    notification.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
 }
 
 function payOnline() {
-    alert('Redirecting to secure payment portal...');
+    // Use the existing invoice payment system from the billing integration
+    fetch('/api/client-portal/pay-invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            invoice_id: 'INV-001'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.payment_url) {
+            window.location.href = data.payment_url;
+        } else {
+            alert('Payment processing error: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Payment error:', error);
+        alert('Payment system error. Please try again.');
+    });
 }
 
 function downloadInvoice() {
@@ -790,10 +896,130 @@ function scheduleAppointment() {
     alert('Appointment scheduling system would open here.');
 }
 
-// Auto-scroll messages to bottom on load
+// File Upload Handler
+function handleFileUpload(input) {
+    const files = Array.from(input.files);
+    
+    files.forEach(file => {
+        console.log(`Uploading: ${file.name}`);
+        
+        // Create FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('client_id', 'demo-client-001');
+        formData.append('case_id', 'demo-case-001');
+        
+        // Upload file
+        fetch('/api/client-upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`${file.name} uploaded successfully`, 'success');
+                addToDocumentsList(file.name, data.file_info);
+            } else {
+                showNotification(`Failed to upload ${file.name}: ${data.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showNotification(`Upload failed: ${error.message}`, 'error');
+        });
+    });
+    
+    // Clear input
+    input.value = '';
+}
+
+// Add uploaded document to the documents list
+function addToDocumentsList(fileName, fileInfo) {
+    const documentsList = document.querySelector('.documents-list');
+    const uploadedSection = document.getElementById('uploaded-documents');
+    
+    // Create new document item
+    const newItem = document.createElement('div');
+    newItem.className = 'document-item';
+    
+    // Determine file icon based on extension
+    const ext = fileInfo.type.toLowerCase();
+    let iconClass = 'pdf';
+    let iconText = 'PDF';
+    
+    if (ext === '.docx' || ext === '.doc') {
+        iconClass = 'docx';
+        iconText = 'DOC';
+    } else if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+        iconClass = 'pdf'; // Use same styling for now
+        iconText = 'IMG';
+    }
+    
+    newItem.innerHTML = `
+        <div class="doc-icon ${iconClass}">${iconText}</div>
+        <div class="doc-details">
+            <div class="doc-title">${fileName}</div>
+            <div class="doc-meta">Uploaded just now • ${formatFileSize(fileInfo.size)}</div>
+        </div>
+        <div class="doc-actions">
+            <button class="action-btn" onclick="viewDocument('${fileInfo.hash}')">View</button>
+            <button class="action-btn" onclick="downloadDocument('${fileInfo.hash}')">Download</button>
+        </div>
+    `;
+    
+    if (uploadedSection) {
+        uploadedSection.appendChild(newItem);
+    } else {
+        documentsList.appendChild(newItem);
+    }
+}
+
+// Format file size helper
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' bytes';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+}
+
+// Drag and Drop functionality
 document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.querySelector('.upload-area');
     const messagesList = document.getElementById('messagesList');
-    messagesList.scrollTop = messagesList.scrollHeight;
+    
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#2E4B3C';
+            uploadArea.style.backgroundColor = '#f0f9f4';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#d1d5db';
+            uploadArea.style.backgroundColor = 'transparent';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#d1d5db';
+            uploadArea.style.backgroundColor = 'transparent';
+            
+            const files = Array.from(e.dataTransfer.files);
+            const fileInput = document.getElementById('file-input');
+            
+            // Create a new FileList-like object
+            const dt = new DataTransfer();
+            files.forEach(file => dt.items.add(file));
+            fileInput.files = dt.files;
+            
+            handleFileUpload(fileInput);
+        });
+    }
+    
+    // Auto-scroll messages to bottom on load
+    if (messagesList) {
+        messagesList.scrollTop = messagesList.scrollHeight;
+    }
 });
 </script>
 {% endblock %}
