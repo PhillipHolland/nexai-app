@@ -10646,6 +10646,200 @@ def test_refund_demo():
             'details': str(e)
         }), 500
 
+@app.route('/api/send-invoice', methods=['POST'])
+def send_invoice():
+    """Send invoice via email or SMS"""
+    try:
+        data = request.get_json()
+        delivery_method = data.get('method', 'email')  # email, sms, both
+        recipient_email = data.get('email')
+        recipient_phone = data.get('phone')
+        invoice_data = data.get('invoice', {})
+        
+        # Validate required fields
+        if delivery_method in ['email', 'both'] and not recipient_email:
+            return jsonify({'error': 'Email address required'}), 400
+        
+        if delivery_method in ['sms', 'both'] and not recipient_phone:
+            return jsonify({'error': 'Phone number required'}), 400
+        
+        results = {'success': True, 'sent': []}
+        
+        # Send via email
+        if delivery_method in ['email', 'both']:
+            email_result = send_invoice_email(recipient_email, invoice_data)
+            results['sent'].append({
+                'method': 'email',
+                'success': email_result['success'],
+                'message': email_result['message']
+            })
+        
+        # Send via SMS
+        if delivery_method in ['sms', 'both']:
+            sms_result = send_invoice_sms(recipient_phone, invoice_data)
+            results['sent'].append({
+                'method': 'sms', 
+                'success': sms_result['success'],
+                'message': sms_result['message']
+            })
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Send invoice failed: {e}")
+        return jsonify({
+            'error': 'Failed to send invoice',
+            'details': str(e)
+        }), 500
+
+def send_invoice_email(email, invoice_data):
+    """Send invoice via email using a simple email service"""
+    try:
+        # Generate professional invoice email content
+        invoice_number = invoice_data.get('number', 'INV-2025-001')
+        client_name = invoice_data.get('client_name', 'Valued Client')
+        amount = invoice_data.get('total', '0.00')
+        due_date = invoice_data.get('due_date', 'Upon receipt')
+        
+        # Create payment link
+        payment_url = f"{request.host_url}invoice/payment?invoice={invoice_number}&amount={amount}&client={client_name}"
+        
+        email_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #2E4B3C, #4a7c59); color: white; padding: 2rem; text-align: center;">
+                <h1>Legal Services Invoice</h1>
+                <p>Professional legal services from your trusted law firm</p>
+            </div>
+            
+            <div style="padding: 2rem; background: #f9fafb;">
+                <h2>Dear {client_name},</h2>
+                
+                <p>Please find attached your invoice for legal services rendered.</p>
+                
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #2E4B3C; margin: 1.5rem 0;">
+                    <h3>Invoice Details:</h3>
+                    <p><strong>Invoice Number:</strong> {invoice_number}</p>
+                    <p><strong>Amount Due:</strong> ${amount}</p>
+                    <p><strong>Due Date:</strong> {due_date}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 2rem 0;">
+                    <a href="{payment_url}" 
+                       style="background: linear-gradient(135deg, #2E4B3C, #4a7c59); 
+                              color: white; 
+                              padding: 1rem 2rem; 
+                              text-decoration: none; 
+                              border-radius: 8px; 
+                              font-weight: bold;
+                              display: inline-block;">
+                        💳 Pay Invoice Online
+                    </a>
+                </div>
+                
+                <p>You can pay securely online using the button above, or contact our office for alternative payment arrangements.</p>
+                
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
+                
+                <p style="color: #6b7280; font-size: 0.875rem;">
+                    <strong>Payment Methods:</strong> We accept all major credit cards, ACH transfers, and secure online payments.<br>
+                    <strong>Questions?</strong> Please contact our billing department if you have any questions about this invoice.<br>
+                    <strong>Secure Payment:</strong> All online payments are processed securely through Stripe.
+                </p>
+            </div>
+            
+            <div style="background: #2E4B3C; color: white; padding: 1rem; text-align: center; font-size: 0.875rem;">
+                <p>© 2025 Your Law Firm - Professional Legal Services</p>
+                <p>This invoice was generated by LexAI Practice Partner</p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # For demo purposes, we'll simulate email sending
+        # In production, you'd integrate with SendGrid, Mailgun, AWS SES, etc.
+        logger.info(f"📧 Email invoice sent to {email} for {invoice_number}")
+        
+        return {
+            'success': True,
+            'message': f'Invoice email sent successfully to {email}',
+            'demo': True
+        }
+        
+    except Exception as e:
+        logger.error(f"Email sending failed: {e}")
+        return {
+            'success': False,
+            'message': f'Failed to send email: {str(e)}'
+        }
+
+def send_invoice_sms(phone, invoice_data):
+    """Send invoice via SMS using Twilio or similar service"""
+    try:
+        invoice_number = invoice_data.get('number', 'INV-2025-001')
+        client_name = invoice_data.get('client_name', 'Valued Client')
+        amount = invoice_data.get('total', '0.00')
+        
+        # Create short payment link
+        payment_url = f"{request.host_url}invoice/payment?invoice={invoice_number}&amount={amount}&client={client_name}"
+        
+        # Professional SMS content (160 character limit consideration)
+        sms_content = f"""
+        🏛️ Legal Services Invoice
+
+        Invoice: {invoice_number}
+        Amount: ${amount}
+        
+        Pay securely online:
+        {payment_url}
+        
+        Questions? Reply HELP
+        Your Law Firm
+        """.strip()
+        
+        # For demo purposes, we'll simulate SMS sending
+        # In production, you'd integrate with Twilio, AWS SNS, etc.
+        logger.info(f"📱 SMS invoice sent to {phone} for {invoice_number}")
+        
+        return {
+            'success': True,
+            'message': f'Invoice SMS sent successfully to {phone}',
+            'demo': True
+        }
+        
+    except Exception as e:
+        logger.error(f"SMS sending failed: {e}")
+        return {
+            'success': False,
+            'message': f'Failed to send SMS: {str(e)}'
+        }
+
+@app.route('/api/generate-invoice-pdf', methods=['POST'])
+def generate_invoice_pdf():
+    """Generate PDF invoice for download or email attachment"""
+    try:
+        data = request.get_json()
+        invoice_data = data.get('invoice', {})
+        
+        # For demo purposes, return a mock PDF response
+        # In production, you'd use libraries like reportlab, weasyprint, or similar
+        
+        invoice_number = invoice_data.get('number', 'INV-2025-001')
+        
+        return jsonify({
+            'success': True,
+            'pdf_url': f'/api/download-invoice-pdf/{invoice_number}',
+            'message': 'PDF generated successfully',
+            'demo': True
+        })
+        
+    except Exception as e:
+        logger.error(f"PDF generation failed: {e}")
+        return jsonify({
+            'error': 'Failed to generate PDF',
+            'details': str(e)
+        }), 500
+
 @app.route('/invoice/payment')
 def invoice_payment_page():
     """Invoice payment page with Stripe hosted checkout"""

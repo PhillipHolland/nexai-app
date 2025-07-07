@@ -731,6 +731,7 @@
                         <td>
                             <button class="btn btn-secondary" onclick="viewInvoice(1)">View</button>
                             <button class="btn btn-primary" onclick="payInvoice('INV-2025-001', '8750.00', 'ABC Corporation')" style="margin-left: 0.5rem;">Pay Now</button>
+                            <button class="btn btn-success" onclick="sendInvoice('INV-2025-001', 'ABC Corporation', '8750.00', 'abc@corporation.com', '+1-555-0123')" style="margin-left: 0.5rem; font-size: 0.875rem;">Send</button>
                         </td>
                     </tr>
                     <tr>
@@ -742,6 +743,7 @@
                         <td><span class="status-badge status-paid">Paid</span></td>
                         <td>
                             <button class="btn btn-secondary" onclick="viewInvoice(2)">View</button>
+                            <button class="btn btn-success" onclick="sendInvoice('INV-2025-002', 'John Smith', '4200.00', 'john.smith@email.com', '+1-555-0234')" style="margin-left: 0.5rem; font-size: 0.875rem;">Send</button>
                         </td>
                     </tr>
                     <tr>
@@ -786,7 +788,10 @@
         <div class="invoice-section">
             <div class="section-header">
                 <h2 class="section-title">Payment & Refund Management</h2>
-                <button class="btn btn-primary" onclick="showRefundManager()">Manage Refunds</button>
+                <div class="section-actions">
+                    <button class="btn btn-primary" onclick="showRefundManager()">Manage Refunds</button>
+                    <button class="btn btn-success" onclick="testInvoiceSending()" style="margin-left: 0.5rem;">🧪 Test Invoice Sending</button>
+                </div>
             </div>
         </div>
 
@@ -836,6 +841,71 @@
                     <h3>Existing Refunds</h3>
                     <div id="refundsList"></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Invoice Sender Dialog (Initially Hidden) -->
+        <div class="invoice-section" id="invoiceSender" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Send Invoice</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="hideInvoiceSender()">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3 id="invoiceDetails">Invoice Details</h3>
+                <div id="invoiceInfo" style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;"></div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Delivery Method</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="radio" name="deliveryMethod" value="email" checked> 
+                        📧 Email Only
+                    </label>
+                    <label style="margin-left: 1rem;">
+                        <input type="radio" name="deliveryMethod" value="sms"> 
+                        📱 SMS Only
+                    </label>
+                    <label style="margin-left: 1rem;">
+                        <input type="radio" name="deliveryMethod" value="both"> 
+                        📧📱 Email + SMS
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Contact Information</h3>
+                <div class="form-group">
+                    <label for="recipientEmail">Email Address:</label>
+                    <input type="email" id="recipientEmail" placeholder="client@example.com" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label for="recipientPhone">Phone Number:</label>
+                    <input type="tel" id="recipientPhone" placeholder="+1-555-123-4567" style="width: 100%;">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Additional Options</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="includePDF"> 
+                        📄 Include PDF attachment (email only)
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="customMessage">Custom Message (optional):</label>
+                    <textarea id="customMessage" rows="3" placeholder="Add a personal message to your client..." style="width: 100%; padding: 0.5rem;"></textarea>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn btn-primary btn-large" onclick="processSendInvoice()">
+                    📤 Send Invoice
+                </button>
             </div>
         </div>
 
@@ -1420,6 +1490,117 @@ window.testRefund = function() {
     // Show a helpful message
     setTimeout(() => {
         alert('🧪 Test payment loaded!\n\nThis is a sample payment you can use to test the refund system.\n\nPayment ID: ' + testPaymentData.payment_intent_id + '\nAmount: $1,500.00\n\nYou can now test partial or full refunds.');
+    }, 500);
+};
+
+// Invoice Sending Functions
+let currentInvoiceData = {};
+
+window.sendInvoice = function(invoiceNumber, clientName, amount, email, phone) {
+    // Store invoice data for sending
+    currentInvoiceData = {
+        number: invoiceNumber,
+        client_name: clientName,
+        total: amount,
+        due_date: 'Upon receipt'
+    };
+    
+    // Populate the invoice sender form
+    document.getElementById('invoiceInfo').innerHTML = `
+        <p><strong>Invoice:</strong> ${invoiceNumber}</p>
+        <p><strong>Client:</strong> ${clientName}</p>
+        <p><strong>Amount:</strong> $${amount}</p>
+        <p><strong>Due Date:</strong> Upon receipt</p>
+    `;
+    
+    // Pre-fill contact information
+    document.getElementById('recipientEmail').value = email || '';
+    document.getElementById('recipientPhone').value = phone || '';
+    
+    // Show the invoice sender dialog
+    document.getElementById('invoiceSender').style.display = 'block';
+};
+
+window.hideInvoiceSender = function() {
+    document.getElementById('invoiceSender').style.display = 'none';
+    currentInvoiceData = {};
+};
+
+window.processSendInvoice = function() {
+    const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked').value;
+    const email = document.getElementById('recipientEmail').value.trim();
+    const phone = document.getElementById('recipientPhone').value.trim();
+    const includePDF = document.getElementById('includePDF').checked;
+    const customMessage = document.getElementById('customMessage').value.trim();
+    
+    // Validation
+    if (deliveryMethod === 'email' || deliveryMethod === 'both') {
+        if (!email) {
+            alert('Email address is required for email delivery');
+            return;
+        }
+    }
+    
+    if (deliveryMethod === 'sms' || deliveryMethod === 'both') {
+        if (!phone) {
+            alert('Phone number is required for SMS delivery');
+            return;
+        }
+    }
+    
+    if (!confirm(`Send invoice ${currentInvoiceData.number} via ${deliveryMethod.toUpperCase()}?`)) {
+        return;
+    }
+    
+    // Prepare request data
+    const requestData = {
+        method: deliveryMethod,
+        email: email,
+        phone: phone,
+        invoice: currentInvoiceData,
+        include_pdf: includePDF,
+        custom_message: customMessage
+    };
+    
+    // Send the invoice
+    fetch('/api/send-invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let successMessage = `📤 Invoice sent successfully!\n\n`;
+            
+            data.sent.forEach(result => {
+                if (result.success) {
+                    successMessage += `✅ ${result.method.toUpperCase()}: ${result.message}\n`;
+                } else {
+                    successMessage += `❌ ${result.method.toUpperCase()}: ${result.message}\n`;
+                }
+            });
+            
+            alert(successMessage);
+            hideInvoiceSender();
+        } else {
+            alert('Failed to send invoice: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send invoice. Please try again.');
+    });
+};
+
+// Test invoice sending function
+window.testInvoiceSending = function() {
+    sendInvoice('INV-TEST-EMAIL', 'Demo Client', '1250.00', 'demo@client.com', '+1-555-TEST');
+    
+    setTimeout(() => {
+        alert('🧪 Demo invoice data loaded!\n\nYou can now test:\n\n📧 Email delivery\n📱 SMS delivery  \n📧📱 Both email + SMS\n📄 PDF attachments\n💬 Custom messages\n\nThis will simulate sending without real emails/SMS.');
     }, 500);
 };
 </script>
