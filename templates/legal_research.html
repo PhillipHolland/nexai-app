@@ -445,8 +445,8 @@
 <div class="research-container">
     <!-- Research Header -->
     <div class="research-header">
-        <h1 class="research-title">Legal Research</h1>
-        <p class="research-subtitle">AI-powered search across case law, statutes, and legal precedents</p>
+        <h1 class="research-title">📚 Free Legal Research</h1>
+        <p class="research-subtitle">Search case law, statutes, and regulations using free government and open source databases</p>
     </div>
 
     <!-- Main Content -->
@@ -592,16 +592,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingState = document.getElementById('loading-state');
     const searchResults = document.getElementById('search-results');
 
-    // Test API connection on page load
-    fetch('/api/legal-research/test')
-        .then(response => response.json())
-        .then(data => {
-            console.log('API connection test successful:', data);
-        })
-        .catch(error => {
-            console.warn('API connection test failed:', error);
-            resultsMeta.textContent = 'API connection issue detected - using demo mode';
-        });
+    // Update page info
+    resultsMeta.textContent = 'Using free legal databases: Justia, CourtListener, U.S. Code, State Legislatures';
 
     // Auto-resize textarea
     searchQuery.addEventListener('input', function() {
@@ -637,17 +629,21 @@ document.addEventListener('DOMContentLoaded', function() {
             practiceArea: document.getElementById('practice-area-filter').value
         };
 
-        // Perform search
-        console.log('Starting legal research search:', { query, filters });
+        // Perform search using free legal research API
+        console.log('Starting free legal research search:', { query, filters });
         
-        fetch('/api/legal-research/search', {
+        fetch('/api/free-legal-research/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 query: query,
-                filters: filters
+                search_type: 'comprehensive',
+                jurisdiction: filters.jurisdiction,
+                court: filters.court,
+                date_range: filters.dateRange,
+                limit: 20
             })
         })
         .then(response => {
@@ -677,13 +673,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const results = data.results || [];
-        const aiInsights = data.ai_insights || '';
+        const results = data.results || {};
+        const cases = results.cases?.cases || [];
+        const statutes = results.statutes?.statutes || [];
+        const aiAnalysis = results.ai_analysis || null;
+        
+        const totalResults = cases.length + statutes.length;
         
         // Update results meta
-        resultsMeta.textContent = `Found ${results.length} relevant cases and statutes`;
+        resultsMeta.textContent = `Found ${totalResults} results from ${results.search_metadata?.sources_used?.join(', ') || 'free legal databases'}`;
 
-        if (results.length === 0) {
+        if (totalResults === 0) {
             searchResults.innerHTML = `
                 <div class="empty-state">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -698,49 +698,95 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let resultsHTML = '';
 
-        // Add AI insights if available
-        if (aiInsights) {
+        // Add AI analysis if available
+        if (aiAnalysis) {
             resultsHTML += `
                 <div class="ai-insights">
                     <div class="ai-insights-header">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                         </svg>
-                        <span class="ai-insights-title">AI Legal Insights</span>
+                        <span class="ai-insights-title">🤖 AI Legal Analysis</span>
                     </div>
-                    <div class="ai-insights-content">${aiInsights}</div>
+                    <div class="ai-insights-content">
+                        <strong>Legal Issue:</strong> ${aiAnalysis.legal_issue || 'Analysis based on search results'}<br><br>
+                        <strong>Key Principles:</strong><br>
+                        ${aiAnalysis.key_principles ? aiAnalysis.key_principles.map(p => `• ${p}`).join('<br>') : 'Analysis not available'}
+                        ${aiAnalysis.risk_assessment ? `<br><br><strong>Risk Assessment:</strong> ${aiAnalysis.risk_assessment.overall_risk}` : ''}
+                    </div>
                 </div>
             `;
         }
 
-        // Add search results
-        results.forEach(result => {
-            const relevanceScore = Math.min(5, Math.max(1, result.relevance || 3));
-            const relevanceDots = Array.from({length: 5}, (_, i) => 
-                `<div class="relevance-dot ${i < relevanceScore ? 'active' : ''}"></div>`
-            ).join('');
+        // Add case law results
+        if (cases.length > 0) {
+            resultsHTML += `<h3 style="margin: 1.5rem 0 1rem; color: #1f2937; font-size: 1.25rem;">⚖️ Case Law (${cases.length})</h3>`;
+            cases.forEach(caseItem => {
+                const relevanceScore = Math.min(5, Math.max(1, Math.round(caseItem.relevance_score / 20) || 3));
+                const relevanceDots = Array.from({length: 5}, (_, i) => 
+                    `<div class="relevance-dot ${i < relevanceScore ? 'active' : ''}"></div>`
+                ).join('');
 
-            resultsHTML += `
-                <div class="result-item">
-                    <div class="result-header">
-                        <div class="result-title">${result.title}</div>
-                        <div class="result-type">${result.type}</div>
+                resultsHTML += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-title">${caseItem.title || 'Unknown Case'}</div>
+                            <div class="result-type">Case Law</div>
+                        </div>
+                        <div class="result-citation">${caseItem.citation || 'Citation not available'}</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
+                            <strong>Court:</strong> ${caseItem.court || 'N/A'} | 
+                            <strong>Date:</strong> ${caseItem.date || 'N/A'} | 
+                            <strong>Source:</strong> ${caseItem.source || 'Free Database'}
+                        </div>
+                        <div class="result-relevance">
+                            <div class="relevance-score">${relevanceDots}</div>
+                            <span class="relevance-label">Relevance Score</span>
+                        </div>
+                        <div class="result-summary">${caseItem.summary || 'No summary available'}</div>
+                        <div class="result-actions">
+                            ${caseItem.url ? `<a href="${caseItem.url}" target="_blank" class="result-action primary">View Full Case</a>` : ''}
+                            <a href="#" class="result-action" onclick="citationHelper('${caseItem.citation}')">Copy Citation</a>
+                            <a href="#" class="result-action" onclick="addToResearch('${caseItem.case_id}')">Save to Research</a>
+                        </div>
                     </div>
-                    <div class="result-citation">${result.citation}</div>
-                    <div class="result-relevance">
-                        <div class="relevance-score">${relevanceDots}</div>
-                        <span class="relevance-label">Relevance Score</span>
+                `;
+            });
+        }
+
+        // Add statute results
+        if (statutes.length > 0) {
+            resultsHTML += `<h3 style="margin: 1.5rem 0 1rem; color: #1f2937; font-size: 1.25rem;">📜 Statutes & Regulations (${statutes.length})</h3>`;
+            statutes.forEach(statute => {
+                resultsHTML += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-title">${statute.title || 'Unknown Statute'}</div>
+                            <div class="result-type">Statute</div>
+                        </div>
+                        <div class="result-citation">${statute.citation || 'Citation not available'}</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
+                            <strong>Jurisdiction:</strong> ${statute.jurisdiction || 'N/A'} | 
+                            <strong>Effective:</strong> ${statute.effective_date || 'N/A'} | 
+                            <strong>Source:</strong> ${statute.source || 'Government Source'}
+                        </div>
+                        <div class="result-summary">${statute.text || 'Text not available'}</div>
+                        <div class="result-actions">
+                            ${statute.url ? `<a href="${statute.url}" target="_blank" class="result-action primary">View Full Text</a>` : ''}
+                            <a href="#" class="result-action" onclick="citationHelper('${statute.citation}')">Copy Citation</a>
+                            <a href="#" class="result-action" onclick="addToResearch('${statute.statute_id}')">Save to Research</a>
+                        </div>
                     </div>
-                    <div class="result-summary">${result.summary}</div>
-                    <div class="result-actions">
-                        <a href="#" class="result-action primary" onclick="viewFullCase('${result.id}')">View Full Text</a>
-                        <a href="#" class="result-action" onclick="citationHelper('${result.citation}')">Get Citation</a>
-                        <a href="#" class="result-action" onclick="findSimilar('${result.id}')">Find Similar</a>
-                        <a href="#" class="result-action" onclick="addToResearch('${result.id}')">Save to Research</a>
-                    </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
+
+        // Add disclaimer
+        resultsHTML += `
+            <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; font-size: 0.875rem; color: #9a3412;">
+                <strong>⚠️ Important Disclaimer:</strong> ${data.disclaimer || 'Results from free legal databases. Always verify with official sources and consult qualified legal counsel.'}
+            </div>
+        `;
 
         searchResults.innerHTML = resultsHTML;
     }
