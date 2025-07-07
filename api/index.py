@@ -10611,6 +10611,41 @@ def get_payment_details():
             'status': 'api_error'
         }), 500
 
+@app.route('/api/test-refund-demo', methods=['POST'])
+def test_refund_demo():
+    """Demo endpoint for testing refund workflow (mock data)"""
+    try:
+        data = request.get_json()
+        payment_intent_id = data.get('payment_intent_id')
+        amount = data.get('amount')
+        reason = data.get('reason', 'requested_by_customer')
+        
+        # Check if this is our test payment ID
+        if payment_intent_id == 'pi_3QJdFE2eZvKYlo2C1k1v2p8t':
+            # Return mock successful refund response
+            refund_amount = float(amount) if amount else 1500.00
+            
+            return jsonify({
+                'success': True,
+                'refund_id': f'rfnd_test_{int(time.time())}',
+                'amount_refunded': refund_amount,
+                'status': 'succeeded',
+                'currency': 'usd',
+                'created': int(time.time()),
+                'demo': True,
+                'message': f'✅ Demo refund of ${refund_amount} processed successfully!\n\nThis is a test refund using mock data. In production, this would process a real Stripe refund.'
+            })
+        else:
+            # For real payment IDs, fall back to actual Stripe API
+            return process_refund()
+        
+    except Exception as e:
+        logger.error(f"Test refund demo failed: {e}")
+        return jsonify({
+            'error': 'Test refund failed',
+            'details': str(e)
+        }), 500
+
 @app.route('/invoice/payment')
 def invoice_payment_page():
     """Invoice payment page with Stripe hosted checkout"""

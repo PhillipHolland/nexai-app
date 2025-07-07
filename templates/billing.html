@@ -766,6 +766,18 @@
                             <button class="btn btn-secondary" onclick="viewInvoice(4)">View</button>
                         </td>
                     </tr>
+                    <tr style="background: #f0f9ff;">
+                        <td><strong>INV-2025-TEST</strong></td>
+                        <td>Test Client LLC</td>
+                        <td>Jan 7, 2025</td>
+                        <td>Feb 6, 2025</td>
+                        <td><strong>$1,500.00</strong></td>
+                        <td><span class="status-badge status-paid">Paid ✅</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewInvoice(5)">View</button>
+                            <button class="btn btn-warning" onclick="testRefund()" style="margin-left: 0.5rem; font-size: 0.875rem;">Test Refund</button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -1343,7 +1355,12 @@ window.processRefund = function() {
         refundData.amount = parseFloat(amount);
     }
     
-    fetch('/api/process-refund', {
+    // Use demo endpoint for test payments, real endpoint for production
+    const endpoint = paymentIntentId === 'pi_3QJdFE2eZvKYlo2C1k1v2p8t' 
+        ? '/api/test-refund-demo' 
+        : '/api/process-refund';
+    
+    fetch(endpoint, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -1353,13 +1370,18 @@ window.processRefund = function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Refund processed successfully!
+            // Show demo message if available, otherwise standard success message
+            const message = data.message || `Refund processed successfully!
             Refund ID: ${data.refund_id}
             Amount: $${data.amount_refunded}
-            Status: ${data.status}`);
+            Status: ${data.status}`;
             
-            // Refresh payment details
-            lookupPayment();
+            alert(message);
+            
+            // Refresh payment details only for real payments
+            if (!data.demo) {
+                lookupPayment();
+            }
         } else {
             alert('Refund failed: ' + (data.details || data.error));
         }
@@ -1368,6 +1390,37 @@ window.processRefund = function() {
         console.error('Error:', error);
         alert('Failed to process refund');
     });
+};
+
+// Test refund function with mock data
+window.testRefund = function() {
+    // Show refund manager
+    showRefundManager();
+    
+    // Populate with test payment data
+    const testPaymentData = {
+        payment_intent_id: 'pi_3QJdFE2eZvKYlo2C1k1v2p8t',
+        client_reference_id: 'INV-2025-TEST',
+        client: 'Test Client LLC',
+        amount_paid: 1500.00,
+        amount_refunded: 0.00,
+        amount_refundable: 1500.00,
+        status: 'succeeded',
+        currency: 'usd',
+        created: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
+        refunds: []
+    };
+    
+    // Pre-fill the payment lookup field
+    document.getElementById('paymentLookup').value = testPaymentData.payment_intent_id;
+    
+    // Display the payment details immediately
+    displayPaymentDetails(testPaymentData);
+    
+    // Show a helpful message
+    setTimeout(() => {
+        alert('🧪 Test payment loaded!\n\nThis is a sample payment you can use to test the refund system.\n\nPayment ID: ' + testPaymentData.payment_intent_id + '\nAmount: $1,500.00\n\nYou can now test partial or full refunds.');
+    }, 500);
 };
 </script>
 {% endblock %}
