@@ -109,6 +109,315 @@ def require_role(*allowed_roles):
         return decorated_function
     return decorator
 
+# Matter-level access control system
+def get_user_matter_access(user_email, user_role):
+    """Get matters/cases that user can access based on role and assignments"""
+    # Mock data - in real implementation, query database for user-matter relationships
+    matter_access = {
+        'client@lexai.com': {
+            'accessible_matters': ['CASE-2024-001'],  # Clients only see their own cases
+            'role_level': 'client'
+        },
+        'paralegal@lexai.com': {
+            'accessible_matters': ['CASE-2024-001', 'CASE-2024-002', 'CASE-2024-003'],  # Assigned cases
+            'role_level': 'paralegal'
+        },
+        'attorney@lexai.com': {
+            'accessible_matters': ['*'],  # Attorneys can access all cases
+            'role_level': 'attorney'
+        },
+        'admin@lexai.com': {
+            'accessible_matters': ['*'],  # Admins can access all cases
+            'role_level': 'admin'
+        }
+    }
+    
+    # Default access based on role if user not found
+    default_access = {
+        'client': {'accessible_matters': [], 'role_level': 'client'},
+        'paralegal': {'accessible_matters': [], 'role_level': 'paralegal'},
+        'attorney': {'accessible_matters': ['*'], 'role_level': 'attorney'},
+        'admin': {'accessible_matters': ['*'], 'role_level': 'admin'}
+    }
+    
+    return matter_access.get(user_email, default_access.get(user_role, default_access['client']))
+
+def can_access_matter(matter_id, user_email=None, user_role=None):
+    """Check if user can access specific matter/case"""
+    if not user_email:
+        user_email = session.get('user_email', '')
+    if not user_role:
+        user_role = session.get('user_role', '')
+    
+    access_info = get_user_matter_access(user_email, user_role)
+    accessible_matters = access_info['accessible_matters']
+    
+    # Admin and attorney have access to all matters
+    if '*' in accessible_matters:
+        return True
+    
+    # Check if specific matter is in user's accessible list
+    return matter_id in accessible_matters
+
+def require_matter_access(matter_param='matter_id'):
+    """Decorator to require access to specific matter/case"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # Get matter ID from URL parameter, form data, or JSON
+            matter_id = None
+            
+            # Try to get matter_id from URL parameters
+            if matter_param in kwargs:
+                matter_id = kwargs[matter_param]
+            
+            # Try to get from request args
+            if not matter_id:
+                matter_id = request.args.get(matter_param)
+            
+            # Try to get from JSON data
+            if not matter_id and request.is_json:
+                json_data = request.get_json()
+                if json_data:
+                    matter_id = json_data.get(matter_param)
+            
+            # Try to get from form data
+            if not matter_id:
+                matter_id = request.form.get(matter_param)
+            
+            if not matter_id:
+                return jsonify({'error': 'Matter ID required'}), 400
+            
+            # Check matter access
+            if not can_access_matter(matter_id):
+                user_role = session.get('user_role', '')
+                user_email = session.get('user_email', '')
+                logger.warning(f"Matter access denied: {user_email} ({user_role}) attempted to access {matter_id}")
+                
+                if request.is_json:
+                    return jsonify({'error': 'Access denied to this matter'}), 403
+                else:
+                    flash('Access denied. You do not have permission to access this matter.', 'error')
+                    return redirect('/dashboard')
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def get_user_accessible_matters(user_email=None, user_role=None):
+    """Get list of all matters user can access"""
+    if not user_email:
+        user_email = session.get('user_email', '')
+    if not user_role:
+        user_role = session.get('user_role', '')
+    
+    access_info = get_user_matter_access(user_email, user_role)
+    accessible_matters = access_info['accessible_matters']
+    
+    # If user has access to all matters, return all available matters
+    if '*' in accessible_matters:
+        # Mock all matters - in real implementation, query database
+        return [
+            {
+                'matter_id': 'CASE-2024-001',
+                'title': 'Smith vs. ABC Corp',
+                'client': 'John Smith',
+                'status': 'active',
+                'type': 'Civil Litigation'
+            },
+            {
+                'matter_id': 'CASE-2024-002', 
+                'title': 'Johnson Contract Dispute',
+                'client': 'Sarah Johnson',
+                'status': 'active',
+                'type': 'Contract Law'
+            },
+            {
+                'matter_id': 'CASE-2024-003',
+                'title': 'Davis Estate Planning',
+                'client': 'Michael Davis',
+                'status': 'pending',
+                'type': 'Estate Planning'
+            }
+        ]
+    
+    # Filter matters based on user's accessible list
+    all_matters = [
+        {
+            'matter_id': 'CASE-2024-001',
+            'title': 'Smith vs. ABC Corp',
+            'client': 'John Smith', 
+            'status': 'active',
+            'type': 'Civil Litigation'
+        },
+        {
+            'matter_id': 'CASE-2024-002',
+            'title': 'Johnson Contract Dispute', 
+            'client': 'Sarah Johnson',
+            'status': 'active',
+            'type': 'Contract Law'
+        },
+        {
+            'matter_id': 'CASE-2024-003',
+            'title': 'Davis Estate Planning',
+            'client': 'Michael Davis',
+            'status': 'pending', 
+            'type': 'Estate Planning'
+        }
+    ]
+    
+    return [matter for matter in all_matters if matter['matter_id'] in accessible_matters]
+
+# Audit logging system
+class AuditLogger:
+    """Comprehensive audit logging for compliance and security"""
+    
+    @staticmethod
+    def log_action(action, details=None, matter_id=None, success=True, user_email=None, ip_address=None):
+        """Log user action for audit trail"""
+        if not user_email:
+            user_email = session.get('user_email', 'anonymous')
+        
+        if not ip_address:
+            ip_address = request.remote_addr if request else 'unknown'
+        
+        # Create audit log entry
+        audit_entry = {
+            'timestamp': datetime.utcnow().isoformat(),
+            'user_email': user_email,
+            'user_role': session.get('user_role', 'unknown'),
+            'action': action,
+            'details': details or {},
+            'matter_id': matter_id,
+            'success': success,
+            'ip_address': ip_address,
+            'user_agent': request.headers.get('User-Agent', '') if request else '',
+            'session_id': session.get('session_id', 'unknown')
+        }
+        
+        # In production, store in database. For now, log to console and store in memory
+        logger.info(f"AUDIT: {audit_entry}")
+        
+        # Store in session for demo (in production, use database)
+        if 'audit_logs' not in session:
+            session['audit_logs'] = []
+        
+        session['audit_logs'].append(audit_entry)
+        
+        # Keep only last 50 entries in session to prevent memory issues
+        if len(session['audit_logs']) > 50:
+            session['audit_logs'] = session['audit_logs'][-50:]
+        
+        return audit_entry
+    
+    @staticmethod
+    def log_login(success=True, failure_reason=None):
+        """Log login attempts"""
+        details = {'login_attempt': True}
+        if not success and failure_reason:
+            details['failure_reason'] = failure_reason
+        
+        return AuditLogger.log_action(
+            action='login_attempt' if success else 'login_failed',
+            details=details,
+            success=success
+        )
+    
+    @staticmethod
+    def log_matter_access(matter_id, action_type='view'):
+        """Log matter/case access"""
+        return AuditLogger.log_action(
+            action=f'matter_{action_type}',
+            details={'action_type': action_type},
+            matter_id=matter_id
+        )
+    
+    @staticmethod
+    def log_document_action(document_name, action_type, matter_id=None):
+        """Log document-related actions"""
+        return AuditLogger.log_action(
+            action=f'document_{action_type}',
+            details={
+                'document_name': document_name,
+                'action_type': action_type
+            },
+            matter_id=matter_id
+        )
+    
+    @staticmethod
+    def log_evidence_analysis(analysis_type, details=None):
+        """Log evidence analysis actions"""
+        return AuditLogger.log_action(
+            action='evidence_analysis',
+            details={
+                'analysis_type': analysis_type,
+                'analysis_details': details or {}
+            }
+        )
+    
+    @staticmethod
+    def log_billing_action(action_type, amount=None, invoice_id=None, matter_id=None):
+        """Log billing and financial actions"""
+        details = {'action_type': action_type}
+        if amount:
+            details['amount'] = amount
+        if invoice_id:
+            details['invoice_id'] = invoice_id
+            
+        return AuditLogger.log_action(
+            action=f'billing_{action_type}',
+            details=details,
+            matter_id=matter_id
+        )
+    
+    @staticmethod
+    def log_admin_action(action_type, target_user=None, details=None):
+        """Log administrative actions"""
+        admin_details = {
+            'action_type': action_type,
+            'target_user': target_user
+        }
+        if details:
+            admin_details.update(details)
+            
+        return AuditLogger.log_action(
+            action=f'admin_{action_type}',
+            details=admin_details
+        )
+
+def audit_log(action, details=None, matter_id=None):
+    """Decorator to automatically log function calls"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                result = f(*args, **kwargs)
+                
+                # Log successful action
+                AuditLogger.log_action(
+                    action=action,
+                    details=details,
+                    matter_id=matter_id,
+                    success=True
+                )
+                
+                return result
+            except Exception as e:
+                # Log failed action
+                AuditLogger.log_action(
+                    action=action,
+                    details={
+                        'error': str(e),
+                        'function': f.__name__
+                    },
+                    matter_id=matter_id,
+                    success=False
+                )
+                raise
+                
+        return decorated_function
+    return decorator
+
 # Enable 2FA with database detection
 if DATABASE_AVAILABLE and PSYCOPG2_AVAILABLE:
     
@@ -2668,6 +2977,17 @@ def api_ai_content_detection():
         
         # AI Content Detection Analysis
         analysis_result = analyze_ai_content(text)
+        
+        # Audit log the evidence analysis
+        AuditLogger.log_evidence_analysis(
+            analysis_type='ai_content_detection',
+            details={
+                'text_length': len(text),
+                'confidence_score': analysis_result.get('confidence_score'),
+                'assessment': analysis_result.get('assessment'),
+                'risk_level': analysis_result.get('risk_level')
+            }
+        )
         
         # Log the analysis
         logger.info(f"AI content analysis performed by user {current_user.email}")
@@ -10322,6 +10642,17 @@ def api_login():
                 'login_time': datetime.utcnow().isoformat()
             }
             
+            # Log successful login
+            AuditLogger.log_action(
+                action='login_success',
+                details={
+                    'user_role': user_info['role'],
+                    'dashboard_redirect': user_info['dashboard']
+                },
+                user_email=email,
+                success=True
+            )
+            
             logger.info(f"Successful login: {email} (role: {user_info['role']})")
             return jsonify({
                 'success': True,
@@ -10330,6 +10661,17 @@ def api_login():
                 'redirect': user_info['dashboard']
             })
         else:
+            # Log failed login attempt
+            AuditLogger.log_action(
+                action='login_failed',
+                details={
+                    'attempted_email': email,
+                    'failure_reason': 'invalid_credentials'
+                },
+                user_email=email,
+                success=False
+            )
+            
             logger.warning(f"Failed login attempt: {email}")
             return jsonify({
                 'success': False,
@@ -15448,6 +15790,229 @@ def client_case_updates():
     except Exception as e:
         logger.error(f"Client case updates error: {e}")
         return jsonify({"error": "Failed to load case updates"}), 500
+
+# ============================================
+# MATTER-LEVEL ACCESS CONTROL API ENDPOINTS
+# ============================================
+
+@app.route('/api/matters', methods=['GET'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_get_user_matters():
+    """Get matters accessible to current user"""
+    try:
+        user_email = session.get('user_email', '')
+        user_role = session.get('user_role', '')
+        
+        # Get user's accessible matters
+        matters = get_user_accessible_matters(user_email, user_role)
+        
+        # Log matter list access
+        AuditLogger.log_action(
+            action='matter_list_access',
+            details={
+                'matters_count': len(matters),
+                'user_role': user_role
+            }
+        )
+        
+        return jsonify({
+            'success': True,
+            'matters': matters,
+            'total': len(matters)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get user matters error: {e}")
+        return jsonify({'error': 'Failed to retrieve matters'}), 500
+
+@app.route('/api/matters/<matter_id>', methods=['GET'])
+@require_role('paralegal', 'attorney', 'admin')
+@require_matter_access()
+def api_get_matter_details(matter_id):
+    """Get detailed information about a specific matter"""
+    try:
+        # Log matter access
+        AuditLogger.log_matter_access(matter_id, 'view_details')
+        
+        # Mock matter details - in real implementation, query database
+        matter_details = {
+            'matter_id': matter_id,
+            'title': 'Smith vs. ABC Corp',
+            'client': {
+                'name': 'John Smith',
+                'email': 'client@lexai.com',
+                'phone': '(555) 123-4567'
+            },
+            'status': 'active',
+            'type': 'Civil Litigation',
+            'description': 'Contract dispute involving breach of service agreement',
+            'created_date': '2024-01-15',
+            'assigned_attorney': 'Michael Davis',
+            'assigned_paralegal': 'Sarah Johnson',
+            'billing_rate': 350.00,
+            'total_billed': 15750.00,
+            'hours_logged': 45.5,
+            'documents_count': 23,
+            'last_activity': '2024-02-16T14:30:00Z'
+        }
+        
+        return jsonify({
+            'success': True,
+            'matter': matter_details
+        })
+        
+    except Exception as e:
+        logger.error(f"Get matter details error: {e}")
+        return jsonify({'error': 'Failed to retrieve matter details'}), 500
+
+@app.route('/api/matters/<matter_id>/documents', methods=['GET'])
+@require_role('paralegal', 'attorney', 'admin')
+@require_matter_access()
+def api_get_matter_documents(matter_id):
+    """Get documents associated with a specific matter"""
+    try:
+        # Log document access
+        AuditLogger.log_action(
+            action='matter_documents_access',
+            details={'action_type': 'list_documents'},
+            matter_id=matter_id
+        )
+        
+        # Mock documents - in real implementation, query database
+        documents = [
+            {
+                'document_id': 'doc-001',
+                'name': 'Service Agreement.pdf',
+                'type': 'contract',
+                'uploaded_date': '2024-01-20',
+                'uploaded_by': 'client@lexai.com',
+                'size': '2.3 MB',
+                'status': 'reviewed'
+            },
+            {
+                'document_id': 'doc-002',
+                'name': 'Correspondence.pdf',
+                'type': 'communication',
+                'uploaded_date': '2024-02-01',
+                'uploaded_by': 'paralegal@lexai.com',
+                'size': '1.1 MB',
+                'status': 'pending'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'matter_id': matter_id,
+            'documents': documents,
+            'total': len(documents)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get matter documents error: {e}")
+        return jsonify({'error': 'Failed to retrieve matter documents'}), 500
+
+@app.route('/api/matters/<matter_id>/billing', methods=['GET'])
+@require_role('paralegal', 'attorney', 'admin')
+@require_matter_access()
+def api_get_matter_billing(matter_id):
+    """Get billing information for a specific matter"""
+    try:
+        # Log billing access
+        AuditLogger.log_action(
+            action='matter_billing_access',
+            details={'action_type': 'view_billing'},
+            matter_id=matter_id
+        )
+        
+        # Mock billing data
+        billing_info = {
+            'matter_id': matter_id,
+            'total_billed': 15750.00,
+            'total_hours': 45.5,
+            'billing_rate': 350.00,
+            'last_invoice': 'INV-2024-015',
+            'outstanding_amount': 2500.00,
+            'recent_entries': [
+                {
+                    'date': '2024-02-15',
+                    'description': 'Client consultation',
+                    'hours': 2.0,
+                    'rate': 350.00,
+                    'amount': 700.00,
+                    'billed_by': 'attorney@lexai.com'
+                },
+                {
+                    'date': '2024-02-14',
+                    'description': 'Document review',
+                    'hours': 3.5,
+                    'rate': 150.00,
+                    'amount': 525.00,
+                    'billed_by': 'paralegal@lexai.com'
+                }
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'billing': billing_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Get matter billing error: {e}")
+        return jsonify({'error': 'Failed to retrieve matter billing'}), 500
+
+@app.route('/api/audit-logs', methods=['GET'])
+@require_role('admin')
+def api_get_audit_logs():
+    """Get audit logs - Admin only"""
+    try:
+        # Get query parameters
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+        user_filter = request.args.get('user')
+        action_filter = request.args.get('action')
+        matter_filter = request.args.get('matter_id')
+        
+        # Log audit log access
+        AuditLogger.log_admin_action(
+            action_type='view_audit_logs',
+            details={
+                'limit': limit,
+                'offset': offset,
+                'filters': {
+                    'user': user_filter,
+                    'action': action_filter,
+                    'matter_id': matter_filter
+                }
+            }
+        )
+        
+        # Get logs from session (in production, query database)
+        all_logs = session.get('audit_logs', [])
+        
+        # Apply filters
+        filtered_logs = all_logs
+        if user_filter:
+            filtered_logs = [log for log in filtered_logs if user_filter in log.get('user_email', '')]
+        if action_filter:
+            filtered_logs = [log for log in filtered_logs if action_filter in log.get('action', '')]
+        if matter_filter:
+            filtered_logs = [log for log in filtered_logs if log.get('matter_id') == matter_filter]
+        
+        # Apply pagination
+        paginated_logs = filtered_logs[offset:offset + limit]
+        
+        return jsonify({
+            'success': True,
+            'logs': paginated_logs,
+            'total': len(filtered_logs),
+            'offset': offset,
+            'limit': limit
+        })
+        
+    except Exception as e:
+        logger.error(f"Get audit logs error: {e}")
+        return jsonify({'error': 'Failed to retrieve audit logs'}), 500
 
 # ============================================
 # ADMIN-ONLY ROUTES
