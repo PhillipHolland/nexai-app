@@ -10196,20 +10196,48 @@ def billing_page():
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     """Create Stripe checkout session for invoice payment"""
+    if not STRIPE_AVAILABLE:
+        return jsonify({'error': 'Stripe not available'}), 503
+    
     try:
         data = request.get_json()
         invoice_number = data.get('invoice_number', 'INV-Unknown')
         amount = float(data.get('amount', 0))
         client = data.get('client', 'Client')
         
-        # For now, return a test Stripe checkout URL
-        # In production, you'd create a real Stripe checkout session
-        checkout_url = f"https://buy.stripe.com/test_bIY6qk1qCaHH0zS144?prefilled_email=&client_reference_id={invoice_number}"
+        # Create Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'Legal Invoice {invoice_number}',
+                        'description': f'Legal services for {client}'
+                    },
+                    'unit_amount': int(amount * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.host_url + 'billing?payment=success&session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'billing?payment=cancelled',
+            client_reference_id=invoice_number,
+            metadata={
+                'invoice_number': invoice_number,
+                'client': client,
+                'integration': 'lexai_billing'
+            }
+        )
         
         return jsonify({
-            'checkout_url': checkout_url,
-            'session_id': f'cs_test_{invoice_number}'
+            'checkout_url': session.url,
+            'session_id': session.id
         })
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         logger.error(f"Checkout session creation failed: {e}")
         return jsonify({'error': 'Failed to create checkout session'}), 500
@@ -10255,19 +10283,47 @@ def invoice_payment_page():
                     <div class="amount">Amount Due: ${amount}</div>
                 </div>
                 <div style="text-align: center; margin: 2rem 0;">
-                    <a href="https://buy.stripe.com/live_YOUR_PAYMENT_LINK_HERE?client_reference_id={invoice_number}" 
-                       target="_blank"
-                       class="btn" 
-                       style="background: linear-gradient(135deg, #2E4B3C, #4a7c59); font-size: 1.2rem; padding: 1rem 2rem; text-decoration: none; color: white; border-radius: 0.75rem; display: inline-block;">
+                    <button onclick="createCheckoutSession()" 
+                            id="payButton"
+                            class="btn" 
+                            style="background: linear-gradient(135deg, #2E4B3C, #4a7c59); font-size: 1.2rem; padding: 1rem 2rem; border: none; color: white; border-radius: 0.75rem; cursor: pointer;">
                         💳 Pay ${amount} Securely with Stripe
-                    </a>
+                    </button>
                 </div>
-                <div style="background: #e0f2fe; border: 1px solid #0284c7; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-size: 0.9rem;">
-                    <strong>📋 Next Steps:</strong><br>
-                    1. Create a Payment Link in your Stripe Dashboard<br>
-                    2. Replace the demo URL above with your real Stripe Payment Link<br>
-                    3. Test with real payments
-                </div>
+                <script>
+                async function createCheckoutSession() {{
+                    const button = document.getElementById('payButton');
+                    button.disabled = true;
+                    button.textContent = 'Creating checkout session...';
+                    
+                    try {{
+                        const response = await fetch('/api/create-checkout-session', {{
+                            method: 'POST',
+                            headers: {{
+                                'Content-Type': 'application/json',
+                            }},
+                            body: JSON.stringify({{
+                                invoice_number: '{invoice_number}',
+                                amount: {amount},
+                                client: '{client}'
+                            }})
+                        }});
+                        
+                        const data = await response.json();
+                        
+                        if (data.checkout_url) {{
+                            window.location.href = data.checkout_url;
+                        }} else {{
+                            throw new Error(data.error || 'Failed to create checkout session');
+                        }}
+                    }} catch (error) {{
+                        console.error('Error:', error);
+                        alert('Unable to create payment session. Please try again.');
+                        button.disabled = false;
+                        button.textContent = '💳 Pay ${amount} Securely with Stripe';
+                    }}
+                }}
+                </script>
                 <div style="text-align: center; margin: 1rem 0;">
                     <small style="color: #6b7280;">
                         🔒 Secure payment • PCI Compliant • Powered by Stripe
