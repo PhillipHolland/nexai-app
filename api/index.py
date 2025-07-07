@@ -10457,6 +10457,160 @@ def create_checkout_session():
             'status': 'api_error'
         }), 500
 
+@app.route('/api/process-refund', methods=['POST'])
+def process_refund():
+    """Process a full or partial refund for a payment"""
+    stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+    
+    if not stripe_secret_key:
+        return jsonify({
+            'error': 'Stripe not configured',
+            'status': 'stripe_key_missing'
+        }), 503
+    
+    try:
+        data = request.get_json()
+        payment_intent_id = data.get('payment_intent_id')
+        amount = data.get('amount')  # Optional - if not provided, refunds full amount
+        reason = data.get('reason', 'requested_by_customer')  # duplicate, fraudulent, requested_by_customer
+        
+        if not payment_intent_id:
+            return jsonify({'error': 'Payment intent ID is required'}), 400
+        
+        # Prepare refund payload
+        refund_payload = {
+            'payment_intent': payment_intent_id,
+            'reason': reason
+        }
+        
+        # Add amount if partial refund
+        if amount:
+            refund_payload['amount'] = int(float(amount) * 100)  # Convert to cents
+        
+        # Make direct API call to Stripe refunds endpoint
+        import requests as req
+        response = req.post(
+            'https://api.stripe.com/v1/refunds',
+            headers={
+                'Authorization': f'Bearer {stripe_secret_key}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data=refund_payload
+        )
+        
+        if response.status_code == 200:
+            refund_data = response.json()
+            return jsonify({
+                'success': True,
+                'refund_id': refund_data['id'],
+                'amount_refunded': refund_data['amount'] / 100,  # Convert back to dollars
+                'status': refund_data['status'],
+                'currency': refund_data['currency'],
+                'created': refund_data['created']
+            })
+        else:
+            logger.error(f"Stripe refund error: {response.status_code} - {response.text}")
+            return jsonify({
+                'error': 'Refund processing failed',
+                'details': response.json().get('error', {}).get('message', 'Unknown error'),
+                'status': 'refund_failed'
+            }), 400
+        
+    except Exception as e:
+        logger.error(f"Refund processing failed: {e}")
+        return jsonify({
+            'error': 'Failed to process refund',
+            'details': str(e),
+            'status': 'api_error'
+        }), 500
+
+@app.route('/api/get-payment-details', methods=['GET'])
+def get_payment_details():
+    """Get payment details for refund purposes"""
+    stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+    
+    if not stripe_secret_key:
+        return jsonify({
+            'error': 'Stripe not configured',
+            'status': 'stripe_key_missing'
+        }), 503
+    
+    try:
+        session_id = request.args.get('session_id')
+        payment_intent_id = request.args.get('payment_intent_id')
+        
+        if session_id:
+            # Get checkout session details first
+            import requests as req
+            response = req.get(
+                f'https://api.stripe.com/v1/checkout/sessions/{session_id}',
+                headers={'Authorization': f'Bearer {stripe_secret_key}'}
+            )
+            
+            if response.status_code == 200:
+                session_data = response.json()
+                payment_intent_id = session_data.get('payment_intent')
+            else:
+                return jsonify({'error': 'Session not found'}), 404
+        
+        if not payment_intent_id:
+            return jsonify({'error': 'Payment intent ID required'}), 400
+        
+        # Get payment intent details
+        response = req.get(
+            f'https://api.stripe.com/v1/payment_intents/{payment_intent_id}',
+            headers={'Authorization': f'Bearer {stripe_secret_key}'}
+        )
+        
+        if response.status_code == 200:
+            payment_data = response.json()
+            
+            # Get existing refunds
+            refunds_response = req.get(
+                'https://api.stripe.com/v1/refunds',
+                headers={'Authorization': f'Bearer {stripe_secret_key}'},
+                params={'payment_intent': payment_intent_id}
+            )
+            
+            refunds = []
+            if refunds_response.status_code == 200:
+                refunds_data = refunds_response.json()
+                refunds = [
+                    {
+                        'id': refund['id'],
+                        'amount': refund['amount'] / 100,
+                        'status': refund['status'],
+                        'reason': refund['reason'],
+                        'created': refund['created']
+                    }
+                    for refund in refunds_data['data']
+                ]
+            
+            total_refunded = sum(r['amount'] for r in refunds)
+            
+            return jsonify({
+                'payment_intent_id': payment_intent_id,
+                'amount_paid': payment_data['amount'] / 100,
+                'amount_refunded': total_refunded,
+                'amount_refundable': (payment_data['amount'] / 100) - total_refunded,
+                'status': payment_data['status'],
+                'currency': payment_data['currency'],
+                'created': payment_data['created'],
+                'client_reference_id': payment_data.get('metadata', {}).get('invoice_number'),
+                'client': payment_data.get('metadata', {}).get('client'),
+                'refunds': refunds
+            })
+        else:
+            return jsonify({'error': 'Payment not found'}), 404
+        
+    except Exception as e:
+        logger.error(f"Get payment details failed: {e}")
+        return jsonify({
+            'error': 'Failed to get payment details',
+            'details': str(e),
+            'status': 'api_error'
+        }), 500
+
 @app.route('/invoice/payment')
 def invoice_payment_page():
     """Invoice payment page with Stripe hosted checkout"""

@@ -770,6 +770,63 @@
             </table>
         </div>
 
+        <!-- Refund Management Section -->
+        <div class="invoice-section">
+            <div class="section-header">
+                <h2 class="section-title">Payment & Refund Management</h2>
+                <button class="btn btn-primary" onclick="showRefundManager()">Manage Refunds</button>
+            </div>
+        </div>
+
+        <!-- Refund Manager (Initially Hidden) -->
+        <div class="invoice-section" id="refundManager" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title">Process Refund</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="hideRefundManager()">Cancel</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="paymentLookup">Payment Lookup:</label>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <input type="text" id="paymentLookup" placeholder="Enter Payment Intent ID or Session ID" style="flex: 1;">
+                    <button class="btn btn-primary" onclick="lookupPayment()">Lookup Payment</button>
+                </div>
+            </div>
+            
+            <div id="paymentDetails" style="display: none;">
+                <div class="form-section">
+                    <h3>Payment Details</h3>
+                    <div id="paymentInfo"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Process Refund</h3>
+                    <div class="form-group">
+                        <label for="refundAmount">Refund Amount:</label>
+                        <input type="number" id="refundAmount" step="0.01" min="0" placeholder="Leave blank for full refund">
+                    </div>
+                    <div class="form-group">
+                        <label for="refundReason">Reason:</label>
+                        <select id="refundReason">
+                            <option value="requested_by_customer">Requested by Customer</option>
+                            <option value="duplicate">Duplicate Payment</option>
+                            <option value="fraudulent">Fraudulent</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="processRefund()">Process Refund</button>
+                    </div>
+                </div>
+                
+                <div id="existingRefunds" style="display: none;">
+                    <h3>Existing Refunds</h3>
+                    <div id="refundsList"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Invoice Creator (Initially Hidden) -->
         <div class="invoice-section" id="invoiceCreator" style="display: none;">
             <div class="section-header">
@@ -1181,5 +1238,136 @@ function getLineItems() {
 
 // Initial calculation
 calculateInvoiceTotal();
+
+// Refund Management Functions
+window.showRefundManager = function() {
+    document.getElementById('refundManager').style.display = 'block';
+};
+
+window.hideRefundManager = function() {
+    document.getElementById('refundManager').style.display = 'none';
+    document.getElementById('paymentDetails').style.display = 'none';
+    document.getElementById('paymentLookup').value = '';
+};
+
+window.lookupPayment = function() {
+    const lookup = document.getElementById('paymentLookup').value.trim();
+    if (!lookup) {
+        alert('Please enter a Payment Intent ID or Session ID');
+        return;
+    }
+    
+    // Determine if it's a session ID or payment intent ID
+    const isSessionId = lookup.startsWith('cs_');
+    const endpoint = isSessionId 
+        ? `/api/get-payment-details?session_id=${lookup}`
+        : `/api/get-payment-details?payment_intent_id=${lookup}`;
+    
+    fetch(endpoint)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Payment not found: ' + data.error);
+                return;
+            }
+            
+            displayPaymentDetails(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to lookup payment');
+        });
+};
+
+function displayPaymentDetails(payment) {
+    const paymentInfo = document.getElementById('paymentInfo');
+    paymentInfo.innerHTML = `
+        <div style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <p><strong>Payment ID:</strong> ${payment.payment_intent_id}</p>
+            <p><strong>Invoice:</strong> ${payment.client_reference_id || 'N/A'}</p>
+            <p><strong>Client:</strong> ${payment.client || 'N/A'}</p>
+            <p><strong>Amount Paid:</strong> $${payment.amount_paid}</p>
+            <p><strong>Amount Refunded:</strong> $${payment.amount_refunded}</p>
+            <p><strong>Refundable Amount:</strong> $${payment.amount_refundable}</p>
+            <p><strong>Status:</strong> ${payment.status}</p>
+            <p><strong>Currency:</strong> ${payment.currency.toUpperCase()}</p>
+        </div>
+    `;
+    
+    // Set max refund amount
+    document.getElementById('refundAmount').max = payment.amount_refundable;
+    document.getElementById('refundAmount').placeholder = `Max: $${payment.amount_refundable}`;
+    
+    document.getElementById('paymentDetails').style.display = 'block';
+    
+    // Display existing refunds if any
+    if (payment.refunds && payment.refunds.length > 0) {
+        displayExistingRefunds(payment.refunds);
+    }
+}
+
+function displayExistingRefunds(refunds) {
+    const refundsList = document.getElementById('refundsList');
+    refundsList.innerHTML = refunds.map(refund => `
+        <div style="background: #fef3c7; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+            <p><strong>Refund ID:</strong> ${refund.id}</p>
+            <p><strong>Amount:</strong> $${refund.amount}</p>
+            <p><strong>Status:</strong> ${refund.status}</p>
+            <p><strong>Reason:</strong> ${refund.reason}</p>
+            <p><strong>Date:</strong> ${new Date(refund.created * 1000).toLocaleDateString()}</p>
+        </div>
+    `).join('');
+    document.getElementById('existingRefunds').style.display = 'block';
+}
+
+window.processRefund = function() {
+    const paymentIntentId = document.getElementById('paymentInfo').textContent.match(/Payment ID: ([^\n]+)/)?.[1];
+    const amount = document.getElementById('refundAmount').value;
+    const reason = document.getElementById('refundReason').value;
+    
+    if (!paymentIntentId) {
+        alert('No payment selected');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to process this refund?${amount ? ` Amount: $${amount}` : ' (Full refund)'}`)) {
+        return;
+    }
+    
+    const refundData = {
+        payment_intent_id: paymentIntentId,
+        reason: reason
+    };
+    
+    if (amount) {
+        refundData.amount = parseFloat(amount);
+    }
+    
+    fetch('/api/process-refund', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(refundData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Refund processed successfully!
+            Refund ID: ${data.refund_id}
+            Amount: $${data.amount_refunded}
+            Status: ${data.status}`);
+            
+            // Refresh payment details
+            lookupPayment();
+        } else {
+            alert('Refund failed: ' + (data.details || data.error));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to process refund');
+    });
+};
 </script>
 {% endblock %}
