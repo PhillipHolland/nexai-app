@@ -15037,14 +15037,26 @@ def paralegal_dashboard():
         if user_role not in ['paralegal', 'attorney', 'admin']:
             return redirect('/client-portal' if user_role == 'client' else '/login')
         
+        # Provide mock stats for dashboard
+        stats = {
+            'total_chats': 18,
+            'total_documents': 12,
+            'research_queries': 6,
+            'total_clients': 5
+        }
+        
         # Paralegal dashboard focuses on billing, time tracking, case management
         return render_template('dashboard.html',
                              user_name=session.get('user_name', 'Paralegal'),
-                             user_role='paralegal',
+                             user_role=user_role,
                              dashboard_type='paralegal',
+                             stats=stats,
                              featured_sections=['billing', 'time_tracking', 'document_management', 'client_communication'])
     except Exception as e:
         logger.error(f"Paralegal dashboard error: {e}")
+        logger.error(f"Error details: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": "Dashboard unavailable"}), 500
 
 @app.route('/admin-dashboard')
@@ -15064,14 +15076,26 @@ def admin_dashboard():
             else:
                 return redirect('/login')
         
+        # Provide mock stats for dashboard
+        stats = {
+            'total_chats': 156,
+            'total_documents': 89,
+            'research_queries': 234,
+            'total_clients': 23
+        }
+        
         # Admin dashboard focuses on user management, analytics, firm settings
         return render_template('dashboard.html',
                              user_name=session.get('user_name', 'Admin'),
-                             user_role='admin',
+                             user_role=user_role,
                              dashboard_type='admin',
+                             stats=stats,
                              featured_sections=['user_management', 'analytics', 'firm_settings', 'subscription_management'])
     except Exception as e:
         logger.error(f"Admin dashboard error: {e}")
+        logger.error(f"Error details: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"error": "Dashboard unavailable"}), 500
 
 @app.route('/client-portal')
