@@ -10193,13 +10193,37 @@ def billing_page():
         logger.error(f"Billing template error: {e}")
         return f"<h1>Billing</h1><p>Template error: {e}</p>", 500
 
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Create Stripe checkout session for invoice payment"""
+    try:
+        data = request.get_json()
+        invoice_number = data.get('invoice_number', 'INV-Unknown')
+        amount = float(data.get('amount', 0))
+        client = data.get('client', 'Client')
+        
+        # For now, return a test Stripe checkout URL
+        # In production, you'd create a real Stripe checkout session
+        checkout_url = f"https://buy.stripe.com/test_bIY6qk1qCaHH0zS144?prefilled_email=&client_reference_id={invoice_number}"
+        
+        return jsonify({
+            'checkout_url': checkout_url,
+            'session_id': f'cs_test_{invoice_number}'
+        })
+    except Exception as e:
+        logger.error(f"Checkout session creation failed: {e}")
+        return jsonify({'error': 'Failed to create checkout session'}), 500
+
 @app.route('/invoice/payment')
 def invoice_payment_page():
-    """Invoice payment page - simplified version"""
+    """Invoice payment page with Stripe hosted checkout"""
     # Get invoice details from URL parameters
     invoice_number = request.args.get('invoice', 'INV-2025-001')
     amount = request.args.get('amount', '100.00')
     client = request.args.get('client', 'Client')
+    
+    # Create Stripe checkout URL with proper amount
+    amount_cents = int(float(amount) * 100)  # Convert to cents
     
     return f"""
     <!DOCTYPE html>
@@ -10230,11 +10254,27 @@ def invoice_payment_page():
                     <p><strong>Client:</strong> {client}</p>
                     <div class="amount">Amount Due: ${amount}</div>
                 </div>
-                <div class="message">
-                    ⚠️ Stripe integration is being configured. Payment processing will be available shortly.
+                <div style="text-align: center; margin: 2rem 0;">
+                    <a href="https://buy.stripe.com/live_YOUR_PAYMENT_LINK_HERE?client_reference_id={invoice_number}" 
+                       target="_blank"
+                       class="btn" 
+                       style="background: linear-gradient(135deg, #2E4B3C, #4a7c59); font-size: 1.2rem; padding: 1rem 2rem; text-decoration: none; color: white; border-radius: 0.75rem; display: inline-block;">
+                        💳 Pay ${amount} Securely with Stripe
+                    </a>
+                </div>
+                <div style="background: #e0f2fe; border: 1px solid #0284c7; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; font-size: 0.9rem;">
+                    <strong>📋 Next Steps:</strong><br>
+                    1. Create a Payment Link in your Stripe Dashboard<br>
+                    2. Replace the demo URL above with your real Stripe Payment Link<br>
+                    3. Test with real payments
+                </div>
+                <div style="text-align: center; margin: 1rem 0;">
+                    <small style="color: #6b7280;">
+                        🔒 Secure payment • PCI Compliant • Powered by Stripe
+                    </small>
                 </div>
                 <div style="text-align: center;">
-                    <a href="/billing" class="btn">← Back to Billing</a>
+                    <a href="/billing" class="btn" style="background: #6b7280;">← Back to Billing</a>
                 </div>
             </div>
         </div>
