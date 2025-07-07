@@ -6908,6 +6908,14 @@ USER_SUBSCRIPTIONS = {
 def initialize_database():
     """Initialize Neon database tables and seed with subscription plans"""
     try:
+        # Check if database is available
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                "success": False,
+                "error": "Database not available",
+                "database_available": DATABASE_AVAILABLE
+            }), 503
+        
         # Import database models
         from database import db_manager
         from models import SubscriptionPlan, db
@@ -7006,6 +7014,16 @@ def initialize_database():
 def database_status():
     """Check database status and subscription plans"""
     try:
+        # Basic status check without imports if database not available
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                "success": False,
+                "error": "Database not configured",
+                "database_available": DATABASE_AVAILABLE,
+                "plans_count": 0,
+                "plans": []
+            })
+        
         from database import db_manager
         from models import SubscriptionPlan
         
@@ -7044,6 +7062,27 @@ def database_status():
             "error": str(e),
             "database_available": DATABASE_AVAILABLE
         }), 500
+
+@app.route('/api/system/status', methods=['GET'])
+def system_status():
+    """Get system status for debugging"""
+    return jsonify({
+        "success": True,
+        "status": {
+            "stripe_available": STRIPE_AVAILABLE,
+            "database_available": DATABASE_AVAILABLE,
+            "auth_available": AUTH_AVAILABLE,
+            "redis_available": REDIS_AVAILABLE,
+            "psycopg2_available": PSYCOPG2_AVAILABLE,
+            "pyotp_available": PYOTP_AVAILABLE
+        },
+        "environment": {
+            "vercel_env": os.environ.get('VERCEL_ENV', 'unknown'),
+            "has_database_url": bool(os.environ.get('DATABASE_URL')),
+            "has_redis_url": bool(os.environ.get('REDIS_URL')),
+            "has_stripe_key": bool(os.environ.get('STRIPE_SECRET_KEY'))
+        }
+    })
 
 @app.route('/api/billing/plans', methods=['GET'])
 @rate_limit_decorator
@@ -10343,7 +10382,11 @@ def billing_page():
 def create_checkout_session():
     """Create Stripe checkout session for invoice payment"""
     if not STRIPE_AVAILABLE:
-        return jsonify({'error': 'Stripe not available'}), 503
+        return jsonify({
+            'error': 'Stripe integration is being configured. Payment processing will be available shortly.',
+            'details': 'The Stripe payment module is still installing on our servers. Please check back in a few minutes or contact support if this persists.',
+            'status': 'stripe_unavailable'
+        }), 503
     
     try:
         data = request.get_json()
