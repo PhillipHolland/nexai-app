@@ -107,7 +107,7 @@ class User(UserMixin, db.Model):
     profile_image_url = db.Column(db.String(500))
     bio = db.Column(db.Text)
     practice_areas = db.Column(db.Text)  # JSON array
-    hourly_rate = db.Column(db.Decimal(10, 2))
+    hourly_rate = db.Column(db.Numeric(10, 2))
     
     # Timestamps
     created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc))
@@ -240,7 +240,7 @@ class Client(db.Model):
     notes = db.Column(db.Text)
     
     # Billing Information
-    billing_rate = db.Column(db.Decimal(10, 2))
+    billing_rate = db.Column(db.Numeric(10, 2))
     payment_terms = db.Column(db.String(50), default='Net 30')
     
     # Relationships
@@ -306,10 +306,10 @@ class Case(db.Model):
     statute_of_limitations = db.Column(db.Date)
     
     # Financial Information
-    estimated_hours = db.Column(db.Decimal(8, 2))
-    hourly_rate = db.Column(db.Decimal(10, 2))
-    flat_fee = db.Column(db.Decimal(10, 2))
-    retainer_amount = db.Column(db.Decimal(10, 2))
+    estimated_hours = db.Column(db.Numeric(8, 2))
+    hourly_rate = db.Column(db.Numeric(10, 2))
+    flat_fee = db.Column(db.Numeric(10, 2))
+    retainer_amount = db.Column(db.Numeric(10, 2))
     
     # Relationships
     client_id = db.Column(db.String(36), db.ForeignKey('clients.id'), nullable=False)
@@ -361,8 +361,8 @@ class Task(db.Model):
     completed_date = db.Column(db.DateTime(timezone=True))
     
     # Time Estimation
-    estimated_hours = db.Column(db.Decimal(8, 2))
-    actual_hours = db.Column(db.Decimal(8, 2))
+    estimated_hours = db.Column(db.Numeric(8, 2))
+    actual_hours = db.Column(db.Numeric(8, 2))
     
     # Relationships
     assignee_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
@@ -470,11 +470,11 @@ class TimeEntry(db.Model):
     # Time Information
     start_time = db.Column(db.DateTime(timezone=True), nullable=False)
     end_time = db.Column(db.DateTime(timezone=True))
-    hours = db.Column(db.Decimal(8, 2), nullable=False)
+    hours = db.Column(db.Numeric(8, 2), nullable=False)
     
     # Billing Information
-    hourly_rate = db.Column(db.Decimal(10, 2), nullable=False)
-    amount = db.Column(db.Decimal(10, 2), nullable=False)
+    hourly_rate = db.Column(db.Numeric(10, 2), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     billable = db.Column(db.Boolean, default=True)
     
     # Status
@@ -519,11 +519,11 @@ class Invoice(db.Model):
     description = db.Column(db.Text)
     
     # Financial Information
-    subtotal = db.Column(db.Decimal(10, 2), nullable=False)
-    tax_rate = db.Column(db.Decimal(5, 4), default=0)
-    tax_amount = db.Column(db.Decimal(10, 2), default=0)
-    total_amount = db.Column(db.Decimal(10, 2), nullable=False)
-    amount_paid = db.Column(db.Decimal(10, 2), default=0)
+    subtotal = db.Column(db.Numeric(10, 2), nullable=False)
+    tax_rate = db.Column(db.Numeric(5, 4), default=0)
+    tax_amount = db.Column(db.Numeric(10, 2), default=0)
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False)
+    amount_paid = db.Column(db.Numeric(10, 2), default=0)
     
     # Status and Dates
     status = db.Column(db.Enum(InvoiceStatus), nullable=False, default=InvoiceStatus.DRAFT)
@@ -584,7 +584,7 @@ class Expense(db.Model):
     category = db.Column(db.String(100), nullable=False)
     
     # Financial Information
-    amount = db.Column(db.Decimal(10, 2), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     billable = db.Column(db.Boolean, default=True)
     reimbursable = db.Column(db.Boolean, default=False)
     
