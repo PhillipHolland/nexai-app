@@ -18,6 +18,10 @@ from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
 
+# Set up logging early
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Import privacy service
 try:
     from privacy_ai_service import PrivacyFirstAI, PrivacyLevel
@@ -25,10 +29,6 @@ try:
 except ImportError:
     PRIVACY_AI_AVAILABLE = False
     logger.warning("Privacy AI service not available")
-
-# Set up logging early
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Import Stripe with fallback
 try:
