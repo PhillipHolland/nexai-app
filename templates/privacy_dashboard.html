@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Dashboard - LexAI Practice Partner</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
     <style>
         .privacy-hero {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
@@ -121,6 +121,12 @@
             font-size: 0.9rem;
             white-space: nowrap;
             z-index: 10;
+        }
+        
+        /* Fix missing active nav-link style */
+        .nav-link.active {
+            color: #FFA74F !important; /* warm-orange */
+            border-bottom: 2px solid #FFA74F;
         }
     </style>
 </head>
