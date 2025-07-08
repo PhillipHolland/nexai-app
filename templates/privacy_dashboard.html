@@ -142,16 +142,16 @@
                 </div>
                 
                 <!-- Enter Platform Button (Desktop & Mobile) -->
-                <a href="/dashboard" class="btn-primary nav-enter-platform">Enter Platform</a>
+                <a href="/dashboard" class="btn-primary nav-enter-platform" onclick="trackEvent('click', 'navigation', 'enter_platform_nav', 1)">Enter Platform</a>
 
                 <!-- Navigation Links (Collapsible on Mobile) -->
                 <div class="nav-links-mobile-container">
                     <div class="nav-links">
-                        <a href="#features" class="nav-link">Features</a>
-                        <a href="/platform" class="nav-link">Platform</a>
-                        <a href="/privacy-dashboard" class="nav-link active">Privacy</a>
-                        <a href="#how-it-works" class="nav-link">How It Works</a>
-                        <a href="#pricing" class="nav-link">Pricing</a>
+                        <a href="/#features" class="nav-link">Features</a>
+                        <a href="/platform" class="nav-link" onclick="trackEvent('click', 'navigation', 'platform_overview', 1)">Platform</a>
+                        <a href="/privacy-dashboard" class="nav-link active" onclick="trackEvent('click', 'navigation', 'privacy_dashboard', 1)">Privacy</a>
+                        <a href="/#how-it-works" class="nav-link">How It Works</a>
+                        <a href="/#pricing" class="nav-link">Pricing</a>
                     </div>
                 </div>
             </div>
@@ -476,6 +476,17 @@
                 statusElement.style.background = '#f8d7da';
                 statusElement.style.color = '#721c24';
                 detailsElement.textContent = 'Failed to check status';
+            }
+        }
+        
+        // Analytics tracking function (matches landing page)
+        function trackEvent(action, category, label, value) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', action, {
+                    event_category: category,
+                    event_label: label,
+                    value: value
+                });
             }
         }
         
