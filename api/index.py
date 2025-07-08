@@ -30,6 +30,15 @@ except ImportError:
     PRIVACY_AI_AVAILABLE = False
     logger.warning("Privacy AI service not available")
 
+# Import Bagel RL service
+try:
+    from bagel_service import query_bagel_legal_ai, get_bagel_status
+    BAGEL_AI_AVAILABLE = True
+    logger.info("✅ Bagel RL service available")
+except ImportError:
+    BAGEL_AI_AVAILABLE = False
+    logger.warning("Bagel RL service not available")
+
 # Import Stripe with fallback
 try:
     import stripe
@@ -7772,6 +7781,49 @@ def api_chat():
         
         # Use sanitized message
         message = validation_result['sanitized']
+
+        # Try Bagel RL first for enhanced legal AI
+        if BAGEL_AI_AVAILABLE:
+            logger.info(f"🤖 Using Bagel RL for legal query: {practice_area}")
+            try:
+                # Map practice area to context
+                bagel_context = practice_area if practice_area != 'general' else 'legal_research'
+                
+                # Query Bagel RL with privacy protection
+                bagel_result = query_bagel_legal_ai(
+                    query=message,
+                    context=bagel_context,
+                    privacy_level="attorney_client"
+                )
+                
+                if bagel_result.get('success', False):
+                    # Save conversation
+                    conversation_manager.save_message(client_id, practice_area, "user", message)
+                    conversation_manager.save_message(client_id, practice_area, "assistant", bagel_result['response'])
+                    
+                    logger.info(f"✅ Bagel RL responded successfully (confidence: {bagel_result.get('confidence_score', 0):.2f})")
+                    
+                    return jsonify({
+                        "choices": [{
+                            "delta": {
+                                "content": bagel_result['response']
+                            }
+                        }],
+                        "client_id": client_id,
+                        "practice_area": practice_area,
+                        "model_info": {
+                            "source": bagel_result.get('source', 'bagel_rl'),
+                            "version": bagel_result.get('model_version', 'unknown'),
+                            "confidence": bagel_result.get('confidence_score', 0),
+                            "privacy_protected": bagel_result.get('privacy_protected', False),
+                            "processing_time": bagel_result.get('processing_time', 0)
+                        }
+                    })
+                else:
+                    logger.warning(f"⚠️ Bagel RL failed, falling back to XAI: {bagel_result.get('error', 'unknown')}")
+            except Exception as e:
+                logger.error(f"❌ Bagel RL error: {e}")
+                # Continue to fallback
 
         if not XAI_API_KEY:
             return jsonify({"error": "AI service not configured"}), 503
@@ -17438,6 +17490,29 @@ def privacy_anonymize():
     except Exception as e:
         logger.error(f"Privacy anonymization failed: {e}")
         return jsonify({'error': 'Anonymization failed'}), 500
+
+@app.route('/api/bagel/status', methods=['GET'])
+def bagel_status():
+    """Get Bagel RL model status"""
+    try:
+        if not BAGEL_AI_AVAILABLE:
+            return jsonify({
+                'available': False,
+                'error': 'Bagel RL service not available'
+            })
+        
+        status = get_bagel_status()
+        return jsonify({
+            'available': True,
+            'status': status
+        })
+        
+    except Exception as e:
+        logger.error(f"Bagel status check failed: {e}")
+        return jsonify({
+            'available': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/privacy/secure-query', methods=['POST'])
 def privacy_secure_query():
