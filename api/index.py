@@ -152,7 +152,7 @@ def billing_page():
 def clients_page():
     """Client management page"""
     try:
-        return render_template('clients.html')
+        return render_template('clients_enhanced.html')
     except Exception as e:
         logger.error(f"Clients page error: {e}")
         return f"Clients error: {e}", 500
@@ -1335,6 +1335,440 @@ def _get_mock_billing_dashboard():
     return jsonify({
         'success': True,
         'dashboard': dashboard
+    })
+
+# ===== CLIENT MANAGEMENT APIs =====
+
+@app.route('/api/clients', methods=['GET'])
+def api_get_clients():
+    """Get all clients with optional search and filtering"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_clients()
+        
+        # Get query parameters
+        search = request.args.get('search', '').strip()
+        status = request.args.get('status', '')
+        client_type = request.args.get('type', '')
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        
+        # Get current user ID
+        user_id = session.get('user_id', '1')
+        
+        # Build query
+        query = Client.query.filter_by(created_by=user_id)
+        
+        # Apply filters
+        if search:
+            query = query.filter(
+                db.or_(
+                    Client.first_name.ilike(f'%{search}%'),
+                    Client.last_name.ilike(f'%{search}%'),
+                    Client.company_name.ilike(f'%{search}%'),
+                    Client.email.ilike(f'%{search}%')
+                )
+            )
+        
+        if status:
+            query = query.filter_by(status=status)
+            
+        if client_type:
+            query = query.filter_by(client_type=client_type)
+        
+        # Execute paginated query
+        clients = query.order_by(Client.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Format response
+        clients_data = []
+        for client in clients.items:
+            client_data = client.to_dict()
+            
+            # Add case count
+            case_count = Case.query.filter_by(client_id=client.id).count()
+            client_data['case_count'] = case_count
+            
+            # Add recent activity
+            recent_cases = Case.query.filter_by(client_id=client.id).order_by(
+                Case.updated_at.desc()
+            ).limit(3).all()
+            client_data['recent_cases'] = [case.to_dict() for case in recent_cases]
+            
+            clients_data.append(client_data)
+        
+        # Create audit log
+        audit_log('view', 'clients', None, user_id, {
+            'action': 'list_clients',
+            'filters': {'search': search, 'status': status, 'type': client_type}
+        })
+        
+        return jsonify({
+            'success': True,
+            'clients': clients_data,
+            'pagination': {
+                'page': clients.page,
+                'pages': clients.pages,
+                'per_page': clients.per_page,
+                'total': clients.total,
+                'has_prev': clients.has_prev,
+                'has_next': clients.has_next
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching clients: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients', methods=['POST'])
+def api_create_client():
+    """Create a new client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_client()
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Validate required fields
+        client_type = data.get('client_type', 'individual')
+        if client_type == 'individual':
+            if not data.get('first_name') or not data.get('last_name'):
+                return jsonify({
+                    'success': False,
+                    'error': 'First name and last name are required for individual clients'
+                }), 400
+        elif client_type == 'business':
+            if not data.get('company_name'):
+                return jsonify({
+                    'success': False,
+                    'error': 'Company name is required for business clients'
+                }), 400
+        
+        # Create new client
+        client = Client(
+            client_type=client_type,
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            company_name=data.get('company_name'),
+            email=data.get('email'),
+            phone=data.get('phone'),
+            address_line1=data.get('address_line1'),
+            address_line2=data.get('address_line2'),
+            city=data.get('city'),
+            state=data.get('state'),
+            zip_code=data.get('zip_code'),
+            country=data.get('country', 'United States'),
+            tax_id=data.get('tax_id'),
+            website=data.get('website'),
+            industry=data.get('industry'),
+            status=data.get('status', 'active'),
+            source=data.get('source'),
+            notes=data.get('notes'),
+            billing_rate=Decimal(str(data['billing_rate'])) if data.get('billing_rate') else None,
+            payment_terms=data.get('payment_terms', 'Net 30'),
+            created_by=user_id
+        )
+        
+        db.session.add(client)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'client', client.id, user_id, client.to_dict())
+        
+        logger.info(f"Client created: {client.id}")
+        
+        return jsonify({
+            'success': True,
+            'client': client.to_dict(),
+            'message': 'Client created successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error creating client: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>', methods=['GET'])
+def api_get_client(client_id):
+    """Get a specific client with full details"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client(client_id)
+        
+        user_id = session.get('user_id', '1')
+        
+        # Get client
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Get client details with related data
+        client_data = client.to_dict()
+        
+        # Get cases
+        cases = Case.query.filter_by(client_id=client.id).order_by(Case.date_opened.desc()).all()
+        client_data['cases'] = [case.to_dict() for case in cases]
+        
+        # Get invoices
+        invoices = Invoice.query.filter_by(client_id=client.id).order_by(Invoice.created_at.desc()).limit(10).all()
+        client_data['recent_invoices'] = [invoice.to_dict() for invoice in invoices]
+        
+        # Get documents
+        documents = Document.query.filter_by(client_id=client.id).order_by(Document.created_at.desc()).limit(10).all()
+        client_data['recent_documents'] = [doc.to_dict() for doc in documents]
+        
+        # Calculate financial summary
+        total_billed = sum(float(invoice.total_amount) for invoice in invoices)
+        total_paid = sum(float(invoice.amount_paid) for invoice in invoices)
+        outstanding_amount = total_billed - total_paid
+        
+        client_data['financial_summary'] = {
+            'total_billed': total_billed,
+            'total_paid': total_paid,
+            'outstanding_amount': outstanding_amount,
+            'invoice_count': len(invoices)
+        }
+        
+        # Create audit log
+        audit_log('view', 'client', client.id, user_id, {'action': 'view_client_details'})
+        
+        return jsonify({
+            'success': True,
+            'client': client_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching client {client_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>', methods=['PUT'])
+def api_update_client(client_id):
+    """Update a client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _update_mock_client(client_id)
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Get client
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Store old values for audit
+        old_values = client.to_dict()
+        
+        # Update fields
+        updateable_fields = [
+            'first_name', 'last_name', 'company_name', 'email', 'phone',
+            'address_line1', 'address_line2', 'city', 'state', 'zip_code',
+            'country', 'tax_id', 'website', 'industry', 'status', 'source',
+            'notes', 'payment_terms'
+        ]
+        
+        for field in updateable_fields:
+            if field in data:
+                setattr(client, field, data[field])
+        
+        if 'billing_rate' in data and data['billing_rate']:
+            client.billing_rate = Decimal(str(data['billing_rate']))
+        
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('update', 'client', client.id, user_id, {
+            'old_values': old_values,
+            'new_values': client.to_dict()
+        })
+        
+        logger.info(f"Client updated: {client.id}")
+        
+        return jsonify({
+            'success': True,
+            'client': client.to_dict(),
+            'message': 'Client updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error updating client {client_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>', methods=['DELETE'])
+def api_delete_client(client_id):
+    """Delete a client (soft delete by setting status to inactive)"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _delete_mock_client(client_id)
+        
+        user_id = session.get('user_id', '1')
+        
+        # Get client
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Check if client has active cases
+        active_cases = Case.query.filter_by(client_id=client.id, status=CaseStatus.ACTIVE).count()
+        if active_cases > 0:
+            return jsonify({
+                'success': False,
+                'error': f'Cannot delete client with {active_cases} active cases. Close cases first.'
+            }), 400
+        
+        # Soft delete - set status to inactive
+        old_status = client.status
+        client.status = 'inactive'
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('delete', 'client', client.id, user_id, {
+            'action': 'soft_delete',
+            'old_status': old_status,
+            'new_status': 'inactive'
+        })
+        
+        logger.info(f"Client soft deleted: {client.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Client deactivated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting client {client_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ===== MOCK DATA FUNCTIONS =====
+
+def _get_mock_clients():
+    """Mock clients data for fallback"""
+    return jsonify({
+        'success': True,
+        'clients': [
+            {
+                'id': '1',
+                'client_type': 'business',
+                'display_name': 'TechCorp Industries',
+                'company_name': 'TechCorp Industries',
+                'email': 'legal@techcorp.com',
+                'phone': '(555) 123-4567',
+                'status': 'active',
+                'case_count': 3,
+                'created_at': '2024-01-15T10:00:00Z',
+                'recent_cases': [
+                    {'id': '1', 'title': 'Contract Review', 'status': 'active'},
+                    {'id': '2', 'title': 'IP Protection', 'status': 'pending'}
+                ]
+            },
+            {
+                'id': '2',
+                'client_type': 'individual',
+                'display_name': 'Sarah Johnson',
+                'first_name': 'Sarah',
+                'last_name': 'Johnson',
+                'email': 'sarah.j@email.com',
+                'phone': '(555) 987-6543',
+                'status': 'active',
+                'case_count': 1,
+                'created_at': '2024-02-01T14:30:00Z',
+                'recent_cases': [
+                    {'id': '3', 'title': 'Employment Dispute', 'status': 'active'}
+                ]
+            }
+        ],
+        'pagination': {
+            'page': 1,
+            'pages': 1,
+            'per_page': 20,
+            'total': 2,
+            'has_prev': False,
+            'has_next': False
+        }
+    })
+
+def _create_mock_client():
+    """Mock client creation"""
+    return jsonify({
+        'success': True,
+        'client': {
+            'id': '3',
+            'client_type': 'individual',
+            'display_name': 'New Client',
+            'status': 'active',
+            'created_at': datetime.now().isoformat()
+        },
+        'message': 'Client created successfully (mock data)'
+    })
+
+def _get_mock_client(client_id):
+    """Mock single client data"""
+    return jsonify({
+        'success': True,
+        'client': {
+            'id': client_id,
+            'client_type': 'business',
+            'display_name': 'Sample Client',
+            'company_name': 'Sample Client Corp',
+            'email': 'contact@sampleclient.com',
+            'status': 'active',
+            'cases': [],
+            'recent_invoices': [],
+            'recent_documents': [],
+            'financial_summary': {
+                'total_billed': 15000.00,
+                'total_paid': 12000.00,
+                'outstanding_amount': 3000.00,
+                'invoice_count': 5
+            }
+        }
+    })
+
+def _update_mock_client(client_id):
+    """Mock client update"""
+    return jsonify({
+        'success': True,
+        'client': {
+            'id': client_id,
+            'status': 'active',
+            'updated_at': datetime.now().isoformat()
+        },
+        'message': 'Client updated successfully (mock data)'
+    })
+
+def _delete_mock_client(client_id):
+    """Mock client deletion"""
+    return jsonify({
+        'success': True,
+        'message': 'Client deactivated successfully (mock data)'
     })
 
 # ===== ERROR HANDLERS =====
