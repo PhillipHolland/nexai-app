@@ -196,6 +196,17 @@
                     <div class="feature-badge">Risk Scoring</div>
                     <div class="feature-badge">Compliance</div>
                 </div>
+                
+                <div class="privacy-card">
+                    <h3>🤖 Bagel RL Legal AI</h3>
+                    <p>Privacy-first trained legal AI model for enhanced research and analysis</p>
+                    <div id="bagel-status" class="feature-badge">Checking Status...</div>
+                    <div class="feature-badge">Fine-tuned</div>
+                    <div class="feature-badge">Legal-Specific</div>
+                    <div style="margin-top: 10px;">
+                        <small id="bagel-details" style="color: #6c757d;">Loading model information...</small>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -396,6 +407,55 @@
                 alert('Privacy service not yet available - will be active when Bagel training completes');
             }
         }
+        
+        // Check Bagel RL model status
+        async function checkBagelStatus() {
+            try {
+                const response = await fetch('/api/bagel/status');
+                const result = await response.json();
+                
+                const statusElement = document.getElementById('bagel-status');
+                const detailsElement = document.getElementById('bagel-details');
+                
+                if (result.available && result.status.model_loaded) {
+                    statusElement.textContent = '✅ Active';
+                    statusElement.style.background = '#d4edda';
+                    statusElement.style.color = '#155724';
+                    
+                    detailsElement.innerHTML = `
+                        Model: ${result.status.model_name}<br>
+                        Status: ${result.status.status}<br>
+                        Total Requests: ${result.status.total_requests}
+                    `;
+                } else if (result.available) {
+                    statusElement.textContent = '🔄 Loading';
+                    statusElement.style.background = '#fff3cd';
+                    statusElement.style.color = '#856404';
+                    
+                    detailsElement.textContent = 'Model loading in progress...';
+                } else {
+                    statusElement.textContent = '❌ Offline';
+                    statusElement.style.background = '#f8d7da';
+                    statusElement.style.color = '#721c24';
+                    
+                    detailsElement.textContent = result.error || 'Service unavailable';
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('bagel-status');
+                const detailsElement = document.getElementById('bagel-details');
+                
+                statusElement.textContent = '❌ Error';
+                statusElement.style.background = '#f8d7da';
+                statusElement.style.color = '#721c24';
+                detailsElement.textContent = 'Failed to check status';
+            }
+        }
+        
+        // Check status on page load and every 30 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            checkBagelStatus();
+            setInterval(checkBagelStatus, 30000);
+        });
     </script>
 </body>
 </html>
