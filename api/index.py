@@ -17595,8 +17595,10 @@ def privacy_risk_assessment():
 def privacy_dashboard():
     """Privacy dashboard page"""
     try:
+        # Privacy is available if either privacy AI or Bagel RL is available
+        privacy_active = PRIVACY_AI_AVAILABLE or BAGEL_AI_AVAILABLE
         return render_template('privacy_dashboard.html',
-                             privacy_available=PRIVACY_AI_AVAILABLE)
+                             privacy_available=privacy_active)
     except Exception as e:
         logger.error(f"Privacy dashboard error: {e}")
         return render_template_string("""
