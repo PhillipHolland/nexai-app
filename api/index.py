@@ -15,6 +15,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Set up logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Import database components
 try:
     from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus
@@ -25,10 +29,6 @@ except ImportError as e:
     logger.warning(f"Database models not available: {e}")
     logger.info("Falling back to mock data - install Flask-SQLAlchemy to enable database integration")
     DATABASE_AVAILABLE = False
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
