@@ -445,8 +445,8 @@
 <div class="research-container">
     <!-- Research Header -->
     <div class="research-header">
-        <h1 class="research-title">📚 Free Legal Research</h1>
-        <p class="research-subtitle">Search case law, statutes, and regulations using free government and open source databases</p>
+        <h1 class="research-title">Legal Research</h1>
+        <p class="research-subtitle">AI-powered search across case law, statutes, and legal precedents</p>
     </div>
 
     <!-- Main Content -->
@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchResults = document.getElementById('search-results');
 
     // Update page info
-    resultsMeta.textContent = 'Using free legal databases: Justia, CourtListener, U.S. Code, State Legislatures';
+    resultsMeta.textContent = 'Enter a search query to find relevant legal precedents and statutes';
 
     // Auto-resize textarea
     searchQuery.addEventListener('input', function() {
@@ -681,7 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalResults = cases.length + statutes.length;
         
         // Update results meta
-        resultsMeta.textContent = `Found ${totalResults} results from ${results.search_metadata?.sources_used?.join(', ') || 'free legal databases'}`;
+        resultsMeta.textContent = `Found ${totalResults} results from ${results.search_metadata?.sources_used?.join(', ') || 'legal databases'}`;
 
         if (totalResults === 0) {
             searchResults.innerHTML = `
@@ -784,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add disclaimer
         resultsHTML += `
             <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; font-size: 0.875rem; color: #9a3412;">
-                <strong>⚠️ Important Disclaimer:</strong> ${data.disclaimer || 'Results from free legal databases. Always verify with official sources and consult qualified legal counsel.'}
+                <strong>⚠️ Important Disclaimer:</strong> ${data.disclaimer || 'Research results are for informational purposes only. Always verify with official sources and consult qualified legal counsel.'}
             </div>
         `;
 
