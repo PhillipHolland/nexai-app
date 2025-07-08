@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Analysis - LexAI Practice Partner</title>
+    <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
+    <style>
+        .contract-hero {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .contract-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .analysis-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .contract-input {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contract-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        
+        .contract-textarea:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .contract-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .option-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .option-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .option-select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+        
+        .option-select:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
+        .analysis-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .analyze-button {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .analyze-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+        
+        .analyze-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quick-button {
+            background: white;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-button:hover {
+            background: #7c3aed;
+            color: white;
+        }
+        
+        .progress-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .progress-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #7c3aed, #a855f7);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-overview {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .risk-score-card {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .risk-score {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #7c3aed;
+            margin-bottom: 0.5rem;
+        }
+        
+        .risk-level {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .risk-level.low {
+            color: #16a34a;
+        }
+        
+        .risk-level.medium {
+            color: #d97706;
+        }
+        
+        .risk-level.high {
+            color: #dc2626;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .analysis-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #7c3aed;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-content {
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .clause-item {
+            background: #f8f9fa;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+        
+        .clause-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .clause-type {
+            font-weight: 600;
+            color: #1f2937;
+            text-transform: capitalize;
+        }
+        
+        .clause-risk {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .clause-risk.low {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .clause-risk.medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .clause-risk.high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .clause-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0.5rem 0;
+            font-style: italic;
+        }
+        
+        .clause-concerns {
+            margin-top: 1rem;
+        }
+        
+        .concern-item {
+            background: #fef2f2;
+            border-left: 3px solid #f87171;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .recommendation-item {
+            background: #f0f9ff;
+            border-left: 3px solid #60a5fa;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .bagel-analysis {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #10b981;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .bagel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .bagel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .bagel-badge {
+            background: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .bagel-content {
+            color: #065f46;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .sample-contracts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .sample-card {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sample-card:hover {
+            border-color: #7c3aed;
+            background: #f3e8ff;
+        }
+        
+        .sample-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sample-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 768px) {
+            .contract-container {
+                padding: 1rem;
+            }
+            
+            .analysis-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .analyze-button, .quick-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-content">
+                <!-- Hamburger Menu Button (Mobile Only) -->
+                <button class="hamburger-menu" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                </button>
+
+                <!-- Logo -->
+                <div class="logo">
+                    <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+                </div>
+                
+                <!-- Enter Platform Button (Desktop & Mobile) -->
+                <a href="/dashboard" class="btn-primary nav-enter-platform">Enter Platform</a>
+
+                <!-- Navigation Links (Collapsible on Mobile) -->
+                <div class="nav-links-mobile-container">
+                    <div class="nav-links">
+                        <a href="/#features" class="nav-link">Features</a>
+                        <a href="/platform" class="nav-link">Platform</a>
+                        <a href="/privacy-dashboard" class="nav-link">Privacy</a>
+                        <a href="/documents" class="nav-link">Documents</a>
+                        <a href="/legal-research" class="nav-link">Research</a>
+                        <a href="/contracts" class="nav-link active">Contracts</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contract Analysis Hero -->
+    <section class="contract-hero">
+        <div class="container">
+            <h1>📋 Specialized Contract Analysis</h1>
+            <p>AI-powered contract review, risk assessment, and clause analysis with Bagel RL</p>
+            
+            <div class="status-indicator {% if bagel_available %}status-active{% else %}status-inactive{% endif %}">
+                {% if bagel_available %}
+                ✅ Bagel RL: Active & Analyzing Contracts
+                {% else %}
+                🔄 Bagel RL: Training in Progress
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Contract Interface -->
+    <div class="contract-container">
+        
+        <!-- Contract Input Section -->
+        <section class="analysis-section">
+            <h2>📄 Contract Analysis</h2>
+            
+            <div class="contract-input">
+                <div>
+                    <label for="contractText" class="option-label">Paste your contract text here:</label>
+                    <textarea 
+                        id="contractText" 
+                        class="contract-textarea" 
+                        placeholder="Paste your contract text here for comprehensive analysis...
+
+Example: 
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement is entered into between ABC Corporation and John Smith, effective January 1, 2024.
+
+1. Position: Software Engineer
+2. Salary: $85,000 per year
+3. Benefits: Health insurance, 401k matching
+4. Termination: Either party may terminate with 30 days notice
+..."></textarea>
+                </div>
+                
+                <div class="contract-options">
+                    <div class="option-group">
+                        <label class="option-label">Contract Type</label>
+                        <select id="contractType" class="option-select">
+                            <option value="">Auto-Detect</option>
+                            <option value="employment">Employment Agreement</option>
+                            <option value="service">Service Agreement</option>
+                            <option value="sales">Sales Contract</option>
+                            <option value="lease">Lease Agreement</option>
+                            <option value="nda">Non-Disclosure Agreement</option>
+                            <option value="partnership">Partnership Agreement</option>
+                            <option value="licensing">Licensing Agreement</option>
+                            <option value="consulting">Consulting Agreement</option>
+                            <option value="construction">Construction Contract</option>
+                            <option value="merger">Merger & Acquisition</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label class="option-label">Analysis Depth</label>
+                        <select id="analysisDepth" class="option-select">
+                            <option value="quick">Quick Risk Assessment</option>
+                            <option value="comprehensive" selected>Comprehensive Analysis</option>
+                            <option value="detailed">Detailed Review</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analysis-actions">
+                <button class="analyze-button" onclick="analyzeContract()">
+                    <span>🔍</span>
+                    <span>Analyze Contract</span>
+                </button>
+                <button class="quick-button" onclick="quickRiskAssessment()">
+                    ⚡ Quick Risk Check
+                </button>
+            </div>
+        </section>
+
+        <!-- Sample Contracts -->
+        <section class="analysis-section">
+            <h3>📋 Sample Contracts</h3>
+            <p>Try our analysis with these sample contracts:</p>
+            
+            <div class="sample-contracts">
+                <div class="sample-card" onclick="loadSampleContract('employment')">
+                    <div class="sample-title">Employment Agreement</div>
+                    <div class="sample-desc">Standard employment contract with salary and benefits</div>
+                </div>
+                <div class="sample-card" onclick="loadSampleContract('nda')">
+                    <div class="sample-title">Non-Disclosure Agreement</div>
+                    <div class="sample-desc">Confidentiality agreement for sensitive information</div>
+                </div>
+                <div class="sample-card" onclick="loadSampleContract('service')">
+                    <div class="sample-title">Service Agreement</div>
+                    <div class="sample-desc">Professional services contract with deliverables</div>
+                </div>
+                <div class="sample-card" onclick="loadSampleContract('lease')">
+                    <div class="sample-title">Lease Agreement</div>
+                    <div class="sample-desc">Commercial property lease with terms and conditions</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing Progress -->
+        <section class="progress-section" id="progressSection">
+            <h3>🔄 Analyzing Contract...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">Initializing contract analysis...</div>
+        </section>
+
+        <!-- Error Messages -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection">
+            
+            <!-- Risk Score Overview -->
+            <div class="risk-score-card">
+                <div class="risk-score" id="riskScore">0</div>
+                <div class="risk-level" id="riskLevel">Low Risk</div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                    Overall Contract Risk Assessment
+                </div>
+            </div>
+
+            <!-- Bagel RL Enhanced Analysis -->
+            <div class="bagel-analysis" id="bagelAnalysis" style="display: none;">
+                <div class="bagel-header">
+                    <div class="bagel-title">🤖 Bagel RL Strategic Analysis</div>
+                    <div class="bagel-badge">AI-Enhanced</div>
+                </div>
+                <div class="bagel-content" id="bagelContent">
+                    Loading strategic contract analysis...
+                </div>
+            </div>
+
+            <!-- Analysis Grid -->
+            <div class="analysis-grid">
+                <!-- Key Terms -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">🔑</div>
+                        <div class="card-title">Key Terms</div>
+                    </div>
+                    <div class="card-content" id="keyTermsContent">
+                        <!-- Key terms will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Financial Terms -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">💰</div>
+                        <div class="card-title">Financial Terms</div>
+                    </div>
+                    <div class="card-content" id="financialTermsContent">
+                        <!-- Financial terms will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Timeline Analysis -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">📅</div>
+                        <div class="card-title">Timeline & Dates</div>
+                    </div>
+                    <div class="card-content" id="timelineContent">
+                        <!-- Timeline will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Red Flags -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">🚩</div>
+                        <div class="card-title">Red Flags</div>
+                    </div>
+                    <div class="card-content" id="redFlagsContent">
+                        <!-- Red flags will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Missing Clauses -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">❌</div>
+                        <div class="card-title">Missing Clauses</div>
+                    </div>
+                    <div class="card-content" id="missingClausesContent">
+                        <!-- Missing clauses will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="analysis-card">
+                    <div class="card-header">
+                        <div class="card-icon">💡</div>
+                        <div class="card-title">Recommendations</div>
+                    </div>
+                    <div class="card-content" id="recommendationsContent">
+                        <!-- Recommendations will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Clause Analysis -->
+            <div class="analysis-section">
+                <h3>📋 Detailed Clause Analysis</h3>
+                <div id="clauseAnalysisContent">
+                    <!-- Clause analysis will be populated here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let currentAnalysis = null;
+
+        // Sample contracts
+        const sampleContracts = {
+            employment: `EMPLOYMENT AGREEMENT
+
+This Employment Agreement is entered into between ABC Corporation ("Company") and John Smith ("Employee") effective January 1, 2024.
+
+1. POSITION AND DUTIES
+Employee shall serve as Software Engineer and shall perform duties as assigned by the Company.
+
+2. COMPENSATION
+Employee shall receive a salary of $85,000 per year, payable in accordance with Company's regular payroll schedule.
+
+3. BENEFITS
+Employee shall be entitled to health insurance, dental insurance, and 401k matching as provided by Company.
+
+4. TERMINATION
+Either party may terminate this agreement with thirty (30) days written notice. Company may terminate immediately for cause.
+
+5. CONFIDENTIALITY
+Employee agrees to maintain confidentiality of all proprietary information and trade secrets of the Company.
+
+6. INTELLECTUAL PROPERTY
+All work product, inventions, and intellectual property created during employment shall belong to Company.
+
+7. GOVERNING LAW
+This agreement shall be governed by the laws of California.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.`,
+
+            nda: `NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into between TechCorp Inc. ("Disclosing Party") and John Doe ("Receiving Party") as of January 1, 2024.
+
+1. CONFIDENTIAL INFORMATION
+Confidential Information includes all proprietary information, trade secrets, technical data, and business information disclosed by either party.
+
+2. OBLIGATIONS
+Receiving Party agrees to maintain strict confidentiality and not disclose any Confidential Information to third parties without written consent.
+
+3. PERMITTED USE
+Confidential Information may only be used for the purpose of evaluating potential business opportunities between the parties.
+
+4. RETURN OF INFORMATION
+Upon termination, Receiving Party shall return or destroy all Confidential Information and any copies thereof.
+
+5. DURATION
+This Agreement shall remain in effect for a period of five (5) years from the date of execution.
+
+6. REMEDIES
+Any breach of this Agreement may result in irreparable harm, and Disclosing Party shall be entitled to injunctive relief.
+
+7. GOVERNING LAW
+This Agreement shall be governed by the laws of Delaware.`,
+
+            service: `SERVICE AGREEMENT
+
+This Service Agreement is entered into between ClientCorp ("Client") and ServiceProvider LLC ("Provider") effective January 1, 2024.
+
+1. SERVICES
+Provider agrees to provide web development services as detailed in Exhibit A attached hereto.
+
+2. COMPENSATION
+Client shall pay Provider $50,000 for services, payable in three installments: $20,000 upon signing, $20,000 at 50% completion, and $10,000 upon final delivery.
+
+3. TIMELINE
+Services shall be completed within 90 days of the effective date, with milestones as specified in Exhibit A.
+
+4. DELIVERABLES
+Provider shall deliver completed website, source code, and documentation as specified.
+
+5. INTELLECTUAL PROPERTY
+All work product shall be owned by Client upon full payment. Provider retains rights to general methodologies and know-how.
+
+6. WARRANTIES
+Provider warrants that services will be performed in a professional manner and will function as specified for 30 days.
+
+7. LIMITATION OF LIABILITY
+Provider's liability shall not exceed the total amount paid under this Agreement.
+
+8. TERMINATION
+Either party may terminate with 30 days written notice. Client shall pay for work completed to date.`,
+
+            lease: `COMMERCIAL LEASE AGREEMENT
+
+This Lease Agreement is entered into between Property Owner LLC ("Landlord") and Business Tenant Inc. ("Tenant") for the premises located at 123 Main Street, Suite 100.
+
+1. TERM
+Lease term shall be for three (3) years, commencing January 1, 2024 and ending December 31, 2026.
+
+2. RENT
+Tenant shall pay monthly rent of $5,000, due on the first day of each month, plus applicable taxes.
+
+3. SECURITY DEPOSIT
+Tenant shall provide a security deposit of $10,000 upon execution of this lease.
+
+4. USE OF PREMISES
+Premises shall be used solely for general office purposes and no other use without Landlord's consent.
+
+5. MAINTENANCE
+Tenant shall maintain the premises in good condition. Landlord shall maintain structural elements and common areas.
+
+6. INSURANCE
+Tenant shall maintain general liability insurance with minimum coverage of $1,000,000 and name Landlord as additional insured.
+
+7. ASSIGNMENT
+Tenant may not assign this lease or sublet premises without Landlord's written consent.
+
+8. DEFAULT
+If Tenant defaults in payment or other obligations, Landlord may terminate lease with 30 days notice.
+
+9. GOVERNING LAW
+This lease shall be governed by the laws of the state where the premises are located.`
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            
+            // Check if Bagel RL is available
+            if (!{{ bagel_available|lower }}) {
+                showError('Enhanced analysis not available. Bagel RL is currently training.');
+            }
+        });
+
+        function setupEventListeners() {
+            // Mobile navigation
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const navLinksContainer = document.querySelector('.nav-links-mobile-container');
+
+            if (hamburgerMenu && navLinksContainer) {
+                hamburgerMenu.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    navLinksContainer.classList.toggle('open');
+                });
+            }
+        }
+
+        function loadSampleContract(type) {
+            const textarea = document.getElementById('contractText');
+            const contractType = document.getElementById('contractType');
+            
+            textarea.value = sampleContracts[type];
+            contractType.value = type;
+            
+            // Show success message
+            showSuccess(`Sample ${type} contract loaded! Click "Analyze Contract" to begin.`);
+        }
+
+        async function analyzeContract() {
+            const contractText = document.getElementById('contractText').value.trim();
+            if (!contractText) {
+                showError('Please enter contract text to analyze.');
+                return;
+            }
+
+            try {
+                // Show progress
+                showProgress();
+                
+                // Get analysis parameters
+                const contractType = document.getElementById('contractType').value;
+                const analysisDepth = document.getElementById('analysisDepth').value;
+
+                // Perform comprehensive analysis
+                const response = await fetch('/api/contracts/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contract_text: contractText,
+                        contract_type: contractType || null,
+                        analysis_depth: analysisDepth
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentAnalysis = result;
+                    displayAnalysisResults(result);
+                } else {
+                    showError(result.error || 'Contract analysis failed. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('Contract analysis error:', error);
+                showError('Failed to analyze contract. Please try again.');
+            } finally {
+                hideProgress();
+            }
+        }
+
+        async function quickRiskAssessment() {
+            const contractText = document.getElementById('contractText').value.trim();
+            if (!contractText) {
+                showError('Please enter contract text for risk assessment.');
+                return;
+            }
+
+            try {
+                // Show progress
+                showProgress();
+                
+                const contractType = document.getElementById('contractType').value;
+
+                // Perform quick risk assessment
+                const response = await fetch('/api/contracts/risk-assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contract_text: contractText,
+                        contract_type: contractType || 'general'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayQuickRiskResults(result);
+                } else {
+                    showError(result.error || 'Risk assessment failed. Please try again.');
+                }
+
+            } catch (error) {
+                console.error('Risk assessment error:', error);
+                showError('Failed to assess contract risk. Please try again.');
+            } finally {
+                hideProgress();
+            }
+        }
+
+        function showProgress() {
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const steps = [
+                'Parsing contract text...',
+                'Identifying contract type...',
+                'Extracting key terms...',
+                'Analyzing clauses...',
+                'Assessing risk factors...',
+                'Generating recommendations...',
+                'Enhancing with Bagel RL...',
+                'Finalizing analysis...'
+            ];
+            
+            const interval = setInterval(() => {
+                progress += 12.5;
+                progressFill.style.width = progress + '%';
+                
+                if (progress < 100) {
+                    const stepIndex = Math.floor(progress / 12.5);
+                    if (stepIndex < steps.length) {
+                        progressText.textContent = steps[stepIndex];
+                    }
+                } else {
+                    clearInterval(interval);
+                    progressText.textContent = 'Analysis complete!';
+                }
+            }, 800);
+        }
+
+        function hideProgress() {
+            document.getElementById('progressSection').style.display = 'none';
+        }
+
+        function displayAnalysisResults(result) {
+            // Update risk score
+            document.getElementById('riskScore').textContent = Math.round(result.overall_risk_score);
+            const riskLevel = result.overall_risk_score > 70 ? 'high' : result.overall_risk_score > 40 ? 'medium' : 'low';
+            const riskLevelElement = document.getElementById('riskLevel');
+            riskLevelElement.textContent = riskLevel.toUpperCase() + ' RISK';
+            riskLevelElement.className = 'risk-level ' + riskLevel;
+
+            // Display Bagel RL analysis
+            if (result.bagel_insights && result.bagel_insights.success) {
+                document.getElementById('bagelAnalysis').style.display = 'block';
+                document.getElementById('bagelContent').textContent = result.bagel_insights.strategic_analysis;
+            }
+
+            // Display key terms
+            const keyTermsHtml = `
+                <div><strong>Parties:</strong> ${result.key_terms.parties.join(', ') || 'Not identified'}</div>
+                <div><strong>Effective Date:</strong> ${result.key_terms.effective_date || 'Not specified'}</div>
+                <div><strong>Governing Law:</strong> ${result.key_terms.governing_law || 'Not specified'}</div>
+                <div><strong>Jurisdiction:</strong> ${result.key_terms.jurisdiction || 'Not specified'}</div>
+            `;
+            document.getElementById('keyTermsContent').innerHTML = keyTermsHtml;
+
+            // Display financial terms
+            const financialHtml = `
+                <div><strong>Total Value:</strong> ${result.financial_terms.total_value ? '$' + result.financial_terms.total_value.toLocaleString() : 'Not specified'}</div>
+                <div><strong>Payment Schedule:</strong> ${result.financial_terms.payment_schedule.join(', ') || 'Not specified'}</div>
+                <div><strong>Currency:</strong> ${result.financial_terms.currency}</div>
+                <div><strong>Late Fees:</strong> ${result.financial_terms.late_fees || 'Not specified'}</div>
+            `;
+            document.getElementById('financialTermsContent').innerHTML = financialHtml;
+
+            // Display timeline
+            const timelineHtml = `
+                <div><strong>Start Date:</strong> ${result.timeline_analysis.start_date || 'Not specified'}</div>
+                <div><strong>End Date:</strong> ${result.timeline_analysis.end_date || 'Not specified'}</div>
+                <div><strong>Notice Periods:</strong> ${result.timeline_analysis.notice_periods.join(', ') || 'Not specified'}</div>
+                <div><strong>Renewal Terms:</strong> ${result.timeline_analysis.renewal_terms || 'Not specified'}</div>
+            `;
+            document.getElementById('timelineContent').innerHTML = timelineHtml;
+
+            // Display red flags
+            const redFlagsHtml = result.red_flags.length > 0 ? 
+                result.red_flags.map(flag => `<div style="color: #dc2626; margin: 0.5rem 0;">🚩 ${flag}</div>`).join('') :
+                '<div style="color: #16a34a;">✅ No major red flags detected</div>';
+            document.getElementById('redFlagsContent').innerHTML = redFlagsHtml;
+
+            // Display missing clauses
+            const missingClausesHtml = result.missing_clauses.length > 0 ? 
+                result.missing_clauses.map(clause => `<div style="margin: 0.5rem 0;">❌ ${clause}</div>`).join('') :
+                '<div style="color: #16a34a;">✅ All standard clauses present</div>';
+            document.getElementById('missingClausesContent').innerHTML = missingClausesHtml;
+
+            // Display recommendations
+            const recommendationsHtml = result.recommendations.slice(0, 5).map(rec => 
+                `<div style="margin: 0.5rem 0;">💡 ${rec}</div>`
+            ).join('');
+            document.getElementById('recommendationsContent').innerHTML = recommendationsHtml;
+
+            // Display clause analysis
+            let clauseHtml = '';
+            result.clauses.forEach(clause => {
+                clauseHtml += `
+                    <div class="clause-item">
+                        <div class="clause-header">
+                            <div class="clause-type">${clause.clause_type.replace('_', ' ')}</div>
+                            <div class="clause-risk ${clause.risk_level}">${clause.risk_level}</div>
+                        </div>
+                        <div class="clause-text">"${clause.text.substring(0, 200)}..."</div>
+                        ${clause.concerns.length > 0 ? `
+                            <div class="clause-concerns">
+                                ${clause.concerns.map(concern => `<div class="concern-item">${concern}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${clause.recommendations.length > 0 ? `
+                            <div class="clause-concerns">
+                                ${clause.recommendations.map(rec => `<div class="recommendation-item">${rec}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            document.getElementById('clauseAnalysisContent').innerHTML = clauseHtml;
+
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function displayQuickRiskResults(result) {
+            // Update risk score
+            document.getElementById('riskScore').textContent = Math.round(result.risk_score);
+            const riskLevelElement = document.getElementById('riskLevel');
+            riskLevelElement.textContent = result.risk_level.toUpperCase() + ' RISK';
+            riskLevelElement.className = 'risk-level ' + result.risk_level;
+
+            // Display quick results
+            document.getElementById('redFlagsContent').innerHTML = result.red_flags.length > 0 ? 
+                result.red_flags.map(flag => `<div style="color: #dc2626; margin: 0.5rem 0;">🚩 ${flag}</div>`).join('') :
+                '<div style="color: #16a34a;">✅ No major red flags detected</div>';
+
+            document.getElementById('recommendationsContent').innerHTML = result.recommendations.map(rec => 
+                `<div style="margin: 0.5rem 0;">💡 ${rec}</div>`
+            ).join('');
+
+            // Hide other sections for quick assessment
+            document.getElementById('keyTermsContent').innerHTML = '<div style="color: #6b7280;">Run comprehensive analysis for key terms</div>';
+            document.getElementById('financialTermsContent').innerHTML = '<div style="color: #6b7280;">Run comprehensive analysis for financial terms</div>';
+            document.getElementById('timelineContent').innerHTML = '<div style="color: #6b7280;">Run comprehensive analysis for timeline</div>';
+            document.getElementById('missingClausesContent').innerHTML = '<div style="color: #6b7280;">Run comprehensive analysis for missing clauses</div>';
+            document.getElementById('clauseAnalysisContent').innerHTML = '<div style="color: #6b7280;">Run comprehensive analysis for detailed clause review</div>';
+
+            // Show results section
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            // Create temporary success message
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                background: #dcfce7;
+                border: 1px solid #bbf7d0;
+                color: #16a34a;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin: 1rem 0;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                max-width: 400px;
+            `;
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

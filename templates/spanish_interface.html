@@ -1,0 +1,700 @@
+{% extends "base.html" %}
+
+{% block title %}LexAI en Español - Plataforma Legal con IA{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* Spanish Interface Styles */
+        .spanish-container {
+            background-color: #F7EDDA;
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 0;
+        }
+        
+        .spanish-header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .spanish-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .spanish-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+        
+        .spanish-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        @media (min-width: 1024px) {
+            .spanish-main {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .spanish-section {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .section-description {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .translator-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+        
+        .translate-btn {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .translate-btn:hover {
+            background-color: #09332C;
+            transform: translateY(-1px);
+        }
+        
+        .translate-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-container {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .result-container.visible {
+            display: block;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-text {
+            color: #374151;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .confidence-score {
+            font-weight: 500;
+        }
+        
+        .confidence-high {
+            color: #16a34a;
+        }
+        
+        .confidence-medium {
+            color: #eab308;
+        }
+        
+        .confidence-low {
+            color: #dc2626;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-description {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+            text-decoration: none;
+        }
+        
+        .action-btn.primary {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            border-color: #2E4B3C;
+        }
+        
+        .action-btn.primary:hover {
+            background-color: #09332C;
+            color: #F7EDDA;
+        }
+        
+        .language-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 1000;
+        }
+        
+        .language-toggle:hover {
+            background-color: #09332C;
+            color: #F7EDDA;
+            text-decoration: none;
+        }
+        
+        .loading-spinner {
+            display: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #2E4B3C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .success-message {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .spanish-title {
+                font-size: 2rem;
+            }
+            
+            .spanish-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .language-toggle {
+                position: static;
+                margin-bottom: 1rem;
+                align-self: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="spanish-container">
+    <!-- Language Toggle -->
+    <a href="/" class="language-toggle">🇺🇸 English</a>
+    
+    <!-- Spanish Header -->
+    <div class="spanish-header">
+        <h1 class="spanish-title">🌐 LexAI en Español</h1>
+        <p class="spanish-subtitle">Plataforma integral de práctica legal con IA y soporte en español</p>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="spanish-main">
+        <!-- Text Translation Section -->
+        <div class="spanish-section">
+            <h2 class="section-title">📝 Traducción de Texto Legal</h2>
+            <p class="section-description">
+                Traduce texto legal entre inglés y español con contexto jurídico especializado.
+            </p>
+            
+            <form class="translator-form" id="text-translator">
+                <div class="form-group">
+                    <label class="form-label">Texto a traducir:</label>
+                    <textarea class="form-textarea" id="text-input" 
+                              placeholder="Ingrese el texto legal a traducir..."
+                              maxlength="5000"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contexto legal:</label>
+                    <select class="form-select" id="legal-context">
+                        <option value="general">General</option>
+                        <option value="contract">Contratos</option>
+                        <option value="corporate">Derecho Corporativo</option>
+                        <option value="family">Derecho Familiar</option>
+                        <option value="criminal">Derecho Penal</option>
+                        <option value="civil">Derecho Civil</option>
+                        <option value="employment">Derecho Laboral</option>
+                        <option value="intellectual_property">Propiedad Intelectual</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Idioma destino:</label>
+                    <select class="form-select" id="target-language">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="translate-btn">
+                    <div class="loading-spinner" id="text-loading"></div>
+                    Traducir Texto
+                </button>
+            </form>
+            
+            <div class="result-container" id="text-result">
+                <div class="result-title">Traducción:</div>
+                <div class="result-text" id="text-translation"></div>
+                <div class="result-meta">
+                    <span class="confidence-score" id="text-confidence"></span>
+                    <span id="text-enhanced"></span>
+                </div>
+            </div>
+            
+            <div class="error-message" id="text-error"></div>
+            <div class="success-message" id="text-success"></div>
+        </div>
+        
+        <!-- Document Translation Section -->
+        <div class="spanish-section">
+            <h2 class="section-title">📄 Traducción de Documentos</h2>
+            <p class="section-description">
+                Traduce documentos legales completos manteniendo el formato y terminología jurídica.
+            </p>
+            
+            <form class="translator-form" id="document-translator">
+                <div class="form-group">
+                    <label class="form-label">Documento a traducir:</label>
+                    <textarea class="form-textarea" id="document-input" 
+                              placeholder="Pegue el texto completo del documento legal..."
+                              maxlength="50000" style="min-height: 200px;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Tipo de documento:</label>
+                    <select class="form-select" id="document-type">
+                        <option value="contract">Contrato</option>
+                        <option value="agreement">Acuerdo</option>
+                        <option value="nda">Acuerdo de Confidencialidad</option>
+                        <option value="employment">Contrato de Trabajo</option>
+                        <option value="lease">Contrato de Arrendamiento</option>
+                        <option value="service">Acuerdo de Servicios</option>
+                        <option value="partnership">Acuerdo de Sociedad</option>
+                        <option value="license">Acuerdo de Licencia</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="translate-btn">
+                    <div class="loading-spinner" id="document-loading"></div>
+                    Traducir Documento
+                </button>
+            </form>
+            
+            <div class="result-container" id="document-result">
+                <div class="result-title">Documento Traducido:</div>
+                <div class="result-text" id="document-translation"></div>
+                <div class="result-meta">
+                    <span class="confidence-score" id="document-confidence"></span>
+                    <span id="document-enhanced"></span>
+                </div>
+            </div>
+            
+            <div class="error-message" id="document-error"></div>
+            <div class="success-message" id="document-success"></div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="spanish-header">
+        <h2 class="section-title">🚀 Características de LexAI en Español</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3 class="feature-title">IA Jurídica Avanzada</h3>
+                <p class="feature-description">
+                    Análisis inteligente de documentos legales con comprensión del contexto jurídico en español.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3 class="feature-title">Plantillas Legales</h3>
+                <p class="feature-description">
+                    Acceso a plantillas de contratos y documentos legales en español adaptados a diferentes jurisdicciones.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title">Investigación Legal</h3>
+                <p class="feature-description">
+                    Búsqueda en bases de datos legales hispanohablantes con análisis de jurisprudencia y legislación.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3 class="feature-title">Privacidad y Seguridad</h3>
+                <p class="feature-description">
+                    Protección de datos sensibles con cifrado y cumplimiento de normativas de privacidad.
+                </p>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="/documents" class="action-btn primary">📄 Análisis de Documentos</a>
+            <a href="/legal-research" class="action-btn">🔍 Investigación Legal</a>
+            <a href="/contracts" class="action-btn">📋 Análisis de Contratos</a>
+            <a href="/dashboard" class="action-btn">🏠 Panel de Control</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textForm = document.getElementById('text-translator');
+    const documentForm = document.getElementById('document-translator');
+    
+    // Text translation form handler
+    textForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const text = document.getElementById('text-input').value.trim();
+        const context = document.getElementById('legal-context').value;
+        const targetLanguage = document.getElementById('target-language').value;
+        
+        if (!text) {
+            showError('text-error', 'Por favor ingrese texto a traducir');
+            return;
+        }
+        
+        translateText(text, context, targetLanguage);
+    });
+    
+    // Document translation form handler
+    documentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const documentText = document.getElementById('document-input').value.trim();
+        const documentType = document.getElementById('document-type').value;
+        
+        if (!documentText) {
+            showError('document-error', 'Por favor ingrese el documento a traducir');
+            return;
+        }
+        
+        translateDocument(documentText, documentType);
+    });
+    
+    function translateText(text, context, targetLanguage) {
+        const loading = document.getElementById('text-loading');
+        const resultContainer = document.getElementById('text-result');
+        const errorContainer = document.getElementById('text-error');
+        const successContainer = document.getElementById('text-success');
+        
+        // Show loading
+        loading.style.display = 'inline-block';
+        resultContainer.classList.remove('visible');
+        errorContainer.style.display = 'none';
+        successContainer.style.display = 'none';
+        
+        fetch('/api/spanish/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                target_language: targetLanguage,
+                legal_context: context
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayTextResult(data);
+                showSuccess('text-success', 'Traducción completada exitosamente');
+            } else {
+                showError('text-error', data.error || 'Error en la traducción');
+            }
+        })
+        .catch(error => {
+            console.error('Translation error:', error);
+            showError('text-error', 'Error de conexión. Intente nuevamente.');
+        })
+        .finally(() => {
+            loading.style.display = 'none';
+        });
+    }
+    
+    function translateDocument(documentText, documentType) {
+        const loading = document.getElementById('document-loading');
+        const resultContainer = document.getElementById('document-result');
+        const errorContainer = document.getElementById('document-error');
+        const successContainer = document.getElementById('document-success');
+        
+        // Show loading
+        loading.style.display = 'inline-block';
+        resultContainer.classList.remove('visible');
+        errorContainer.style.display = 'none';
+        successContainer.style.display = 'none';
+        
+        fetch('/api/spanish/translate-document', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                document_text: documentText,
+                document_type: documentType,
+                target_language: 'es'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayDocumentResult(data);
+                showSuccess('document-success', 'Documento traducido exitosamente');
+            } else {
+                showError('document-error', data.error || 'Error en la traducción del documento');
+            }
+        })
+        .catch(error => {
+            console.error('Document translation error:', error);
+            showError('document-error', 'Error de conexión. Intente nuevamente.');
+        })
+        .finally(() => {
+            loading.style.display = 'none';
+        });
+    }
+    
+    function displayTextResult(data) {
+        const resultContainer = document.getElementById('text-result');
+        const translationDiv = document.getElementById('text-translation');
+        const confidenceSpan = document.getElementById('text-confidence');
+        const enhancedSpan = document.getElementById('text-enhanced');
+        
+        translationDiv.textContent = data.translated_text;
+        
+        const confidence = Math.round(data.confidence_score * 100);
+        confidenceSpan.textContent = `Confianza: ${confidence}%`;
+        
+        if (confidence >= 80) {
+            confidenceSpan.className = 'confidence-score confidence-high';
+        } else if (confidence >= 60) {
+            confidenceSpan.className = 'confidence-score confidence-medium';
+        } else {
+            confidenceSpan.className = 'confidence-score confidence-low';
+        }
+        
+        if (data.bagel_enhanced) {
+            enhancedSpan.textContent = '🤖 Mejorado con Bagel RL';
+        } else {
+            enhancedSpan.textContent = '📝 Traducción básica';
+        }
+        
+        resultContainer.classList.add('visible');
+    }
+    
+    function displayDocumentResult(data) {
+        const resultContainer = document.getElementById('document-result');
+        const translationDiv = document.getElementById('document-translation');
+        const confidenceSpan = document.getElementById('document-confidence');
+        const enhancedSpan = document.getElementById('document-enhanced');
+        
+        translationDiv.textContent = data.translated_text;
+        
+        const confidence = Math.round(data.confidence_score * 100);
+        confidenceSpan.textContent = `Confianza: ${confidence}%`;
+        
+        if (confidence >= 80) {
+            confidenceSpan.className = 'confidence-score confidence-high';
+        } else if (confidence >= 60) {
+            confidenceSpan.className = 'confidence-score confidence-medium';
+        } else {
+            confidenceSpan.className = 'confidence-score confidence-low';
+        }
+        
+        if (data.bagel_enhanced) {
+            enhancedSpan.textContent = '🤖 Mejorado con Bagel RL';
+        } else {
+            enhancedSpan.textContent = '📝 Traducción básica';
+        }
+        
+        resultContainer.classList.add('visible');
+    }
+    
+    function showError(containerId, message) {
+        const container = document.getElementById(containerId);
+        container.textContent = message;
+        container.style.display = 'block';
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 5000);
+    }
+    
+    function showSuccess(containerId, message) {
+        const container = document.getElementById(containerId);
+        container.textContent = message;
+        container.style.display = 'block';
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Character count for text input
+    const textInput = document.getElementById('text-input');
+    const documentInput = document.getElementById('document-input');
+    
+    textInput.addEventListener('input', function() {
+        const remaining = 5000 - this.value.length;
+        // Could add character counter here
+    });
+    
+    documentInput.addEventListener('input', function() {
+        const remaining = 50000 - this.value.length;
+        // Could add character counter here
+    });
+});
+</script>
+{% endblock %}

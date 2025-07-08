@@ -47,6 +47,20 @@ except ImportError:
     STRIPE_AVAILABLE = False
     logger.warning("Stripe not available - payment features disabled")
 
+# Import Spanish service
+try:
+    from spanish_service import (
+        translate_legal_text, 
+        translate_legal_document, 
+        get_ui_translation,
+        get_spanish_legal_forms
+    )
+    SPANISH_AVAILABLE = True
+    logger.info("✅ Spanish legal service available")
+except ImportError:
+    SPANISH_AVAILABLE = False
+    logger.warning("Spanish legal service not available")
+
 try:
     import redis
     REDIS_AVAILABLE = True
@@ -17949,6 +17963,153 @@ def legal_research_page():
         <p>Bagel RL Status: {% if bagel_available %}Active{% else %}Training in progress...{% endif %}</p>
         """, bagel_available=BAGEL_AI_AVAILABLE)
 
+# Specialized Contract Analysis with Bagel RL
+@app.route('/api/contracts/analyze', methods=['POST'])
+@monitor_performance
+def analyze_contract_comprehensive():
+    """Comprehensive contract analysis with Bagel RL"""
+    try:
+        data = request.get_json()
+        if not data or 'contract_text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Contract text required'
+            }), 400
+        
+        contract_text = data['contract_text']
+        contract_type = data.get('contract_type')
+        analysis_depth = data.get('analysis_depth', 'comprehensive')
+        
+        # Import contract analysis service
+        from contract_analysis_service import analyze_contract_comprehensive
+        
+        # Perform comprehensive analysis
+        result = analyze_contract_comprehensive(
+            contract_text=contract_text,
+            contract_type=contract_type,
+            analysis_depth=analysis_depth
+        )
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Contract analysis service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Contract analysis failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Contract analysis failed: {str(e)}'
+        }), 500
+
+@app.route('/api/contracts/risk-assessment', methods=['POST'])
+@monitor_performance
+def contract_risk_assessment():
+    """Quick contract risk assessment"""
+    try:
+        data = request.get_json()
+        if not data or 'contract_text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Contract text required'
+            }), 400
+        
+        contract_text = data['contract_text']
+        contract_type = data.get('contract_type', 'general')
+        
+        # Import contract analysis service
+        from contract_analysis_service import contract_analysis_service
+        
+        # Quick risk assessment
+        result = contract_analysis_service.analyze_contract(
+            contract_text=contract_text,
+            contract_type=contract_type,
+            analysis_depth="quick"
+        )
+        
+        return jsonify({
+            'success': True,
+            'contract_id': result.contract_id,
+            'risk_score': result.overall_risk_score,
+            'risk_level': 'high' if result.overall_risk_score > 70 else 'medium' if result.overall_risk_score > 40 else 'low',
+            'red_flags': result.red_flags,
+            'key_concerns': [clause.concerns for clause in result.clauses if clause.risk_level == 'high'],
+            'recommendations': result.recommendations[:5]  # Top 5 recommendations
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Contract analysis service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Risk assessment failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Risk assessment failed: {str(e)}'
+        }), 500
+
+@app.route('/api/contracts/clause-analysis', methods=['POST'])
+@monitor_performance
+def analyze_contract_clause():
+    """Analyze specific contract clause"""
+    try:
+        data = request.get_json()
+        if not data or 'clause_text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Clause text required'
+            }), 400
+        
+        clause_text = data['clause_text']
+        clause_type = data.get('clause_type', 'general')
+        contract_type = data.get('contract_type', 'general')
+        
+        # Import contract analysis service
+        from contract_analysis_service import contract_analysis_service
+        
+        # Analyze specific clause
+        risk_level, concerns, recommendations = contract_analysis_service._analyze_clause_risk(
+            clause_text, clause_type, contract_type
+        )
+        
+        return jsonify({
+            'success': True,
+            'clause_type': clause_type,
+            'risk_level': risk_level,
+            'concerns': concerns,
+            'recommendations': recommendations,
+            'analysis_timestamp': datetime.now().isoformat()
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Contract analysis service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Clause analysis failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Clause analysis failed: {str(e)}'
+        }), 500
+
+@app.route('/contracts')
+def contracts_page():
+    """Contract analysis page"""
+    try:
+        return render_template('contracts.html',
+                             bagel_available=BAGEL_AI_AVAILABLE)
+    except Exception as e:
+        logger.error(f"Contracts page error: {e}")
+        return render_template_string("""
+        <h1>Contract Analysis</h1>
+        <p>Specialized contract analysis and risk assessment with Bagel RL.</p>
+        <p>Bagel RL Status: {% if bagel_available %}Active{% else %}Training in progress...{% endif %}</p>
+        """, bagel_available=BAGEL_AI_AVAILABLE)
+
 # For Vercel - Deployment v2.1
 app.debug = False
 
@@ -17981,6 +18142,163 @@ def api_home():
                 "features": ["2FA", "Google Analytics", "File Storage"],
                 "note": "Template rendering failed - check template directory"
             })
+
+# ===== SPANISH LANGUAGE SUPPORT API ENDPOINTS =====
+
+@app.route('/api/spanish/translate', methods=['POST'])
+def api_translate_text():
+    """Translate legal text to Spanish"""
+    try:
+        if not SPANISH_AVAILABLE:
+            return jsonify({'error': 'Spanish translation service not available'}), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request data required'}), 400
+        
+        text = data.get('text', '').strip()
+        target_language = data.get('target_language', 'es')
+        legal_context = data.get('legal_context', 'general')
+        
+        if not text:
+            return jsonify({'error': 'Text to translate is required'}), 400
+        
+        if len(text) > 5000:
+            return jsonify({'error': 'Text too long (max 5000 characters)'}), 400
+        
+        # Perform translation
+        result = translate_legal_text(text, target_language, legal_context)
+        
+        logger.info(f"Legal text translation completed - Success: {result['success']}")
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Text translation error: {e}")
+        return jsonify({'error': f'Translation failed: {str(e)}'}), 500
+
+@app.route('/api/spanish/translate-document', methods=['POST'])
+def api_translate_document():
+    """Translate legal document to Spanish"""
+    try:
+        if not SPANISH_AVAILABLE:
+            return jsonify({'error': 'Spanish translation service not available'}), 503
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request data required'}), 400
+        
+        document_text = data.get('document_text', '').strip()
+        document_type = data.get('document_type', 'contract')
+        target_language = data.get('target_language', 'es')
+        
+        if not document_text:
+            return jsonify({'error': 'Document text is required'}), 400
+        
+        if len(document_text) > 50000:
+            return jsonify({'error': 'Document too long (max 50000 characters)'}), 400
+        
+        # Perform document translation
+        result = translate_legal_document(document_text, document_type, target_language)
+        
+        logger.info(f"Legal document translation completed - Success: {result['success']}")
+        return jsonify(result)
+        
+    except Exception as e:
+        logger.error(f"Document translation error: {e}")
+        return jsonify({'error': f'Translation failed: {str(e)}'}), 500
+
+@app.route('/api/spanish/ui-translations', methods=['GET'])
+def api_ui_translations():
+    """Get UI translations for Spanish interface"""
+    try:
+        if not SPANISH_AVAILABLE:
+            return jsonify({'error': 'Spanish translation service not available'}), 503
+        
+        language = request.args.get('language', 'es')
+        
+        # Get all UI translations
+        ui_translations = {}
+        common_keys = [
+            'dashboard', 'clients', 'documents', 'legal_research', 'evidence_analysis',
+            'contracts', 'analytics', 'settings', 'logout', 'welcome_to_lexai',
+            'legal_practice_platform', 'ai_consultations', 'documents_analyzed',
+            'research_queries', 'active_clients', 'practice_overview',
+            'legal_research_title', 'legal_research_subtitle', 'search_query',
+            'search_placeholder', 'filters', 'jurisdiction', 'all_jurisdictions',
+            'federal', 'court_level', 'all_courts', 'date_range', 'all_dates',
+            'practice_area', 'all_practice_areas', 'search_legal_database',
+            'quick_searches', 'contract_analysis', 'contract_analysis_subtitle',
+            'contract_text', 'contract_text_placeholder', 'contract_type',
+            'analysis_depth', 'analyze_contract', 'risk_assessment',
+            'clause_analysis', 'sample_contracts', 'document_analysis',
+            'document_upload', 'drag_drop_files', 'supported_formats',
+            'max_file_size', 'analyze_document', 'privacy_protection',
+            'pii_detection', 'ai_enhancement', 'search', 'analyze', 'upload',
+            'download', 'save', 'cancel', 'close', 'loading', 'error',
+            'success', 'warning', 'info', 'results', 'no_results', 'try_again'
+        ]
+        
+        for key in common_keys:
+            ui_translations[key] = get_ui_translation(key, language)
+        
+        return jsonify({
+            'success': True,
+            'language': language,
+            'translations': ui_translations
+        })
+        
+    except Exception as e:
+        logger.error(f"UI translations error: {e}")
+        return jsonify({'error': f'Failed to get translations: {str(e)}'}), 500
+
+@app.route('/api/spanish/legal-forms', methods=['GET'])
+def api_spanish_legal_forms():
+    """Get Spanish legal form templates"""
+    try:
+        if not SPANISH_AVAILABLE:
+            return jsonify({'error': 'Spanish translation service not available'}), 503
+        
+        forms = get_spanish_legal_forms()
+        
+        return jsonify({
+            'success': True,
+            'forms': forms
+        })
+        
+    except Exception as e:
+        logger.error(f"Spanish legal forms error: {e}")
+        return jsonify({'error': f'Failed to get legal forms: {str(e)}'}), 500
+
+@app.route('/spanish')
+def spanish_interface():
+    """Spanish language interface"""
+    try:
+        if not SPANISH_AVAILABLE:
+            return render_template_string("""
+            <!DOCTYPE html>
+            <html><head><title>LexAI en Español</title></head>
+            <body>
+                <h1>🌐 LexAI en Español</h1>
+                <p>El servicio de traducción al español no está disponible actualmente.</p>
+                <p>Spanish translation service is not currently available.</p>
+                <a href="/">← Volver al inicio / Back to Home</a>
+            </body></html>
+            """)
+        
+        logger.info("Spanish interface accessed")
+        return render_template('spanish_interface.html')
+        
+    except Exception as e:
+        logger.error(f"Spanish interface error: {e}")
+        return render_template_string(f"""
+        <!DOCTYPE html>
+        <html><head><title>LexAI en Español</title></head>
+        <body>
+            <h1>🌐 LexAI en Español</h1>
+            <p>Error loading Spanish interface: {e}</p>
+            <a href="/">← Volver al inicio / Back to Home</a>
+        </body></html>
+        """)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
