@@ -120,6 +120,13 @@
             }
         }
         
+        /* Portrait orientation fix - single column for mobile */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .tools-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
         .tool-showcase {
             background: white;
             border-radius: 12px;
@@ -608,7 +615,7 @@
                         Advanced pattern recognition to detect AI-generated text, identify deepfakes, and authenticate digital communications for legal proceedings.
                     </p>
                     <ul class="tool-features">
-                        <li>GPT/AI-generated text detection</li>
+                        <li>AI-generated text detection</li>
                         <li>Writing style analysis</li>
                         <li>Authenticity confidence scoring</li>
                         <li>Pattern recognition algorithms</li>
@@ -661,6 +668,114 @@
                         <li>Chain of custody documentation</li>
                         <li>Technical methodology details</li>
                         <li>Legal admissibility guidance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Practice Management Suite -->
+    <section class="platform-section" style="background: #f8f9fa;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">⚖️ Complete Practice Management</h2>
+                <p class="section-subtitle">Comprehensive tools to run your entire legal practice efficiently and professionally</p>
+            </div>
+            
+            <div class="tools-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                <div class="tool-showcase">
+                    <div class="tool-icon">👥</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Client Management</h3>
+                    <p class="tool-description">
+                        Complete client relationship management with case tracking, document organization, and secure client portal access.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Client database and contact management</li>
+                        <li>Case matter organization</li>
+                        <li>Client portal for document sharing</li>
+                        <li>Communication history tracking</li>
+                        <li>Secure client file access</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">💰</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Time & Billing</h3>
+                    <p class="tool-description">
+                        Automated time tracking, expense management, and professional invoicing with integrated payment processing.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Automatic time tracking</li>
+                        <li>Professional invoice generation</li>
+                        <li>Stripe payment integration</li>
+                        <li>Expense tracking and categorization</li>
+                        <li>Revenue analytics and reporting</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">📅</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Calendar & Deadlines</h3>
+                    <p class="tool-description">
+                        Never miss important dates with integrated calendar management, court deadline tracking, and team scheduling.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Court deadline management</li>
+                        <li>Appointment scheduling</li>
+                        <li>Team calendar coordination</li>
+                        <li>Automatic deadline reminders</li>
+                        <li>Client booking integration</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">📄</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Document Management</h3>
+                    <p class="tool-description">
+                        Centralized document library with AI-powered analysis, version control, and secure sharing capabilities.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Document library and organization</li>
+                        <li>AI-powered document analysis</li>
+                        <li>Version control and tracking</li>
+                        <li>Secure document sharing</li>
+                        <li>Advanced search and tagging</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">📊</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Analytics & Reporting</h3>
+                    <p class="tool-description">
+                        Comprehensive practice insights with revenue tracking, case analytics, and performance metrics.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Practice performance dashboards</li>
+                        <li>Revenue and billing analytics</li>
+                        <li>Case outcome tracking</li>
+                        <li>Time utilization reports</li>
+                        <li>Client satisfaction metrics</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-icon">🔍</div>
+                    <span class="tool-status">Available Now</span>
+                    <h3 class="tool-title">Legal Research</h3>
+                    <p class="tool-description">
+                        AI-enhanced legal research using free databases with intelligent source ranking and citation management.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Case law and statute research</li>
+                        <li>AI-powered source relevance ranking</li>
+                        <li>Citation management and validation</li>
+                        <li>Multi-jurisdictional coverage</li>
+                        <li>Research history and notes</li>
                     </ul>
                 </div>
             </div>
