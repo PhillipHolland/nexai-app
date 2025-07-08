@@ -1,6 +1,7 @@
 """
 LexAI Practice Partner - Database Models
 Comprehensive database models for legal practice management
+Fixed SQLAlchemy decimal fields for Vercel deployment compatibility
 """
 
 from datetime import datetime, timezone
