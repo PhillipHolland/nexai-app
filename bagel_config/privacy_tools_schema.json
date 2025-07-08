@@ -1,0 +1,134 @@
+{
+  "privacy_tools": {
+    "anonymize_sensitive_data": {
+      "description": "Intelligently anonymize personally identifiable information while preserving legal context",
+      "parameters": {
+        "text": "string - Input text containing sensitive information",
+        "context": "string - Legal context (litigation, contract, research, etc.)",
+        "preservation_level": "string - How much context to preserve (minimal, standard, detailed)"
+      },
+      "returns": "Anonymized text with sensitive data replaced by coded references"
+    },
+    
+    "detect_privilege": {
+      "description": "Identify attorney-client privileged communications and work product",
+      "parameters": {
+        "content": "string - Communication or document content",
+        "communication_type": "string - email, memo, notes, etc.",
+        "participants": "array - List of participants in communication"
+      },
+      "returns": "Privilege analysis with risk assessment and recommendations"
+    },
+    
+    "smart_redaction": {
+      "description": "Contextually redact sensitive information for court filings or discovery",
+      "parameters": {
+        "document": "string - Document content to redact",
+        "redaction_type": "string - public_filing, discovery, settlement, etc.",
+        "jurisdiction": "string - Applicable jurisdiction for redaction rules"
+      },
+      "returns": "Redacted document with explanation of redaction reasoning"
+    },
+    
+    "privacy_risk_assessment": {
+      "description": "Assess privacy risks before sending data to external services",
+      "parameters": {
+        "query": "string - Query or data to be sent externally", 
+        "destination": "string - External service (research_db, ai_service, etc.)",
+        "case_sensitivity": "string - low, medium, high, privileged"
+      },
+      "returns": "Risk assessment with anonymization recommendations"
+    },
+    
+    "generate_privilege_log": {
+      "description": "Auto-generate privilege logs for discovery purposes",
+      "parameters": {
+        "documents": "array - List of documents to analyze",
+        "privilege_basis": "string - Basis for privilege claim",
+        "date_range": "object - Start and end dates for document review"
+      },
+      "returns": "Formatted privilege log with document descriptions and privilege basis"
+    },
+    
+    "contextual_entity_mapping": {
+      "description": "Create consistent anonymization mapping across multiple documents",
+      "parameters": {
+        "documents": "array - Multiple related documents",
+        "entity_types": "array - Types of entities to map (person, company, location, etc.)",
+        "consistency_scope": "string - case, matter, firm_wide"
+      },
+      "returns": "Entity mapping dictionary for consistent anonymization"
+    }
+  },
+  
+  "privacy_workflows": {
+    "secure_legal_research": {
+      "description": "End-to-end privacy-preserved legal research workflow",
+      "steps": [
+        "privacy_risk_assessment",
+        "anonymize_sensitive_data", 
+        "legal_research",
+        "contextual_deanonymization"
+      ]
+    },
+    
+    "privileged_document_review": {
+      "description": "Review documents for privilege before production",
+      "steps": [
+        "detect_privilege",
+        "smart_redaction",
+        "generate_privilege_log",
+        "compliance_verification"
+      ]
+    },
+    
+    "confidential_case_analysis": {
+      "description": "Analyze case strategy while protecting client confidentiality",
+      "steps": [
+        "contextual_entity_mapping",
+        "anonymize_sensitive_data",
+        "case_analysis",
+        "strategic_recommendations"
+      ]
+    }
+  },
+  
+  "compliance_frameworks": {
+    "attorney_client_privilege": {
+      "detection_patterns": [
+        "attorney-client communications",
+        "legal advice requests",
+        "confidential strategy discussions",
+        "settlement negotiations"
+      ],
+      "protection_rules": [
+        "never_anonymize_privilege_basis",
+        "maintain_chronological_context", 
+        "preserve_legal_advice_relationship"
+      ]
+    },
+    
+    "hipaa_compliance": {
+      "phi_detection": [
+        "patient_names",
+        "medical_record_numbers", 
+        "dates_of_service",
+        "healthcare_provider_details"
+      ],
+      "safe_harbor_anonymization": [
+        "remove_direct_identifiers",
+        "generalize_geographic_data",
+        "limit_date_precision"
+      ]
+    },
+    
+    "work_product_doctrine": {
+      "protection_indicators": [
+        "attorney_mental_impressions",
+        "case_strategy_development",
+        "witness_interview_notes",
+        "expert_witness_communications"
+      ]
+    }
+  }
+}

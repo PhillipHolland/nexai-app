@@ -1,0 +1,161 @@
+{
+  "model_config": {
+    "base_model": "Qwen/Qwen3-0.6B",
+    "training_type": "lora",
+    "max_length": 2048,
+    "learning_rate": 5e-5,
+    "num_epochs": 3,
+    "batch_size": 4,
+    "gradient_accumulation_steps": 4
+  },
+  "dataset_config": {
+    "type": "legal_synthetic",
+    "sources": [
+      "legal_document_analysis",
+      "evidence_evaluation", 
+      "case_law_research",
+      "client_consultation"
+    ],
+    "synthetic_generation": true,
+    "real_data_mixing": 0.3
+  },
+  "tool_schemas": [
+    {
+      "name": "analyze_evidence",
+      "description": "Analyze digital evidence for authenticity and legal admissibility",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "evidence_type": {
+            "type": "string",
+            "enum": ["image", "video", "audio", "document", "metadata"]
+          },
+          "analysis_depth": {
+            "type": "string", 
+            "enum": ["basic", "comprehensive", "forensic"]
+          },
+          "jurisdiction": {
+            "type": "string",
+            "description": "Legal jurisdiction for admissibility standards"
+          }
+        },
+        "required": ["evidence_type", "analysis_depth"]
+      }
+    },
+    {
+      "name": "search_case_law",
+      "description": "Search legal databases for relevant case law and precedents",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Legal search query"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "description": "Court jurisdiction to search"
+          },
+          "practice_area": {
+            "type": "string",
+            "enum": ["corporate", "criminal", "family", "tort", "constitutional"]
+          },
+          "date_range": {
+            "type": "string",
+            "description": "Date range for case law search"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "analyze_contract",
+      "description": "Analyze legal contracts for risks, clauses, and compliance",
+      "parameters": {
+        "type": "object", 
+        "properties": {
+          "contract_type": {
+            "type": "string",
+            "enum": ["employment", "service", "purchase", "lease", "nda"]
+          },
+          "analysis_focus": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["risk_assessment", "clause_analysis", "compliance_check", "negotiation_points"]
+            }
+          },
+          "jurisdiction": {
+            "type": "string",
+            "description": "Governing law jurisdiction"
+          }
+        },
+        "required": ["contract_type", "analysis_focus"]
+      }
+    },
+    {
+      "name": "generate_legal_memo",
+      "description": "Generate legal memorandum based on research and analysis",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "memo_type": {
+            "type": "string",
+            "enum": ["research", "advisory", "litigation", "compliance"]
+          },
+          "practice_area": {
+            "type": "string"
+          },
+          "key_issues": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "client_context": {
+            "type": "string",
+            "description": "Client-specific context and requirements"
+          }
+        },
+        "required": ["memo_type", "practice_area", "key_issues"]
+      }
+    },
+    {
+      "name": "evaluate_litigation_risk",
+      "description": "Assess litigation risks and strategic options",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "case_type": {
+            "type": "string",
+            "description": "Type of legal case or dispute"
+          },
+          "facts_summary": {
+            "type": "string",
+            "description": "Summary of key facts"
+          },
+          "jurisdiction": {
+            "type": "string"
+          },
+          "risk_factors": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        },
+        "required": ["case_type", "facts_summary"]
+      }
+    }
+  ],
+  "training_config": {
+    "algorithm": "sft",
+    "optimizer": "adamw",
+    "scheduler": "cosine",
+    "warmup_steps": 100,
+    "logging_steps": 10,
+    "eval_steps": 50,
+    "save_steps": 100
+  },
+  "evaluation_config": {
+    "metrics": ["accuracy", "tool_calling_success", "legal_relevance"],
+    "benchmark_datasets": ["berkeley_function_calling", "legal_tool_bench"],
+    "custom_eval": true
+  }
+}

@@ -18,14 +18,6 @@ from typing import Dict, Any, Optional, List
 from flask import Flask, request, jsonify, render_template_string, render_template, url_for, g, flash, redirect, session
 from dotenv import load_dotenv
 
-# Import privacy service
-try:
-    from privacy_ai_service import PrivacyFirstAI, PrivacyLevel
-    PRIVACY_AI_AVAILABLE = True
-except ImportError:
-    PRIVACY_AI_AVAILABLE = False
-    logger.warning("Privacy AI service not available")
-
 # Set up logging early
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -426,1062 +418,6 @@ def audit_log(action, details=None, matter_id=None):
         return decorated_function
     return decorator
 
-# ============================================
-# FREE LEGAL RESEARCH SYSTEM
-# ============================================
-
-class FreeLegalResearchEngine:
-    """Free legal research system using open source and government databases"""
-    
-    def __init__(self):
-        self.sources = {
-            'justia': 'https://law.justia.com/api/v1',
-            'courtlistener': 'https://www.courtlistener.com/api/rest/v4',
-            'google_scholar': 'https://scholar.google.com',
-            'cornell_law': 'https://www.law.cornell.edu',
-            'free_law_project': 'https://www.courtlistener.com'
-        }
-        # CourtListener API token
-        self.courtlistener_token = os.environ.get('COURTLISTENER_API_KEY', 'b349e3c452c223d107cbcfbd562c5151c56b6e0c')
-        # Congress.gov API key
-        self.congress_api_key = os.environ.get('CONGRESS_API_KEY', '5xc5pb7pS60T4chXVL3uFwWsV7sMR2ccGo8Y8Ykn')
-        
-    def search_case_law(self, query, jurisdiction=None, court=None, date_range=None, limit=20):
-        """Search case law using free sources"""
-        try:
-            results = {
-                'query': query,
-                'jurisdiction': jurisdiction,
-                'court': court,
-                'date_range': date_range,
-                'sources_searched': [],
-                'cases': []
-            }
-            
-            # Search multiple free sources
-            justia_results = self._search_justia_cases(query, jurisdiction, court, limit//2)
-            courtlistener_results = self._search_courtlistener(query, jurisdiction, court, limit//2)
-            
-            # Combine and deduplicate results
-            all_cases = justia_results + courtlistener_results
-            unique_cases = self._deduplicate_cases(all_cases)
-            
-            # Sort by relevance and date
-            sorted_cases = sorted(unique_cases, 
-                                key=lambda x: (x.get('relevance_score', 0), x.get('date', '')), 
-                                reverse=True)
-            
-            results['cases'] = sorted_cases[:limit]
-            results['sources_searched'] = ['Justia Free Law', 'CourtListener']
-            results['total_found'] = len(sorted_cases)
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"Free case law search error: {e}")
-            return self._get_demo_case_results(query)
-    
-    def _search_justia_cases(self, query, jurisdiction, court, limit):
-        """Search Justia Free Law database using their public API"""
-        try:
-            # Justia search uses their case law search endpoint
-            base_url = "https://law.justia.com/cases/search"
-            
-            # Prepare search parameters
-            params = {
-                'q': query,
-                'format': 'json',  # Request JSON response
-                'limit': min(limit, 25)  # Justia allows up to 25 results
-            }
-            
-            # Add jurisdiction filters
-            if jurisdiction:
-                if jurisdiction.lower() == 'federal':
-                    params['court_type'] = 'federal'
-                elif jurisdiction.lower() in ['california', 'ca']:
-                    params['state'] = 'california'
-                elif jurisdiction.lower() in ['new_york', 'ny']:
-                    params['state'] = 'new-york'
-                elif jurisdiction.lower() in ['texas', 'tx']:
-                    params['state'] = 'texas'
-                elif jurisdiction.lower() in ['florida', 'fl']:
-                    params['state'] = 'florida'
-            
-            # Add court level filter
-            if court:
-                if court.lower() == 'supreme':
-                    params['court_level'] = 'supreme'
-                elif court.lower() == 'appellate':
-                    params['court_level'] = 'appellate'
-                elif court.lower() == 'district':
-                    params['court_level'] = 'district'
-            
-            # Make request to Justia (note: actual Justia API structure may vary)
-            # Using a more realistic approach for Justia's case search
-            headers = {
-                'User-Agent': 'LexAI-Legal-Research/1.0',
-                'Accept': 'application/json'
-            }
-            
-            # Try Justia's case search (they may not have a direct JSON API, so we'll simulate)
-            # In practice, this would require parsing their HTML or using their actual API structure
-            response = requests.get(
-                "https://law.justia.com/cases/",
-                params={'q': query},
-                headers=headers,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                # Since Justia doesn't provide a direct JSON API, we'll simulate realistic results
-                # based on the query and provide structured data
-                cases = self._parse_justia_results(query, jurisdiction, limit)
-                logger.info(f"Justia search returned {len(cases)} cases")
-                return cases
-            else:
-                logger.warning(f"Justia request failed: {response.status_code}")
-                return self._get_justia_fallback(query, limit)
-                
-        except Exception as e:
-            logger.error(f"Justia search error: {e}")
-            return self._get_justia_fallback(query, limit)
-    
-    def _parse_justia_results(self, query, jurisdiction, limit):
-        """Generate realistic Justia case results based on query"""
-        # Since Justia doesn't provide a simple JSON API, we'll create intelligent mock results
-        # that reflect real case patterns from Justia's database
-        
-        cases = []
-        query_lower = query.lower()
-        
-        # Contract law cases
-        if any(term in query_lower for term in ['contract', 'agreement', 'breach', 'formation']):
-            cases.extend([
-                {
-                    'case_id': 'justia_contract_001',
-                    'title': 'Hadley v. Baxendale',
-                    'citation': '156 Eng. Rep. 145 (1854)',
-                    'court': 'Court of Exchequer',
-                    'date': '1854-02-23',
-                    'summary': 'Established the rule for consequential damages in contract law. Damages must be foreseeable at the time of contract formation.',
-                    'relevance_score': 95,
-                    'jurisdiction': 'English Common Law',
-                    'url': 'https://law.justia.com/cases/england/exchequer/1854/hadley-v-baxendale.html',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Consequential damages', 'Foreseeability', 'Contract formation']
-                },
-                {
-                    'case_id': 'justia_contract_002',
-                    'title': 'Carlill v. Carbolic Smoke Ball Co.',
-                    'citation': '[1893] 1 Q.B. 256',
-                    'court': 'Court of Appeal',
-                    'date': '1893-01-01',
-                    'summary': 'Landmark case establishing principles of unilateral contracts and consideration in advertising offers.',
-                    'relevance_score': 88,
-                    'jurisdiction': 'English Common Law',
-                    'url': 'https://law.justia.com/cases/england/court-of-appeal/1893/carlill-v-carbolic.html',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Unilateral contract', 'Consideration', 'Advertising offers']
-                }
-            ])
-        
-        # Employment law cases
-        if any(term in query_lower for term in ['employment', 'discrimination', 'workplace', 'labor']):
-            cases.extend([
-                {
-                    'case_id': 'justia_employment_001',
-                    'title': 'McDonnell Douglas Corp. v. Green',
-                    'citation': '411 U.S. 792 (1973)',
-                    'court': 'U.S. Supreme Court',
-                    'date': '1973-05-14',
-                    'summary': 'Established the burden-shifting framework for employment discrimination cases under Title VII.',
-                    'relevance_score': 92,
-                    'jurisdiction': 'Federal',
-                    'url': 'https://law.justia.com/cases/federal/us/411/792/',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Employment discrimination', 'Burden shifting', 'Title VII']
-                },
-                {
-                    'case_id': 'justia_employment_002',
-                    'title': 'Griggs v. Duke Power Co.',
-                    'citation': '401 U.S. 424 (1971)',
-                    'court': 'U.S. Supreme Court',
-                    'date': '1971-03-08',
-                    'summary': 'Prohibited employment practices that are discriminatory in operation, regardless of intent.',
-                    'relevance_score': 89,
-                    'jurisdiction': 'Federal',
-                    'url': 'https://law.justia.com/cases/federal/us/401/424/',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Disparate impact', 'Employment testing', 'Civil rights']
-                }
-            ])
-        
-        # Constitutional law cases
-        if any(term in query_lower for term in ['constitutional', 'amendment', 'rights', 'due process']):
-            cases.extend([
-                {
-                    'case_id': 'justia_constitutional_001',
-                    'title': 'Marbury v. Madison',
-                    'citation': '5 U.S. 137 (1803)',
-                    'court': 'U.S. Supreme Court',
-                    'date': '1803-02-24',
-                    'summary': 'Established the principle of judicial review and the supremacy of the Constitution.',
-                    'relevance_score': 98,
-                    'jurisdiction': 'Federal',
-                    'url': 'https://law.justia.com/cases/federal/us/5/137/',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Judicial review', 'Constitutional supremacy', 'Separation of powers']
-                },
-                {
-                    'case_id': 'justia_constitutional_002',
-                    'title': 'Brown v. Board of Education',
-                    'citation': '347 U.S. 483 (1954)',
-                    'court': 'U.S. Supreme Court',
-                    'date': '1954-05-17',
-                    'summary': 'Declared racial segregation in public schools unconstitutional under the Equal Protection Clause.',
-                    'relevance_score': 96,
-                    'jurisdiction': 'Federal',
-                    'url': 'https://law.justia.com/cases/federal/us/347/483/',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Equal protection', 'Racial segregation', 'Education rights']
-                }
-            ])
-        
-        # Tort law cases
-        if any(term in query_lower for term in ['tort', 'negligence', 'liability', 'damages']):
-            cases.extend([
-                {
-                    'case_id': 'justia_tort_001',
-                    'title': 'Palsgraf v. Long Island Railroad Co.',
-                    'citation': '248 N.Y. 339 (1928)',
-                    'court': 'New York Court of Appeals',
-                    'date': '1928-05-29',
-                    'summary': 'Established the test for proximate cause in negligence cases and the concept of foreseeable plaintiffs.',
-                    'relevance_score': 94,
-                    'jurisdiction': 'New York',
-                    'url': 'https://law.justia.com/cases/new-york/court-of-appeals/1928/palsgraf-v-lirr.html',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Proximate cause', 'Negligence', 'Foreseeability']
-                }
-            ])
-        
-        # Filter by jurisdiction if specified
-        if jurisdiction:
-            cases = [case for case in cases 
-                    if jurisdiction.lower() in case['jurisdiction'].lower() or
-                       jurisdiction.lower() == 'federal' and case['jurisdiction'] == 'Federal']
-        
-        # If no specific matches, provide general results
-        if not cases:
-            cases = [
-                {
-                    'case_id': 'justia_general_001',
-                    'title': f'Legal Precedent Related to: {query[:50]}',
-                    'citation': 'Various Citations',
-                    'court': 'Multiple Courts',
-                    'date': '2024-01-01',
-                    'summary': f'Justia Free Law contains extensive case law related to "{query}". Visit Justia.com for comprehensive search results.',
-                    'relevance_score': 70,
-                    'jurisdiction': jurisdiction.title() if jurisdiction else 'Multiple',
-                    'url': f'https://law.justia.com/cases/search/?q={query.replace(" ", "+")}',
-                    'source': 'Justia Free Law',
-                    'key_passages': ['Legal research', 'Case law']
-                }
-            ]
-        
-        return cases[:limit]
-    
-    def _get_justia_fallback(self, query, limit):
-        """Fallback data when Justia is unavailable"""
-        return [
-            {
-                'case_id': 'justia_fallback_001',
-                'title': f'Justia Case Search: {query[:50]}',
-                'citation': 'Justia Database',
-                'court': 'Multiple Courts',
-                'date': '2024-01-01',
-                'summary': f'Justia Free Law database contains extensive case law. Search temporarily unavailable for "{query}".',
-                'relevance_score': 50,
-                'jurisdiction': 'Multiple',
-                'url': 'https://law.justia.com/cases/',
-                'source': 'Justia Free Law (Demo Mode)',
-                'key_passages': ['Demo', 'Fallback']
-            }
-        ]
-    
-    def _search_courtlistener(self, query, jurisdiction, court, limit):
-        """Search CourtListener database using real API"""
-        try:
-            # Prepare search parameters
-            params = {
-                'q': query,
-                'type': 'o',  # 'o' = opinions (case law)
-                'order_by': 'score desc',
-                'format': 'json'
-            }
-            
-            # Add jurisdiction filter if specified
-            if jurisdiction:
-                if jurisdiction.lower() == 'federal':
-                    params['court__jurisdiction'] = 'F'
-                elif jurisdiction.lower() in ['california', 'ca']:
-                    params['court__jurisdiction'] = 'S'
-                    params['court__id'] = 'cal'
-                elif jurisdiction.lower() in ['new_york', 'ny']:
-                    params['court__jurisdiction'] = 'S'
-                    params['court__id'] = 'ny'
-            
-            # Set page size
-            params['page_size'] = min(limit, 20)  # Max 20 per request
-            
-            # Make API request
-            headers = {
-                'Authorization': f'Token {self.courtlistener_token}',
-                'User-Agent': 'LexAI-Legal-Research/1.0'
-            }
-            
-            response = requests.get(
-                f'{self.sources["courtlistener"]}/search/',
-                params=params,
-                headers=headers,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                cases = []
-                
-                for result in data.get('results', []):
-                    # Extract case information
-                    case_data = {
-                        'case_id': f'cl_{result.get("id", "")}',
-                        'title': result.get('caseName', 'Unknown Case'),
-                        'citation': result.get('citation', [None])[0] if result.get('citation') else 'Citation not available',
-                        'court': result.get('court', 'Unknown Court'),
-                        'date': result.get('dateFiled', 'Unknown Date'),
-                        'summary': result.get('snippet', '').replace('<mark>', '').replace('</mark>', '') or 'No summary available',
-                        'relevance_score': min(100, max(1, int(result.get('score', 50)))),
-                        'jurisdiction': 'Federal' if result.get('court', '').find('U.S.') != -1 else 'State',
-                        'url': f"https://www.courtlistener.com{result.get('absolute_url', '')}",
-                        'source': 'CourtListener',
-                        'key_passages': self._extract_key_terms(result.get('snippet', ''))
-                    }
-                    cases.append(case_data)
-                
-                logger.info(f"CourtListener API returned {len(cases)} cases")
-                return cases
-            
-            else:
-                logger.warning(f"CourtListener API error: {response.status_code}")
-                # Fall back to mock data on API error
-                return self._get_courtlistener_fallback(query, limit)
-                
-        except Exception as e:
-            logger.error(f"CourtListener search error: {e}")
-            # Fall back to mock data on error
-            return self._get_courtlistener_fallback(query, limit)
-    
-    def _extract_key_terms(self, snippet):
-        """Extract key legal terms from case snippet"""
-        if not snippet:
-            return []
-        
-        # Remove HTML markup
-        clean_snippet = snippet.replace('<mark>', '').replace('</mark>', '')
-        
-        # Common legal terms to highlight
-        legal_terms = [
-            'contract', 'liability', 'negligence', 'breach', 'damages', 
-            'constitutional', 'statute', 'regulation', 'precedent', 'jurisdiction',
-            'appeal', 'motion', 'judgment', 'evidence', 'testimony'
-        ]
-        
-        found_terms = []
-        for term in legal_terms:
-            if term.lower() in clean_snippet.lower():
-                found_terms.append(term.title())
-        
-        return found_terms[:3]  # Return max 3 terms
-    
-    def _get_courtlistener_fallback(self, query, limit):
-        """Fallback mock data when CourtListener API is unavailable"""
-        mock_cases = [
-            {
-                'case_id': 'cl_fallback_001',
-                'title': f'Legal Case Related to: {query[:50]}',
-                'citation': '2024 Fed. App. DEMO',
-                'court': 'Demo Court (API Unavailable)',
-                'date': '2024-01-01',
-                'summary': f'This is a fallback result for "{query}". CourtListener API temporarily unavailable.',
-                'relevance_score': 50,
-                'jurisdiction': 'Federal',
-                'url': 'https://www.courtlistener.com/',
-                'source': 'CourtListener (Demo Mode)',
-                'key_passages': ['Demo', 'Fallback']
-            }
-        ]
-        return mock_cases[:limit]
-    
-    def _deduplicate_cases(self, cases):
-        """Remove duplicate cases from multiple sources"""
-        seen_citations = set()
-        unique_cases = []
-        
-        for case in cases:
-            citation = case.get('citation', '')
-            if citation and citation not in seen_citations:
-                seen_citations.add(citation)
-                unique_cases.append(case)
-        
-        return unique_cases
-    
-    def search_statutes(self, query, jurisdiction=None):
-        """Search statutes using Congress.gov API and other government sources"""
-        try:
-            all_statutes = []
-            sources_searched = []
-            
-            # Search federal statutes via Congress.gov API
-            if not jurisdiction or jurisdiction.lower() == 'federal':
-                federal_statutes = self._search_congress_api(query)
-                all_statutes.extend(federal_statutes)
-                sources_searched.append('Congress.gov')
-            
-            # Add state statute search (mock for now, could integrate state APIs later)
-            if jurisdiction and jurisdiction.lower() != 'federal':
-                state_statutes = self._search_state_statutes(query, jurisdiction)
-                all_statutes.extend(state_statutes)
-                sources_searched.append('State Legislatures')
-            
-            return {
-                'query': query,
-                'jurisdiction': jurisdiction,
-                'statutes': all_statutes,
-                'sources_searched': sources_searched,
-                'total_found': len(all_statutes)
-            }
-            
-        except Exception as e:
-            logger.error(f"Statute search error: {e}")
-            return self._get_statute_fallback(query, jurisdiction)
-    
-    def _search_congress_api(self, query, limit=10):
-        """Search Congress.gov API for federal legislation and statutes"""
-        try:
-            statutes = []
-            
-            # Search bills (current and historical legislation)
-            bill_params = {
-                'api_key': self.congress_api_key,
-                'q': query,
-                'limit': limit,
-                'format': 'json',
-                'sort': 'relevance desc'
-            }
-            
-            # Search current bills
-            response = requests.get(
-                'https://api.congress.gov/v3/bill',
-                params=bill_params,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                for bill in data.get('bills', []):
-                    # Extract statute information
-                    statute_data = {
-                        'statute_id': f"congress_{bill.get('number', 'unknown')}",
-                        'title': bill.get('title', 'Unknown Legislation'),
-                        'citation': f"{bill.get('type', 'Bill')} {bill.get('number', '')} ({bill.get('congress', '')}th Congress)",
-                        'jurisdiction': 'Federal',
-                        'text': bill.get('summary', {}).get('text', '') or 'Full text available via Congress.gov',
-                        'source': 'Congress.gov',
-                        'url': bill.get('url', 'https://www.congress.gov/'),
-                        'effective_date': bill.get('introducedDate', 'Unknown'),
-                        'annotations': self._extract_bill_topics(bill),
-                        'related_cases': [],
-                        'status': bill.get('latestAction', {}).get('text', 'Unknown Status'),
-                        'sponsor': bill.get('sponsors', [{}])[0].get('fullName', 'Unknown') if bill.get('sponsors') else 'Unknown'
-                    }
-                    statutes.append(statute_data)
-            
-            # Also search laws (enacted legislation)
-            law_params = {
-                'api_key': self.congress_api_key,
-                'limit': max(1, limit // 2),  # Split between bills and laws
-                'format': 'json'
-            }
-            
-            try:
-                law_response = requests.get(
-                    'https://api.congress.gov/v3/law',
-                    params=law_params,
-                    timeout=10
-                )
-                
-                if law_response.status_code == 200:
-                    law_data = law_response.json()
-                    
-                    for law in law_data.get('laws', []):
-                        # Only include if relevant to query
-                        if query.lower() in law.get('title', '').lower():
-                            law_statute = {
-                                'statute_id': f"law_{law.get('number', 'unknown')}",
-                                'title': law.get('title', 'Federal Law'),
-                                'citation': f"Public Law {law.get('number', '')}",
-                                'jurisdiction': 'Federal',
-                                'text': 'Enacted federal law. Full text available via Congress.gov',
-                                'source': 'Congress.gov (Laws)',
-                                'url': law.get('url', 'https://www.congress.gov/'),
-                                'effective_date': law.get('effectiveDate', 'Unknown'),
-                                'annotations': ['Federal Law', 'Enacted'],
-                                'related_cases': [],
-                                'status': 'Enacted'
-                            }
-                            statutes.append(law_statute)
-            except:
-                pass  # Laws search is optional
-            
-            logger.info(f"Congress.gov API returned {len(statutes)} statutes")
-            return statutes
-            
-        except Exception as e:
-            logger.error(f"Congress.gov API error: {e}")
-            return self._get_congress_fallback(query)
-    
-    def _extract_bill_topics(self, bill):
-        """Extract relevant topics/annotations from bill data"""
-        topics = []
-        
-        # Extract from policy area
-        if bill.get('policyArea', {}).get('name'):
-            topics.append(bill['policyArea']['name'])
-        
-        # Extract from legislative subjects
-        subjects = bill.get('subjects', {}).get('legislativeSubjects', [])
-        for subject in subjects[:3]:  # Max 3 subjects
-            if subject.get('name'):
-                topics.append(subject['name'])
-        
-        # Add bill type as topic
-        if bill.get('type'):
-            topics.append(bill['type'])
-        
-        return topics[:5]  # Max 5 annotations
-    
-    def _search_state_statutes(self, query, jurisdiction):
-        """Search state statutes using real state legislature APIs"""
-        try:
-            if jurisdiction.lower() in ['california', 'ca']:
-                return self._search_california_statutes(query)
-            elif jurisdiction.lower() in ['texas', 'tx']:
-                return self._search_texas_statutes(query)
-            elif jurisdiction.lower() in ['new_york', 'ny']:
-                return self._search_newyork_statutes(query)
-            else:
-                # Fallback for other states
-                return self._get_generic_state_fallback(query, jurisdiction)
-        except Exception as e:
-            logger.error(f"State statute search error: {e}")
-            return self._get_generic_state_fallback(query, jurisdiction)
-    
-    def _search_california_statutes(self, query, limit=10):
-        """Search California Legislative Information API"""
-        try:
-            statutes = []
-            query_lower = query.lower()
-            
-            # California has multiple code sections - search most relevant ones
-            ca_codes = [
-                ('Civil Code', 'CIV'),
-                ('Business and Professions Code', 'BPC'),
-                ('Penal Code', 'PEN'),
-                ('Vehicle Code', 'VEH'),
-                ('Labor Code', 'LAB'),
-                ('Family Code', 'FAM'),
-                ('Government Code', 'GOV')
-            ]
-            
-            # Determine most relevant codes based on query
-            relevant_codes = []
-            if any(term in query_lower for term in ['contract', 'civil', 'property', 'tort']):
-                relevant_codes.append(('Civil Code', 'CIV'))
-            if any(term in query_lower for term in ['business', 'professional', 'license']):
-                relevant_codes.append(('Business and Professions Code', 'BPC'))
-            if any(term in query_lower for term in ['criminal', 'penal', 'crime']):
-                relevant_codes.append(('Penal Code', 'PEN'))
-            if any(term in query_lower for term in ['employment', 'labor', 'worker']):
-                relevant_codes.append(('Labor Code', 'LAB'))
-            if any(term in query_lower for term in ['family', 'marriage', 'divorce', 'child']):
-                relevant_codes.append(('Family Code', 'FAM'))
-            
-            # If no specific matches, use Civil Code as default
-            if not relevant_codes:
-                relevant_codes = [('Civil Code', 'CIV')]
-            
-            # Search California codes (using realistic examples from actual CA law)
-            for code_name, code_abbr in relevant_codes[:3]:  # Max 3 codes
-                ca_statute = self._get_california_statute_examples(query, code_name, code_abbr)
-                if ca_statute:
-                    statutes.extend(ca_statute)
-            
-            return statutes[:limit]
-            
-        except Exception as e:
-            logger.error(f"California statute search error: {e}")
-            return self._get_california_fallback(query)
-    
-    def _get_california_statute_examples(self, query, code_name, code_abbr):
-        """Get relevant California statute examples"""
-        query_lower = query.lower()
-        statutes = []
-        
-        if code_abbr == 'CIV' and any(term in query_lower for term in ['contract', 'agreement', 'breach']):
-            statutes.append({
-                'statute_id': 'ca_civ_1549',
-                'title': 'California Civil Code Section 1549 - Definition of Contract',
-                'citation': 'Cal. Civ. Code § 1549',
-                'jurisdiction': 'California',
-                'text': 'A contract is an agreement to do or not to do a certain thing. It is the law which binds the parties, and it must be supported by consideration.',
-                'source': 'California Legislature',
-                'url': 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=1549&lawCode=CIV',
-                'effective_date': '1872-01-01',
-                'annotations': ['Contract Definition', 'Civil Law', 'California'],
-                'related_cases': ['Contract formation cases']
-            })
-        
-        if code_abbr == 'BPC' and any(term in query_lower for term in ['business', 'professional', 'license']):
-            statutes.append({
-                'statute_id': 'ca_bpc_17200',
-                'title': 'California Business and Professions Code Section 17200 - Unfair Competition',
-                'citation': 'Cal. Bus. & Prof. Code § 17200',
-                'jurisdiction': 'California',
-                'text': 'Unfair competition means any unlawful, unfair or fraudulent business act or practice and unfair, deceptive, untrue or misleading advertising.',
-                'source': 'California Legislature',
-                'url': 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=17200&lawCode=BPC',
-                'effective_date': '1933-01-01',
-                'annotations': ['Unfair Competition', 'Business Law', 'California'],
-                'related_cases': ['UCL cases']
-            })
-        
-        if code_abbr == 'LAB' and any(term in query_lower for term in ['employment', 'labor', 'wage']):
-            statutes.append({
-                'statute_id': 'ca_lab_201',
-                'title': 'California Labor Code Section 201 - Payment of Wages',
-                'citation': 'Cal. Lab. Code § 201',
-                'jurisdiction': 'California',
-                'text': 'If an employer discharges an employee, the wages earned and unpaid at the time of discharge are due and payable immediately.',
-                'source': 'California Legislature',
-                'url': 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=201&lawCode=LAB',
-                'effective_date': '1937-01-01',
-                'annotations': ['Wage Payment', 'Employment Law', 'California'],
-                'related_cases': ['Wage and hour cases']
-            })
-        
-        return statutes
-    
-    def _search_texas_statutes(self, query, limit=10):
-        """Search Texas Legislature Online API"""
-        try:
-            statutes = []
-            query_lower = query.lower()
-            
-            # Texas major codes
-            if any(term in query_lower for term in ['business', 'corporation', 'commercial']):
-                statutes.append({
-                    'statute_id': 'tx_bus_1.002',
-                    'title': 'Texas Business Organizations Code Section 1.002 - Definitions',
-                    'citation': 'Tex. Bus. Orgs. Code § 1.002',
-                    'jurisdiction': 'Texas',
-                    'text': 'This code governs the formation, governance, and termination of domestic entities and the registration and governance of foreign entities.',
-                    'source': 'Texas Legislature',
-                    'url': 'https://statutes.capitol.texas.gov/Docs/BO/htm/BO.1.htm',
-                    'effective_date': '2006-01-01',
-                    'annotations': ['Business Organizations', 'Corporate Law', 'Texas'],
-                    'related_cases': ['Texas corporate cases']
-                })
-            
-            if any(term in query_lower for term in ['property', 'real estate', 'land']):
-                statutes.append({
-                    'statute_id': 'tx_prop_1.01',
-                    'title': 'Texas Property Code Section 1.01 - Short Title',
-                    'citation': 'Tex. Prop. Code § 1.01',
-                    'jurisdiction': 'Texas',
-                    'text': 'This code may be cited as the Property Code. It governs real and personal property transactions in Texas.',
-                    'source': 'Texas Legislature',
-                    'url': 'https://statutes.capitol.texas.gov/Docs/PR/htm/PR.1.htm',
-                    'effective_date': '1984-01-01',
-                    'annotations': ['Property Law', 'Real Estate', 'Texas'],
-                    'related_cases': ['Texas property cases']
-                })
-            
-            if any(term in query_lower for term in ['family', 'divorce', 'marriage', 'child']):
-                statutes.append({
-                    'statute_id': 'tx_fam_1.01',
-                    'title': 'Texas Family Code Section 1.01 - Short Title',
-                    'citation': 'Tex. Fam. Code § 1.01',
-                    'jurisdiction': 'Texas',
-                    'text': 'This code shall be known and may be cited as the Family Code. It governs domestic relations in Texas.',
-                    'source': 'Texas Legislature',
-                    'url': 'https://statutes.capitol.texas.gov/Docs/FA/htm/FA.1.htm',
-                    'effective_date': '1973-01-01',
-                    'annotations': ['Family Law', 'Domestic Relations', 'Texas'],
-                    'related_cases': ['Texas family law cases']
-                })
-            
-            # Default civil practices if no specific match
-            if not statutes:
-                statutes.append({
-                    'statute_id': 'tx_civ_1.01',
-                    'title': 'Texas Civil Practice and Remedies Code Section 1.01',
-                    'citation': 'Tex. Civ. Prac. & Rem. Code § 1.01',
-                    'jurisdiction': 'Texas',
-                    'text': f'Texas civil law provision related to "{query}". This code governs civil procedures and remedies in Texas courts.',
-                    'source': 'Texas Legislature',
-                    'url': 'https://statutes.capitol.texas.gov/Docs/CP/htm/CP.1.htm',
-                    'effective_date': '1985-01-01',
-                    'annotations': ['Civil Procedure', 'Texas Law'],
-                    'related_cases': ['Texas civil cases']
-                })
-            
-            return statutes[:limit]
-            
-        except Exception as e:
-            logger.error(f"Texas statute search error: {e}")
-            return self._get_texas_fallback(query)
-    
-    def _search_newyork_statutes(self, query, limit=10):
-        """Search New York State Legislature API"""
-        try:
-            statutes = []
-            query_lower = query.lower()
-            
-            # New York major laws
-            if any(term in query_lower for term in ['business', 'corporation', 'commercial']):
-                statutes.append({
-                    'statute_id': 'ny_bcl_101',
-                    'title': 'New York Business Corporation Law Section 101 - Definitions',
-                    'citation': 'N.Y. Bus. Corp. Law § 101',
-                    'jurisdiction': 'New York',
-                    'text': 'This chapter shall be known as the Business Corporation Law and governs the formation and operation of business corporations in New York.',
-                    'source': 'New York State Legislature',
-                    'url': 'https://www.nysenate.gov/legislation/laws/BCL/101',
-                    'effective_date': '1961-01-01',
-                    'annotations': ['Corporate Law', 'Business Organizations', 'New York'],
-                    'related_cases': ['NY corporate cases']
-                })
-            
-            if any(term in query_lower for term in ['real property', 'real estate', 'landlord', 'tenant']):
-                statutes.append({
-                    'statute_id': 'ny_rpl_220',
-                    'title': 'New York Real Property Law Section 220 - Landlord and Tenant',
-                    'citation': 'N.Y. Real Prop. Law § 220',
-                    'jurisdiction': 'New York',
-                    'text': 'This section governs the relationship between landlords and tenants, including lease terms and tenant rights.',
-                    'source': 'New York State Legislature',
-                    'url': 'https://www.nysenate.gov/legislation/laws/RPP/220',
-                    'effective_date': '1896-01-01',
-                    'annotations': ['Real Property', 'Landlord-Tenant', 'New York'],
-                    'related_cases': ['NY landlord-tenant cases']
-                })
-            
-            if any(term in query_lower for term in ['employment', 'labor', 'worker']):
-                statutes.append({
-                    'statute_id': 'ny_lab_190',
-                    'title': 'New York Labor Law Section 190 - Payment of Wages',
-                    'citation': 'N.Y. Lab. Law § 190',
-                    'jurisdiction': 'New York',
-                    'text': 'Every employer shall pay the wages of his employees weekly and not later than seven calendar days after the end of the week in which the wages are earned.',
-                    'source': 'New York State Legislature',
-                    'url': 'https://www.nysenate.gov/legislation/laws/LAB/190',
-                    'effective_date': '1966-01-01',
-                    'annotations': ['Wage Payment', 'Employment Law', 'New York'],
-                    'related_cases': ['NY wage and hour cases']
-                })
-            
-            if any(term in query_lower for term in ['criminal', 'penal', 'crime']):
-                statutes.append({
-                    'statute_id': 'ny_pen_1.05',
-                    'title': 'New York Penal Law Section 1.05 - General Purposes',
-                    'citation': 'N.Y. Penal Law § 1.05',
-                    'jurisdiction': 'New York',
-                    'text': 'The general purposes of the provisions of this chapter are to proscribe conduct which unjustifiably and inexcusably causes or threatens harm to individual or public interests.',
-                    'source': 'New York State Legislature',
-                    'url': 'https://www.nysenate.gov/legislation/laws/PEN/1.05',
-                    'effective_date': '1967-01-01',
-                    'annotations': ['Criminal Law', 'Penal Code', 'New York'],
-                    'related_cases': ['NY criminal cases']
-                })
-            
-            # Default civil rights if no specific match
-            if not statutes:
-                statutes.append({
-                    'statute_id': 'ny_cvr_40',
-                    'title': 'New York Civil Rights Law Section 40 - Places of Public Accommodation',
-                    'citation': 'N.Y. Civ. Rights Law § 40',
-                    'jurisdiction': 'New York',
-                    'text': f'New York civil rights provision related to "{query}". All persons shall be entitled to full and equal enjoyment of accommodations and facilities.',
-                    'source': 'New York State Legislature',
-                    'url': 'https://www.nysenate.gov/legislation/laws/CVR/40',
-                    'effective_date': '1913-01-01',
-                    'annotations': ['Civil Rights', 'Public Accommodation', 'New York'],
-                    'related_cases': ['NY civil rights cases']
-                })
-            
-            return statutes[:limit]
-            
-        except Exception as e:
-            logger.error(f"New York statute search error: {e}")
-            return self._get_newyork_fallback(query)
-    
-    def _get_california_fallback(self, query):
-        """Fallback for California search errors"""
-        return [
-            {
-                'statute_id': 'ca_fallback_001',
-                'title': f'California Law Related to: {query[:50]}',
-                'citation': 'Cal. Code § DEMO',
-                'jurisdiction': 'California',
-                'text': f'California statute search temporarily unavailable for "{query}". Visit leginfo.legislature.ca.gov for complete California codes.',
-                'source': 'California Legislature (Demo Mode)',
-                'url': 'https://leginfo.legislature.ca.gov/',
-                'effective_date': '2024-01-01',
-                'annotations': ['Demo', 'California'],
-                'related_cases': []
-            }
-        ]
-    
-    def _get_texas_fallback(self, query):
-        """Fallback for Texas search errors"""
-        return [
-            {
-                'statute_id': 'tx_fallback_001',
-                'title': f'Texas Law Related to: {query[:50]}',
-                'citation': 'Tex. Code § DEMO',
-                'jurisdiction': 'Texas',
-                'text': f'Texas statute search temporarily unavailable for "{query}". Visit capitol.texas.gov for complete Texas statutes.',
-                'source': 'Texas Legislature (Demo Mode)',
-                'url': 'https://capitol.texas.gov/',
-                'effective_date': '2024-01-01',
-                'annotations': ['Demo', 'Texas'],
-                'related_cases': []
-            }
-        ]
-    
-    def _get_newyork_fallback(self, query):
-        """Fallback for New York search errors"""
-        return [
-            {
-                'statute_id': 'ny_fallback_001',
-                'title': f'New York Law Related to: {query[:50]}',
-                'citation': 'N.Y. Code § DEMO',
-                'jurisdiction': 'New York',
-                'text': f'New York statute search temporarily unavailable for "{query}". Visit nysenate.gov for complete New York laws.',
-                'source': 'New York State Legislature (Demo Mode)',
-                'url': 'https://www.nysenate.gov/',
-                'effective_date': '2024-01-01',
-                'annotations': ['Demo', 'New York'],
-                'related_cases': []
-            }
-        ]
-    
-    def _get_generic_state_fallback(self, query, jurisdiction):
-        """Generic fallback for other states"""
-        return [
-            {
-                'statute_id': f'{jurisdiction.lower()}_generic_001',
-                'title': f'{jurisdiction.title()} State Law Related to: {query[:50]}',
-                'citation': f'{jurisdiction.upper()} Code § GENERAL',
-                'jurisdiction': jurisdiction.title(),
-                'text': f'{jurisdiction.title()} state law related to "{query}". State legislature integration available upon request.',
-                'source': f'{jurisdiction.title()} Legislature',
-                'url': f'https://legislature.{jurisdiction.lower()}.gov/',
-                'effective_date': '2024-01-01',
-                'annotations': ['State Law', jurisdiction.title()],
-                'related_cases': []
-            }
-        ]
-    
-    def _get_congress_fallback(self, query):
-        """Fallback data when Congress.gov API is unavailable"""
-        return [
-            {
-                'statute_id': 'congress_fallback_001',
-                'title': f'Federal Legislation Related to: {query[:50]}',
-                'citation': 'Demo Bill (Congress.gov API Unavailable)',
-                'jurisdiction': 'Federal',
-                'text': f'This is a fallback result for "{query}". Congress.gov API temporarily unavailable.',
-                'source': 'Congress.gov (Demo Mode)',
-                'url': 'https://www.congress.gov/',
-                'effective_date': '2024-01-01',
-                'annotations': ['Demo', 'Fallback'],
-                'related_cases': []
-            }
-        ]
-    
-    def _get_statute_fallback(self, query, jurisdiction):
-        """Fallback for general statute search errors"""
-        return {
-            'query': query,
-            'jurisdiction': jurisdiction,
-            'statutes': self._get_congress_fallback(query),
-            'sources_searched': ['Demo Mode'],
-            'total_found': 1,
-            'error': 'API temporarily unavailable'
-        }
-    
-    def analyze_with_ai(self, legal_issue, research_results):
-        """AI analysis using free models or APIs"""
-        try:
-            # Use available AI service (XAI, OpenAI free tier, or local models)
-            analysis_prompt = f"""
-            Analyze this legal issue based on the research results provided:
-            
-            LEGAL ISSUE: {legal_issue}
-            
-            RESEARCH RESULTS:
-            {self._format_research_for_ai(research_results)}
-            
-            Provide a comprehensive legal analysis including:
-            1. Key legal principles
-            2. Relevant precedents and how they apply
-            3. Potential arguments for different positions
-            4. Risk assessment
-            5. Recommended next steps
-            
-            Format as JSON with clear sections.
-            """
-            
-            # Try XAI API if available
-            if os.environ.get('XAI_API_KEY'):
-                return self._get_ai_analysis_xai(analysis_prompt)
-            else:
-                return self._get_mock_ai_analysis(legal_issue, research_results)
-                
-        except Exception as e:
-            logger.error(f"AI analysis error: {e}")
-            return self._get_mock_ai_analysis(legal_issue, research_results)
-    
-    def _get_ai_analysis_xai(self, prompt):
-        """Get AI analysis using XAI API"""
-        try:
-            headers = {
-                'Authorization': f'Bearer {os.environ.get("XAI_API_KEY")}',
-                'Content-Type': 'application/json'
-            }
-            
-            payload = {
-                'model': 'grok-beta',
-                'messages': [
-                    {'role': 'system', 'content': 'You are an expert legal analyst providing comprehensive legal research analysis.'},
-                    {'role': 'user', 'content': prompt}
-                ],
-                'temperature': 0.3,
-                'max_tokens': 2000
-            }
-            
-            response = requests.post(
-                'https://api.x.ai/v1/chat/completions',
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                analysis_text = result['choices'][0]['message']['content']
-                
-                # Try to parse as JSON, fallback to text
-                try:
-                    return json.loads(analysis_text)
-                except:
-                    return {'analysis': analysis_text, 'confidence': 'high'}
-            else:
-                logger.warning(f"XAI API error: {response.status_code}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"XAI analysis error: {e}")
-            return None
-    
-    def _get_mock_ai_analysis(self, legal_issue, research_results):
-        """Provide mock AI analysis when API unavailable"""
-        return {
-            'legal_issue': legal_issue,
-            'key_principles': [
-                'Contract formation requires offer, acceptance, and consideration',
-                'Good faith and fair dealing is implied in all contracts',
-                'Federal law may preempt conflicting state provisions'
-            ],
-            'precedent_analysis': {
-                'supporting_cases': len(research_results.get('cases', [])),
-                'key_holdings': [
-                    'Contract terms must be interpreted in context',
-                    'Employment standards are subject to federal oversight'
-                ]
-            },
-            'risk_assessment': {
-                'overall_risk': 'Medium',
-                'key_risks': [
-                    'Unclear contract terms may favor defendant',
-                    'Federal preemption could limit state law claims'
-                ],
-                'mitigation_strategies': [
-                    'Clarify contract interpretation arguments',
-                    'Research federal vs state law hierarchy'
-                ]
-            },
-            'recommendations': [
-                'Conduct additional research on recent precedents',
-                'Consider alternative legal theories',
-                'Prepare for potential federal preemption arguments'
-            ],
-            'confidence_score': 75,
-            'analysis_timestamp': datetime.utcnow().isoformat()
-        }
-    
-    def _format_research_for_ai(self, research_results):
-        """Format research results for AI analysis"""
-        formatted = ""
-        
-        if 'cases' in research_results:
-            formatted += "RELEVANT CASES:\n"
-            for case in research_results['cases'][:5]:  # Limit to top 5
-                formatted += f"- {case.get('title', 'Unknown')}\n"
-                formatted += f"  Citation: {case.get('citation', 'N/A')}\n"
-                formatted += f"  Summary: {case.get('summary', 'N/A')}\n\n"
-        
-        if 'statutes' in research_results:
-            formatted += "RELEVANT STATUTES:\n"
-            for statute in research_results['statutes'][:3]:  # Limit to top 3
-                formatted += f"- {statute.get('title', 'Unknown')}\n"
-                formatted += f"  Citation: {statute.get('citation', 'N/A')}\n"
-                formatted += f"  Text: {statute.get('text', 'N/A')[:200]}...\n\n"
-        
-        return formatted
-    
-    def _get_demo_case_results(self, query):
-        """Fallback demo results when searches fail"""
-        return {
-            'query': query,
-            'cases': [
-                {
-                    'title': 'Demo Case - Contract Law Example',
-                    'citation': 'Demo Citation 123',
-                    'summary': 'This is a demonstration result. In production, this would show real case law from free sources.',
-                    'source': 'Demo Mode',
-                    'relevance_score': 50
-                }
-            ],
-            'sources_searched': ['Demo Mode'],
-            'total_found': 1,
-            'note': 'Demo results - enable real sources for actual legal research'
-        }
-
-# Initialize free legal research engine
-free_legal_research = FreeLegalResearchEngine()
 
 # Enable 2FA with database detection
 if DATABASE_AVAILABLE and PSYCOPG2_AVAILABLE:
@@ -6857,6 +5793,254 @@ def delete_document(doc_id):
     except Exception as e:
         logger.error(f"Document deletion error: {e}")
         return jsonify({'error': 'Failed to delete document'}), 500
+
+@app.route('/api/legal-research/search', methods=['POST'])
+@rate_limit_decorator  
+def legal_research_search():
+    """AI-powered legal research search across case law and statutes"""
+    try:
+        # Get request data directly
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        query = data.get('query', '').strip()
+        filters = data.get('filters', {})
+        
+        if not query:
+            return jsonify({'error': 'Search query is required'}), 400
+            
+        logger.info(f"Legal research query: {query}")
+        
+        # Basic input validation (simplified to avoid security middleware issues)
+        if len(query) > 500:
+            return jsonify({'error': 'Search query too long'}), 400
+        
+        # Build legal research prompt
+        jurisdiction = filters.get('jurisdiction', '')
+        court = filters.get('court', '')
+        date_range = filters.get('dateRange', '')
+        practice_area = filters.get('practiceArea', '')
+        
+        research_prompt = f"""
+You are an expert legal research AI assistant. Search for relevant case law, statutes, and legal precedents for the following query:
+
+SEARCH QUERY: "{query}"
+
+SEARCH PARAMETERS:
+- Jurisdiction: {jurisdiction or 'All jurisdictions'}
+- Court Level: {court or 'All courts'}
+- Date Range: {date_range or 'All dates'}
+- Practice Area: {practice_area or 'All practice areas'}
+
+Please provide a comprehensive legal research response that includes:
+
+1. AI INSIGHTS: Brief analysis of the legal question and key considerations (2-3 sentences)
+
+2. RELEVANT CASES: Find 3-5 most relevant cases with:
+   - Case name and citation
+   - Court and year
+   - Brief summary of relevance (2-3 sentences)
+   - Relevance score (1-5)
+
+3. APPLICABLE STATUTES: Relevant statutory provisions if applicable
+
+4. LEGAL PRINCIPLES: Key legal principles and precedents
+
+Format your response as JSON with this structure:
+{{
+    "ai_insights": "Brief analysis of the legal question...",
+    "results": [
+        {{
+            "id": "case_1",
+            "title": "Case Name v. Defendant",
+            "citation": "123 F.3d 456 (2nd Cir. 2020)",
+            "type": "Case Law",
+            "summary": "This case established that...",
+            "relevance": 4,
+            "court": "2nd Circuit Court of Appeals",
+            "year": "2020",
+            "jurisdiction": "Federal"
+        }}
+    ]
+}}
+
+Ensure all cases are real and properly cited. If you cannot find sufficient real cases, clearly indicate which results are examples for demonstration purposes.
+"""
+        
+        # Try XAI API if available
+        if XAI_API_KEY:
+            try:
+                payload = {
+                    "model": "grok-3-latest",
+                    "messages": [
+                        {"role": "system", "content": "You are an expert legal research assistant with access to comprehensive legal databases."},
+                        {"role": "user", "content": research_prompt}
+                    ],
+                    "stream": False,
+                    "temperature": 0.3
+                }
+
+                headers = {
+                    "Authorization": f"Bearer {XAI_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+
+                response = requests.post(
+                    'https://api.x.ai/v1/chat/completions',
+                    headers=headers,
+                    json=payload,
+                    timeout=30
+                )
+
+                if response.status_code == 200:
+                    completion = response.json()
+                    if 'choices' in completion and len(completion['choices']) > 0:
+                        ai_response = completion['choices'][0]['message']['content'].strip()
+                        
+                        # Try to parse JSON response
+                        try:
+                            import json
+                            research_data = json.loads(ai_response)
+                            return jsonify(research_data)
+                        except json.JSONDecodeError:
+                            # If JSON parsing fails, use fallback
+                            logger.warning("Failed to parse AI research response as JSON, using fallback")
+                            return jsonify(get_fallback_research_results(query, filters, ai_response))
+                else:
+                    logger.warning(f"XAI API error: {response.status_code}")
+                    return jsonify(get_fallback_research_results(query, filters))
+                    
+            except Exception as e:
+                logger.error(f"XAI API request error: {e}")
+                return jsonify(get_fallback_research_results(query, filters))
+        else:
+            logger.info("XAI API key not available, using fallback results")
+            return jsonify(get_fallback_research_results(query, filters))
+    
+    except Exception as e:
+        logger.error(f"Legal research search error: {e}")
+        # Always return fallback results on error to ensure functionality
+        try:
+            return jsonify(get_fallback_research_results(query or "general legal query", filters or {}))
+        except Exception as fallback_error:
+            logger.error(f"Fallback also failed: {fallback_error}")
+            return jsonify({
+                'error': 'Legal research search failed',
+                'results': [],
+                'ai_insights': 'Search service temporarily unavailable. Please try again later.'
+            }), 500
+
+def get_fallback_research_results(query, filters, ai_response=None):
+    """Generate fallback legal research results when API is unavailable"""
+    
+    # Determine practice area context
+    query_lower = query.lower()
+    practice_context = "general"
+    
+    if any(term in query_lower for term in ['contract', 'agreement', 'breach', 'consideration']):
+        practice_context = "contract"
+    elif any(term in query_lower for term in ['negligence', 'tort', 'liability', 'damages']):
+        practice_context = "tort"
+    elif any(term in query_lower for term in ['constitutional', 'amendment', 'rights', 'due process']):
+        practice_context = "constitutional"
+    elif any(term in query_lower for term in ['employment', 'discrimination', 'workplace', 'labor']):
+        practice_context = "employment"
+    elif any(term in query_lower for term in ['criminal', 'prosecution', 'defense', 'sentence']):
+        practice_context = "criminal"
+    
+    # Mock legal research results based on context
+    fallback_results = {
+        "contract": [
+            {
+                "id": "contract_1",
+                "title": "Hadley v. Baxendale",
+                "citation": "9 Ex. 341, 156 Eng. Rep. 145 (1854)",
+                "type": "Case Law",
+                "summary": "Established the foundational rule for consequential damages in contract law, limiting recovery to damages that were reasonably foreseeable at the time of contract formation.",
+                "relevance": 5,
+                "court": "Court of Exchequer",
+                "year": "1854",
+                "jurisdiction": "English Common Law"
+            },
+            {
+                "id": "contract_2", 
+                "title": "Lucy v. Zehmer",
+                "citation": "196 Va. 493, 84 S.E.2d 516 (1954)",
+                "type": "Case Law",
+                "summary": "Established that the test for contract formation is objective, based on outward expressions rather than subjective intent.",
+                "relevance": 4,
+                "court": "Supreme Court of Virginia",
+                "year": "1954",
+                "jurisdiction": "Virginia"
+            }
+        ],
+        "tort": [
+            {
+                "id": "tort_1",
+                "title": "Palsgraf v. Long Island Railroad Co.",
+                "citation": "248 N.Y. 339, 162 N.E. 99 (1928)",
+                "type": "Case Law", 
+                "summary": "Landmark negligence case establishing the requirement of proximate cause and duty of care to foreseeable plaintiffs.",
+                "relevance": 5,
+                "court": "New York Court of Appeals",
+                "year": "1928",
+                "jurisdiction": "New York"
+            }
+        ],
+        "constitutional": [
+            {
+                "id": "const_1",
+                "title": "Miranda v. Arizona",
+                "citation": "384 U.S. 436 (1966)",
+                "type": "Case Law",
+                "summary": "Established the requirement for law enforcement to inform suspects of their constitutional rights before custodial interrogation.",
+                "relevance": 5,
+                "court": "U.S. Supreme Court",
+                "year": "1966", 
+                "jurisdiction": "Federal"
+            }
+        ],
+        "employment": [
+            {
+                "id": "emp_1",
+                "title": "McDonnell Douglas Corp. v. Green",
+                "citation": "411 U.S. 792 (1973)",
+                "type": "Case Law",
+                "summary": "Established the burden-shifting framework for proving employment discrimination under Title VII.",
+                "relevance": 5,
+                "court": "U.S. Supreme Court", 
+                "year": "1973",
+                "jurisdiction": "Federal"
+            }
+        ]
+    }
+    
+    # Get relevant results or use general examples
+    results = fallback_results.get(practice_context, fallback_results["contract"])
+    
+    # Add some general legal research insights
+    ai_insights = f"Your search for '{query}' relates to {practice_context} law. "
+    if practice_context == "contract":
+        ai_insights += "Key considerations include contract formation, performance, breach, and remedies. Focus on precedents establishing fundamental principles of offer, acceptance, and consideration."
+    elif practice_context == "tort":
+        ai_insights += "Key considerations include duty of care, breach of duty, causation, and damages. Focus on precedents establishing negligence standards and liability limitations."
+    elif practice_context == "constitutional":
+        ai_insights += "Key considerations include constitutional interpretation, individual rights, and government power limitations. Focus on Supreme Court precedents and constitutional amendments."
+    elif practice_context == "employment":
+        ai_insights += "Key considerations include discrimination laws, workplace rights, and employment relationships. Focus on federal statutes like Title VII and relevant court interpretations."
+    else:
+        ai_insights += "Consider reviewing relevant statutes, case law precedents, and jurisdictional variations that may apply to your specific legal question."
+    
+    # If we have AI response but couldn't parse it, include it
+    if ai_response:
+        ai_insights += f" AI Analysis: {ai_response[:500]}..."
+    
+    return {
+        "ai_insights": ai_insights,
+        "results": results,
+        "disclaimer": "These are example results for demonstration. In production, this would search real legal databases."
+    }
 
 
 @app.route('/api/cases/<case_id>/timeline', methods=['GET'])
@@ -16586,6 +15770,282 @@ def client_case_updates():
         return jsonify({"error": "Failed to load case updates"}), 500
 
 # ============================================
+# LEGAL RESEARCH API ENDPOINTS
+# ============================================
+
+@app.route('/api/legal-research/case-law', methods=['POST'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_search_case_law():
+    """Search case law across legal databases"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('query'):
+            return jsonify({'error': 'Search query required'}), 400
+        
+        query = data.get('query', '').strip()
+        jurisdiction = data.get('jurisdiction')
+        date_range = data.get('date_range')
+        limit = min(int(data.get('limit', 50)), 100)  # Max 100 results
+        
+        # Log research activity
+        AuditLogger.log_action(
+            action='legal_research_case_law',
+            details={
+                'query': query,
+                'jurisdiction': jurisdiction,
+                'date_range': date_range,
+                'limit': limit
+            }
+        )
+        
+        # Perform case law search
+        results = legal_research.search_case_law(
+            query=query,
+            jurisdiction=jurisdiction, 
+            date_range=date_range,
+            limit=limit
+        )
+        
+        return jsonify({
+            'success': True,
+            'results': results,
+            'search_timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Case law search API error: {e}")
+        return jsonify({'error': 'Search failed'}), 500
+
+@app.route('/api/legal-research/statutes', methods=['POST'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_search_statutes():
+    """Search statutes and regulations"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('query'):
+            return jsonify({'error': 'Search query required'}), 400
+        
+        query = data.get('query', '').strip()
+        jurisdiction = data.get('jurisdiction')
+        
+        # Log research activity
+        AuditLogger.log_action(
+            action='legal_research_statutes',
+            details={
+                'query': query,
+                'jurisdiction': jurisdiction
+            }
+        )
+        
+        # Perform statute search
+        results = legal_research.search_statutes(
+            query=query,
+            jurisdiction=jurisdiction
+        )
+        
+        return jsonify({
+            'success': True,
+            'results': results,
+            'search_timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Statute search API error: {e}")
+        return jsonify({'error': 'Search failed'}), 500
+
+@app.route('/api/legal-research/analyze-issue', methods=['POST'])
+@require_role('attorney', 'admin')
+def api_analyze_legal_issue():
+    """AI-powered legal issue analysis"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('issue_description'):
+            return jsonify({'error': 'Issue description required'}), 400
+        
+        issue_description = data.get('issue_description', '').strip()
+        relevant_facts = data.get('relevant_facts', [])
+        matter_id = data.get('matter_id')
+        
+        # Log analysis activity
+        AuditLogger.log_action(
+            action='legal_issue_analysis',
+            details={
+                'issue_length': len(issue_description),
+                'facts_provided': len(relevant_facts) if relevant_facts else 0
+            },
+            matter_id=matter_id
+        )
+        
+        # Perform AI analysis
+        analysis = legal_research.analyze_legal_issue(
+            issue_description=issue_description,
+            relevant_facts=relevant_facts
+        )
+        
+        return jsonify({
+            'success': True,
+            'analysis': analysis,
+            'analysis_timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Legal issue analysis API error: {e}")
+        return jsonify({'error': 'Analysis failed'}), 500
+
+@app.route('/api/legal-research/verify-citations', methods=['POST'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_verify_citations():
+    """Verify and validate legal citations"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('citations'):
+            return jsonify({'error': 'Citations list required'}), 400
+        
+        citations = data.get('citations', [])
+        if not isinstance(citations, list):
+            return jsonify({'error': 'Citations must be a list'}), 400
+        
+        # Log citation verification
+        AuditLogger.log_action(
+            action='citation_verification',
+            details={
+                'citations_count': len(citations)
+            }
+        )
+        
+        # Verify citations
+        verification_results = legal_research.verify_citations(citations)
+        
+        return jsonify({
+            'success': True,
+            'verification': verification_results,
+            'verification_timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Citation verification API error: {e}")
+        return jsonify({'error': 'Verification failed'}), 500
+
+@app.route('/api/legal-research/generate-brief', methods=['POST'])
+@require_role('attorney', 'admin')
+def api_generate_research_brief():
+    """Generate legal brief from research results"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('legal_issue'):
+            return jsonify({'error': 'Legal issue description required'}), 400
+        
+        legal_issue = data.get('legal_issue', '').strip()
+        research_results = data.get('research_results', {})
+        matter_id = data.get('matter_id')
+        
+        # Log brief generation
+        AuditLogger.log_action(
+            action='legal_brief_generation',
+            details={
+                'issue': legal_issue,
+                'cases_included': len(research_results.get('cases', [])),
+                'statutes_included': len(research_results.get('statutes', []))
+            },
+            matter_id=matter_id
+        )
+        
+        # Generate brief
+        brief = legal_research.generate_research_brief(
+            research_results=research_results,
+            legal_issue=legal_issue
+        )
+        
+        return jsonify({
+            'success': True,
+            'brief': brief,
+            'generation_timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Brief generation API error: {e}")
+        return jsonify({'error': 'Brief generation failed'}), 500
+
+@app.route('/api/legal-research/save-search', methods=['POST'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_save_research_search():
+    """Save research search for later reference"""
+    try:
+        data = request.get_json()
+        if not data or not data.get('search_name'):
+            return jsonify({'error': 'Search name required'}), 400
+        
+        search_name = data.get('search_name', '').strip()
+        search_query = data.get('search_query', '')
+        search_type = data.get('search_type', 'case_law')  # case_law, statutes, issue_analysis
+        search_parameters = data.get('search_parameters', {})
+        matter_id = data.get('matter_id')
+        
+        # Create saved search entry
+        saved_search = {
+            'search_id': f"search-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
+            'search_name': search_name,
+            'search_query': search_query,
+            'search_type': search_type,
+            'search_parameters': search_parameters,
+            'matter_id': matter_id,
+            'created_by': session.get('user_email', ''),
+            'created_at': datetime.utcnow().isoformat()
+        }
+        
+        # Log search save
+        AuditLogger.log_action(
+            action='research_search_saved',
+            details={
+                'search_name': search_name,
+                'search_type': search_type
+            },
+            matter_id=matter_id
+        )
+        
+        # In production, save to database
+        # For demo, store in session
+        if 'saved_searches' not in session:
+            session['saved_searches'] = []
+        session['saved_searches'].append(saved_search)
+        
+        return jsonify({
+            'success': True,
+            'saved_search': saved_search,
+            'message': 'Search saved successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Save search API error: {e}")
+        return jsonify({'error': 'Failed to save search'}), 500
+
+@app.route('/api/legal-research/saved-searches', methods=['GET'])
+@require_role('paralegal', 'attorney', 'admin')
+def api_get_saved_searches():
+    """Get user's saved research searches"""
+    try:
+        user_email = session.get('user_email', '')
+        matter_id = request.args.get('matter_id')
+        
+        # Get saved searches from session (in production, query database)
+        all_searches = session.get('saved_searches', [])
+        
+        # Filter by user and optionally by matter
+        user_searches = [s for s in all_searches if s['created_by'] == user_email]
+        if matter_id:
+            user_searches = [s for s in user_searches if s.get('matter_id') == matter_id]
+        
+        return jsonify({
+            'success': True,
+            'saved_searches': user_searches,
+            'total': len(user_searches)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get saved searches API error: {e}")
+        return jsonify({'error': 'Failed to retrieve saved searches'}), 500
+
+# ============================================
 # MATTER-LEVEL ACCESS CONTROL API ENDPOINTS
 # ============================================
 
@@ -17067,336 +16527,6 @@ def api_admin_update_settings():
         logger.error(f"Admin update settings error: {e}")
         return jsonify({'error': 'Failed to update settings'}), 500
 
-# ============================================
-# FREE LEGAL RESEARCH API ENDPOINTS
-# ============================================
-
-@app.route('/legal-research')
-@permission_required('view_research')
-def legal_research_page():
-    """Free legal research page using open source databases"""
-    try:
-        return render_template('legal_research.html',
-                               user_role=session.get('user_role', ''),
-                               user_name=session.get('user_name', 'User'))
-    except Exception as e:
-        logger.error(f"Legal research page error: {e}")
-        return f"""<!DOCTYPE html>
-<html><head><title>LexAI Free Legal Research</title></head>
-<body><h1>🏛️ LexAI Free Legal Research</h1>
-<p>Page loading error: {e}</p>
-<a href="/dashboard">Back to Dashboard</a></body></html>"""
-
-@app.route('/api/free-legal-research/search', methods=['POST'])
-@rate_limit_decorator
-@permission_required('view_research')
-def api_free_legal_search():
-    """Comprehensive legal search using free sources"""
-    try:
-        data = request.get_json()
-        if not data or not data.get('query'):
-            return jsonify({'error': 'Search query required'}), 400
-        
-        query = data.get('query', '').strip()
-        search_type = data.get('search_type', 'comprehensive')  # cases, statutes, comprehensive
-        jurisdiction = data.get('jurisdiction')
-        court = data.get('court')
-        date_range = data.get('date_range')
-        limit = min(int(data.get('limit', 20)), 50)  # Max 50 results for free tier
-        
-        # Log research activity
-        AuditLogger.log_action(
-            action='free_legal_research',
-            details={
-                'query': query[:100],  # Truncate for logging
-                'search_type': search_type,
-                'jurisdiction': jurisdiction,
-                'court': court
-            }
-        )
-        
-        results = {'search_metadata': {
-            'query': query,
-            'search_type': search_type,
-            'sources_used': [],
-            'search_timestamp': datetime.utcnow().isoformat()
-        }}
-        
-        # Search based on type
-        if search_type in ['cases', 'comprehensive']:
-            case_results = free_legal_research.search_case_law(
-                query, jurisdiction, court, date_range, limit
-            )
-            results['cases'] = case_results
-            
-        if search_type in ['statutes', 'comprehensive']:
-            statute_results = free_legal_research.search_statutes(query, jurisdiction)
-            results['statutes'] = statute_results
-            
-        # Add AI analysis if available
-        if search_type == 'comprehensive':
-            ai_analysis = free_legal_research.analyze_with_ai(query, results)
-            results['ai_analysis'] = ai_analysis
-        
-        # Update sources used
-        sources_used = set()
-        if 'cases' in results:
-            sources_used.update(results['cases'].get('sources_searched', []))
-        if 'statutes' in results:
-            sources_used.update(results['statutes'].get('sources_searched', []))
-        
-        results['search_metadata']['sources_used'] = list(sources_used)
-        results['search_metadata']['total_results'] = (
-            results.get('cases', {}).get('total_found', 0) + 
-            results.get('statutes', {}).get('total_found', 0)
-        )
-        
-        return jsonify({
-            'success': True,
-            'results': results,
-            'disclaimer': 'Results from free legal databases. Always verify with official sources and consult qualified legal counsel.'
-        })
-        
-    except Exception as e:
-        logger.error(f"Free legal search error: {e}")
-        return jsonify({'error': 'Legal search failed', 'details': str(e)}), 500
-
-@app.route('/api/free-legal-research/cases', methods=['POST'])
-@rate_limit_decorator
-@permission_required('view_research')
-def api_free_case_search():
-    """Search case law using free sources"""
-    try:
-        data = request.get_json()
-        if not data or not data.get('query'):
-            return jsonify({'error': 'Search query required'}), 400
-        
-        query = data.get('query', '').strip()
-        jurisdiction = data.get('jurisdiction')
-        court = data.get('court')
-        date_range = data.get('date_range')
-        limit = min(int(data.get('limit', 20)), 50)
-        
-        # Search case law
-        results = free_legal_research.search_case_law(
-            query, jurisdiction, court, date_range, limit
-        )
-        
-        # Log activity
-        AuditLogger.log_action(
-            action='free_case_search',
-            details={
-                'query': query[:100],
-                'results_count': len(results.get('cases', [])),
-                'jurisdiction': jurisdiction
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'results': results,
-            'disclaimer': 'Free case law results. Verify citations and consult official sources.'
-        })
-        
-    except Exception as e:
-        logger.error(f"Free case search error: {e}")
-        return jsonify({'error': 'Case search failed'}), 500
-
-@app.route('/api/free-legal-research/statutes', methods=['POST'])
-@rate_limit_decorator  
-@permission_required('view_research')
-def api_free_statute_search():
-    """Search statutes using free government sources"""
-    try:
-        data = request.get_json()
-        if not data or not data.get('query'):
-            return jsonify({'error': 'Search query required'}), 400
-        
-        query = data.get('query', '').strip()
-        jurisdiction = data.get('jurisdiction')
-        
-        # Search statutes
-        results = free_legal_research.search_statutes(query, jurisdiction)
-        
-        # Log activity
-        AuditLogger.log_action(
-            action='free_statute_search',
-            details={
-                'query': query[:100],
-                'results_count': len(results.get('statutes', [])),
-                'jurisdiction': jurisdiction
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'results': results,
-            'disclaimer': 'Free statute results from government sources. Always verify with current official publications.'
-        })
-        
-    except Exception as e:
-        logger.error(f"Free statute search error: {e}")
-        return jsonify({'error': 'Statute search failed'}), 500
-
-@app.route('/api/free-legal-research/analyze', methods=['POST'])
-@rate_limit_decorator
-@permission_required('view_research')
-def api_free_legal_analysis():
-    """AI-powered legal analysis using free models"""
-    try:
-        data = request.get_json()
-        if not data or not data.get('legal_issue'):
-            return jsonify({'error': 'Legal issue description required'}), 400
-        
-        legal_issue = data.get('legal_issue', '').strip()
-        research_results = data.get('research_results', {})
-        
-        # Get AI analysis
-        analysis = free_legal_research.analyze_with_ai(legal_issue, research_results)
-        
-        # Log activity
-        AuditLogger.log_action(
-            action='free_legal_analysis',
-            details={
-                'legal_issue': legal_issue[:100],
-                'has_research_data': bool(research_results),
-                'confidence_score': analysis.get('confidence_score', 0)
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'analysis': analysis,
-            'disclaimer': 'AI analysis for informational purposes only. Not a substitute for professional legal advice.'
-        })
-        
-    except Exception as e:
-        logger.error(f"Free legal analysis error: {e}")
-        return jsonify({'error': 'Legal analysis failed'}), 500
-
-@app.route('/api/free-legal-research/export', methods=['POST'])
-@rate_limit_decorator
-@permission_required('view_research')
-def api_export_research():
-    """Export research results to various formats"""
-    try:
-        data = request.get_json()
-        if not data or not data.get('research_data'):
-            return jsonify({'error': 'Research data required'}), 400
-        
-        research_data = data.get('research_data')
-        export_format = data.get('format', 'markdown')  # markdown, pdf, docx
-        include_analysis = data.get('include_analysis', True)
-        
-        # Generate export content
-        if export_format == 'markdown':
-            export_content = generate_markdown_research_report(research_data, include_analysis)
-            content_type = 'text/markdown'
-        elif export_format == 'json':
-            export_content = json.dumps(research_data, indent=2)
-            content_type = 'application/json'
-        else:
-            return jsonify({'error': 'Unsupported export format'}), 400
-        
-        # Log export activity
-        AuditLogger.log_action(
-            action='research_export',
-            details={
-                'format': export_format,
-                'include_analysis': include_analysis,
-                'data_size': len(str(research_data))
-            }
-        )
-        
-        return jsonify({
-            'success': True,
-            'content': export_content,
-            'content_type': content_type,
-            'filename': f'legal_research_{datetime.utcnow().strftime("%Y%m%d_%H%M")}.{export_format}'
-        })
-        
-    except Exception as e:
-        logger.error(f"Research export error: {e}")
-        return jsonify({'error': 'Export failed'}), 500
-
-def generate_markdown_research_report(research_data, include_analysis=True):
-    """Generate a markdown research report"""
-    try:
-        report = []
-        report.append("# Legal Research Report")
-        report.append(f"\n**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
-        
-        # Add search metadata
-        if 'search_metadata' in research_data:
-            metadata = research_data['search_metadata']
-            report.append(f"\n**Query:** {metadata.get('query', 'N/A')}")
-            report.append(f"**Sources:** {', '.join(metadata.get('sources_used', []))}")
-            report.append(f"**Total Results:** {metadata.get('total_results', 0)}")
-        
-        # Add cases
-        if 'cases' in research_data and research_data['cases'].get('cases'):
-            report.append("\n## Case Law Results")
-            for i, case in enumerate(research_data['cases']['cases'], 1):
-                report.append(f"\n### {i}. {case.get('title', 'Unknown Case')}")
-                report.append(f"**Citation:** {case.get('citation', 'N/A')}")
-                report.append(f"**Court:** {case.get('court', 'N/A')}")
-                report.append(f"**Date:** {case.get('date', 'N/A')}")
-                report.append(f"**Source:** {case.get('source', 'N/A')}")
-                if case.get('url'):
-                    report.append(f"**URL:** {case['url']}")
-                report.append(f"\n**Summary:** {case.get('summary', 'N/A')}")
-                if case.get('key_passages'):
-                    report.append(f"**Key Terms:** {', '.join(case['key_passages'])}")
-        
-        # Add statutes
-        if 'statutes' in research_data and research_data['statutes'].get('statutes'):
-            report.append("\n## Statutory Provisions")
-            for i, statute in enumerate(research_data['statutes']['statutes'], 1):
-                report.append(f"\n### {i}. {statute.get('title', 'Unknown Statute')}")
-                report.append(f"**Citation:** {statute.get('citation', 'N/A')}")
-                report.append(f"**Jurisdiction:** {statute.get('jurisdiction', 'N/A')}")
-                report.append(f"**Source:** {statute.get('source', 'N/A')}")
-                report.append(f"**Effective Date:** {statute.get('effective_date', 'N/A')}")
-                if statute.get('url'):
-                    report.append(f"**URL:** {statute['url']}")
-                report.append(f"\n**Text:** {statute.get('text', 'N/A')}")
-        
-        # Add AI analysis
-        if include_analysis and 'ai_analysis' in research_data:
-            analysis = research_data['ai_analysis']
-            report.append("\n## AI Legal Analysis")
-            
-            if analysis.get('key_principles'):
-                report.append("\n### Key Legal Principles")
-                for principle in analysis['key_principles']:
-                    report.append(f"- {principle}")
-            
-            if analysis.get('risk_assessment'):
-                risk = analysis['risk_assessment']
-                report.append(f"\n### Risk Assessment")
-                report.append(f"**Overall Risk:** {risk.get('overall_risk', 'N/A')}")
-                if risk.get('key_risks'):
-                    report.append("\n**Key Risks:**")
-                    for risk_item in risk['key_risks']:
-                        report.append(f"- {risk_item}")
-            
-            if analysis.get('recommendations'):
-                report.append("\n### Recommendations")
-                for rec in analysis['recommendations']:
-                    report.append(f"- {rec}")
-        
-        # Add disclaimer
-        report.append("\n---")
-        report.append("\n**DISCLAIMER:** This research report is generated from free legal databases and AI analysis. ")
-        report.append("Results are for informational purposes only and do not constitute legal advice. ")
-        report.append("Always verify information with official sources and consult qualified legal counsel.")
-        
-        return "\n".join(report)
-        
-    except Exception as e:
-        logger.error(f"Markdown generation error: {e}")
-        return f"# Legal Research Report\n\nError generating report: {str(e)}"
-
 # Error handlers
 @app.errorhandler(404)
 def not_found(e):
@@ -17406,129 +16536,6 @@ def not_found(e):
 def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
-
-# Privacy-First AI Service Routes
-@app.route('/api/privacy/anonymize', methods=['POST'])
-def privacy_anonymize():
-    """Anonymize sensitive data for AI processing"""
-    try:
-        if not PRIVACY_AI_AVAILABLE:
-            return jsonify({'error': 'Privacy service not available'}), 503
-            
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({'error': 'Text required'}), 400
-        
-        privacy_ai = PrivacyFirstAI()
-        
-        result = privacy_ai.anonymize_for_ai_processing(
-            text=data['text'],
-            context=data.get('context', 'general'),
-            privacy_level=PrivacyLevel(data.get('privacy_level', 'confidential'))
-        )
-        
-        return jsonify({
-            'success': True,
-            'anonymized_text': result.anonymized_text,
-            'confidence_score': result.confidence_score,
-            'entities_redacted': result.redacted_entities,
-            'privacy_level': result.privacy_level.value
-        })
-        
-    except Exception as e:
-        logger.error(f"Privacy anonymization failed: {e}")
-        return jsonify({'error': 'Anonymization failed'}), 500
-
-@app.route('/api/privacy/secure-query', methods=['POST'])
-def privacy_secure_query():
-    """Process AI query with automatic privacy protection"""
-    try:
-        if not PRIVACY_AI_AVAILABLE:
-            return jsonify({'error': 'Privacy service not available'}), 503
-            
-        data = request.get_json()
-        if not data or 'query' not in data:
-            return jsonify({'error': 'Query required'}), 400
-        
-        privacy_ai = PrivacyFirstAI()
-        
-        result = privacy_ai.secure_ai_query(
-            query=data['query'],
-            context=data.get('context', 'legal_research'),
-            privacy_level=PrivacyLevel(data.get('privacy_level', 'confidential'))
-        )
-        
-        return jsonify({
-            'success': True,
-            'response': result['response'],
-            'privacy_metadata': result['privacy_metadata'],
-            'query_hash': result['original_query_hash']
-        })
-        
-    except Exception as e:
-        logger.error(f"Secure query failed: {e}")
-        return jsonify({'error': 'Secure query failed'}), 500
-
-@app.route('/api/privacy/risk-assessment', methods=['POST'])
-def privacy_risk_assessment():
-    """Assess privacy risks before sending data externally"""
-    try:
-        if not PRIVACY_AI_AVAILABLE:
-            return jsonify({'error': 'Privacy service not available'}), 503
-            
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({'error': 'Text required'}), 400
-        
-        privacy_ai = PrivacyFirstAI()
-        
-        # Analyze for sensitive content
-        anonymization_result = privacy_ai.anonymize_for_ai_processing(
-            text=data['text'],
-            context=data.get('context', 'general')
-        )
-        
-        # Calculate risk level
-        entities_found = len(anonymization_result.redacted_entities)
-        text_length = len(data['text'])
-        
-        if entities_found > 5 or any('privileged' in entity.lower() for entity in anonymization_result.redacted_entities):
-            risk_level = 'HIGH'
-            recommendation = 'Use on-premises processing only'
-        elif entities_found > 2:
-            risk_level = 'MEDIUM' 
-            recommendation = 'Anonymize before external processing'
-        else:
-            risk_level = 'LOW'
-            recommendation = 'Safe for external processing'
-        
-        return jsonify({
-            'success': True,
-            'risk_level': risk_level,
-            'entities_detected': entities_found,
-            'entity_types': anonymization_result.redacted_entities,
-            'confidence_score': anonymization_result.confidence_score,
-            'recommendation': recommendation,
-            'safe_to_process_externally': risk_level == 'LOW'
-        })
-        
-    except Exception as e:
-        logger.error(f"Privacy risk assessment failed: {e}")
-        return jsonify({'error': 'Risk assessment failed'}), 500
-
-@app.route('/privacy-dashboard')
-def privacy_dashboard():
-    """Privacy dashboard page"""
-    try:
-        return render_template('privacy_dashboard.html',
-                             privacy_available=PRIVACY_AI_AVAILABLE)
-    except Exception as e:
-        logger.error(f"Privacy dashboard error: {e}")
-        return render_template_string("""
-        <h1>Privacy Dashboard</h1>
-        <p>Privacy features will be available when Bagel RL training completes.</p>
-        <p>Current Status: Training in progress...</p>
-        """)
 
 # For Vercel - Deployment v2.1
 app.debug = False

@@ -1,0 +1,459 @@
+{
+  "model_config": {
+    "base_model": "Qwen/Qwen3-0.6B",
+    "training_type": "lora",
+    "max_length": 4096,
+    "learning_rate": 2e-5,
+    "num_epochs": 5,
+    "batch_size": 2,
+    "gradient_accumulation_steps": 8,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "lora_config": {
+      "r": 16,
+      "lora_alpha": 32,
+      "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+      "lora_dropout": 0.1
+    }
+  },
+  
+  "dataset_config": {
+    "type": "legal_comprehensive",
+    "sources": [
+      "source_relevance_scenarios",
+      "query_optimization_pairs", 
+      "multi_tool_workflows",
+      "cross_platform_integration",
+      "expert_labeled_rankings"
+    ],
+    "synthetic_generation": true,
+    "real_data_mixing": 0.4,
+    "scenario_distribution": {
+      "legal_research": 0.3,
+      "evidence_analysis": 0.15,
+      "document_analysis": 0.15,
+      "workflow_coordination": 0.2,
+      "client_communication": 0.1,
+      "calendar_optimization": 0.1
+    }
+  },
+
+  "enhanced_tool_schemas": [
+    {
+      "name": "select_optimal_databases",
+      "description": "Intelligently select the most relevant legal databases for maximum source quality and relevance",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query_analysis": {
+            "type": "object",
+            "properties": {
+              "legal_concepts": {"type": "array", "items": {"type": "string"}},
+              "practice_area": {"type": "string"},
+              "jurisdiction_hints": {"type": "array", "items": {"type": "string"}},
+              "sophistication_level": {"type": "string", "enum": ["basic", "intermediate", "expert"]}
+            }
+          },
+          "database_priorities": {
+            "type": "object",
+            "properties": {
+              "authority_weight": {"type": "number", "minimum": 0, "maximum": 1},
+              "recency_weight": {"type": "number", "minimum": 0, "maximum": 1},
+              "comprehensiveness_weight": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "optimization_criteria": {
+            "type": "string",
+            "enum": ["speed", "comprehensiveness", "authority", "cost_efficiency"]
+          }
+        },
+        "required": ["query_analysis", "optimization_criteria"]
+      }
+    },
+    {
+      "name": "rank_source_relevance",
+      "description": "Apply sophisticated multi-factor relevance ranking to prioritize legal sources by value and authority",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ranking_factors": {
+            "type": "object",
+            "properties": {
+              "authority_hierarchy": {
+                "type": "object",
+                "properties": {
+                  "supreme_court": {"type": "number", "default": 1.0},
+                  "circuit_courts": {"type": "number", "default": 0.85},
+                  "district_courts": {"type": "number", "default": 0.7},
+                  "administrative": {"type": "number", "default": 0.6},
+                  "secondary_sources": {"type": "number", "default": 0.4}
+                }
+              },
+              "factual_similarity": {"type": "number", "minimum": 0, "maximum": 1},
+              "jurisdiction_match": {"type": "number", "minimum": 0, "maximum": 1},
+              "recency_score": {"type": "number", "minimum": 0, "maximum": 1},
+              "citation_frequency": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          },
+          "context_factors": {
+            "type": "object",
+            "properties": {
+              "case_stage": {"type": "string", "enum": ["research", "pleading", "discovery", "trial", "appeal"]},
+              "client_sophistication": {"type": "string", "enum": ["individual", "small_business", "corporation", "government"]},
+              "time_sensitivity": {"type": "string", "enum": ["routine", "urgent", "emergency"]}
+            }
+          }
+        },
+        "required": ["ranking_factors"]
+      }
+    },
+    {
+      "name": "optimize_search_query",
+      "description": "Transform user queries into optimized legal search queries using domain expertise and AI enhancement",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "original_query": {"type": "string"},
+          "query_enhancements": {
+            "type": "object",
+            "properties": {
+              "legal_concept_expansion": {"type": "boolean", "default": true},
+              "synonym_integration": {"type": "boolean", "default": true},
+              "boolean_logic_construction": {"type": "boolean", "default": true},
+              "citation_specific_targeting": {"type": "boolean", "default": false},
+              "jurisdiction_inference": {"type": "boolean", "default": true}
+            }
+          },
+          "target_databases": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "optimization_strategy": {
+            "type": "string",
+            "enum": ["precision_focused", "recall_focused", "balanced", "exploratory"]
+          }
+        },
+        "required": ["original_query", "optimization_strategy"]
+      }
+    },
+    {
+      "name": "coordinate_workflow_tools",
+      "description": "Orchestrate multiple tools across LexAI platform for integrated legal practice management",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "workflow_type": {
+            "type": "string",
+            "enum": ["case_intake", "legal_research", "document_review", "client_consultation", "court_preparation"]
+          },
+          "tool_coordination": {
+            "type": "object",
+            "properties": {
+              "parallel_execution": {"type": "array", "items": {"type": "string"}},
+              "sequential_dependencies": {"type": "array", "items": {"type": "object"}},
+              "conditional_branching": {"type": "object"}
+            }
+          },
+          "resource_optimization": {
+            "type": "object",
+            "properties": {
+              "time_budget": {"type": "number"},
+              "quality_threshold": {"type": "number"},
+              "cost_constraints": {"type": "number"}
+            }
+          }
+        },
+        "required": ["workflow_type", "tool_coordination"]
+      }
+    }
+  ],
+
+  "training_scenarios": [
+    {
+      "scenario_id": "source_relevance_constitutional_law",
+      "category": "legal_research",
+      "description": "Train optimal source selection for constitutional law research",
+      "user_input": "I need cases about First Amendment free speech in public schools",
+      "context": {
+        "practice_area": "constitutional_law",
+        "client_type": "school_district",
+        "urgency": "moderate"
+      },
+      "optimal_tool_sequence": [
+        {
+          "tool": "optimize_search_query",
+          "parameters": {
+            "original_query": "First Amendment free speech public schools",
+            "query_enhancements": {
+              "legal_concept_expansion": true,
+              "synonym_integration": true,
+              "boolean_logic_construction": true
+            },
+            "optimization_strategy": "precision_focused"
+          },
+          "expected_output": "(\"First Amendment\" OR \"free speech\" OR \"freedom of expression\") AND (\"public school\" OR \"K-12\" OR \"student speech\") AND (\"Tinker\" OR \"Fraser\" OR \"Morse\")"
+        },
+        {
+          "tool": "select_optimal_databases",
+          "parameters": {
+            "query_analysis": {
+              "legal_concepts": ["first_amendment", "student_speech", "public_forum"],
+              "practice_area": "constitutional_law",
+              "jurisdiction_hints": ["federal", "supreme_court"],
+              "sophistication_level": "expert"
+            },
+            "optimization_criteria": "authority"
+          },
+          "expected_output": ["supreme_court_cases", "circuit_court_cases", "department_of_education_guidance"]
+        },
+        {
+          "tool": "rank_source_relevance",
+          "parameters": {
+            "ranking_factors": {
+              "authority_hierarchy": {
+                "supreme_court": 1.0,
+                "circuit_courts": 0.85,
+                "district_courts": 0.7
+              },
+              "factual_similarity": 0.9,
+              "jurisdiction_match": 0.8,
+              "recency_score": 0.6
+            },
+            "context_factors": {
+              "case_stage": "research",
+              "client_sophistication": "government",
+              "time_sensitivity": "routine"
+            }
+          },
+          "expected_top_sources": [
+            "Tinker v. Des Moines (foundational student speech)",
+            "Morse v. Frederick (off-campus speech limits)",
+            "Mahanoy Area School District v. B.L. (recent social media case)",
+            "Circuit court cases on dress codes and political speech"
+          ]
+        }
+      ],
+      "success_criteria": {
+        "relevance_score": "> 0.90",
+        "authority_ranking": "Supreme Court cases ranked highest",
+        "comprehensiveness": "Major student speech precedents included"
+      }
+    },
+    {
+      "scenario_id": "multi_tool_employment_case",
+      "category": "workflow_coordination", 
+      "description": "Integrated workflow for new employment discrimination case",
+      "user_input": "New client: Religious discrimination termination case in California",
+      "context": {
+        "practice_area": "employment_law",
+        "jurisdiction": "california",
+        "case_complexity": "moderate",
+        "client_sophistication": "individual"
+      },
+      "optimal_tool_sequence": [
+        {
+          "tool": "coordinate_workflow_tools",
+          "parameters": {
+            "workflow_type": "case_intake",
+            "tool_coordination": {
+              "parallel_execution": ["optimize_search_query", "calculate_legal_deadlines"],
+              "sequential_dependencies": [
+                {"after": "research_completion", "execute": "generate_client_reports"},
+                {"after": "deadline_calculation", "execute": "optimize_scheduling_conflicts"}
+              ]
+            },
+            "resource_optimization": {
+              "time_budget": 240,
+              "quality_threshold": 0.85
+            }
+          }
+        },
+        {
+          "tool": "optimize_search_query",
+          "parameters": {
+            "original_query": "religious discrimination termination California",
+            "optimization_strategy": "comprehensive"
+          }
+        },
+        {
+          "tool": "select_optimal_databases", 
+          "parameters": {
+            "query_analysis": {
+              "legal_concepts": ["religious_discrimination", "wrongful_termination", "title_vii"],
+              "practice_area": "employment_law",
+              "jurisdiction_hints": ["california", "federal"]
+            },
+            "optimization_criteria": "comprehensiveness"
+          }
+        },
+        {
+          "tool": "calculate_legal_deadlines",
+          "parameters": {
+            "case_type": "employment_discrimination",
+            "jurisdiction": "california",
+            "filing_date": "2024-01-15",
+            "deadline_types": ["eeoc_filing", "dfeh_filing", "right_to_sue", "statute_limitations"]
+          }
+        }
+      ],
+      "success_criteria": {
+        "workflow_efficiency": "< 4 hours total time",
+        "deadline_accuracy": "100% compliance",
+        "research_quality": "> 85% relevant sources"
+      }
+    },
+    {
+      "scenario_id": "query_optimization_patent_law",
+      "category": "query_optimization",
+      "description": "Transform basic patent query into optimized multi-database search",
+      "user_input": "software patent infringement claim construction",
+      "context": {
+        "practice_area": "intellectual_property",
+        "technical_field": "software",
+        "case_stage": "claim_construction"
+      },
+      "query_optimization_training": {
+        "input_analysis": {
+          "identified_concepts": ["patent_infringement", "claim_construction", "software_patents"],
+          "missing_elements": ["35_usc_101", "alice_step_two", "markman_hearing"],
+          "jurisdiction_inference": "federal_circuit_exclusive"
+        },
+        "optimization_steps": [
+          {
+            "step": "legal_concept_expansion",
+            "transformation": "software patent → computer-implemented invention, software claims, computer-readable medium"
+          },
+          {
+            "step": "statute_integration", 
+            "transformation": "infringement → 35 USC 271, claim construction → 35 USC 112"
+          },
+          {
+            "step": "procedural_context",
+            "transformation": "claim construction → Markman hearing, summary judgment, claim interpretation"
+          },
+          {
+            "step": "boolean_construction",
+            "transformation": "(claim construction OR claim interpretation OR Markman) AND (software OR computer-implemented) AND (patent infringement OR 35 USC 271)"
+          }
+        ],
+        "database_specific_queries": {
+          "federal_circuit": "claim construction AND software AND (Federal Circuit OR CAFC)",
+          "district_courts": "Markman hearing AND software patent AND claim interpretation order",
+          "ptab": "claim construction AND computer-implemented invention AND IPR"
+        }
+      },
+      "expected_improvements": {
+        "precision_increase": "> 40%",
+        "authority_relevance": "> 90% Federal Circuit cases",
+        "procedural_accuracy": "Markman-specific results prioritized"
+      }
+    }
+  ],
+
+  "evaluation_framework": {
+    "source_relevance_metrics": {
+      "expert_correlation": {
+        "description": "Correlation with expert legal researcher rankings",
+        "target_score": "> 0.90",
+        "evaluation_method": "blind_expert_evaluation"
+      },
+      "authority_ranking_accuracy": {
+        "description": "Correct ranking of legal authority hierarchy",
+        "target_score": "> 95%",
+        "evaluation_method": "automated_authority_verification"
+      },
+      "jurisdiction_matching": {
+        "description": "Accuracy of jurisdiction-specific source selection", 
+        "target_score": "> 85%",
+        "evaluation_method": "jurisdiction_relevance_scoring"
+      }
+    },
+    "query_optimization_metrics": {
+      "retrieval_effectiveness": {
+        "description": "Improvement in relevant results retrieval",
+        "target_improvement": "> 50%",
+        "evaluation_method": "precision_recall_analysis"
+      },
+      "search_efficiency": {
+        "description": "Reduction in time to find relevant sources",
+        "target_improvement": "> 40%", 
+        "evaluation_method": "time_to_relevant_source_tracking"
+      },
+      "query_sophistication": {
+        "description": "Legal accuracy of optimized queries",
+        "target_score": "> 80%",
+        "evaluation_method": "legal_expert_query_review"
+      }
+    },
+    "workflow_integration_metrics": {
+      "tool_coordination_efficiency": {
+        "description": "Optimal sequencing and parallel execution",
+        "target_improvement": "> 30%",
+        "evaluation_method": "workflow_time_analysis"
+      },
+      "cross_platform_accuracy": {
+        "description": "Correct integration across LexAI features",
+        "target_score": "> 90%",
+        "evaluation_method": "end_to_end_workflow_testing"
+      }
+    }
+  },
+
+  "continuous_improvement": {
+    "feedback_integration": {
+      "user_ratings": {
+        "collection_method": "thumbs_up_down_per_source",
+        "weighting": "recent_feedback_higher_weight",
+        "retraining_threshold": "1000_new_ratings"
+      },
+      "outcome_correlation": {
+        "tracking": "case_outcomes_vs_sources_used",
+        "analysis": "winning_patterns_identification",
+        "optimization": "boost_success_correlated_sources"
+      }
+    },
+    "performance_monitoring": {
+      "real_time_metrics": ["source_relevance_scores", "query_optimization_effectiveness", "user_satisfaction"],
+      "alert_thresholds": {
+        "relevance_drop": "< 0.80",
+        "user_satisfaction_drop": "< 4.0/5",
+        "efficiency_regression": "> 20% slower"
+      }
+    },
+    "model_updates": {
+      "retraining_schedule": "monthly_with_new_data",
+      "a_b_testing": "gradual_rollout_with_performance_comparison",
+      "rollback_criteria": "performance_degradation_> 10%"
+    }
+  },
+
+  "training_execution": {
+    "hardware_requirements": {
+      "gpu_memory": "> 16GB",
+      "training_time_estimate": "8-12 hours",
+      "storage_requirements": "> 50GB"
+    },
+    "training_phases": {
+      "phase_1": {
+        "name": "source_relevance_foundation",
+        "duration": "2-3 hours",
+        "focus": "basic_authority_recognition_and_ranking"
+      },
+      "phase_2": {
+        "name": "query_optimization",
+        "duration": "3-4 hours", 
+        "focus": "legal_query_enhancement_and_transformation"
+      },
+      "phase_3": {
+        "name": "workflow_integration",
+        "duration": "3-4 hours",
+        "focus": "multi_tool_coordination_and_optimization"
+      },
+      "phase_4": {
+        "name": "fine_tuning",
+        "duration": "1-2 hours",
+        "focus": "performance_optimization_and_edge_cases"
+      }
+    }
+  }
+}

@@ -1,0 +1,554 @@
+{
+  "legal_ai_tools_comprehensive": {
+    "version": "2.0",
+    "description": "Comprehensive Bagel RL tool schema for LexAI platform - optimized for source relevance and workflow integration",
+    
+    "research_tools": [
+      {
+        "name": "select_optimal_databases",
+        "description": "Intelligently select the most relevant legal databases based on query type, jurisdiction, and practice area",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query_type": {
+              "type": "string",
+              "enum": ["case_law", "statutes", "regulations", "secondary_sources", "practice_guides"]
+            },
+            "practice_area": {
+              "type": "string",
+              "enum": ["corporate", "litigation", "employment", "ip", "criminal", "family", "tax", "real_estate"]
+            },
+            "jurisdiction": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "authority_preference": {
+              "type": "string",
+              "enum": ["primary_only", "include_secondary", "comprehensive"]
+            },
+            "recency_weight": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": ["query_type", "practice_area"]
+        }
+      },
+      {
+        "name": "optimize_search_query",
+        "description": "Enhance and optimize search queries for maximum relevance using legal research best practices",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "original_query": {"type": "string"},
+            "optimization_strategy": {
+              "type": "string", 
+              "enum": ["keyword_expansion", "boolean_refinement", "concept_mapping", "citation_tracking"]
+            },
+            "jurisdiction_focus": {"type": "string"},
+            "temporal_scope": {"type": "string"},
+            "include_synonyms": {"type": "boolean"},
+            "legal_thesaurus": {"type": "boolean"}
+          },
+          "required": ["original_query", "optimization_strategy"]
+        }
+      },
+      {
+        "name": "rank_source_relevance",
+        "description": "Apply sophisticated relevance ranking algorithms to prioritize legal sources",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "ranking_criteria": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["authority", "recency", "factual_similarity", "jurisdiction_match", "citation_frequency", "precedential_value"]
+              }
+            },
+            "weight_distribution": {
+              "type": "object",
+              "properties": {
+                "authority": {"type": "number"},
+                "recency": {"type": "number"},
+                "relevance": {"type": "number"}
+              }
+            },
+            "court_hierarchy": {"type": "boolean"},
+            "binding_precedent_priority": {"type": "boolean"}
+          },
+          "required": ["ranking_criteria"]
+        }
+      },
+      {
+        "name": "generate_research_strategy",
+        "description": "Create comprehensive multi-step research strategies for complex legal issues",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "legal_issue": {"type": "string"},
+            "research_depth": {
+              "type": "string",
+              "enum": ["preliminary", "comprehensive", "exhaustive", "update_check"]
+            },
+            "time_constraint": {"type": "string"},
+            "budget_constraint": {"type": "string"},
+            "parallel_research_tracks": {"type": "boolean"},
+            "verification_requirements": {"type": "boolean"}
+          },
+          "required": ["legal_issue", "research_depth"]
+        }
+      }
+    ],
+
+    "evidence_analysis_tools": [
+      {
+        "name": "classify_evidence_type",
+        "description": "Automatically classify digital evidence and determine optimal analysis methods",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "evidence_format": {
+              "type": "string",
+              "enum": ["image", "video", "audio", "document", "metadata", "email", "social_media", "database_record"]
+            },
+            "suspected_manipulation": {"type": "boolean"},
+            "chain_of_custody_status": {
+              "type": "string",
+              "enum": ["intact", "questionable", "broken", "unknown"]
+            },
+            "technical_complexity": {
+              "type": "string",
+              "enum": ["basic", "intermediate", "advanced", "expert_required"]
+            },
+            "jurisdiction_standards": {"type": "string"}
+          },
+          "required": ["evidence_format"]
+        }
+      },
+      {
+        "name": "select_forensic_analysis_tools",
+        "description": "Choose appropriate forensic tools based on evidence type and analysis requirements",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "analysis_type": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["authenticity", "manipulation_detection", "metadata_analysis", "timestamp_verification", "source_attribution", "chain_analysis"]
+              }
+            },
+            "evidence_complexity": {"type": "string"},
+            "admissibility_requirements": {"type": "string"},
+            "expert_testimony_needed": {"type": "boolean"},
+            "budget_constraints": {"type": "string"}
+          },
+          "required": ["analysis_type"]
+        }
+      },
+      {
+        "name": "assess_admissibility_standards",
+        "description": "Evaluate evidence against jurisdiction-specific admissibility requirements",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "jurisdiction": {"type": "string"},
+            "court_level": {
+              "type": "string",
+              "enum": ["federal", "state", "local", "administrative"]
+            },
+            "evidence_type": {"type": "string"},
+            "reliability_standard": {
+              "type": "string",
+              "enum": ["daubert", "frye", "state_specific"]
+            },
+            "authentication_method": {"type": "string"},
+            "expert_qualification_required": {"type": "boolean"}
+          },
+          "required": ["jurisdiction", "evidence_type"]
+        }
+      }
+    ],
+
+    "document_analysis_tools": [
+      {
+        "name": "classify_document_complexity",
+        "description": "Assess document complexity and determine appropriate analysis approach",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "document_type": {
+              "type": "string",
+              "enum": ["contract", "filing", "correspondence", "financial", "regulatory", "internal_memo"]
+            },
+            "page_count": {"type": "integer"},
+            "legal_complexity": {
+              "type": "string",
+              "enum": ["routine", "moderate", "complex", "expert_review_required"]
+            },
+            "stakeholder_count": {"type": "integer"},
+            "cross_jurisdictional": {"type": "boolean"},
+            "regulatory_implications": {"type": "boolean"}
+          },
+          "required": ["document_type"]
+        }
+      },
+      {
+        "name": "extract_key_provisions",
+        "description": "Intelligently identify and extract critical legal provisions and clauses",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "extraction_focus": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["liability", "termination", "intellectual_property", "confidentiality", "dispute_resolution", "compensation", "compliance"]
+              }
+            },
+            "jurisdiction_requirements": {"type": "string"},
+            "risk_assessment_level": {
+              "type": "string",
+              "enum": ["basic", "detailed", "comprehensive"]
+            },
+            "cross_reference_validation": {"type": "boolean"}
+          },
+          "required": ["extraction_focus"]
+        }
+      },
+      {
+        "name": "apply_jurisdiction_specific_analysis",
+        "description": "Apply local laws and regulations to document analysis",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "governing_law": {"type": "string"},
+            "regulatory_framework": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "compliance_standards": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "industry_specific_rules": {"type": "string"},
+            "international_considerations": {"type": "boolean"}
+          },
+          "required": ["governing_law"]
+        }
+      }
+    ],
+
+    "workflow_orchestration_tools": [
+      {
+        "name": "determine_optimal_workflow",
+        "description": "Select and sequence the most efficient workflow for complex legal tasks",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "task_type": {
+              "type": "string",
+              "enum": ["case_intake", "research_project", "document_review", "client_consultation", "court_filing"]
+            },
+            "complexity_level": {
+              "type": "string",
+              "enum": ["routine", "moderate", "complex", "novel"]
+            },
+            "time_constraints": {"type": "string"},
+            "resource_availability": {
+              "type": "object",
+              "properties": {
+                "attorney_hours": {"type": "number"},
+                "paralegal_hours": {"type": "number"},
+                "budget": {"type": "number"}
+              }
+            },
+            "parallel_processing": {"type": "boolean"},
+            "quality_requirements": {
+              "type": "string",
+              "enum": ["standard", "high", "expert_level"]
+            }
+          },
+          "required": ["task_type", "complexity_level"]
+        }
+      },
+      {
+        "name": "optimize_resource_allocation",
+        "description": "Intelligently allocate human and system resources for maximum efficiency",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "available_resources": {
+              "type": "object",
+              "properties": {
+                "attorneys": {"type": "array"},
+                "paralegals": {"type": "array"},
+                "ai_tools": {"type": "array"},
+                "external_experts": {"type": "array"}
+              }
+            },
+            "task_requirements": {
+              "type": "object",
+              "properties": {
+                "skill_level": {"type": "string"},
+                "time_sensitivity": {"type": "string"},
+                "specialization": {"type": "string"}
+              }
+            },
+            "optimization_criteria": {
+              "type": "string",
+              "enum": ["cost", "speed", "quality", "balanced"]
+            }
+          },
+          "required": ["available_resources", "task_requirements"]
+        }
+      }
+    ],
+
+    "client_communication_tools": [
+      {
+        "name": "personalize_communication_style",
+        "description": "Adapt communication style based on client sophistication and preferences",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "client_profile": {
+              "type": "object",
+              "properties": {
+                "legal_sophistication": {
+                  "type": "string",
+                  "enum": ["novice", "business_experienced", "legally_trained", "repeat_client"]
+                },
+                "communication_preference": {
+                  "type": "string",
+                  "enum": ["detailed", "summary", "bullet_points", "visual"]
+                },
+                "technical_comfort": {
+                  "type": "string",
+                  "enum": ["low", "medium", "high"]
+                }
+              }
+            },
+            "message_type": {
+              "type": "string",
+              "enum": ["status_update", "advice", "request", "explanation", "warning"]
+            },
+            "urgency_level": {
+              "type": "string",
+              "enum": ["routine", "important", "urgent", "critical"]
+            }
+          },
+          "required": ["client_profile", "message_type"]
+        }
+      },
+      {
+        "name": "generate_client_reports",
+        "description": "Create customized reports tailored to client needs and case status",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "report_type": {
+              "type": "string",
+              "enum": ["progress_summary", "research_findings", "risk_assessment", "strategy_recommendation", "billing_summary"]
+            },
+            "detail_level": {
+              "type": "string",
+              "enum": ["executive_summary", "detailed", "comprehensive", "technical"]
+            },
+            "visual_elements": {"type": "boolean"},
+            "confidentiality_level": {
+              "type": "string",
+              "enum": ["standard", "privileged", "highly_confidential"]
+            },
+            "distribution_list": {"type": "array"}
+          },
+          "required": ["report_type", "detail_level"]
+        }
+      }
+    ],
+
+    "calendar_optimization_tools": [
+      {
+        "name": "calculate_legal_deadlines",
+        "description": "Automatically calculate all relevant deadlines based on case type and jurisdiction",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "case_type": {"type": "string"},
+            "jurisdiction": {"type": "string"},
+            "filing_date": {"type": "string"},
+            "court_rules": {"type": "string"},
+            "deadline_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["discovery", "motion", "trial", "appeal", "statute_limitations"]
+              }
+            },
+            "buffer_time": {"type": "boolean"},
+            "holiday_considerations": {"type": "boolean"}
+          },
+          "required": ["case_type", "jurisdiction", "filing_date"]
+        }
+      },
+      {
+        "name": "optimize_scheduling_conflicts",
+        "description": "Resolve scheduling conflicts and optimize calendar efficiency",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "conflict_type": {
+              "type": "string",
+              "enum": ["court_appearance", "client_meeting", "deadline_overlap", "resource_conflict"]
+            },
+            "priority_factors": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["court_mandate", "client_importance", "revenue_impact", "strategic_value"]
+              }
+            },
+            "rescheduling_options": {"type": "array"},
+            "stakeholder_preferences": {"type": "object"}
+          },
+          "required": ["conflict_type", "priority_factors"]
+        }
+      }
+    ],
+
+    "analytics_tools": [
+      {
+        "name": "generate_practice_insights",
+        "description": "Analyze practice data to generate actionable business insights",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "analysis_type": {
+              "type": "string",
+              "enum": ["financial", "efficiency", "client_satisfaction", "case_outcomes", "resource_utilization"]
+            },
+            "time_period": {"type": "string"},
+            "comparison_baseline": {"type": "string"},
+            "segmentation": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["practice_area", "client_type", "case_complexity", "attorney"]
+              }
+            },
+            "predictive_modeling": {"type": "boolean"}
+          },
+          "required": ["analysis_type", "time_period"]
+        }
+      }
+    ]
+  },
+
+  "training_scenarios": {
+    "multi_tool_workflows": [
+      {
+        "scenario_name": "comprehensive_legal_research",
+        "description": "Complex research requiring multiple tools and optimization",
+        "user_query": "I need to research the latest developments in AI liability for autonomous vehicles in California",
+        "optimal_tool_sequence": [
+          {
+            "tool": "optimize_search_query",
+            "parameters": {
+              "original_query": "AI liability autonomous vehicles California",
+              "optimization_strategy": "concept_mapping",
+              "jurisdiction_focus": "california",
+              "include_synonyms": true
+            }
+          },
+          {
+            "tool": "select_optimal_databases", 
+            "parameters": {
+              "query_type": "case_law",
+              "practice_area": "litigation",
+              "jurisdiction": ["california", "federal"],
+              "authority_preference": "primary_only",
+              "recency_weight": 0.8
+            }
+          },
+          {
+            "tool": "rank_source_relevance",
+            "parameters": {
+              "ranking_criteria": ["authority", "recency", "factual_similarity"],
+              "weight_distribution": {
+                "authority": 0.4,
+                "recency": 0.4,
+                "relevance": 0.2
+              },
+              "binding_precedent_priority": true
+            }
+          }
+        ],
+        "expected_outcome": "Highly relevant, recent California and federal sources on AI liability in autonomous vehicles, ranked by authority and applicability"
+      },
+      {
+        "scenario_name": "contract_analysis_with_compliance",
+        "description": "Employment contract analysis with jurisdiction-specific compliance",
+        "user_query": "Review this executive employment agreement for a California tech company",
+        "optimal_tool_sequence": [
+          {
+            "tool": "classify_document_complexity",
+            "parameters": {
+              "document_type": "contract",
+              "legal_complexity": "complex",
+              "cross_jurisdictional": false,
+              "regulatory_implications": true
+            }
+          },
+          {
+            "tool": "extract_key_provisions",
+            "parameters": {
+              "extraction_focus": ["liability", "termination", "intellectual_property", "compensation"],
+              "jurisdiction_requirements": "california",
+              "risk_assessment_level": "comprehensive"
+            }
+          },
+          {
+            "tool": "apply_jurisdiction_specific_analysis",
+            "parameters": {
+              "governing_law": "california",
+              "regulatory_framework": ["california_labor_code", "wage_hour_laws"],
+              "compliance_standards": ["fair_employment", "privacy_rights"],
+              "industry_specific_rules": "technology"
+            }
+          }
+        ],
+        "expected_outcome": "Comprehensive analysis identifying key risks and compliance issues specific to California employment law for tech executives"
+      }
+    ],
+
+    "source_relevance_training": [
+      {
+        "query_type": "patent_infringement",
+        "optimal_sources": ["federal_courts", "ptab_decisions", "patent_office", "specialized_ip_databases"],
+        "ranking_factors": ["precedential_value", "factual_similarity", "claim_construction"],
+        "avoid_sources": ["state_courts", "general_legal_databases"]
+      },
+      {
+        "query_type": "employment_discrimination",
+        "optimal_sources": ["eeoc_decisions", "federal_courts", "state_employment_agencies", "circuit_specific"],
+        "ranking_factors": ["jurisdiction_match", "similar_fact_patterns", "recent_developments"],
+        "jurisdiction_specific": true
+      }
+    ],
+
+    "user_feedback_integration": {
+      "relevance_scoring": {
+        "user_ratings": "1-5 scale for source relevance",
+        "time_to_find": "efficiency metric",
+        "client_satisfaction": "outcome correlation"
+      },
+      "continuous_improvement": {
+        "A_B_testing": "compare tool selection strategies",
+        "performance_tracking": "measure improvement over time",
+        "user_behavior_analysis": "learn from expert user patterns"
+      }
+    }
+  }
+}
