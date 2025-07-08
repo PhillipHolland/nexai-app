@@ -17608,6 +17608,347 @@ def privacy_dashboard():
         <p>Current Status: Training in progress...</p>
         """)
 
+# Document Upload Integration with Bagel RL
+@app.route('/api/documents/upload', methods=['POST'])
+@monitor_performance
+def upload_document():
+    """Upload and process document with Bagel RL"""
+    try:
+        # Check if Bagel RL is available
+        if not BAGEL_AI_AVAILABLE:
+            return jsonify({
+                'success': False,
+                'error': 'Document AI service not available. Bagel RL training in progress.'
+            }), 503
+        
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file uploaded'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+        
+        # Get analysis type from form data
+        analysis_type = request.form.get('analysis_type', 'general')
+        
+        # Import document service
+        from document_ai_service import process_document_upload
+        
+        # Process the document
+        result = process_document_upload(
+            file_data=file.read(),
+            filename=file.filename,
+            analysis_type=analysis_type
+        )
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Document processing service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Document upload failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Document processing failed: {str(e)}'
+        }), 500
+
+@app.route('/api/documents/analyze', methods=['POST'])
+@monitor_performance
+def analyze_document():
+    """Analyze document text with Bagel RL"""
+    try:
+        data = request.get_json()
+        if not data or 'content' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document content required'
+            }), 400
+        
+        content = data['content']
+        filename = data.get('filename', 'document.txt')
+        analysis_type = data.get('analysis_type', 'general')
+        
+        # Import document service
+        from document_ai_service import document_ai_service
+        
+        # Perform analysis
+        result = document_ai_service.analyze_document_with_bagel(
+            content=content,
+            filename=filename,
+            analysis_type=analysis_type
+        )
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Document analysis service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Document analysis failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Document analysis failed: {str(e)}'
+        }), 500
+
+@app.route('/api/documents/classify', methods=['POST'])
+@monitor_performance
+def classify_document():
+    """Classify document type with Bagel RL"""
+    try:
+        data = request.get_json()
+        if not data or 'content' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document content required'
+            }), 400
+        
+        content = data['content']
+        filename = data.get('filename', 'document.txt')
+        
+        # Import document service
+        from document_ai_service import document_ai_service
+        
+        # Classify document
+        result = document_ai_service.classify_document_type(
+            content=content,
+            filename=filename
+        )
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Document classification service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Document classification failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Document classification failed: {str(e)}'
+        }), 500
+
+@app.route('/documents')
+def documents_page():
+    """Document upload and analysis page"""
+    try:
+        return render_template('documents.html',
+                             bagel_available=BAGEL_AI_AVAILABLE)
+    except Exception as e:
+        logger.error(f"Documents page error: {e}")
+        return render_template_string("""
+        <h1>Document Analysis</h1>
+        <p>Document upload and AI analysis will be available when Bagel RL training completes.</p>
+        <p>Current Status: {% if bagel_available %}Active{% else %}Training in progress...{% endif %}</p>
+        """, bagel_available=BAGEL_AI_AVAILABLE)
+
+# Enhanced Legal Research with Case Law Database Integration
+@app.route('/api/legal-research/comprehensive', methods=['POST'])
+@monitor_performance
+def comprehensive_legal_research():
+    """Comprehensive legal research across multiple databases"""
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Search query required'
+            }), 400
+        
+        query = data['query']
+        practice_area = data.get('practice_area', 'general')
+        jurisdiction = data.get('jurisdiction', 'federal')
+        limit = data.get('limit', 20)
+        
+        # Import research service
+        from legal_research_service import perform_legal_research
+        
+        # Perform comprehensive research
+        result = perform_legal_research(
+            query=query,
+            practice_area=practice_area,
+            jurisdiction=jurisdiction,
+            limit=limit
+        )
+        
+        return jsonify(result)
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Legal research service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Legal research failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Legal research failed: {str(e)}'
+        }), 500
+
+@app.route('/api/legal-research/case-law', methods=['POST'])
+@monitor_performance
+def search_case_law():
+    """Search case law databases"""
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Search query required'
+            }), 400
+        
+        query = data['query']
+        jurisdiction = data.get('jurisdiction', 'federal')
+        limit = data.get('limit', 10)
+        
+        # Import research service
+        from legal_research_service import legal_research_service
+        
+        # Search case law
+        cases = legal_research_service.search_case_law(
+            query=query,
+            jurisdiction=jurisdiction,
+            limit=limit
+        )
+        
+        return jsonify({
+            'success': True,
+            'cases': cases,
+            'total_found': len(cases),
+            'query': query,
+            'jurisdiction': jurisdiction
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Legal research service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Case law search failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Case law search failed: {str(e)}'
+        }), 500
+
+@app.route('/api/legal-research/statutes', methods=['POST'])
+@monitor_performance
+def search_statutes():
+    """Search statutes and regulations"""
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Search query required'
+            }), 400
+        
+        query = data['query']
+        jurisdiction = data.get('jurisdiction', 'federal')
+        limit = data.get('limit', 10)
+        
+        # Import research service
+        from legal_research_service import legal_research_service
+        
+        # Search statutes
+        statutes = legal_research_service.search_statutes(
+            query=query,
+            jurisdiction=jurisdiction,
+            limit=limit
+        )
+        
+        return jsonify({
+            'success': True,
+            'statutes': statutes,
+            'total_found': len(statutes),
+            'query': query,
+            'jurisdiction': jurisdiction
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Legal research service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Statute search failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Statute search failed: {str(e)}'
+        }), 500
+
+@app.route('/api/legal-research/secondary-sources', methods=['POST'])
+@monitor_performance
+def search_secondary_sources():
+    """Search secondary sources like law reviews and treatises"""
+    try:
+        data = request.get_json()
+        if not data or 'query' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Search query required'
+            }), 400
+        
+        query = data['query']
+        practice_area = data.get('practice_area', 'general')
+        limit = data.get('limit', 10)
+        
+        # Import research service
+        from legal_research_service import legal_research_service
+        
+        # Search secondary sources
+        sources = legal_research_service.search_secondary_sources(
+            query=query,
+            practice_area=practice_area,
+            limit=limit
+        )
+        
+        return jsonify({
+            'success': True,
+            'secondary_sources': sources,
+            'total_found': len(sources),
+            'query': query,
+            'practice_area': practice_area
+        })
+        
+    except ImportError:
+        return jsonify({
+            'success': False,
+            'error': 'Legal research service not available'
+        }), 503
+    except Exception as e:
+        logger.error(f"Secondary source search failed: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Secondary source search failed: {str(e)}'
+        }), 500
+
+@app.route('/legal-research')
+def legal_research_page():
+    """Enhanced legal research page"""
+    try:
+        return render_template('legal_research.html',
+                             bagel_available=BAGEL_AI_AVAILABLE)
+    except Exception as e:
+        logger.error(f"Legal research page error: {e}")
+        return render_template_string("""
+        <h1>Legal Research</h1>
+        <p>Enhanced legal research with case law database integration.</p>
+        <p>Bagel RL Status: {% if bagel_available %}Active{% else %}Training in progress...{% endif %}</p>
+        """, bagel_available=BAGEL_AI_AVAILABLE)
+
 # For Vercel - Deployment v2.1
 app.debug = False
 

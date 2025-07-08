@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Analysis - LexAI Practice Partner</title>
+    <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
+    <style>
+        .document-hero {
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        
+        .document-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 2px dashed #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section:hover {
+            border-color: #2E4B3C;
+            transform: translateY(-2px);
+        }
+        
+        .upload-section.dragover {
+            border-color: #2E4B3C;
+            background: #f0fdf4;
+        }
+        
+        .upload-area {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #2E4B3C;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-text {
+            font-size: 1.125rem;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-hint {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-button {
+            background: #2E4B3C;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-button:hover {
+            background: #4a7c59;
+            transform: translateY(-1px);
+        }
+        
+        .analysis-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .analysis-option {
+            background: #f8f9fa;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .analysis-option:hover {
+            border-color: #2E4B3C;
+            background: #f0fdf4;
+        }
+        
+        .analysis-option.selected {
+            border-color: #2E4B3C;
+            background: #dcfce7;
+        }
+        
+        .analysis-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .analysis-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .progress-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .progress-bar {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #2E4B3C, #4a7c59);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-left: 4px solid #2E4B3C;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .result-badge {
+            background: #2E4B3C;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .result-content {
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #374151;
+        }
+        
+        .file-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .info-item {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .privacy-indicator {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .privacy-indicator.medium {
+            background: #fff3cd;
+            border-color: #fde68a;
+            color: #d97706;
+        }
+        
+        .privacy-indicator.high {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #dc2626;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            display: none;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 768px) {
+            .document-container {
+                padding: 1rem;
+            }
+            
+            .analysis-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .file-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-content">
+                <!-- Hamburger Menu Button (Mobile Only) -->
+                <button class="hamburger-menu" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                    <span class="hamburger-icon"></span>
+                </button>
+
+                <!-- Logo -->
+                <div class="logo">
+                    <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+                </div>
+                
+                <!-- Enter Platform Button (Desktop & Mobile) -->
+                <a href="/dashboard" class="btn-primary nav-enter-platform">Enter Platform</a>
+
+                <!-- Navigation Links (Collapsible on Mobile) -->
+                <div class="nav-links-mobile-container">
+                    <div class="nav-links">
+                        <a href="/#features" class="nav-link">Features</a>
+                        <a href="/platform" class="nav-link">Platform</a>
+                        <a href="/privacy-dashboard" class="nav-link">Privacy</a>
+                        <a href="/documents" class="nav-link active">Documents</a>
+                        <a href="/#pricing" class="nav-link">Pricing</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Document Analysis Hero -->
+    <section class="document-hero">
+        <div class="container">
+            <h1>📄 AI-Powered Document Analysis</h1>
+            <p>Upload legal documents for intelligent analysis with Bagel RL</p>
+            
+            <div class="status-indicator {% if bagel_available %}status-active{% else %}status-inactive{% endif %}">
+                {% if bagel_available %}
+                ✅ Bagel RL: Active & Ready
+                {% else %}
+                🔄 Bagel RL: Training in Progress
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Document Interface -->
+    <div class="document-container">
+        
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drop your legal document here</div>
+                <div class="upload-hint">Supported formats: PDF, DOCX, TXT (Max 10MB)</div>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.rtf">
+                <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+            </div>
+            
+            <!-- Analysis Type Selection -->
+            <div class="analysis-options" id="analysisOptions">
+                <div class="analysis-option selected" data-type="general">
+                    <div class="analysis-title">📋 General Analysis</div>
+                    <div class="analysis-description">Comprehensive document review and summary</div>
+                </div>
+                <div class="analysis-option" data-type="contract">
+                    <div class="analysis-title">📝 Contract Analysis</div>
+                    <div class="analysis-description">Detailed contract terms and risk assessment</div>
+                </div>
+                <div class="analysis-option" data-type="litigation">
+                    <div class="analysis-title">⚖️ Litigation Review</div>
+                    <div class="analysis-description">Case analysis and legal strategy insights</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Processing Progress -->
+        <section class="progress-section" id="progressSection">
+            <h3>🔄 Processing Document...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">Initializing analysis...</div>
+        </section>
+
+        <!-- Error Messages -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection">
+            <h2>📊 Analysis Results</h2>
+            
+            <!-- File Information -->
+            <div class="file-info" id="fileInfo">
+                <div class="info-item">
+                    <div class="info-label">File Size</div>
+                    <div class="info-value" id="fileSize">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Word Count</div>
+                    <div class="info-value" id="wordCount">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">File Type</div>
+                    <div class="info-value" id="fileType">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Processing Time</div>
+                    <div class="info-value" id="processingTime">-</div>
+                </div>
+            </div>
+
+            <!-- Privacy Assessment -->
+            <div class="privacy-indicator" id="privacyIndicator">
+                <span>🔒</span>
+                <span id="privacyText">Privacy assessment complete</span>
+            </div>
+
+            <!-- Document Classification -->
+            <div class="result-card" id="classificationCard">
+                <div class="result-header">
+                    <div class="result-title">🏷️ Document Classification</div>
+                    <div class="result-badge" id="classificationBadge">Bagel RL</div>
+                </div>
+                <div class="result-content" id="classificationContent">
+                    Analyzing document type...
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="result-card" id="analysisCard">
+                <div class="result-header">
+                    <div class="result-title">🔍 Detailed Analysis</div>
+                    <div class="result-badge" id="analysisBadge">Bagel RL</div>
+                </div>
+                <div class="result-content" id="analysisContent">
+                    Performing detailed analysis...
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let selectedAnalysisType = 'general';
+        let currentFile = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            
+            // Check if Bagel RL is available
+            if (!{{ bagel_available|lower }}) {
+                showError('Document analysis is not available. Bagel RL is currently training.');
+                document.getElementById('uploadSection').style.opacity = '0.5';
+                document.getElementById('uploadSection').style.pointerEvents = 'none';
+            }
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const analysisOptions = document.querySelectorAll('.analysis-option');
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // Analysis type selection
+            analysisOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    analysisOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedAnalysisType = this.dataset.type;
+                });
+            });
+
+            // Mobile navigation
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const navLinksContainer = document.querySelector('.nav-links-mobile-container');
+
+            if (hamburgerMenu && navLinksContainer) {
+                hamburgerMenu.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    navLinksContainer.classList.toggle('open');
+                });
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadSection').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            currentFile = file;
+            
+            // Validate file
+            if (!validateFile(file)) {
+                return;
+            }
+
+            // Update UI
+            document.getElementById('uploadArea').innerHTML = `
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">File Selected: ${file.name}</div>
+                <div class="upload-hint">Size: ${formatFileSize(file.size)}</div>
+                <button class="upload-button" onclick="processDocument()">
+                    🚀 Analyze Document
+                </button>
+            `;
+        }
+
+        function validateFile(file) {
+            const allowedTypes = ['.pdf', '.docx', '.doc', '.txt', '.rtf'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedTypes.includes(fileExtension)) {
+                showError('Unsupported file type. Please upload PDF, DOCX, or TXT files.');
+                return false;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+                showError('File too large. Maximum size is 10MB.');
+                return false;
+            }
+            
+            return true;
+        }
+
+        async function processDocument() {
+            if (!currentFile) {
+                showError('Please select a file first.');
+                return;
+            }
+
+            try {
+                // Show progress
+                showProgress();
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                formData.append('analysis_type', selectedAnalysisType);
+
+                // Upload and process
+                const response = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResults(result);
+                } else {
+                    showError(result.error || 'Document processing failed');
+                }
+
+            } catch (error) {
+                console.error('Document processing error:', error);
+                showError('Failed to process document. Please try again.');
+            } finally {
+                hideProgress();
+            }
+        }
+
+        function showProgress() {
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            const steps = [
+                'Uploading document...',
+                'Extracting text content...',
+                'Analyzing with Bagel RL...',
+                'Generating insights...',
+                'Completing analysis...'
+            ];
+            
+            const interval = setInterval(() => {
+                progress += 20;
+                progressFill.style.width = progress + '%';
+                
+                if (progress < 100) {
+                    progressText.textContent = steps[Math.floor(progress / 20)];
+                } else {
+                    clearInterval(interval);
+                    progressText.textContent = 'Analysis complete!';
+                }
+            }, 800);
+        }
+
+        function hideProgress() {
+            document.getElementById('progressSection').style.display = 'none';
+        }
+
+        function showResults(result) {
+            // Update file info
+            document.getElementById('fileSize').textContent = formatFileSize(result.file_info.size);
+            document.getElementById('wordCount').textContent = result.file_info.word_count.toLocaleString();
+            document.getElementById('fileType').textContent = result.file_info.type.toUpperCase();
+            document.getElementById('processingTime').textContent = '2.3s'; // Placeholder
+            
+            // Update privacy indicator
+            const privacyIndicator = document.getElementById('privacyIndicator');
+            const privacyText = document.getElementById('privacyText');
+            
+            if (result.pii_analysis) {
+                const riskLevel = result.pii_analysis.risk_level;
+                privacyIndicator.className = `privacy-indicator ${riskLevel}`;
+                privacyText.textContent = `Privacy Risk: ${riskLevel.toUpperCase()} - ${result.pii_analysis.pii_types.length} sensitive entities detected`;
+            }
+            
+            // Update classification
+            document.getElementById('classificationContent').textContent = result.classification.classification;
+            document.getElementById('classificationBadge').textContent = result.classification.source === 'bagel_rl' ? 'Bagel RL' : 'Fallback';
+            
+            // Update analysis
+            document.getElementById('analysisContent').textContent = result.analysis.analysis;
+            document.getElementById('analysisBadge').textContent = result.analysis.source === 'bagel_rl' ? 'Bagel RL' : 'Fallback';
+            
+            // Show results
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>

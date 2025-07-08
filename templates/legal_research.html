@@ -628,20 +628,18 @@ document.addEventListener('DOMContentLoaded', function() {
             practiceArea: document.getElementById('practice-area-filter').value
         };
 
-        // Perform search using free legal research API
-        console.log('Starting free legal research search:', { query, filters });
+        // Perform search using enhanced legal research API
+        console.log('Starting enhanced legal research search:', { query, filters });
         
-        fetch('/api/free-legal-research/search', {
+        fetch('/api/legal-research/comprehensive', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 query: query,
-                search_type: 'comprehensive',
-                jurisdiction: filters.jurisdiction,
-                court: filters.court,
-                date_range: filters.dateRange,
+                practice_area: filters.practiceArea || 'general',
+                jurisdiction: filters.jurisdiction || 'federal',
                 limit: 20
             })
         })
@@ -667,20 +665,22 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function displayResults(data) {
-        if (data.error) {
-            displayError(data.error);
+        if (!data.success) {
+            displayError(data.error || 'Search failed');
             return;
         }
 
         const results = data.results || {};
-        const cases = results.cases?.cases || [];
-        const statutes = results.statutes?.statutes || [];
-        const aiAnalysis = results.ai_analysis || null;
+        const sources = results.sources || {};
+        const cases = sources.case_law || [];
+        const statutes = sources.statutes || [];
+        const secondary = sources.secondary_sources || [];
+        const bagelAnalysis = results.bagel_analysis || null;
         
-        const totalResults = cases.length + statutes.length;
+        const totalResults = cases.length + statutes.length + secondary.length;
         
         // Update results meta
-        resultsMeta.textContent = `Found ${totalResults} results from ${results.search_metadata?.sources_used?.join(', ') || 'legal databases'}`;
+        resultsMeta.textContent = `Found ${totalResults} results from legal databases with enhanced AI analysis`;
 
         if (totalResults === 0) {
             searchResults.innerHTML = `
@@ -697,21 +697,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let resultsHTML = '';
 
-        // Add AI analysis if available
-        if (aiAnalysis) {
+        // Add Bagel RL analysis if available
+        if (bagelAnalysis && bagelAnalysis.success) {
             resultsHTML += `
                 <div class="ai-insights">
                     <div class="ai-insights-header">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                         </svg>
-                        <span class="ai-insights-title">🤖 AI Legal Analysis</span>
+                        <span class="ai-insights-title">🤖 Bagel RL Enhanced Analysis</span>
                     </div>
                     <div class="ai-insights-content">
-                        <strong>Legal Issue:</strong> ${aiAnalysis.legal_issue || 'Analysis based on search results'}<br><br>
-                        <strong>Key Principles:</strong><br>
-                        ${aiAnalysis.key_principles ? aiAnalysis.key_principles.map(p => `• ${p}`).join('<br>') : 'Analysis not available'}
-                        ${aiAnalysis.risk_assessment ? `<br><br><strong>Risk Assessment:</strong> ${aiAnalysis.risk_assessment.overall_risk}` : ''}
+                        ${bagelAnalysis.analysis.replace(/\n/g, '<br>')}
                     </div>
                 </div>
             `;
@@ -721,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cases.length > 0) {
             resultsHTML += `<h3 style="margin: 1.5rem 0 1rem; color: #1f2937; font-size: 1.25rem;">⚖️ Case Law (${cases.length})</h3>`;
             cases.forEach(caseItem => {
-                const relevanceScore = Math.min(5, Math.max(1, Math.round(caseItem.relevance_score / 20) || 3));
+                const relevanceScore = Math.min(5, Math.max(1, Math.round((caseItem.relevance_score || 60) / 20)));
                 const relevanceDots = Array.from({length: 5}, (_, i) => 
                     `<div class="relevance-dot ${i < relevanceScore ? 'active' : ''}"></div>`
                 ).join('');
@@ -729,14 +726,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsHTML += `
                     <div class="result-item">
                         <div class="result-header">
-                            <div class="result-title">${caseItem.title || 'Unknown Case'}</div>
+                            <div class="result-title">${caseItem.title || caseItem.caseName || 'Unknown Case'}</div>
                             <div class="result-type">Case Law</div>
                         </div>
                         <div class="result-citation">${caseItem.citation || 'Citation not available'}</div>
                         <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
                             <strong>Court:</strong> ${caseItem.court || 'N/A'} | 
-                            <strong>Date:</strong> ${caseItem.date || 'N/A'} | 
-                            <strong>Source:</strong> ${caseItem.source || 'Free Database'}
+                            <strong>Date:</strong> ${caseItem.date_filed || 'N/A'} | 
+                            <strong>Source:</strong> ${caseItem.source || 'Legal Database'}
                         </div>
                         <div class="result-relevance">
                             <div class="relevance-score">${relevanceDots}</div>
@@ -780,10 +777,37 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Add secondary sources
+        if (secondary.length > 0) {
+            resultsHTML += `<h3 style="margin: 1.5rem 0 1rem; color: #1f2937; font-size: 1.25rem;">📚 Secondary Sources (${secondary.length})</h3>`;
+            secondary.forEach(source => {
+                resultsHTML += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-title">${source.title || 'Unknown Source'}</div>
+                            <div class="result-type">Secondary Source</div>
+                        </div>
+                        <div class="result-citation">${source.citation || 'Citation not available'}</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">
+                            <strong>Author:</strong> ${source.author || 'N/A'} | 
+                            <strong>Publication:</strong> ${source.publication || 'N/A'} | 
+                            <strong>Year:</strong> ${source.year || 'N/A'}
+                        </div>
+                        <div class="result-summary">${source.abstract || 'Abstract not available'}</div>
+                        <div class="result-actions">
+                            ${source.url ? `<a href="${source.url}" target="_blank" class="result-action primary">View Source</a>` : ''}
+                            <a href="#" class="result-action" onclick="citationHelper('${source.citation}')">Copy Citation</a>
+                            <a href="#" class="result-action" onclick="addToResearch('${source.source_id}')">Save to Research</a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
         // Add disclaimer
         resultsHTML += `
             <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 0.5rem; padding: 1rem; margin-top: 2rem; font-size: 0.875rem; color: #9a3412;">
-                <strong>⚠️ Important Disclaimer:</strong> ${data.disclaimer || 'Research results are for informational purposes only. Always verify with official sources and consult qualified legal counsel.'}
+                <strong>⚠️ Important Disclaimer:</strong> Research results are for informational purposes only and enhanced with Bagel RL AI analysis. Always verify with official sources and consult qualified legal counsel.
             </div>
         `;
 
