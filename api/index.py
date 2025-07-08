@@ -82,9 +82,18 @@ def landing_page():
 def dashboard():
     """Main dashboard"""
     try:
+        # Sample stats data for dashboard
+        stats = {
+            'total_chats': 24,
+            'total_documents': 8,
+            'research_queries': 15,
+            'total_clients': 3
+        }
+        
         return render_template('dashboard.html',
                              user_role=session.get('user_role', 'guest'),
-                             user_name=session.get('user_name', 'User'))
+                             user_name=session.get('user_name', 'User'),
+                             stats=stats)
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         return f"Dashboard error: {e}", 500
