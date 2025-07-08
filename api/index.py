@@ -157,6 +157,33 @@ def clients_page():
         logger.error(f"Clients page error: {e}")
         return f"Clients error: {e}", 500
 
+@app.route('/clients/<client_id>')
+def client_profile_page(client_id):
+    """Individual client profile page"""
+    try:
+        return render_template('client_profile.html', client_id=client_id)
+    except Exception as e:
+        logger.error(f"Client profile page error: {e}")
+        return f"Client profile error: {e}", 500
+
+@app.route('/clients/<client_id>/edit')
+def client_edit_page(client_id):
+    """Client edit page"""
+    try:
+        return render_template('client_edit.html', client_id=client_id)
+    except Exception as e:
+        logger.error(f"Client edit page error: {e}")
+        return f"Client edit error: {e}", 500
+
+@app.route('/clients/new')
+def client_new_page():
+    """New client creation page"""
+    try:
+        return render_template('client_new.html')
+    except Exception as e:
+        logger.error(f"Client new page error: {e}")
+        return f"Client new error: {e}", 500
+
 @app.route('/chat')
 def chat_page():
     """Chat interface"""

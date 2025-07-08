@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Client - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* Client Form Styles */
+        .form-main {
+            background-color: #F7EDDA;
+            min-height: calc(100vh - 4rem);
+            padding: 0;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+            transition: color 0.2s ease;
+        }
+
+        .back-button:hover {
+            color: #2E4B3C;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .form-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .client-form {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: #dc2626;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .client-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .type-option {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .type-option:hover {
+            border-color: #2E4B3C;
+        }
+
+        .type-option.selected {
+            border-color: #2E4B3C;
+            background: rgba(46, 75, 60, 0.05);
+        }
+
+        .type-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .type-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .form-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-button.primary {
+            background: #2E4B3C;
+            color: white;
+        }
+
+        .form-button.primary:hover {
+            background: #1d2d23;
+        }
+
+        .form-button.primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .form-button.secondary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .form-button.secondary:hover {
+            background: #f9fafb;
+            border-color: #2E4B3C;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Conditional Fields */
+        .conditional-fields {
+            display: none;
+        }
+
+        .conditional-fields.show {
+            display: contents;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .client-type-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<main class="form-main">
+    <div class="form-container">
+        <!-- Back Button -->
+        <a href="/clients" class="back-button">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Clients
+        </a>
+
+        <!-- Header -->
+        <div class="form-header">
+            <h1 class="form-title">Add New Client</h1>
+            <p class="form-subtitle">Enter the client information to create a new client profile</p>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <!-- Client Form -->
+        <form class="client-form" id="clientForm">
+            <!-- Client Type -->
+            <div class="form-section">
+                <h2 class="section-title">Client Type</h2>
+                <div class="client-type-selector">
+                    <div class="type-option selected" onclick="selectClientType('individual')">
+                        <div class="type-title">Individual</div>
+                        <div class="type-description">Personal client</div>
+                    </div>
+                    <div class="type-option" onclick="selectClientType('business')">
+                        <div class="type-title">Business</div>
+                        <div class="type-description">Company or organization</div>
+                    </div>
+                </div>
+                <input type="hidden" id="clientType" name="client_type" value="individual">
+            </div>
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <h2 class="section-title">Basic Information</h2>
+                
+                <!-- Individual Fields -->
+                <div id="individualFields" class="conditional-fields show">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label required">First Name</label>
+                            <input type="text" class="form-input" name="first_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required">Last Name</label>
+                            <input type="text" class="form-input" name="last_name" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Fields -->
+                <div id="businessFields" class="conditional-fields">
+                    <div class="form-group full-width">
+                        <label class="form-label required">Company Name</label>
+                        <input type="text" class="form-input" name="company_name">
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Industry</label>
+                            <input type="text" class="form-input" name="industry">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tax ID</label>
+                            <input type="text" class="form-input" name="tax_id">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+                <h2 class="section-title">Contact Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-input" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Website</label>
+                        <input type="url" class="form-input" name="website">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Source</label>
+                        <select class="form-select" name="source">
+                            <option value="">Select source...</option>
+                            <option value="referral">Referral</option>
+                            <option value="website">Website</option>
+                            <option value="social_media">Social Media</option>
+                            <option value="advertising">Advertising</option>
+                            <option value="networking">Networking</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="form-section">
+                <h2 class="section-title">Address</h2>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" class="form-input" name="address_line1">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Address Line 2</label>
+                        <input type="text" class="form-input" name="address_line2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-input" name="city">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <input type="text" class="form-input" name="state">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ZIP Code</label>
+                        <input type="text" class="form-input" name="zip_code">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Country</label>
+                        <input type="text" class="form-input" name="country" value="United States">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Information -->
+            <div class="form-section">
+                <h2 class="section-title">Billing Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Billing Rate ($/hour)</label>
+                        <input type="number" class="form-input" name="billing_rate" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Terms</label>
+                        <select class="form-select" name="payment_terms">
+                            <option value="Net 30">Net 30</option>
+                            <option value="Net 15">Net 15</option>
+                            <option value="Net 60">Net 60</option>
+                            <option value="Due on Receipt">Due on Receipt</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-section">
+                <h2 class="section-title">Additional Information</h2>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-textarea" name="notes" placeholder="Any additional notes about this client..."></textarea>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="/clients" class="form-button secondary">Cancel</a>
+                <button type="submit" class="form-button primary" id="submitButton">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Create Client
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+let currentClientType = 'individual';
+
+function selectClientType(type) {
+    currentClientType = type;
+    
+    // Update visual selection
+    document.querySelectorAll('.type-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    event.target.closest('.type-option').classList.add('selected');
+    
+    // Update hidden input
+    document.getElementById('clientType').value = type;
+    
+    // Show/hide conditional fields
+    const individualFields = document.getElementById('individualFields');
+    const businessFields = document.getElementById('businessFields');
+    
+    if (type === 'individual') {
+        individualFields.classList.add('show');
+        businessFields.classList.remove('show');
+        
+        // Set required attributes
+        document.querySelector('input[name="first_name"]').required = true;
+        document.querySelector('input[name="last_name"]').required = true;
+        document.querySelector('input[name="company_name"]').required = false;
+    } else {
+        individualFields.classList.remove('show');
+        businessFields.classList.add('show');
+        
+        // Set required attributes
+        document.querySelector('input[name="first_name"]').required = false;
+        document.querySelector('input[name="last_name"]').required = false;
+        document.querySelector('input[name="company_name"]').required = true;
+    }
+}
+
+// Form submission
+document.getElementById('clientForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitButton = document.getElementById('submitButton');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Clear previous messages
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    
+    // Disable submit button
+    submitButton.disabled = true;
+    submitButton.innerHTML = `
+        <svg width="16" height="16" class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 0116 0 8 8 0 01-16 0z"/>
+        </svg>
+        Creating...
+    `;
+    
+    try {
+        // Collect form data
+        const formData = new FormData(this);
+        const clientData = {};
+        
+        for (let [key, value] of formData.entries()) {
+            if (value.trim()) {
+                clientData[key] = value.trim();
+            }
+        }
+        
+        // Submit to API
+        const response = await fetch('/api/clients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(clientData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            successMessage.textContent = data.message;
+            successMessage.style.display = 'block';
+            
+            // Redirect to client profile after short delay
+            setTimeout(() => {
+                window.location.href = `/clients/${data.client.id}`;
+            }, 1500);
+        } else {
+            errorMessage.textContent = data.error || 'Failed to create client';
+            errorMessage.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('Error creating client:', error);
+        errorMessage.textContent = 'Failed to create client. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.innerHTML = `
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Create Client
+        `;
+    }
+});
+</script>
+{% endblock %}
