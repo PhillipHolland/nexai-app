@@ -435,6 +435,8 @@ class FreeLegalResearchEngine:
         }
         # CourtListener API token
         self.courtlistener_token = os.environ.get('COURTLISTENER_API_KEY', 'b349e3c452c223d107cbcfbd562c5151c56b6e0c')
+        # Congress.gov API key
+        self.congress_api_key = os.environ.get('CONGRESS_API_KEY', '5xc5pb7pS60T4chXVL3uFwWsV7sMR2ccGo8Y8Ykn')
         
     def search_case_law(self, query, jurisdiction=None, court=None, date_range=None, limit=20):
         """Search case law using free sources"""
@@ -642,52 +644,187 @@ class FreeLegalResearchEngine:
         return unique_cases
     
     def search_statutes(self, query, jurisdiction=None):
-        """Search statutes using free government sources"""
+        """Search statutes using Congress.gov API and other government sources"""
         try:
-            # Mock statute results from government sources
-            mock_statutes = [
-                {
-                    'statute_id': 'usc_001',
-                    'title': 'Federal Contract Law',
-                    'citation': '15 U.S.C. § 1601',
-                    'jurisdiction': 'Federal',
-                    'text': 'This section establishes the basic requirements for contract formation and enforcement.',
-                    'source': 'U.S. Code (Congress.gov)',
-                    'url': 'https://www.congress.gov/bill/117th-congress/house-bill/1601',
-                    'effective_date': '2023-01-01',
-                    'annotations': ['Contract formation', 'Federal standards'],
-                    'related_cases': ['Contract Interpretation Case']
-                },
-                {
-                    'statute_id': 'state_001',
-                    'title': 'California Civil Code',
-                    'citation': 'Cal. Civ. Code § 1549',
-                    'jurisdiction': 'California',
-                    'text': 'A contract is an agreement to do or not to do a certain thing.',
-                    'source': 'California Legislature',
-                    'url': 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml',
-                    'effective_date': '2022-01-01',
-                    'annotations': ['Contract definition', 'State law'],
-                    'related_cases': ['Modern Contract Dispute']
-                }
-            ]
+            all_statutes = []
+            sources_searched = []
             
-            # Filter by jurisdiction
-            if jurisdiction:
-                mock_statutes = [statute for statute in mock_statutes 
-                               if jurisdiction.lower() in statute['jurisdiction'].lower()]
+            # Search federal statutes via Congress.gov API
+            if not jurisdiction or jurisdiction.lower() == 'federal':
+                federal_statutes = self._search_congress_api(query)
+                all_statutes.extend(federal_statutes)
+                sources_searched.append('Congress.gov')
+            
+            # Add state statute search (mock for now, could integrate state APIs later)
+            if jurisdiction and jurisdiction.lower() != 'federal':
+                state_statutes = self._search_state_statutes(query, jurisdiction)
+                all_statutes.extend(state_statutes)
+                sources_searched.append('State Legislatures')
             
             return {
                 'query': query,
                 'jurisdiction': jurisdiction,
-                'statutes': mock_statutes,
-                'sources_searched': ['U.S. Code', 'State Legislatures'],
-                'total_found': len(mock_statutes)
+                'statutes': all_statutes,
+                'sources_searched': sources_searched,
+                'total_found': len(all_statutes)
             }
             
         except Exception as e:
-            logger.error(f"Free statute search error: {e}")
-            return {'error': str(e), 'statutes': []}
+            logger.error(f"Statute search error: {e}")
+            return self._get_statute_fallback(query, jurisdiction)
+    
+    def _search_congress_api(self, query, limit=10):
+        """Search Congress.gov API for federal legislation and statutes"""
+        try:
+            statutes = []
+            
+            # Search bills (current and historical legislation)
+            bill_params = {
+                'api_key': self.congress_api_key,
+                'q': query,
+                'limit': limit,
+                'format': 'json',
+                'sort': 'relevance desc'
+            }
+            
+            # Search current bills
+            response = requests.get(
+                'https://api.congress.gov/v3/bill',
+                params=bill_params,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                for bill in data.get('bills', []):
+                    # Extract statute information
+                    statute_data = {
+                        'statute_id': f"congress_{bill.get('number', 'unknown')}",
+                        'title': bill.get('title', 'Unknown Legislation'),
+                        'citation': f"{bill.get('type', 'Bill')} {bill.get('number', '')} ({bill.get('congress', '')}th Congress)",
+                        'jurisdiction': 'Federal',
+                        'text': bill.get('summary', {}).get('text', '') or 'Full text available via Congress.gov',
+                        'source': 'Congress.gov',
+                        'url': bill.get('url', 'https://www.congress.gov/'),
+                        'effective_date': bill.get('introducedDate', 'Unknown'),
+                        'annotations': self._extract_bill_topics(bill),
+                        'related_cases': [],
+                        'status': bill.get('latestAction', {}).get('text', 'Unknown Status'),
+                        'sponsor': bill.get('sponsors', [{}])[0].get('fullName', 'Unknown') if bill.get('sponsors') else 'Unknown'
+                    }
+                    statutes.append(statute_data)
+            
+            # Also search laws (enacted legislation)
+            law_params = {
+                'api_key': self.congress_api_key,
+                'limit': max(1, limit // 2),  # Split between bills and laws
+                'format': 'json'
+            }
+            
+            try:
+                law_response = requests.get(
+                    'https://api.congress.gov/v3/law',
+                    params=law_params,
+                    timeout=10
+                )
+                
+                if law_response.status_code == 200:
+                    law_data = law_response.json()
+                    
+                    for law in law_data.get('laws', []):
+                        # Only include if relevant to query
+                        if query.lower() in law.get('title', '').lower():
+                            law_statute = {
+                                'statute_id': f"law_{law.get('number', 'unknown')}",
+                                'title': law.get('title', 'Federal Law'),
+                                'citation': f"Public Law {law.get('number', '')}",
+                                'jurisdiction': 'Federal',
+                                'text': 'Enacted federal law. Full text available via Congress.gov',
+                                'source': 'Congress.gov (Laws)',
+                                'url': law.get('url', 'https://www.congress.gov/'),
+                                'effective_date': law.get('effectiveDate', 'Unknown'),
+                                'annotations': ['Federal Law', 'Enacted'],
+                                'related_cases': [],
+                                'status': 'Enacted'
+                            }
+                            statutes.append(law_statute)
+            except:
+                pass  # Laws search is optional
+            
+            logger.info(f"Congress.gov API returned {len(statutes)} statutes")
+            return statutes
+            
+        except Exception as e:
+            logger.error(f"Congress.gov API error: {e}")
+            return self._get_congress_fallback(query)
+    
+    def _extract_bill_topics(self, bill):
+        """Extract relevant topics/annotations from bill data"""
+        topics = []
+        
+        # Extract from policy area
+        if bill.get('policyArea', {}).get('name'):
+            topics.append(bill['policyArea']['name'])
+        
+        # Extract from legislative subjects
+        subjects = bill.get('subjects', {}).get('legislativeSubjects', [])
+        for subject in subjects[:3]:  # Max 3 subjects
+            if subject.get('name'):
+                topics.append(subject['name'])
+        
+        # Add bill type as topic
+        if bill.get('type'):
+            topics.append(bill['type'])
+        
+        return topics[:5]  # Max 5 annotations
+    
+    def _search_state_statutes(self, query, jurisdiction):
+        """Search state statutes (mock implementation for now)"""
+        # This could be expanded to integrate with state legislature APIs
+        state_statutes = [
+            {
+                'statute_id': f'state_{jurisdiction}_001',
+                'title': f'{jurisdiction.title()} State Law Related to: {query[:50]}',
+                'citation': f'{jurisdiction.upper()} Code § DEMO',
+                'jurisdiction': jurisdiction.title(),
+                'text': f'State statute from {jurisdiction} related to "{query}". Integration with state legislature APIs available.',
+                'source': f'{jurisdiction.title()} Legislature',
+                'url': f'https://legislature.{jurisdiction.lower()}.gov/',
+                'effective_date': '2024-01-01',
+                'annotations': ['State Law', jurisdiction.title()],
+                'related_cases': []
+            }
+        ]
+        return state_statutes
+    
+    def _get_congress_fallback(self, query):
+        """Fallback data when Congress.gov API is unavailable"""
+        return [
+            {
+                'statute_id': 'congress_fallback_001',
+                'title': f'Federal Legislation Related to: {query[:50]}',
+                'citation': 'Demo Bill (Congress.gov API Unavailable)',
+                'jurisdiction': 'Federal',
+                'text': f'This is a fallback result for "{query}". Congress.gov API temporarily unavailable.',
+                'source': 'Congress.gov (Demo Mode)',
+                'url': 'https://www.congress.gov/',
+                'effective_date': '2024-01-01',
+                'annotations': ['Demo', 'Fallback'],
+                'related_cases': []
+            }
+        ]
+    
+    def _get_statute_fallback(self, query, jurisdiction):
+        """Fallback for general statute search errors"""
+        return {
+            'query': query,
+            'jurisdiction': jurisdiction,
+            'statutes': self._get_congress_fallback(query),
+            'sources_searched': ['Demo Mode'],
+            'total_found': 1,
+            'error': 'API temporarily unavailable'
+        }
     
     def analyze_with_ai(self, legal_issue, research_results):
         """AI analysis using free models or APIs"""
