@@ -428,11 +428,13 @@ class FreeLegalResearchEngine:
     def __init__(self):
         self.sources = {
             'justia': 'https://law.justia.com/api/v1',
-            'courtlistener': 'https://www.courtlistener.com/api/rest/v3',
+            'courtlistener': 'https://www.courtlistener.com/api/rest/v4',
             'google_scholar': 'https://scholar.google.com',
             'cornell_law': 'https://www.law.cornell.edu',
             'free_law_project': 'https://www.courtlistener.com'
         }
+        # CourtListener API token
+        self.courtlistener_token = os.environ.get('COURTLISTENER_API_KEY', 'b349e3c452c223d107cbcfbd562c5151c56b6e0c')
         
     def search_case_law(self, query, jurisdiction=None, court=None, date_range=None, limit=20):
         """Search case law using free sources"""
@@ -514,48 +516,117 @@ class FreeLegalResearchEngine:
             return []
     
     def _search_courtlistener(self, query, jurisdiction, court, limit):
-        """Search CourtListener database"""
+        """Search CourtListener database using real API"""
         try:
-            # Mock CourtListener results - in production, implement actual API calls  
-            mock_cases = [
-                {
-                    'case_id': 'cl_001',
-                    'title': 'Modern Contract Dispute',
-                    'citation': '2023 Fed. App. 789',
-                    'court': 'U.S. Court of Appeals, 9th Circuit',
-                    'date': '2023-08-10',
-                    'summary': 'Appeals court clarifies contract formation requirements in digital age.',
-                    'relevance_score': 82,
-                    'jurisdiction': 'Federal',
-                    'url': 'https://www.courtlistener.com/opinion/123456/',
-                    'source': 'CourtListener',
-                    'key_passages': ['Digital contracts', 'Formation requirements']
-                },
-                {
-                    'case_id': 'cl_002',
-                    'title': 'State vs. Federal Law Conflict',
-                    'citation': '2023 State Sup. 101',
-                    'court': 'State Supreme Court',
-                    'date': '2023-07-05',
-                    'summary': 'State court addresses conflicts between state and federal regulations.',
-                    'relevance_score': 75,
-                    'jurisdiction': 'State',
-                    'url': 'https://www.courtlistener.com/opinion/789012/',
-                    'source': 'CourtListener',
-                    'key_passages': ['State vs federal law', 'Regulatory conflicts']
-                }
-            ]
+            # Prepare search parameters
+            params = {
+                'q': query,
+                'type': 'o',  # 'o' = opinions (case law)
+                'order_by': 'score desc',
+                'format': 'json'
+            }
             
-            # Filter by jurisdiction if specified
+            # Add jurisdiction filter if specified
             if jurisdiction:
-                mock_cases = [case for case in mock_cases 
-                            if jurisdiction.lower() in case['jurisdiction'].lower()]
+                if jurisdiction.lower() == 'federal':
+                    params['court__jurisdiction'] = 'F'
+                elif jurisdiction.lower() in ['california', 'ca']:
+                    params['court__jurisdiction'] = 'S'
+                    params['court__id'] = 'cal'
+                elif jurisdiction.lower() in ['new_york', 'ny']:
+                    params['court__jurisdiction'] = 'S'
+                    params['court__id'] = 'ny'
             
-            return mock_cases[:limit]
+            # Set page size
+            params['page_size'] = min(limit, 20)  # Max 20 per request
             
+            # Make API request
+            headers = {
+                'Authorization': f'Token {self.courtlistener_token}',
+                'User-Agent': 'LexAI-Legal-Research/1.0'
+            }
+            
+            response = requests.get(
+                f'{self.sources["courtlistener"]}/search/',
+                params=params,
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                cases = []
+                
+                for result in data.get('results', []):
+                    # Extract case information
+                    case_data = {
+                        'case_id': f'cl_{result.get("id", "")}',
+                        'title': result.get('caseName', 'Unknown Case'),
+                        'citation': result.get('citation', [None])[0] if result.get('citation') else 'Citation not available',
+                        'court': result.get('court', 'Unknown Court'),
+                        'date': result.get('dateFiled', 'Unknown Date'),
+                        'summary': result.get('snippet', '').replace('<mark>', '').replace('</mark>', '') or 'No summary available',
+                        'relevance_score': min(100, max(1, int(result.get('score', 50)))),
+                        'jurisdiction': 'Federal' if result.get('court', '').find('U.S.') != -1 else 'State',
+                        'url': f"https://www.courtlistener.com{result.get('absolute_url', '')}",
+                        'source': 'CourtListener',
+                        'key_passages': self._extract_key_terms(result.get('snippet', ''))
+                    }
+                    cases.append(case_data)
+                
+                logger.info(f"CourtListener API returned {len(cases)} cases")
+                return cases
+            
+            else:
+                logger.warning(f"CourtListener API error: {response.status_code}")
+                # Fall back to mock data on API error
+                return self._get_courtlistener_fallback(query, limit)
+                
         except Exception as e:
             logger.error(f"CourtListener search error: {e}")
+            # Fall back to mock data on error
+            return self._get_courtlistener_fallback(query, limit)
+    
+    def _extract_key_terms(self, snippet):
+        """Extract key legal terms from case snippet"""
+        if not snippet:
             return []
+        
+        # Remove HTML markup
+        clean_snippet = snippet.replace('<mark>', '').replace('</mark>', '')
+        
+        # Common legal terms to highlight
+        legal_terms = [
+            'contract', 'liability', 'negligence', 'breach', 'damages', 
+            'constitutional', 'statute', 'regulation', 'precedent', 'jurisdiction',
+            'appeal', 'motion', 'judgment', 'evidence', 'testimony'
+        ]
+        
+        found_terms = []
+        for term in legal_terms:
+            if term.lower() in clean_snippet.lower():
+                found_terms.append(term.title())
+        
+        return found_terms[:3]  # Return max 3 terms
+    
+    def _get_courtlistener_fallback(self, query, limit):
+        """Fallback mock data when CourtListener API is unavailable"""
+        mock_cases = [
+            {
+                'case_id': 'cl_fallback_001',
+                'title': f'Legal Case Related to: {query[:50]}',
+                'citation': '2024 Fed. App. DEMO',
+                'court': 'Demo Court (API Unavailable)',
+                'date': '2024-01-01',
+                'summary': f'This is a fallback result for "{query}". CourtListener API temporarily unavailable.',
+                'relevance_score': 50,
+                'jurisdiction': 'Federal',
+                'url': 'https://www.courtlistener.com/',
+                'source': 'CourtListener (Demo Mode)',
+                'key_passages': ['Demo', 'Fallback']
+            }
+        ]
+        return mock_cases[:limit]
     
     def _deduplicate_cases(self, cases):
         """Remove duplicate cases from multiple sources"""
