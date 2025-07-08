@@ -33,12 +33,21 @@ class DatabaseManager:
         self.setup_database_config()
         self.setup_redis()
         
-        # Initialize SQLAlchemy
-        db.init_app(app)
-        
-        # Create tables if they don't exist
-        with app.app_context():
-            self.create_tables()
+        # Initialize SQLAlchemy with error handling
+        try:
+            db.init_app(app)
+            
+            # Test database connection
+            with app.app_context():
+                # Try to create a simple engine to test connectivity
+                with db.engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                self.create_tables()
+                logger.info("Database connection verified successfully")
+                
+        except Exception as e:
+            logger.error(f"Database connection failed: {e}")
+            raise Exception(f"Failed to connect to database: {e}")
     
     def setup_database_config(self):
         """Configure database connection"""

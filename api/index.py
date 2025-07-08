@@ -36,8 +36,13 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
 # Initialize database if available
 if DATABASE_AVAILABLE:
-    db_manager = DatabaseManager(app)
-    logger.info("Database initialized successfully")
+    try:
+        db_manager = DatabaseManager(app)
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.warning(f"Database initialization failed: {e}")
+        logger.info("Falling back to mock data mode")
+        DATABASE_AVAILABLE = False
 else:
     logger.warning("Running without database - using mock data")
 
