@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* Authentication Styles */
+        .auth-main {
+            background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo {
+            height: 3rem;
+            width: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .auth-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #dc2626;
+        }
+
+        .auth-button {
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-button:hover {
+            background: #1d2d23;
+            transform: translateY(-1px);
+        }
+
+        .auth-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .auth-link {
+            color: #2E4B3C;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .auth-link:hover {
+            color: #1d2d23;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        .forgot-password a {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .forgot-password a:hover {
+            color: #2E4B3C;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Demo credentials */
+        .demo-info {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .demo-title {
+            font-weight: 600;
+            color: #0c4a6e;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-credentials {
+            color: #0369a1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-main {
+                padding: 1rem;
+            }
+
+            .auth-container {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<main class="auth-main">
+    <div class="auth-container">
+        <!-- Header -->
+        <div class="auth-header">
+            <svg class="auth-logo" viewBox="0 0 100 40" fill="none">
+                <rect width="100" height="40" rx="8" fill="#2E4B3C"/>
+                <text x="50" y="26" text-anchor="middle" fill="white" font-family="system-ui" font-weight="600" font-size="14">LexAI</text>
+            </svg>
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to your LexAI Practice Partner account</p>
+        </div>
+
+        <!-- Demo Info -->
+        <div class="demo-info">
+            <div class="demo-title">Demo Access</div>
+            <div class="demo-credentials">
+                Use any email and password to login in demo mode
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <!-- Login Form -->
+        <form class="auth-form" id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input 
+                    type="email" 
+                    class="form-input" 
+                    id="email" 
+                    name="email" 
+                    placeholder="Enter your email"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    class="form-input" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                >
+                <div class="forgot-password">
+                    <a href="/forgot-password">Forgot your password?</a>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button" id="loginButton">
+                <span id="loginButtonText">Sign In</span>
+                <span id="loginSpinner" class="spinner" style="display: none;"></span>
+            </button>
+        </form>
+
+        <!-- Links -->
+        <div class="auth-links">
+            <p>Don't have an account? <a href="/register" class="auth-link">Sign up</a></p>
+        </div>
+    </div>
+</main>
+
+<script>
+// Handle login form submission
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const submitButton = document.getElementById('loginButton');
+    const buttonText = document.getElementById('loginButtonText');
+    const spinner = document.getElementById('loginSpinner');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Clear previous messages
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    
+    // Disable button and show loading
+    submitButton.disabled = true;
+    buttonText.textContent = 'Signing in...';
+    spinner.style.display = 'inline-block';
+    
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            successMessage.textContent = data.message;
+            successMessage.style.display = 'block';
+            
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            errorMessage.textContent = data.error || 'Login failed';
+            errorMessage.style.display = 'block';
+            
+            // Add error styling to inputs
+            if (data.error && data.error.includes('password')) {
+                document.getElementById('password').classList.add('error');
+            }
+            if (data.error && data.error.includes('email')) {
+                document.getElementById('email').classList.add('error');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        errorMessage.textContent = 'Network error. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        // Re-enable button
+        submitButton.disabled = false;
+        buttonText.textContent = 'Sign In';
+        spinner.style.display = 'none';
+    }
+});
+
+// Clear error styling on input
+document.getElementById('email').addEventListener('input', function() {
+    this.classList.remove('error');
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    this.classList.remove('error');
+});
+
+// Check if user is already logged in
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        
+        if (data.success) {
+            // User is already logged in, redirect to dashboard
+            window.location.href = '/dashboard';
+        }
+    } catch (error) {
+        // User not logged in, continue with login page
+    }
+});
+</script>
+{% endblock %}

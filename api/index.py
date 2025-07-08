@@ -9,7 +9,7 @@ import json
 import logging
 from datetime import datetime, timedelta, date
 from decimal import Decimal
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template, session, redirect
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -183,6 +183,30 @@ def client_new_page():
     except Exception as e:
         logger.error(f"Client new page error: {e}")
         return f"Client new error: {e}", 500
+
+@app.route('/login')
+def login_page():
+    """Login page"""
+    try:
+        # Redirect if already logged in
+        if session.get('logged_in'):
+            return redirect('/dashboard')
+        return render_template('auth_login_enhanced.html')
+    except Exception as e:
+        logger.error(f"Login page error: {e}")
+        return f"Login error: {e}", 500
+
+@app.route('/register')
+def register_page():
+    """Registration page"""
+    try:
+        # Redirect if already logged in
+        if session.get('logged_in'):
+            return redirect('/dashboard')
+        return render_template('auth_register_enhanced.html')
+    except Exception as e:
+        logger.error(f"Register page error: {e}")
+        return f"Register error: {e}", 500
 
 @app.route('/chat')
 def chat_page():
@@ -1362,6 +1386,380 @@ def _get_mock_billing_dashboard():
     return jsonify({
         'success': True,
         'dashboard': dashboard
+    })
+
+# ===== AUTHENTICATION APIs =====
+
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    """User registration endpoint"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['email', 'password', 'first_name', 'last_name']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({
+                    'success': False,
+                    'error': f'{field.replace("_", " ").title()} is required'
+                }), 400
+        
+        email = data['email'].lower().strip()
+        
+        if not DATABASE_AVAILABLE:
+            return _register_mock_user(data)
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({
+                'success': False,
+                'error': 'User with this email already exists'
+            }), 400
+        
+        # Validate password strength
+        password = data['password']
+        if len(password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'Password must be at least 8 characters long'
+            }), 400
+        
+        # Create new user
+        user = User(
+            email=email,
+            first_name=data['first_name'].strip(),
+            last_name=data['last_name'].strip(),
+            phone=data.get('phone', '').strip(),
+            role=UserRole.ASSOCIATE,  # Default role
+            firm_name=data.get('firm_name', '').strip(),
+            bar_number=data.get('bar_number', '').strip(),
+            hourly_rate=Decimal(str(data['hourly_rate'])) if data.get('hourly_rate') else None
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'user', user.id, user.id, {
+            'action': 'user_registration',
+            'email': user.email
+        })
+        
+        logger.info(f"New user registered: {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'User registered successfully',
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role.value
+            }
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Registration error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Registration failed. Please try again.'
+        }), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """User login endpoint"""
+    try:
+        data = request.json
+        
+        if not data.get('email') or not data.get('password'):
+            return jsonify({
+                'success': False,
+                'error': 'Email and password are required'
+            }), 400
+        
+        email = data['email'].lower().strip()
+        password = data['password']
+        
+        if not DATABASE_AVAILABLE:
+            return _login_mock_user(email, password)
+        
+        # Find user
+        user = User.query.filter_by(email=email).first()
+        
+        if not user or not user.check_password(password):
+            # Log failed attempt
+            if user:
+                user.failed_login_attempts += 1
+                if user.failed_login_attempts >= 5:
+                    user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=30)
+                db.session.commit()
+            
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email or password'
+            }), 401
+        
+        # Check if account is locked
+        if user.locked_until and user.locked_until > datetime.now(timezone.utc):
+            return jsonify({
+                'success': False,
+                'error': 'Account is temporarily locked. Please try again later.'
+            }), 423
+        
+        # Check if account is active
+        if not user.is_active:
+            return jsonify({
+                'success': False,
+                'error': 'Account is deactivated. Please contact support.'
+            }), 403
+        
+        # Reset failed attempts and update last login
+        user.failed_login_attempts = 0
+        user.locked_until = None
+        user.last_login = datetime.now(timezone.utc)
+        db.session.commit()
+        
+        # Create session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['user_role'] = user.role.value
+        session['user_name'] = f"{user.first_name} {user.last_name}"
+        session['logged_in'] = True
+        
+        # Create audit log
+        audit_log('login', 'user', user.id, user.id, {
+            'action': 'user_login',
+            'ip_address': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', '')
+        })
+        
+        logger.info(f"User logged in: {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role.value,
+                'firm_name': user.firm_name
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Login failed. Please try again.'
+        }), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    """User logout endpoint"""
+    try:
+        user_id = session.get('user_id')
+        
+        if user_id and DATABASE_AVAILABLE:
+            # Create audit log
+            audit_log('logout', 'user', user_id, user_id, {
+                'action': 'user_logout'
+            })
+        
+        # Clear session
+        session.clear()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Logout failed'
+        }), 500
+
+@app.route('/api/auth/me', methods=['GET'])
+def api_current_user():
+    """Get current user information"""
+    try:
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not authenticated'
+            }), 401
+        
+        user_id = session.get('user_id')
+        
+        if not DATABASE_AVAILABLE:
+            return _get_mock_current_user()
+        
+        user = User.query.get(user_id)
+        if not user:
+            session.clear()
+            return jsonify({
+                'success': False,
+                'error': 'User not found'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'full_name': user.get_full_name(),
+                'role': user.role.value,
+                'firm_name': user.firm_name,
+                'phone': user.phone,
+                'hourly_rate': float(user.hourly_rate) if user.hourly_rate else None,
+                'two_factor_enabled': user.two_factor_enabled,
+                'email_verified': user.email_verified,
+                'last_login': user.last_login.isoformat() if user.last_login else None,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Current user error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get user information'
+        }), 500
+
+@app.route('/api/auth/change-password', methods=['POST'])
+def api_change_password():
+    """Change user password"""
+    try:
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not authenticated'
+            }), 401
+        
+        data = request.json
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        if not current_password or not new_password:
+            return jsonify({
+                'success': False,
+                'error': 'Current password and new password are required'
+            }), 400
+        
+        if len(new_password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'New password must be at least 8 characters long'
+            }), 400
+        
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                'success': True,
+                'message': 'Password changed successfully (mock mode)'
+            })
+        
+        user_id = session.get('user_id')
+        user = User.query.get(user_id)
+        
+        if not user or not user.check_password(current_password):
+            return jsonify({
+                'success': False,
+                'error': 'Current password is incorrect'
+            }), 400
+        
+        # Update password
+        user.set_password(new_password)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('update', 'user', user.id, user.id, {
+            'action': 'password_change'
+        })
+        
+        logger.info(f"Password changed for user: {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password changed successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Change password error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to change password'
+        }), 500
+
+# ===== MOCK AUTHENTICATION FUNCTIONS =====
+
+def _register_mock_user(data):
+    """Mock user registration"""
+    return jsonify({
+        'success': True,
+        'message': 'User registered successfully (mock mode)',
+        'user': {
+            'id': '1',
+            'email': data['email'],
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
+            'role': 'associate'
+        }
+    })
+
+def _login_mock_user(email, password):
+    """Mock user login"""
+    # Simple mock - any password works
+    session['user_id'] = '1'
+    session['user_email'] = email
+    session['user_role'] = 'associate'
+    session['user_name'] = 'Demo User'
+    session['logged_in'] = True
+    
+    return jsonify({
+        'success': True,
+        'message': 'Login successful (mock mode)',
+        'user': {
+            'id': '1',
+            'email': email,
+            'first_name': 'Demo',
+            'last_name': 'User',
+            'role': 'associate',
+            'firm_name': 'Demo Law Firm'
+        }
+    })
+
+def _get_mock_current_user():
+    """Mock current user"""
+    return jsonify({
+        'success': True,
+        'user': {
+            'id': '1',
+            'email': session.get('user_email', 'demo@example.com'),
+            'first_name': 'Demo',
+            'last_name': 'User',
+            'full_name': 'Demo User',
+            'role': 'associate',
+            'firm_name': 'Demo Law Firm',
+            'phone': '(555) 123-4567',
+            'hourly_rate': 350.00,
+            'two_factor_enabled': False,
+            'email_verified': True,
+            'last_login': datetime.now().isoformat(),
+            'created_at': datetime.now().isoformat()
+        }
     })
 
 # ===== CLIENT MANAGEMENT APIs =====

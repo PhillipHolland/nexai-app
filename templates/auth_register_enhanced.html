@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* Authentication Styles */
+        .auth-main {
+            background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo {
+            height: 3rem;
+            width: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .auth-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .auth-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: #dc2626;
+        }
+
+        .form-input, .form-select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #dc2626;
+        }
+
+        .password-strength {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .strength-weak {
+            color: #dc2626;
+        }
+
+        .strength-medium {
+            color: #f59e0b;
+        }
+
+        .strength-strong {
+            color: #10b981;
+        }
+
+        .auth-button {
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-button:hover {
+            background: #1d2d23;
+            transform: translateY(-1px);
+        }
+
+        .auth-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .auth-link {
+            color: #2E4B3C;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .auth-link:hover {
+            color: #1d2d23;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .terms-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .terms-text a {
+            color: #2E4B3C;
+            text-decoration: none;
+        }
+
+        .terms-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-main {
+                padding: 1rem;
+            }
+
+            .auth-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<main class="auth-main">
+    <div class="auth-container">
+        <!-- Header -->
+        <div class="auth-header">
+            <svg class="auth-logo" viewBox="0 0 100 40" fill="none">
+                <rect width="100" height="40" rx="8" fill="#2E4B3C"/>
+                <text x="50" y="26" text-anchor="middle" fill="white" font-family="system-ui" font-weight="600" font-size="14">LexAI</text>
+            </svg>
+            <h1 class="auth-title">Create Your Account</h1>
+            <p class="auth-subtitle">Join LexAI Practice Partner and transform your legal practice</p>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <!-- Registration Form -->
+        <form class="auth-form" id="registerForm">
+            <!-- Personal Information -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">First Name</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="firstName" 
+                        name="first_name" 
+                        placeholder="John"
+                        required
+                        autocomplete="given-name"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Last Name</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="lastName" 
+                        name="last_name" 
+                        placeholder="Doe"
+                        required
+                        autocomplete="family-name"
+                    >
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-group">
+                <label class="form-label required">Email Address</label>
+                <input 
+                    type="email" 
+                    class="form-input" 
+                    id="email" 
+                    name="email" 
+                    placeholder="john.doe@lawfirm.com"
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input 
+                    type="tel" 
+                    class="form-input" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder="(555) 123-4567"
+                    autocomplete="tel"
+                >
+            </div>
+
+            <!-- Professional Information -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Firm Name</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="firmName" 
+                        name="firm_name" 
+                        placeholder="Doe & Associates"
+                        autocomplete="organization"
+                    >
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bar Number</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="barNumber" 
+                        name="bar_number" 
+                        placeholder="12345"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Hourly Rate ($)</label>
+                <input 
+                    type="number" 
+                    class="form-input" 
+                    id="hourlyRate" 
+                    name="hourly_rate" 
+                    placeholder="350"
+                    min="0"
+                    step="0.01"
+                >
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="form-label required">Password</label>
+                <input 
+                    type="password" 
+                    class="form-input" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Create a strong password"
+                    required
+                    autocomplete="new-password"
+                    minlength="8"
+                >
+                <div id="passwordStrength" class="password-strength"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Confirm Password</label>
+                <input 
+                    type="password" 
+                    class="form-input" 
+                    id="confirmPassword" 
+                    name="confirm_password" 
+                    placeholder="Confirm your password"
+                    required
+                    autocomplete="new-password"
+                >
+            </div>
+
+            <button type="submit" class="auth-button" id="registerButton">
+                <span id="registerButtonText">Create Account</span>
+                <span id="registerSpinner" class="spinner" style="display: none;"></span>
+            </button>
+
+            <div class="terms-text">
+                By creating an account, you agree to our 
+                <a href="/terms">Terms of Service</a> and 
+                <a href="/privacy">Privacy Policy</a>
+            </div>
+        </form>
+
+        <!-- Links -->
+        <div class="auth-links">
+            <p>Already have an account? <a href="/login" class="auth-link">Sign in</a></p>
+        </div>
+    </div>
+</main>
+
+<script>
+// Password strength checker
+function checkPasswordStrength(password) {
+    const strengthElement = document.getElementById('passwordStrength');
+    
+    if (password.length === 0) {
+        strengthElement.textContent = '';
+        return;
+    }
+    
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+    
+    if (score < 3) {
+        strengthElement.textContent = 'Weak password';
+        strengthElement.className = 'password-strength strength-weak';
+    } else if (score < 5) {
+        strengthElement.textContent = 'Medium strength';
+        strengthElement.className = 'password-strength strength-medium';
+    } else {
+        strengthElement.textContent = 'Strong password';
+        strengthElement.className = 'password-strength strength-strong';
+    }
+}
+
+// Password confirmation validation
+function validatePasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const confirmInput = document.getElementById('confirmPassword');
+    
+    if (confirmPassword.length > 0 && password !== confirmPassword) {
+        confirmInput.classList.add('error');
+        return false;
+    } else {
+        confirmInput.classList.remove('error');
+        return true;
+    }
+}
+
+// Event listeners
+document.getElementById('password').addEventListener('input', function() {
+    checkPasswordStrength(this.value);
+    this.classList.remove('error');
+});
+
+document.getElementById('confirmPassword').addEventListener('input', function() {
+    validatePasswordMatch();
+});
+
+// Handle registration form submission
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {};
+    
+    // Collect form data
+    for (let [key, value] of formData.entries()) {
+        if (value.trim()) {
+            data[key] = value.trim();
+        }
+    }
+    
+    const submitButton = document.getElementById('registerButton');
+    const buttonText = document.getElementById('registerButtonText');
+    const spinner = document.getElementById('registerSpinner');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Validate password match
+    if (!validatePasswordMatch()) {
+        errorMessage.textContent = 'Passwords do not match';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
+    // Clear previous messages
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    
+    // Disable button and show loading
+    submitButton.disabled = true;
+    buttonText.textContent = 'Creating Account...';
+    spinner.style.display = 'inline-block';
+    
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            successMessage.textContent = result.message + ' Redirecting to login...';
+            successMessage.style.display = 'block';
+            
+            // Redirect to login page
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            errorMessage.textContent = result.error || 'Registration failed';
+            errorMessage.style.display = 'block';
+            
+            // Add error styling to relevant inputs
+            if (result.error && result.error.includes('email')) {
+                document.getElementById('email').classList.add('error');
+            }
+        }
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        errorMessage.textContent = 'Network error. Please try again.';
+        errorMessage.style.display = 'block';
+    } finally {
+        // Re-enable button
+        submitButton.disabled = false;
+        buttonText.textContent = 'Create Account';
+        spinner.style.display = 'none';
+    }
+});
+
+// Clear error styling on input
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.classList.remove('error');
+        });
+    });
+});
+</script>
+{% endblock %}
