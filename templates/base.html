@@ -183,8 +183,8 @@
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('evidence_analysis') }}" class="base-dropdown-item">🔍 Evidence Analysis</a>
-                            <a href="{{ url_for('chat_interface') }}" class="base-dropdown-item">AI Assistant</a>
+                            <a href="{{ url_for('documents_page') }}" class="base-dropdown-item">🔍 Evidence Analysis</a>
+                            <a href="{{ url_for('chat_page') }}" class="base-dropdown-item">AI Assistant</a>
                             <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">Document Analysis</a>
                             <a href="{{ url_for('legal_research_page') }}" class="base-dropdown-item">Legal Research</a>
                             <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">Contract Generator</a>
@@ -202,8 +202,8 @@
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('clients_list') }}" class="base-dropdown-item">Clients & Cases</a>
-                            <a href="{{ url_for('documents_list') }}" class="base-dropdown-item">Document Library</a>
+                            <a href="{{ url_for('clients_page') }}" class="base-dropdown-item">Clients & Cases</a>
+                            <a href="{{ url_for('documents_page') }}" class="base-dropdown-item">Document Library</a>
                             <a href="{{ url_for('document_management_page') }}" class="base-dropdown-item">Document Management</a>
                             <a href="{{ url_for('calendar_page') }}" class="base-dropdown-item">Calendar</a>
                             <a href="{{ url_for('court_deadlines_page') }}" class="base-dropdown-item">Court Deadlines</a>
@@ -336,11 +336,11 @@
                 
                 <!-- AI Tools - Attorney/Admin only -->
                 {% if user_role in ['attorney', 'admin'] %}
-                <a href="{{ url_for('chat_interface') }}" 
+                <a href="{{ url_for('chat_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'chat_interface' %}active{% endif %}">
                     AI Tools
                 </a>
-                <a href="{{ url_for('evidence_analysis') }}" 
+                <a href="{{ url_for('documents_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'evidence_analysis' %}active{% endif %}">
                     Evidence Analysis
                 </a>
@@ -348,11 +348,11 @@
                 
                 <!-- Practice Management - Paralegal+ -->
                 {% if user_role in ['paralegal', 'attorney', 'admin'] %}
-                <a href="{{ url_for('clients_list') }}" 
+                <a href="{{ url_for('clients_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'clients_list' %}active{% endif %}">
                     Clients & Cases
                 </a>
-                <a href="{{ url_for('documents_list') }}" 
+                <a href="{{ url_for('documents_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'documents_list' %}active{% endif %}">
                     Documents
                 </a>

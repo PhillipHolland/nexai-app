@@ -180,7 +180,7 @@ def time_tracking_page():
 def platform_page():
     """Platform overview page"""
     try:
-        return render_template('platform.html',
+        return render_template('platform_overview.html',
                              bagel_available=BAGEL_AI_AVAILABLE,
                              spanish_available=SPANISH_AVAILABLE,
                              stripe_available=STRIPE_AVAILABLE)
@@ -197,6 +197,15 @@ def privacy_dashboard_page():
     except Exception as e:
         logger.error(f"Privacy dashboard error: {e}")
         return f"Privacy dashboard error: {e}", 500
+
+@app.route('/analytics-dashboard')
+def analytics_dashboard():
+    """Analytics and reporting dashboard"""
+    try:
+        return render_template('analytics_dashboard.html')
+    except Exception as e:
+        logger.error(f"Analytics dashboard error: {e}")
+        return f"Analytics dashboard error: {e}", 500
 
 # ===== API ROUTES =====
 
