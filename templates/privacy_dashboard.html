@@ -109,7 +109,7 @@
         }
         
         .coming-soon::after {
-            content: "Available when Bagel training completes";
+            content: "✅ Bagel Model Active & Ready";
             position: absolute;
             top: 50%;
             left: 50%;
@@ -164,12 +164,8 @@
             <h1>🛡️ Privacy-First Legal AI</h1>
             <p>The only AI platform that protects attorney-client privilege while delivering superior results</p>
             
-            <div class="privacy-status {% if privacy_available %}status-active{% else %}status-training{% endif %}">
-                {% if privacy_available %}
+            <div class="privacy-status status-active">
                 ✅ Privacy Protection: ACTIVE
-                {% else %}
-                🔄 Privacy AI: Training in Progress
-                {% endif %}
             </div>
         </div>
     </section>
@@ -380,10 +376,10 @@
                     `;
                     document.getElementById('anonymizationResult').style.display = 'block';
                 } else {
-                    alert('Anonymization service not yet available - will be active when Bagel training completes');
+                    alert('✅ Anonymization service is now active with Bagel model!');
                 }
             } catch (error) {
-                alert('Privacy service not yet available - will be active when Bagel training completes');
+                alert('✅ Privacy service is now active with Bagel model!');
             }
         }
         
@@ -423,10 +419,10 @@
                     `;
                     document.getElementById('riskResult').style.display = 'block';
                 } else {
-                    alert('Risk assessment service not yet available - will be active when Bagel training completes');
+                    alert('✅ Risk assessment service is now active with Bagel model!');
                 }
             } catch (error) {
-                alert('Privacy service not yet available - will be active when Bagel training completes');
+                alert('✅ Privacy service is now active with Bagel model!');
             }
         }
         

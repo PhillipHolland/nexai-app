@@ -10,6 +10,7 @@ import logging
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session, redirect
+from functools import wraps
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -66,6 +67,78 @@ logger.info(f"BAGEL_AI_AVAILABLE: {BAGEL_AI_AVAILABLE}")
 logger.info(f"SPANISH_AVAILABLE: {SPANISH_AVAILABLE}")
 logger.info(f"STRIPE_AVAILABLE: {STRIPE_AVAILABLE}")
 
+# ===== AUTHENTICATION MIDDLEWARE =====
+
+def login_required(f):
+    """Decorator to require authentication for routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'error': 'Authentication required'
+                }), 401
+            else:
+                return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
+def role_required(*allowed_roles):
+    """Decorator to require specific roles for routes"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not session.get('logged_in'):
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Authentication required'
+                    }), 401
+                else:
+                    return redirect('/login')
+            
+            user_role = session.get('user_role')
+            if user_role not in allowed_roles:
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Insufficient permissions'
+                    }), 403
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Access denied - insufficient permissions'
+                    }), 403
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def admin_required(f):
+    """Decorator to require admin role"""
+    return role_required('admin')(f)
+
+def get_current_user():
+    """Helper function to get current user information"""
+    if not session.get('logged_in'):
+        return None
+    
+    if not DATABASE_AVAILABLE:
+        return {
+            'id': session.get('user_id'),
+            'email': session.get('user_email'),
+            'role': session.get('user_role'),
+            'name': session.get('user_name')
+        }
+    
+    try:
+        user_id = session.get('user_id')
+        user = User.query.get(user_id)
+        return user
+    except:
+        return None
+
 # ===== MAIN ROUTES =====
 
 @app.route('/')
@@ -79,6 +152,7 @@ def landing_page():
         return f"LexAI Practice Partner - Error loading page: {e}", 500
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """Main dashboard"""
     try:
@@ -99,6 +173,7 @@ def dashboard():
         return f"Dashboard error: {e}", 500
 
 @app.route('/documents')
+@login_required
 def documents_page():
     """Document analysis page"""
     try:
@@ -109,6 +184,7 @@ def documents_page():
         return f"Documents error: {e}", 500
 
 @app.route('/contracts')
+@login_required
 def contracts_page():
     """Contract analysis page"""
     try:
@@ -119,6 +195,7 @@ def contracts_page():
         return f"Contracts error: {e}", 500
 
 @app.route('/legal-research')
+@login_required
 def legal_research_page():
     """Legal research page"""
     try:
@@ -129,6 +206,7 @@ def legal_research_page():
         return f"Legal research error: {e}", 500
 
 @app.route('/spanish')
+@login_required
 def spanish_interface():
     """Spanish language interface"""
     try:
@@ -139,6 +217,7 @@ def spanish_interface():
         return f"Spanish interface error: {e}", 500
 
 @app.route('/billing')
+@login_required
 def billing_page():
     """Billing and payments page"""
     try:
@@ -149,6 +228,7 @@ def billing_page():
         return f"Billing error: {e}", 500
 
 @app.route('/clients')
+@login_required
 def clients_page():
     """Client management page"""
     try:
@@ -158,6 +238,7 @@ def clients_page():
         return f"Clients error: {e}", 500
 
 @app.route('/clients/<client_id>')
+@login_required
 def client_profile_page(client_id):
     """Individual client profile page"""
     try:
@@ -167,6 +248,7 @@ def client_profile_page(client_id):
         return f"Client profile error: {e}", 500
 
 @app.route('/clients/<client_id>/edit')
+@login_required
 def client_edit_page(client_id):
     """Client edit page"""
     try:
@@ -176,6 +258,7 @@ def client_edit_page(client_id):
         return f"Client edit error: {e}", 500
 
 @app.route('/clients/new')
+@login_required
 def client_new_page():
     """New client creation page"""
     try:
@@ -209,6 +292,7 @@ def register_page():
         return f"Register error: {e}", 500
 
 @app.route('/chat')
+@login_required
 def chat_page():
     """Chat interface"""
     try:
@@ -219,6 +303,7 @@ def chat_page():
         return f"Chat error: {e}", 500
 
 @app.route('/onboarding')
+@login_required
 def onboarding_page():
     """User onboarding flow"""
     try:
@@ -228,6 +313,7 @@ def onboarding_page():
         return f"Onboarding error: {e}", 500
 
 @app.route('/time-tracking')
+@login_required
 def time_tracking_page():
     """Time tracking interface"""
     try:
@@ -237,6 +323,7 @@ def time_tracking_page():
         return f"Time tracking error: {e}", 500
 
 @app.route('/platform')
+@login_required
 def platform_page():
     """Platform overview page"""
     try:
@@ -249,6 +336,7 @@ def platform_page():
         return f"Platform error: {e}", 500
 
 @app.route('/privacy-dashboard')
+@login_required
 def privacy_dashboard_page():
     """Privacy analysis dashboard"""
     try:
@@ -259,6 +347,7 @@ def privacy_dashboard_page():
         return f"Privacy dashboard error: {e}", 500
 
 @app.route('/analytics-dashboard')
+@login_required
 def analytics_dashboard():
     """Analytics and reporting dashboard"""
     try:
@@ -325,6 +414,8 @@ def api_database_status():
     })
 
 @app.route('/api/documents/analyze', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_document_analyze():
     """Analyze document text"""
     try:
@@ -355,6 +446,8 @@ def api_document_analyze():
         }), 500
 
 @app.route('/api/spanish/translate', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_spanish_translate():
     """Translate text to Spanish"""
     try:
@@ -382,6 +475,8 @@ def api_spanish_translate():
         }), 500
 
 @app.route('/api/contracts/analyze', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_contract_analyze():
     """Analyze contract"""
     try:
@@ -410,6 +505,8 @@ def api_contract_analyze():
         }), 500
 
 @app.route('/api/chat', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_chat():
     """Chat with AI assistant"""
     try:
@@ -435,6 +532,7 @@ def api_chat():
         }), 500
 
 @app.route('/api/onboarding/complete', methods=['POST'])
+@login_required
 def api_onboarding_complete():
     """Complete user onboarding"""
     try:
@@ -457,6 +555,8 @@ def api_onboarding_complete():
 # ===== TIME TRACKING API =====
 
 @app.route('/api/time/entries', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_time_entries():
     """Get time entries for current user"""
     try:
@@ -539,6 +639,8 @@ def _get_mock_time_entries():
     })
 
 @app.route('/api/time/entries', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_create_time_entry():
     """Create new time entry"""
     try:
@@ -630,6 +732,8 @@ def _create_mock_time_entry(data, hours, rate, amount):
     })
 
 @app.route('/api/time/entries/<entry_id>', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_update_time_entry(entry_id):
     """Update time entry"""
     try:
@@ -699,6 +803,8 @@ def api_update_time_entry(entry_id):
         }), 500
 
 @app.route('/api/time/entries/<entry_id>/status', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_update_time_entry_status(entry_id):
     """Update time entry status (draft -> submitted -> approved -> billed)"""
     try:
@@ -773,6 +879,8 @@ def api_update_time_entry_status(entry_id):
         }), 500
 
 @app.route('/api/time/entries/billable', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_billable_entries():
     """Get billable time entries ready for invoicing"""
     try:
@@ -901,6 +1009,8 @@ def _get_mock_billable_entries():
 # ===== INVOICE API =====
 
 @app.route('/api/invoices', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_invoices():
     """Get all invoices"""
     try:
@@ -981,6 +1091,8 @@ def _get_mock_invoices():
     })
 
 @app.route('/api/invoices', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_create_invoice():
     """Create invoice from billable time entries"""
     try:
@@ -1130,6 +1242,8 @@ def _create_mock_invoice(data):
     })
 
 @app.route('/api/invoices/<invoice_id>', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_invoice(invoice_id):
     """Get invoice details"""
     try:
@@ -1182,6 +1296,8 @@ def api_get_invoice(invoice_id):
         }), 500
 
 @app.route('/api/invoices/<invoice_id>/status', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_update_invoice_status(invoice_id):
     """Update invoice status (draft -> sent -> paid)"""
     try:
@@ -1218,6 +1334,8 @@ def api_update_invoice_status(invoice_id):
         }), 500
 
 @app.route('/api/invoices/<invoice_id>/send', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_send_invoice(invoice_id):
     """Send invoice to client"""
     try:
@@ -1249,6 +1367,8 @@ def api_send_invoice(invoice_id):
         }), 500
 
 @app.route('/api/billing/dashboard', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_billing_dashboard():
     """Get billing dashboard data"""
     try:
@@ -1589,6 +1709,7 @@ def api_logout():
         }), 500
 
 @app.route('/api/auth/me', methods=['GET'])
+@login_required
 def api_current_user():
     """Get current user information"""
     try:
@@ -1638,6 +1759,7 @@ def api_current_user():
         }), 500
 
 @app.route('/api/auth/change-password', methods=['POST'])
+@login_required
 def api_change_password():
     """Change user password"""
     try:
@@ -1765,6 +1887,8 @@ def _get_mock_current_user():
 # ===== CLIENT MANAGEMENT APIs =====
 
 @app.route('/api/clients', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_clients():
     """Get all clients with optional search and filtering"""
     try:
@@ -1850,6 +1974,8 @@ def api_get_clients():
         }), 500
 
 @app.route('/api/clients', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_create_client():
     """Create a new client"""
     try:
@@ -1922,6 +2048,8 @@ def api_create_client():
         }), 500
 
 @app.route('/api/clients/<client_id>', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_client(client_id):
     """Get a specific client with full details"""
     try:
@@ -1981,6 +2109,8 @@ def api_get_client(client_id):
         }), 500
 
 @app.route('/api/clients/<client_id>', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate')
 def api_update_client(client_id):
     """Update a client"""
     try:
@@ -2041,6 +2171,8 @@ def api_update_client(client_id):
         }), 500
 
 @app.route('/api/clients/<client_id>', methods=['DELETE'])
+@login_required
+@role_required('admin', 'partner')
 def api_delete_client(client_id):
     """Delete a client (soft delete by setting status to inactive)"""
     try:

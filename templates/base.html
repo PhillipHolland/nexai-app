@@ -146,7 +146,11 @@
             <div class="base-nav-content">
                 <!-- Logo -->
                 <div>
-                    <a href="{{ url_for('dashboard') }}">
+                    {% if session.logged_in %}
+                        <a href="{{ url_for('dashboard') }}">
+                    {% else %}
+                        <a href="{{ url_for('landing_page') }}">
+                    {% endif %}
                         <img src="/static/lexAI.png" alt="LexAI" style="height: 3rem; width: auto;">
                     </a>
                 </div>
