@@ -38,7 +38,7 @@
             padding: 0 1rem;
         }
 
-        /* Quick Stats Cards */
+        /* Dashboard Stats */
         .billing-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -51,7 +51,885 @@
             border-radius: 1rem;
             padding: 2rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
             border-left: 4px solid #2E4B3C;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            font-size: 0.875rem;
+            color: #16a34a;
+            margin-top: 0.5rem;
+        }
+
+        /* Action Section */
+        .billing-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+            color: #374151;
+            text-decoration: none;
+        }
+
+        /* Tables */
+        .billing-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-sent {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-paid {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .status-submitted {
+            background-color: #fef3cd;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background-color: #e0e7ff;
+            color: #6366f1;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+            margin-right: 0.5rem;
+        }
+
+        .action-btn:hover {
+            color: #2E4B3C;
+            background-color: #f3f4f6;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close {
+            color: #6b7280;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #374151;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2E4B3C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .billing-title {
+                font-size: 2rem;
+            }
+
+            .billing-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .billing-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .section-actions {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+            }
+
+            /* Hide some table columns on mobile */
+            .data-table .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="billing-container">
+    <!-- Billing Header -->
+    <div class="billing-header">
+        <h1 class="billing-title">Billing & Invoices</h1>
+        <p class="billing-subtitle">Manage time entries, generate invoices, and track payments</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="billing-main">
+        <!-- Dashboard Stats -->
+        <div class="billing-stats" id="billingStats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOutstanding">$0</div>
+                <div class="stat-label">Outstanding Amount</div>
+                <div class="stat-trend">+$2,430 this month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalPaid">$0</div>
+                <div class="stat-label">Paid This Month</div>
+                <div class="stat-trend">↗ 15% from last month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingEntries">0</div>
+                <div class="stat-label">Pending Time Entries</div>
+                <div class="stat-trend">Ready for billing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="billableHours">0</div>
+                <div class="stat-label">Billable Hours</div>
+                <div class="stat-trend">This month</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="billing-actions">
+            <div class="action-card">
+                <h3 class="action-title">Generate Invoice</h3>
+                <p class="action-description">Create invoices from approved time entries and send to clients</p>
+                <button class="btn btn-primary" onclick="showCreateInvoiceModal()">Create Invoice</button>
+            </div>
+            <div class="action-card">
+                <h3 class="action-title">Time Tracking</h3>
+                <p class="action-description">Track billable hours and manage time entries for accurate billing</p>
+                <a href="/time-tracking" class="btn btn-primary">Track Time</a>
+            </div>
+            <div class="action-card">
+                <h3 class="action-title">View Reports</h3>
+                <p class="action-description">Analyze billing performance and generate financial reports</p>
+                <button class="btn btn-secondary" onclick="showReports()">View Reports</button>
+            </div>
+        </div>
+
+        <!-- Recent Invoices Section -->
+        <div class="billing-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Invoices</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="refreshInvoices()">
+                        <span id="refreshInvoicesText">Refresh</span>
+                        <span id="refreshInvoicesLoading" class="loading" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-primary" onclick="showCreateInvoiceModal()">New Invoice</button>
+                </div>
+            </div>
+
+            <table class="data-table" id="invoicesTable">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Subject</th>
+                        <th class="hide-mobile">Issue Date</th>
+                        <th class="hide-mobile">Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <!-- Invoices will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pending Time Entries Section -->
+        <div class="billing-section">
+            <div class="section-header">
+                <h2 class="section-title">Billable Time Entries</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="refreshTimeEntries()">
+                        <span id="refreshTimeText">Refresh</span>
+                        <span id="refreshTimeLoading" class="loading" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-primary" onclick="createInvoiceFromSelected()">Create Invoice</button>
+                </div>
+            </div>
+
+            <table class="data-table" id="timeEntriesTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Description</th>
+                        <th class="hide-mobile">Hours</th>
+                        <th class="hide-mobile">Rate</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="timeEntriesTableBody">
+                    <!-- Time entries will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Create Invoice Modal -->
+<div id="createInvoiceModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Create Invoice</h2>
+            <span class="close" onclick="closeCreateInvoiceModal()">&times;</span>
+        </div>
+        
+        <form id="createInvoiceForm">
+            <div class="form-group">
+                <label class="form-label" for="invoiceClient">Client</label>
+                <select id="invoiceClient" class="form-select" required onchange="loadClientTimeEntries()">
+                    <option value="">Select Client</option>
+                    <option value="client_1">John Smith</option>
+                    <option value="client_2">ABC Corporation</option>
+                    <option value="client_3">Jane Doe</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="invoiceSubject">Subject</label>
+                <input type="text" id="invoiceSubject" class="form-input" required placeholder="Invoice subject...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="invoiceDescription">Description (Optional)</label>
+                <textarea id="invoiceDescription" class="form-textarea" placeholder="Additional invoice details..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Time Entries to Include</label>
+                <div id="invoiceTimeEntries" style="max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 1rem;">
+                    <p style="color: #6b7280; text-align: center;">Select a client to see available time entries</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="taxRate">Tax Rate (%)</label>
+                <input type="number" id="taxRate" class="form-input" value="8" step="0.01" min="0" max="100">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="paymentTerms">Payment Terms</label>
+                <select id="paymentTerms" class="form-select">
+                    <option value="Net 30">Net 30</option>
+                    <option value="Net 15">Net 15</option>
+                    <option value="Due on Receipt">Due on Receipt</option>
+                    <option value="Net 60">Net 60</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateInvoiceModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="createInvoiceBtn">
+                    <span id="createInvoiceText">Create Invoice</span>
+                    <span id="createInvoiceLoading" class="loading" style="display: none;"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard
+    loadDashboardData();
+    loadInvoices();
+    loadBillableTimeEntries();
+
+    // Initialize create invoice form
+    setupCreateInvoiceForm();
+});
+
+// Dashboard Data Loading
+function loadDashboardData() {
+    fetch('/api/billing/dashboard')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const dashboard = data.dashboard;
+                document.getElementById('totalOutstanding').textContent = '$' + dashboard.summary.total_outstanding.toLocaleString();
+                document.getElementById('totalPaid').textContent = '$' + dashboard.summary.total_paid_this_month.toLocaleString();
+                document.getElementById('pendingEntries').textContent = dashboard.summary.pending_time_entries;
+                document.getElementById('billableHours').textContent = dashboard.summary.billable_hours_this_month;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+        });
+}
+
+// Invoice Management
+function loadInvoices() {
+    fetch('/api/invoices')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayInvoices(data.invoices);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading invoices:', error);
+        });
+}
+
+function displayInvoices(invoices) {
+    const tbody = document.getElementById('invoicesTableBody');
+    tbody.innerHTML = '';
+
+    invoices.forEach(invoice => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${invoice.invoice_number}</strong></td>
+            <td>${invoice.client_name}</td>
+            <td>${invoice.subject}</td>
+            <td class="hide-mobile">${invoice.issue_date}</td>
+            <td class="hide-mobile">${invoice.due_date}</td>
+            <td><strong>$${invoice.total_amount.toFixed(2)}</strong></td>
+            <td><span class="status-badge status-${invoice.status}">${invoice.status}</span></td>
+            <td>
+                <button class="action-btn" onclick="viewInvoice('${invoice.id}')" title="View">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                </button>
+                <button class="action-btn" onclick="sendInvoice('${invoice.id}')" title="Send">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </button>
+                <button class="action-btn" onclick="markAsPaid('${invoice.id}')" title="Mark Paid">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Time Entries Management
+function loadBillableTimeEntries() {
+    fetch('/api/time/entries/billable')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayTimeEntries(data.billable_entries);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading time entries:', error);
+        });
+}
+
+function displayTimeEntries(entries) {
+    const tbody = document.getElementById('timeEntriesTableBody');
+    tbody.innerHTML = '';
+
+    entries.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="checkbox" class="entry-checkbox" value="${entry.id}"></td>
+            <td>${entry.date}</td>
+            <td>${entry.client_name}</td>
+            <td>${entry.description}</td>
+            <td class="hide-mobile">${entry.hours}h</td>
+            <td class="hide-mobile">$${entry.hourly_rate}</td>
+            <td><strong>$${entry.amount.toFixed(2)}</strong></td>
+            <td><span class="status-badge status-${entry.status}">${entry.status}</span></td>
+            <td>
+                <button class="action-btn" onclick="approveTimeEntry('${entry.id}')" title="Approve">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </button>
+                <button class="action-btn" onclick="editTimeEntry('${entry.id}')" title="Edit">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Create Invoice Modal Management
+function showCreateInvoiceModal() {
+    document.getElementById('createInvoiceModal').style.display = 'block';
+}
+
+function closeCreateInvoiceModal() {
+    document.getElementById('createInvoiceModal').style.display = 'none';
+    document.getElementById('createInvoiceForm').reset();
+    document.getElementById('invoiceTimeEntries').innerHTML = '<p style="color: #6b7280; text-align: center;">Select a client to see available time entries</p>';
+}
+
+function setupCreateInvoiceForm() {
+    document.getElementById('createInvoiceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        createInvoice();
+    });
+}
+
+function loadClientTimeEntries() {
+    const clientId = document.getElementById('invoiceClient').value;
+    if (!clientId) {
+        document.getElementById('invoiceTimeEntries').innerHTML = '<p style="color: #6b7280; text-align: center;">Select a client to see available time entries</p>';
+        return;
+    }
+
+    fetch(`/api/time/entries/billable?client_id=${clientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.clients[clientId]) {
+                const client = data.clients[clientId];
+                const entriesHtml = client.entries.map(entry => `
+                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.25rem;">
+                        <input type="checkbox" class="invoice-entry-checkbox" value="${entry.id}" checked>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500;">${entry.description}</div>
+                            <div style="font-size: 0.875rem; color: #6b7280;">${entry.date} - ${entry.hours}h @ $${entry.hourly_rate} = $${entry.amount.toFixed(2)}</div>
+                        </div>
+                    </label>
+                `).join('');
+
+                document.getElementById('invoiceTimeEntries').innerHTML = entriesHtml || '<p style="color: #6b7280; text-align: center;">No billable time entries found for this client</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading client time entries:', error);
+        });
+}
+
+function createInvoice() {
+    const formData = {
+        client_id: document.getElementById('invoiceClient').value,
+        subject: document.getElementById('invoiceSubject').value,
+        description: document.getElementById('invoiceDescription').value,
+        tax_rate: parseFloat(document.getElementById('taxRate').value) / 100,
+        payment_terms: document.getElementById('paymentTerms').value,
+        entry_ids: Array.from(document.querySelectorAll('.invoice-entry-checkbox:checked')).map(cb => cb.value)
+    };
+
+    // Show loading state
+    document.getElementById('createInvoiceText').style.display = 'none';
+    document.getElementById('createInvoiceLoading').style.display = 'inline-block';
+    document.getElementById('createInvoiceBtn').disabled = true;
+
+    fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Invoice created successfully!');
+            closeCreateInvoiceModal();
+            loadInvoices();
+            loadBillableTimeEntries();
+            loadDashboardData();
+        } else {
+            alert('Error creating invoice: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating invoice:', error);
+        alert('Error creating invoice');
+    })
+    .finally(() => {
+        // Reset loading state
+        document.getElementById('createInvoiceText').style.display = 'inline';
+        document.getElementById('createInvoiceLoading').style.display = 'none';
+        document.getElementById('createInvoiceBtn').disabled = false;
+    });
+}
+
+// Time Entry Actions
+function approveTimeEntry(entryId) {
+    fetch(`/api/time/entries/${entryId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: 'approved' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadBillableTimeEntries();
+            loadDashboardData();
+        } else {
+            alert('Error approving time entry: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error approving time entry:', error);
+    });
+}
+
+// Invoice Actions
+function viewInvoice(invoiceId) {
+    window.open(`/api/invoices/${invoiceId}`, '_blank');
+}
+
+function sendInvoice(invoiceId) {
+    const email = prompt('Enter client email address:');
+    if (!email) return;
+
+    fetch(`/api/invoices/${invoiceId}/send`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Invoice sent successfully!');
+            loadInvoices();
+        } else {
+            alert('Error sending invoice: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending invoice:', error);
+    });
+}
+
+function markAsPaid(invoiceId) {
+    if (confirm('Mark this invoice as paid?')) {
+        fetch(`/api/invoices/${invoiceId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                status: 'paid',
+                paid_date: new Date().toISOString().split('T')[0]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadInvoices();
+                loadDashboardData();
+            } else {
+                alert('Error updating invoice: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating invoice:', error);
+        });
+    }
+}
+
+// Utility Functions
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.entry-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+
+function createInvoiceFromSelected() {
+    const selected = Array.from(document.querySelectorAll('.entry-checkbox:checked'));
+    if (selected.length === 0) {
+        alert('Please select time entries to include in the invoice');
+        return;
+    }
+    showCreateInvoiceModal();
+}
+
+function refreshInvoices() {
+    document.getElementById('refreshInvoicesText').style.display = 'none';
+    document.getElementById('refreshInvoicesLoading').style.display = 'inline-block';
+    
+    loadInvoices();
+    
+    setTimeout(() => {
+        document.getElementById('refreshInvoicesText').style.display = 'inline';
+        document.getElementById('refreshInvoicesLoading').style.display = 'none';
+    }, 1000);
+}
+
+function refreshTimeEntries() {
+    document.getElementById('refreshTimeText').style.display = 'none';
+    document.getElementById('refreshTimeLoading').style.display = 'inline-block';
+    
+    loadBillableTimeEntries();
+    
+    setTimeout(() => {
+        document.getElementById('refreshTimeText').style.display = 'inline';
+        document.getElementById('refreshTimeLoading').style.display = 'none';
+    }, 1000);
+}
+
+function editTimeEntry(entryId) {
+    alert('Edit time entry functionality coming soon!');
+}
+
+function showReports() {
+    alert('Billing reports functionality coming soon!');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('createInvoiceModal');
+    if (event.target === modal) {
+        closeCreateInvoiceModal();
+    }
+}
+</script>
+{% endblock %}
             transition: all 0.3s ease;
         }
 

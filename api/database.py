@@ -8,7 +8,7 @@ import redis
 from flask import current_app
 from sqlalchemy import create_engine, text
 from sqlalchemy.pool import NullPool
-from models import db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, CalendarEvent, Tag, AuditLog, Session, SubscriptionPlan, UserSubscription, PaymentRecord, UsageLog
+from models import db, User, Client, Case, Task, Document, TimeEntry, Invoice, Expense, CalendarEvent, Tag, AuditLog, Session
 from werkzeug.security import generate_password_hash
 import logging
 from datetime import datetime, timedelta, timezone
@@ -108,11 +108,12 @@ class DatabaseManager:
             
             if not admin_user:
                 # Create admin user
+                from models import UserRole
                 admin_user = User(
                     email='admin@lexai.com',
                     first_name='System',
                     last_name='Administrator',
-                    role='admin',
+                    role=UserRole.ADMIN,
                     firm_name='LexAI Practice Partner',
                     is_active=True,
                     email_verified=True

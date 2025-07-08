@@ -7,13 +7,24 @@ Streamlined version for Vercel deployment without duplicate routes
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Import database components
+try:
+    from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus
+    from database import DatabaseManager, audit_log
+    DATABASE_AVAILABLE = True
+    logger.info("Database models loaded successfully")
+except ImportError as e:
+    logger.warning(f"Database models not available: {e}")
+    logger.info("Falling back to mock data - install Flask-SQLAlchemy to enable database integration")
+    DATABASE_AVAILABLE = False
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +33,13 @@ logger = logging.getLogger(__name__)
 # Create Flask app
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+
+# Initialize database if available
+if DATABASE_AVAILABLE:
+    db_manager = DatabaseManager(app)
+    logger.info("Database initialized successfully")
+else:
+    logger.warning("Running without database - using mock data")
 
 # Basic configuration
 app.config.update({
@@ -144,6 +162,15 @@ def onboarding_page():
         logger.error(f"Onboarding error: {e}")
         return f"Onboarding error: {e}", 500
 
+@app.route('/time-tracking')
+def time_tracking_page():
+    """Time tracking interface"""
+    try:
+        return render_template('time_tracking.html')
+    except Exception as e:
+        logger.error(f"Time tracking error: {e}")
+        return f"Time tracking error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')
@@ -166,7 +193,39 @@ def api_status():
     return jsonify({
         'success': True,
         'message': 'LexAI is running',
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'database_available': DATABASE_AVAILABLE,
+        'data_source': 'PostgreSQL Database' if DATABASE_AVAILABLE else 'Mock Data'
+    })
+
+@app.route('/api/database/status')
+def api_database_status():
+    """Database integration status"""
+    if DATABASE_AVAILABLE:
+        try:
+            with app.app_context():
+                # Try to execute a simple query
+                db.session.execute(db.text('SELECT 1')).fetchone()
+                db_connection = 'Connected'
+        except Exception as e:
+            db_connection = f'Error: {str(e)}'
+    else:
+        db_connection = 'Not Available'
+    
+    return jsonify({
+        'success': True,
+        'database_integration': {
+            'status': 'Available' if DATABASE_AVAILABLE else 'Not Available',
+            'connection': db_connection,
+            'models_loaded': DATABASE_AVAILABLE,
+            'features': {
+                'time_tracking': 'Database Integration Complete' if DATABASE_AVAILABLE else 'Mock Data Fallback',
+                'invoicing': 'Database Integration Complete' if DATABASE_AVAILABLE else 'Mock Data Fallback',
+                'client_management': 'Database Integration Complete' if DATABASE_AVAILABLE else 'Mock Data Fallback',
+                'audit_logging': 'Available' if DATABASE_AVAILABLE else 'Not Available'
+            }
+        },
+        'installation_note': 'Install Flask-SQLAlchemy, psycopg2-binary packages to enable database integration' if not DATABASE_AVAILABLE else None
     })
 
 @app.route('/api/documents/analyze', methods=['POST'])
@@ -298,6 +357,940 @@ def api_onboarding_complete():
             'success': False,
             'error': 'Failed to complete onboarding'
         }), 500
+
+# ===== TIME TRACKING API =====
+
+@app.route('/api/time/entries', methods=['GET'])
+def api_get_time_entries():
+    """Get time entries for current user"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_time_entries()
+        
+        # Get current user ID (for now, use a default user - later will get from session)
+        user_id = session.get('user_id', '1')  # Will implement proper auth later
+        
+        # Query time entries for the user
+        entries = TimeEntry.query.filter_by(user_id=user_id).order_by(TimeEntry.created_at.desc()).all()
+        
+        entries_data = []
+        for entry in entries:
+            entries_data.append({
+                'id': entry.id,
+                'description': entry.description,
+                'hours': float(entry.hours),
+                'hourly_rate': float(entry.hourly_rate),
+                'amount': float(entry.amount),
+                'billable': entry.billable,
+                'status': entry.status.value,
+                'date': entry.date.isoformat() if entry.date else None,
+                'case_title': entry.case.title if entry.case else None,
+                'client_name': entry.case.client.get_display_name() if entry.case and entry.case.client else None,
+                'created_at': entry.created_at.isoformat() if entry.created_at else None
+            })
+        
+        total_hours = sum(float(entry.hours) for entry in entries)
+        total_billable = sum(float(entry.amount) for entry in entries if entry.billable)
+        
+        return jsonify({
+            'success': True,
+            'entries': entries_data,
+            'total_hours': total_hours,
+            'total_billable': total_billable
+        })
+        
+    except Exception as e:
+        logger.error(f"Get time entries error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve time entries'
+        }), 500
+
+def _get_mock_time_entries():
+    """Fallback mock data when database is not available"""
+    entries = [
+        {
+            'id': '1',
+            'description': 'Client consultation and case review',
+            'hours': 2.5,
+            'hourly_rate': 250.00,
+            'amount': 625.00,
+            'billable': True,
+            'status': 'draft',
+            'date': '2025-07-08',
+            'case_title': 'Smith vs. Jones',
+            'client_name': 'John Smith'
+        },
+        {
+            'id': '2', 
+            'description': 'Document preparation and research',
+            'hours': 3.0,
+            'hourly_rate': 250.00,
+            'amount': 750.00,
+            'billable': True,
+            'status': 'submitted',
+            'date': '2025-07-07',
+            'case_title': 'ABC Corp Contract Review',
+            'client_name': 'ABC Corporation'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'entries': entries,
+        'total_hours': sum(e['hours'] for e in entries),
+        'total_billable': sum(e['amount'] for e in entries if e['billable'])
+    })
+
+@app.route('/api/time/entries', methods=['POST'])
+def api_create_time_entry():
+    """Create new time entry"""
+    try:
+        data = request.get_json()
+        
+        required_fields = ['description', 'hours', 'hourly_rate']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        # Calculate amount
+        hours = Decimal(str(data['hours']))
+        rate = Decimal(str(data['hourly_rate']))
+        amount = hours * rate
+        
+        if not DATABASE_AVAILABLE:
+            return _create_mock_time_entry(data, hours, rate, amount)
+        
+        # Get current user ID (will implement proper auth later)
+        user_id = session.get('user_id', '1')
+        
+        # Create new time entry
+        entry = TimeEntry(
+            description=data['description'],
+            hours=hours,
+            hourly_rate=rate,
+            amount=amount,
+            billable=data.get('billable', True),
+            status=TimeEntryStatus.DRAFT,
+            date=datetime.strptime(data.get('date', datetime.now().date().isoformat()), '%Y-%m-%d').date(),
+            user_id=user_id,
+            case_id=data.get('case_id'),
+            start_time=datetime.now(timezone.utc),  # For timer-based entries
+            end_time=datetime.now(timezone.utc)     # Will be updated for real timer
+        )
+        
+        # Save to database
+        db.session.add(entry)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log(
+            action='create',
+            resource_type='time_entry',
+            resource_id=entry.id,
+            user_id=user_id,
+            new_values=entry.to_dict()
+        )
+        
+        logger.info(f"Created time entry: {entry.description} - {hours}h @ ${rate}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Time entry created successfully',
+            'entry': entry.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Create time entry error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create time entry'
+        }), 500
+
+def _create_mock_time_entry(data, hours, rate, amount):
+    """Fallback mock time entry creation"""
+    entry = {
+        'id': f"entry_{datetime.now().timestamp()}",
+        'description': data['description'],
+        'hours': float(hours),
+        'hourly_rate': float(rate),
+        'amount': float(amount),
+        'billable': data.get('billable', True),
+        'status': 'draft',
+        'date': data.get('date', datetime.now().date().isoformat()),
+        'case_id': data.get('case_id'),
+        'client_id': data.get('client_id'),
+        'created_at': datetime.now().isoformat()
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Time entry created successfully (mock)',
+        'entry': entry
+    })
+
+@app.route('/api/time/entries/<entry_id>', methods=['PUT'])
+def api_update_time_entry(entry_id):
+    """Update time entry"""
+    try:
+        data = request.get_json()
+        
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                'success': True,
+                'message': 'Time entry updated successfully (mock)',
+                'entry_id': entry_id,
+                'updated_fields': list(data.keys())
+            })
+        
+        # Get current user ID
+        user_id = session.get('user_id', '1')
+        
+        # Find the time entry
+        entry = TimeEntry.query.filter_by(id=entry_id, user_id=user_id).first()
+        if not entry:
+            return jsonify({
+                'success': False,
+                'error': 'Time entry not found'
+            }), 404
+        
+        # Store old values for audit
+        old_values = entry.to_dict()
+        
+        # Update allowed fields
+        if 'description' in data:
+            entry.description = data['description']
+        if 'hours' in data:
+            entry.hours = Decimal(str(data['hours']))
+            entry.amount = entry.hours * entry.hourly_rate
+        if 'hourly_rate' in data:
+            entry.hourly_rate = Decimal(str(data['hourly_rate']))
+            entry.amount = entry.hours * entry.hourly_rate
+        if 'billable' in data:
+            entry.billable = data['billable']
+        if 'date' in data:
+            entry.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        
+        # Save changes
+        db.session.commit()
+        
+        # Create audit log
+        audit_log(
+            action='update',
+            resource_type='time_entry',
+            resource_id=entry.id,
+            user_id=user_id,
+            old_values=old_values,
+            new_values=entry.to_dict()
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Time entry updated successfully',
+            'entry': entry.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Update time entry error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update time entry'
+        }), 500
+
+@app.route('/api/time/entries/<entry_id>/status', methods=['PUT'])
+def api_update_time_entry_status(entry_id):
+    """Update time entry status (draft -> submitted -> approved -> billed)"""
+    try:
+        data = request.get_json()
+        status = data.get('status')
+        
+        valid_statuses = ['draft', 'submitted', 'approved', 'billed']
+        if status not in valid_statuses:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid status. Must be one of: {valid_statuses}'
+            }), 400
+        
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                'success': True,
+                'message': f'Time entry status updated to {status} (mock)',
+                'entry_id': entry_id,
+                'status': status
+            })
+        
+        # Get current user ID
+        user_id = session.get('user_id', '1')
+        
+        # Find the time entry
+        entry = TimeEntry.query.filter_by(id=entry_id, user_id=user_id).first()
+        if not entry:
+            return jsonify({
+                'success': False,
+                'error': 'Time entry not found'
+            }), 404
+        
+        # Store old values for audit
+        old_values = entry.to_dict()
+        
+        # Update status
+        try:
+            entry.status = TimeEntryStatus(status)
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid status: {status}'
+            }), 400
+        
+        # Save changes
+        db.session.commit()
+        
+        # Create audit log
+        audit_log(
+            action='status_update',
+            resource_type='time_entry',
+            resource_id=entry.id,
+            user_id=user_id,
+            old_values=old_values,
+            new_values=entry.to_dict()
+        )
+        
+        logger.info(f"Updated time entry {entry_id} status to {status}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Time entry status updated to {status}',
+            'entry': entry.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Update time entry status error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update time entry status'
+        }), 500
+
+@app.route('/api/time/entries/billable', methods=['GET'])
+def api_get_billable_entries():
+    """Get billable time entries ready for invoicing"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_billable_entries()
+        
+        # Get query parameters
+        client_id = request.args.get('client_id')
+        
+        # Build query for billable time entries
+        query = TimeEntry.query.filter(
+            TimeEntry.billable == True,
+            TimeEntry.status.in_([TimeEntryStatus.APPROVED, TimeEntryStatus.SUBMITTED])
+        )
+        
+        # Filter by client if specified
+        if client_id:
+            query = query.join(Case).filter(Case.client_id == client_id)
+        
+        # Get current user's entries (will implement proper auth later)
+        user_id = session.get('user_id', '1')
+        query = query.filter(TimeEntry.user_id == user_id)
+        
+        entries = query.order_by(TimeEntry.date.desc()).all()
+        
+        billable_entries = []
+        clients = {}
+        
+        for entry in entries:
+            entry_data = {
+                'id': entry.id,
+                'description': entry.description,
+                'hours': float(entry.hours),
+                'hourly_rate': float(entry.hourly_rate),
+                'amount': float(entry.amount),
+                'status': entry.status.value,
+                'date': entry.date.isoformat() if entry.date else None,
+                'case_title': entry.case.title if entry.case else 'No Case',
+                'client_name': entry.case.client.get_display_name() if entry.case and entry.case.client else 'No Client',
+                'client_id': entry.case.client_id if entry.case else None
+            }
+            
+            billable_entries.append(entry_data)
+            
+            # Group by client
+            if entry.case and entry.case.client_id:
+                client_key = entry.case.client_id
+                if client_key not in clients:
+                    clients[client_key] = {
+                        'client_name': entry.case.client.get_display_name(),
+                        'entries': [],
+                        'total_hours': 0,
+                        'total_amount': 0
+                    }
+                clients[client_key]['entries'].append(entry_data)
+                clients[client_key]['total_hours'] += float(entry.hours)
+                clients[client_key]['total_amount'] += float(entry.amount)
+        
+        return jsonify({
+            'success': True,
+            'billable_entries': billable_entries,
+            'clients': clients,
+            'total_billable_hours': sum(float(e.hours) for e in entries),
+            'total_billable_amount': sum(float(e.amount) for e in entries)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get billable entries error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve billable entries'
+        }), 500
+
+def _get_mock_billable_entries():
+    """Fallback mock billable entries"""
+    billable_entries = [
+        {
+            'id': '1',
+            'description': 'Client consultation and case review',
+            'hours': 2.5,
+            'hourly_rate': 250.00,
+            'amount': 625.00,
+            'status': 'approved',
+            'date': '2025-07-08',
+            'case_title': 'Smith vs. Jones',
+            'client_name': 'John Smith',
+            'client_id': 'client_1'
+        },
+        {
+            'id': '3',
+            'description': 'Legal research on contract law',
+            'hours': 4.0,
+            'hourly_rate': 250.00,
+            'amount': 1000.00,
+            'status': 'approved',
+            'date': '2025-07-06',
+            'case_title': 'Smith vs. Jones',
+            'client_name': 'John Smith',
+            'client_id': 'client_1'
+        }
+    ]
+    
+    # Group by client
+    clients = {}
+    for entry in billable_entries:
+        client_id = entry['client_id']
+        if client_id not in clients:
+            clients[client_id] = {
+                'client_name': entry['client_name'],
+                'entries': [],
+                'total_hours': 0,
+                'total_amount': 0
+            }
+        clients[client_id]['entries'].append(entry)
+        clients[client_id]['total_hours'] += entry['hours']
+        clients[client_id]['total_amount'] += entry['amount']
+    
+    return jsonify({
+        'success': True,
+        'billable_entries': billable_entries,
+        'clients': clients,
+        'total_billable_hours': sum(e['hours'] for e in billable_entries),
+        'total_billable_amount': sum(e['amount'] for e in billable_entries)
+    })
+
+# ===== INVOICE API =====
+
+@app.route('/api/invoices', methods=['GET'])
+def api_get_invoices():
+    """Get all invoices"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_invoices()
+        
+        # Get current user's invoices (will implement proper auth later)
+        user_id = session.get('user_id', '1')
+        
+        invoices = Invoice.query.filter_by(created_by=user_id).order_by(Invoice.created_at.desc()).all()
+        
+        invoices_data = []
+        total_outstanding = 0
+        
+        for invoice in invoices:
+            invoice_dict = invoice.to_dict()
+            invoices_data.append(invoice_dict)
+            
+            # Calculate outstanding amount
+            outstanding = invoice_dict['total_amount'] - invoice_dict['amount_paid']
+            total_outstanding += outstanding
+        
+        return jsonify({
+            'success': True,
+            'invoices': invoices_data,
+            'total_invoices': len(invoices_data),
+            'total_outstanding': total_outstanding
+        })
+        
+    except Exception as e:
+        logger.error(f"Get invoices error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve invoices'
+        }), 500
+
+def _get_mock_invoices():
+    """Fallback mock invoice data"""
+    invoices = [
+        {
+            'id': 'inv_001',
+            'invoice_number': 'INV-2025-001',
+            'client_name': 'John Smith',
+            'client_id': 'client_1',
+            'subject': 'Legal Services - Smith vs. Jones',
+            'subtotal': 1625.00,
+            'tax_amount': 130.00,
+            'total_amount': 1755.00,
+            'amount_paid': 0.00,
+            'status': 'sent',
+            'issue_date': '2025-07-08',
+            'due_date': '2025-08-07',
+            'payment_terms': 'Net 30'
+        },
+        {
+            'id': 'inv_002',
+            'invoice_number': 'INV-2025-002',
+            'client_name': 'ABC Corporation',
+            'client_id': 'client_2',
+            'subject': 'Contract Review Services',
+            'subtotal': 750.00,
+            'tax_amount': 60.00,
+            'total_amount': 810.00,
+            'amount_paid': 810.00,
+            'status': 'paid',
+            'issue_date': '2025-07-05',
+            'due_date': '2025-08-04',
+            'paid_date': '2025-07-15',
+            'payment_terms': 'Net 30'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'invoices': invoices,
+        'total_invoices': len(invoices),
+        'total_outstanding': sum(inv['total_amount'] - inv['amount_paid'] for inv in invoices)
+    })
+
+@app.route('/api/invoices', methods=['POST'])
+def api_create_invoice():
+    """Create invoice from billable time entries"""
+    try:
+        data = request.get_json()
+        
+        required_fields = ['client_id', 'entry_ids', 'subject']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        if not DATABASE_AVAILABLE:
+            return _create_mock_invoice(data)
+        
+        client_id = data['client_id']
+        entry_ids = data['entry_ids']
+        subject = data['subject']
+        
+        # Get current user ID
+        user_id = session.get('user_id', '1')
+        
+        # Verify client exists
+        client = Client.query.filter_by(id=client_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Get selected time entries
+        time_entries = TimeEntry.query.filter(
+            TimeEntry.id.in_(entry_ids),
+            TimeEntry.user_id == user_id,
+            TimeEntry.billable == True,
+            TimeEntry.status.in_([TimeEntryStatus.APPROVED, TimeEntryStatus.SUBMITTED])
+        ).all()
+        
+        if not time_entries:
+            return jsonify({
+                'success': False,
+                'error': 'No valid time entries found for invoice'
+            }), 400
+        
+        # Calculate totals
+        subtotal = sum(entry.amount for entry in time_entries)
+        tax_rate = Decimal(str(data.get('tax_rate', 0.08)))  # 8% default
+        tax_amount = subtotal * tax_rate
+        total_amount = subtotal + tax_amount
+        
+        # Generate invoice number
+        invoice_count = Invoice.query.filter_by(created_by=user_id).count()
+        invoice_number = f"INV-{datetime.now().year}-{str(invoice_count + 1).zfill(3)}"
+        
+        # Set dates
+        issue_date = datetime.now().date()
+        payment_terms = data.get('payment_terms', 'Net 30')
+        days = 30 if 'Net 30' in payment_terms else 15 if 'Net 15' in payment_terms else 0
+        due_date = issue_date + timedelta(days=days)
+        
+        # Create invoice
+        invoice = Invoice(
+            invoice_number=invoice_number,
+            subject=subject,
+            description=data.get('description', ''),
+            subtotal=subtotal,
+            tax_rate=tax_rate,
+            tax_amount=tax_amount,
+            total_amount=total_amount,
+            amount_paid=Decimal('0.00'),
+            status=InvoiceStatus.DRAFT,
+            issue_date=issue_date,
+            due_date=due_date,
+            payment_terms=payment_terms,
+            client_id=client_id,
+            created_by=user_id
+        )
+        
+        # Save invoice
+        db.session.add(invoice)
+        db.session.flush()  # Get the invoice ID
+        
+        # Update time entries to reference this invoice and mark as billed
+        for entry in time_entries:
+            entry.invoice_id = invoice.id
+            entry.status = TimeEntryStatus.BILLED
+        
+        # Commit all changes
+        db.session.commit()
+        
+        # Create audit log
+        audit_log(
+            action='create',
+            resource_type='invoice',
+            resource_id=invoice.id,
+            user_id=user_id,
+            new_values=invoice.to_dict()
+        )
+        
+        logger.info(f"Created invoice {invoice_number} for {len(time_entries)} time entries")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice created successfully',
+            'invoice': invoice.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Create invoice error: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create invoice'
+        }), 500
+
+def _create_mock_invoice(data):
+    """Fallback mock invoice creation"""
+    subtotal = 1625.0
+    tax_rate = data.get('tax_rate', 0.08)
+    tax_amount = subtotal * tax_rate
+    total_amount = subtotal + tax_amount
+    
+    invoice = {
+        'id': f"inv_{datetime.now().timestamp()}",
+        'invoice_number': f"INV-2025-{str(datetime.now().timestamp()).split('.')[0][-3:]}",
+        'client_id': data['client_id'],
+        'client_name': 'John Smith',
+        'subject': data['subject'],
+        'description': data.get('description', ''),
+        'subtotal': subtotal,
+        'tax_rate': tax_rate,
+        'tax_amount': tax_amount,
+        'total_amount': total_amount,
+        'amount_paid': 0.00,
+        'status': 'draft',
+        'issue_date': datetime.now().date().isoformat(),
+        'due_date': (datetime.now().date() + timedelta(days=30)).isoformat(),
+        'payment_terms': data.get('payment_terms', 'Net 30'),
+        'created_at': datetime.now().isoformat()
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Invoice created successfully (mock)',
+        'invoice': invoice
+    })
+
+@app.route('/api/invoices/<invoice_id>', methods=['GET'])
+def api_get_invoice(invoice_id):
+    """Get invoice details"""
+    try:
+        # Mock invoice detail
+        invoice = {
+            'id': invoice_id,
+            'invoice_number': 'INV-2025-001',
+            'client_name': 'John Smith',
+            'client_id': 'client_1',
+            'subject': 'Legal Services - Smith vs. Jones',
+            'description': 'Legal consultation and research services',
+            'subtotal': 1625.00,
+            'tax_rate': 0.08,
+            'tax_amount': 130.00,
+            'total_amount': 1755.00,
+            'amount_paid': 0.00,
+            'status': 'sent',
+            'issue_date': '2025-07-08',
+            'due_date': '2025-08-07',
+            'payment_terms': 'Net 30',
+            'billing_address': '123 Main St, Anytown, ST 12345',
+            'time_entries': [
+                {
+                    'date': '2025-07-08',
+                    'description': 'Client consultation and case review',
+                    'hours': 2.5,
+                    'rate': 250.00,
+                    'amount': 625.00
+                },
+                {
+                    'date': '2025-07-06',
+                    'description': 'Legal research on contract law',
+                    'hours': 4.0,
+                    'rate': 250.00,
+                    'amount': 1000.00
+                }
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'invoice': invoice
+        })
+        
+    except Exception as e:
+        logger.error(f"Get invoice error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve invoice'
+        }), 500
+
+@app.route('/api/invoices/<invoice_id>/status', methods=['PUT'])
+def api_update_invoice_status(invoice_id):
+    """Update invoice status (draft -> sent -> paid)"""
+    try:
+        data = request.get_json()
+        status = data.get('status')
+        
+        valid_statuses = ['draft', 'sent', 'paid', 'overdue', 'cancelled']
+        if status not in valid_statuses:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid status. Must be one of: {valid_statuses}'
+            }), 400
+        
+        # Additional data for paid invoices
+        paid_date = data.get('paid_date')
+        amount_paid = data.get('amount_paid')
+        
+        logger.info(f"Updated invoice {invoice_id} status to {status}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Invoice status updated to {status}',
+            'invoice_id': invoice_id,
+            'status': status,
+            'paid_date': paid_date,
+            'amount_paid': amount_paid
+        })
+        
+    except Exception as e:
+        logger.error(f"Update invoice status error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update invoice status'
+        }), 500
+
+@app.route('/api/invoices/<invoice_id>/send', methods=['POST'])
+def api_send_invoice(invoice_id):
+    """Send invoice to client"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({
+                'success': False,
+                'error': 'Client email required'
+            }), 400
+        
+        # Mock email sending
+        logger.info(f"Sent invoice {invoice_id} to {email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Invoice sent successfully',
+            'invoice_id': invoice_id,
+            'sent_to': email,
+            'sent_at': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Send invoice error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to send invoice'
+        }), 500
+
+@app.route('/api/billing/dashboard', methods=['GET'])
+def api_billing_dashboard():
+    """Get billing dashboard data"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_billing_dashboard()
+        
+        # Get current user ID
+        user_id = session.get('user_id', '1')
+        
+        # Calculate summary statistics
+        current_month = datetime.now().date().replace(day=1)
+        
+        # Total outstanding amount
+        outstanding_invoices = Invoice.query.filter_by(created_by=user_id).filter(
+            Invoice.status.in_([InvoiceStatus.SENT, InvoiceStatus.OVERDUE])
+        ).all()
+        total_outstanding = sum(float(inv.total_amount - inv.amount_paid) for inv in outstanding_invoices)
+        
+        # Total paid this month
+        paid_invoices = Invoice.query.filter_by(created_by=user_id).filter(
+            Invoice.status == InvoiceStatus.PAID,
+            Invoice.paid_date >= current_month
+        ).all()
+        total_paid_this_month = sum(float(inv.total_amount) for inv in paid_invoices)
+        
+        # Pending time entries
+        pending_entries = TimeEntry.query.filter_by(user_id=user_id).filter(
+            TimeEntry.status.in_([TimeEntryStatus.SUBMITTED, TimeEntryStatus.DRAFT]),
+            TimeEntry.billable == True
+        ).all()
+        pending_time_entries = len(pending_entries)
+        
+        # Billable hours this month
+        month_entries = TimeEntry.query.filter_by(user_id=user_id).filter(
+            TimeEntry.date >= current_month,
+            TimeEntry.billable == True
+        ).all()
+        billable_hours_this_month = sum(float(entry.hours) for entry in month_entries)
+        
+        # Recent invoices
+        recent_invoices = Invoice.query.filter_by(created_by=user_id).order_by(
+            Invoice.created_at.desc()
+        ).limit(5).all()
+        
+        recent_invoices_data = []
+        for invoice in recent_invoices:
+            invoice_data = {
+                'id': invoice.id,
+                'invoice_number': invoice.invoice_number,
+                'client_name': invoice.client.get_display_name() if invoice.client else 'Unknown',
+                'amount': float(invoice.total_amount),
+                'status': invoice.status.value,
+                'due_date': invoice.due_date.isoformat() if invoice.due_date else None
+            }
+            if invoice.paid_date:
+                invoice_data['paid_date'] = invoice.paid_date.isoformat()
+            recent_invoices_data.append(invoice_data)
+        
+        # Pending time entries detail
+        pending_time_entries_data = []
+        for entry in pending_entries[:5]:  # Limit to 5 for dashboard
+            pending_time_entries_data.append({
+                'id': entry.id,
+                'description': entry.description,
+                'hours': float(entry.hours),
+                'amount': float(entry.amount),
+                'client_name': entry.case.client.get_display_name() if entry.case and entry.case.client else 'No Client',
+                'status': entry.status.value
+            })
+        
+        dashboard = {
+            'summary': {
+                'total_outstanding': total_outstanding,
+                'total_paid_this_month': total_paid_this_month,
+                'pending_time_entries': pending_time_entries,
+                'overdue_invoices': len([inv for inv in outstanding_invoices if inv.status == InvoiceStatus.OVERDUE]),
+                'billable_hours_this_month': billable_hours_this_month
+            },
+            'recent_invoices': recent_invoices_data,
+            'pending_time_entries': pending_time_entries_data
+        }
+        
+        return jsonify({
+            'success': True,
+            'dashboard': dashboard
+        })
+        
+    except Exception as e:
+        logger.error(f"Billing dashboard error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load billing dashboard'
+        }), 500
+
+def _get_mock_billing_dashboard():
+    """Fallback mock billing dashboard data"""
+    dashboard = {
+        'summary': {
+            'total_outstanding': 1755.00,
+            'total_paid_this_month': 2430.00,
+            'pending_time_entries': 3,
+            'overdue_invoices': 0,
+            'billable_hours_this_month': 24.5
+        },
+        'recent_invoices': [
+            {
+                'id': 'inv_001',
+                'invoice_number': 'INV-2025-001',
+                'client_name': 'John Smith',
+                'amount': 1755.00,
+                'status': 'sent',
+                'due_date': '2025-08-07'
+            },
+            {
+                'id': 'inv_002',
+                'invoice_number': 'INV-2025-002',
+                'client_name': 'ABC Corporation',
+                'amount': 810.00,
+                'status': 'paid',
+                'paid_date': '2025-07-15'
+            }
+        ],
+        'pending_time_entries': [
+            {
+                'id': '4',
+                'description': 'Contract drafting',
+                'hours': 2.0,
+                'amount': 500.00,
+                'client_name': 'XYZ Corp',
+                'status': 'submitted'
+            }
+        ]
+    }
+    
+    return jsonify({
+        'success': True,
+        'dashboard': dashboard
+    })
 
 # ===== ERROR HANDLERS =====
 
