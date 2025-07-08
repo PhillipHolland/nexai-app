@@ -176,6 +176,28 @@ def time_tracking_page():
         logger.error(f"Time tracking error: {e}")
         return f"Time tracking error: {e}", 500
 
+@app.route('/platform')
+def platform_page():
+    """Platform overview page"""
+    try:
+        return render_template('platform.html',
+                             bagel_available=BAGEL_AI_AVAILABLE,
+                             spanish_available=SPANISH_AVAILABLE,
+                             stripe_available=STRIPE_AVAILABLE)
+    except Exception as e:
+        logger.error(f"Platform page error: {e}")
+        return f"Platform error: {e}", 500
+
+@app.route('/privacy-dashboard')
+def privacy_dashboard_page():
+    """Privacy analysis dashboard"""
+    try:
+        return render_template('privacy_dashboard.html',
+                             privacy_available=PRIVACY_AI_AVAILABLE)
+    except Exception as e:
+        logger.error(f"Privacy dashboard error: {e}")
+        return f"Privacy dashboard error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')
