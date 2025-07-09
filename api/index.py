@@ -480,7 +480,7 @@ def dashboard():
         }
         
         return render_template('dashboard.html',
-                             user_role=session.get('user_role', 'guest'),
+                             user_role=session.get('user_role', 'attorney'),  # Default to attorney for full menu access
                              user_name=session.get('user_name', 'User'),
                              stats=stats,
                              cache_buster=str(uuid.uuid4())[:8])
