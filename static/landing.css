@@ -883,10 +883,16 @@ body {
     border: 1px solid #e5e7eb;
     z-index: 50;
     overflow: hidden;
+    display: none;
 }
 
-.base-dropdown-menu.hidden {
-    display: none;
+/* Pure CSS hover dropdowns - bulletproof */
+.base-dropdown:hover .base-dropdown-menu {
+    display: block !important;
+}
+
+.base-dropdown-menu:hover {
+    display: block !important;
 }
 
 .base-dropdown-item {
