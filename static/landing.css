@@ -110,8 +110,24 @@ body {
     display: none; /* Hidden by default, shown by JS on mobile */
 }
 
-/* Mobile Portrait Navigation */
+/* Mobile Portrait Navigation - Hide desktop dropdowns */
 @media (max-width: 767px) and (orientation: portrait) {
+    /* Hide desktop dropdown menus completely */
+    .main-nav .dropdown-content {
+        display: none !important;
+    }
+    
+    /* Hide desktop navigation items except Dashboard */
+    .main-nav .nav-item.dropdown {
+        display: none !important;
+    }
+    
+    /* Ensure main nav stays visible with just Dashboard */
+    .main-nav {
+        display: flex !important;
+        gap: 1rem;
+    }
+    
     .nav-content {
         display: flex;
         justify-content: space-between;
@@ -1340,6 +1356,66 @@ body {
 .base-mobile-link.active {
     color: #F7EDDA; /* Light cream text like logo */
     background-color: #2E4B3C; /* dark-green background */
+}
+
+/* Mobile Accordion Styles */
+.mobile-accordion-section {
+    border-bottom: 1px solid rgba(247, 237, 218, 0.1);
+}
+
+.mobile-accordion-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: transparent;
+    border: none;
+    color: #F7EDDA; /* light-cream */
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-accordion-header:hover {
+    background-color: rgba(247, 237, 218, 0.1);
+}
+
+.mobile-accordion-header.active {
+    background-color: rgba(247, 237, 218, 0.15);
+}
+
+.mobile-accordion-chevron {
+    transition: transform 0.2s ease;
+    color: #F7EDDA;
+}
+
+.mobile-accordion-header.active .mobile-accordion-chevron {
+    transform: rotate(180deg);
+}
+
+.mobile-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background-color: rgba(46, 75, 60, 0.3);
+}
+
+.mobile-accordion-content.active {
+    max-height: 500px; /* Adjust based on content */
+}
+
+.base-mobile-link.submenu {
+    padding-left: 2rem;
+    border-left: 2px solid rgba(255, 167, 79, 0.3);
+    font-size: 0.9rem;
+}
+
+.base-mobile-link.submenu.active {
+    color: #FFA74F; /* warm-orange for active submenu items */
+    background-color: rgba(255, 167, 79, 0.2);
+    border-left-color: #FFA74F;
 }
 
 /* Footer styles for base template */

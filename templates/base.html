@@ -318,7 +318,7 @@
             </div>
         </div>
         
-        <!-- Mobile Navigation - UNIVERSAL FOR ALL USERS -->
+        <!-- Mobile Navigation - NESTED ACCORDION STYLE -->
         <div id="mobile-menu" class="base-mobile-menu hidden">
             <div class="base-mobile-nav">
                 <!-- Dashboard -->
@@ -327,83 +327,133 @@
                     🏠 Dashboard
                 </a>
                 
-                <!-- Matter Management -->
-                <a href="{{ url_for('cases_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['cases_page', 'case_detail'] %}active{% endif %}">
-                    ⚖️ Matter Management
-                </a>
+                <!-- Cases Section -->
+                <div class="mobile-accordion-section">
+                    <button class="mobile-accordion-header" data-section="cases">
+                        <span>📋 Cases</span>
+                        <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-accordion-content" id="cases-content">
+                        <a href="{{ url_for('cases_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint in ['cases_page', 'case_detail'] %}active{% endif %}">
+                            📋 All Cases
+                        </a>
+                        <a href="{{ url_for('clients_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint in ['clients_page', 'client_detail'] %}active{% endif %}">
+                            👥 Clients
+                        </a>
+                        <a href="{{ url_for('deadlines_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'deadlines_page' %}active{% endif %}">
+                            ⏰ Deadlines
+                        </a>
+                        <a href="{{ url_for('calendar_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'calendar_page' %}active{% endif %}">
+                            📅 Calendar
+                        </a>
+                    </div>
+                </div>
                 
-                <!-- Client Portal -->
-                <a href="{{ url_for('clients_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['clients_page', 'client_detail'] %}active{% endif %}">
-                    👥 Client Portal
-                </a>
+                <!-- Documents Section -->
+                <div class="mobile-accordion-section">
+                    <button class="mobile-accordion-header" data-section="documents">
+                        <span>📄 Documents</span>
+                        <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-accordion-content" id="documents-content">
+                        <a href="{{ url_for('documents_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'documents_page' %}active{% endif %}">
+                            📄 Document Library
+                        </a>
+                        <a href="{{ url_for('document_analysis_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'document_analysis_page' %}active{% endif %}">
+                            🔍 AI Analysis
+                        </a>
+                        <a href="{{ url_for('contracts_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'contracts_page' %}active{% endif %}">
+                            📝 Contracts
+                        </a>
+                    </div>
+                </div>
                 
-                <!-- Document Center -->
-                <a href="{{ url_for('documents_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['documents_page', 'document_analysis_page'] %}active{% endif %}">
-                    📄 Document Center
-                </a>
+                <!-- AI Tools Section -->
+                <div class="mobile-accordion-section">
+                    <button class="mobile-accordion-header" data-section="ai-tools">
+                        <span>🤖 AI Tools</span>
+                        <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-accordion-content" id="ai-tools-content">
+                        <a href="{{ url_for('chat_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'chat_page' %}active{% endif %}">
+                            🤖 Legal Assistant
+                        </a>
+                        <a href="{{ url_for('legal_research_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'legal_research_page' %}active{% endif %}">
+                            🔬 Research
+                        </a>
+                        <a href="{{ url_for('document_analysis_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'document_analysis_page' %}active{% endif %}">
+                            📊 Document Analysis
+                        </a>
+                    </div>
+                </div>
                 
-                <!-- Calendar & Deadlines -->
-                <a href="{{ url_for('calendar_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['calendar_page', 'deadlines_page'] %}active{% endif %}">
-                    📅 Calendar & Deadlines
-                </a>
+                <!-- Business Section -->
+                <div class="mobile-accordion-section">
+                    <button class="mobile-accordion-header" data-section="business">
+                        <span>💼 Business</span>
+                        <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-accordion-content" id="business-content">
+                        <a href="{{ url_for('time_tracking_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
+                            ⏱️ Time Tracking
+                        </a>
+                        <a href="{{ url_for('billing_page') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint in ['billing_page', 'expense_tracking_page'] %}active{% endif %}">
+                            💰 Billing
+                        </a>
+                        <a href="{{ url_for('analytics_dashboard') }}" 
+                           class="base-mobile-link submenu {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
+                            📈 Analytics
+                        </a>
+                    </div>
+                </div>
                 
-                <!-- Time Entry -->
-                <a href="{{ url_for('time_tracking_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
-                    ⏱️ Time Entry
-                </a>
-                
-                <!-- Billing Center -->
-                <a href="{{ url_for('billing_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['billing_page', 'expense_tracking_page'] %}active{% endif %}">
-                    💰 Billing Center
-                </a>
-                
-                <!-- Reports & Analytics -->
-                <a href="{{ url_for('analytics_dashboard') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
-                    📊 Reports & Analytics
-                </a>
-                
-                <!-- AI Tools -->
-                <a href="{{ url_for('chat_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'chat_page' %}active{% endif %}">
-                    🤖 AI Legal Assistant
-                </a>
-                <a href="{{ url_for('document_analysis_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'document_analysis_page' %}active{% endif %}">
-                    📊 Document Analysis
-                </a>
-                <a href="{{ url_for('legal_research_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'legal_research_page' %}active{% endif %}">
-                    🔍 Legal Research
-                </a>
-                <a href="{{ url_for('contracts_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'contracts_page' %}active{% endif %}">
-                    📝 Contract Generator
-                </a>
-                
-                <!-- Firm Management -->
-                <a href="/admin/users" 
-                   class="base-mobile-link">
-                    👥 User Management
-                </a>
-                <a href="/admin/settings" 
-                   class="base-mobile-link">
-                    ⚙️ Firm Settings
-                </a>
-                <a href="/admin/subscriptions" 
-                   class="base-mobile-link">
-                    💳 Subscriptions
-                </a>
-                <a href="/admin/audit-logs" 
-                   class="base-mobile-link">
-                    📋 Audit Logs
-                </a>
+                <!-- Admin Section -->
+                <div class="mobile-accordion-section">
+                    <button class="mobile-accordion-header" data-section="admin">
+                        <span>⚙️ Admin</span>
+                        <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-accordion-content" id="admin-content">
+                        <a href="/admin/users" 
+                           class="base-mobile-link submenu">
+                            👤 Users
+                        </a>
+                        <a href="/admin/settings" 
+                           class="base-mobile-link submenu">
+                            ⚙️ Settings
+                        </a>
+                        <a href="/admin/subscriptions" 
+                           class="base-mobile-link submenu">
+                            💳 Subscriptions
+                        </a>
+                        <a href="/admin/audit-logs" 
+                           class="base-mobile-link submenu">
+                            📋 Audit Logs
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -428,6 +478,38 @@
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
+        });
+
+        // Mobile accordion functionality
+        document.querySelectorAll('.mobile-accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const section = this.dataset.section;
+                const content = document.getElementById(section + '-content');
+                const chevron = this.querySelector('.mobile-accordion-chevron');
+                
+                // Toggle active state
+                const isActive = this.classList.contains('active');
+                
+                // Close all other sections (accordion behavior)
+                document.querySelectorAll('.mobile-accordion-header').forEach(h => {
+                    if (h !== this) {
+                        h.classList.remove('active');
+                        const otherContent = document.getElementById(h.dataset.section + '-content');
+                        if (otherContent) {
+                            otherContent.classList.remove('active');
+                        }
+                    }
+                });
+                
+                // Toggle current section
+                if (isActive) {
+                    this.classList.remove('active');
+                    content.classList.remove('active');
+                } else {
+                    this.classList.add('active');
+                    content.classList.add('active');
+                }
+            });
         });
 
         // Authentication and user session management
