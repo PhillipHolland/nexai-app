@@ -8,3 +8,17 @@ __pycache__/
 .env.production.local
 *.db
 instance/
+
+# SECURITY: API Keys and Secrets Protection
+**/api_keys.txt
+**/secrets.txt
+**/*secret*
+**/*key*.txt
+**/*token*.txt
+**/xai-*
+**/sk-*
+
+# Additional security patterns
+**/*credentials*
+**/*auth*
+**/*password*
