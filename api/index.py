@@ -7,6 +7,7 @@ Streamlined version for Vercel deployment without duplicate routes
 import os
 import json
 import logging
+import uuid
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session, redirect
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Import database components
 try:
-    from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus
+    from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus, Task, CalendarEvent, CaseStatus, TaskStatus, TaskPriority, case_attorneys
     from database import DatabaseManager, audit_log
     DATABASE_AVAILABLE = True
     logger.info("Database models loaded successfully")
@@ -286,6 +287,17 @@ def case_profile_page(case_id):
     except Exception as e:
         logger.error(f"Case profile page error: {e}")
         return f"Case profile error: {e}", 500
+
+@app.route('/deadlines')
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def deadlines_page():
+    """Deadline management and court calendar page"""
+    try:
+        return render_template('deadlines.html')
+    except Exception as e:
+        logger.error(f"Deadlines page error: {e}")
+        return f"Deadlines error: {e}", 500
 
 @app.route('/cases/<case_id>/edit')
 @login_required
@@ -2839,6 +2851,408 @@ def api_update_case_status(case_id):
             'success': False,
             'error': 'Failed to update case status'
         }), 500
+
+# ===== DEADLINE MANAGEMENT API =====
+
+@app.route('/api/deadlines', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_deadlines():
+    """Get upcoming deadlines and court dates"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_deadlines()
+        
+        # Get query parameters
+        days_ahead = request.args.get('days', 30, type=int)
+        case_id = request.args.get('case_id')
+        deadline_type = request.args.get('type')  # statute, court, task
+        
+        current_date = datetime.now(timezone.utc).date()
+        end_date = current_date + timedelta(days=days_ahead)
+        
+        deadlines = []
+        
+        # Statute of limitations deadlines
+        if not deadline_type or deadline_type == 'statute':
+            statute_cases = Case.query.filter(
+                Case.statute_of_limitations.isnot(None),
+                Case.statute_of_limitations >= current_date,
+                Case.statute_of_limitations <= end_date,
+                Case.status != CaseStatus.CLOSED
+            )
+            if case_id:
+                statute_cases = statute_cases.filter(Case.id == case_id)
+            
+            for case in statute_cases:
+                days_remaining = (case.statute_of_limitations - current_date).days
+                priority = 'urgent' if days_remaining <= 7 else 'high' if days_remaining <= 30 else 'medium'
+                
+                deadlines.append({
+                    'id': f'statute_{case.id}',
+                    'type': 'statute',
+                    'title': f'Statute of Limitations - {case.title}',
+                    'description': f'Statute of limitations expires for case {case.case_number}',
+                    'due_date': case.statute_of_limitations.isoformat(),
+                    'days_remaining': days_remaining,
+                    'priority': priority,
+                    'case_id': case.id,
+                    'case_number': case.case_number,
+                    'case_title': case.title,
+                    'client_name': case.client.get_display_name() if case.client else None
+                })
+        
+        # Court dates from calendar events
+        if not deadline_type or deadline_type == 'court':
+            court_events = CalendarEvent.query.filter(
+                CalendarEvent.event_type.in_(['court', 'hearing', 'trial']),
+                CalendarEvent.start_datetime >= datetime.combine(current_date, datetime.min.time().replace(tzinfo=timezone.utc)),
+                CalendarEvent.start_datetime <= datetime.combine(end_date, datetime.max.time().replace(tzinfo=timezone.utc))
+            )
+            if case_id:
+                court_events = court_events.filter(CalendarEvent.case_id == case_id)
+            
+            for event in court_events:
+                event_date = event.start_datetime.date()
+                days_remaining = (event_date - current_date).days
+                priority = 'urgent' if days_remaining <= 3 else 'high' if days_remaining <= 7 else 'medium'
+                
+                deadlines.append({
+                    'id': f'court_{event.id}',
+                    'type': 'court',
+                    'title': event.title,
+                    'description': event.description or f'Court appearance at {event.location or "TBD"}',
+                    'due_date': event_date.isoformat(),
+                    'due_time': event.start_datetime.strftime('%H:%M'),
+                    'days_remaining': days_remaining,
+                    'priority': priority,
+                    'case_id': event.case_id,
+                    'case_number': event.case.case_number if event.case else None,
+                    'case_title': event.case.title if event.case else None,
+                    'client_name': event.client.get_display_name() if event.client else (event.case.client.get_display_name() if event.case and event.case.client else None),
+                    'location': event.location
+                })
+        
+        # Task deadlines
+        if not deadline_type or deadline_type == 'task':
+            task_deadlines = Task.query.filter(
+                Task.due_date.isnot(None),
+                Task.due_date >= current_date,
+                Task.due_date <= end_date,
+                Task.status != TaskStatus.DONE
+            )
+            if case_id:
+                task_deadlines = task_deadlines.filter(Task.case_id == case_id)
+            
+            for task in task_deadlines:
+                days_remaining = (task.due_date - current_date).days
+                priority = task.priority.value if task.priority else 'medium'
+                if days_remaining <= 1:
+                    priority = 'urgent'
+                elif days_remaining <= 3 and priority not in ['urgent', 'high']:
+                    priority = 'high'
+                
+                deadlines.append({
+                    'id': f'task_{task.id}',
+                    'type': 'task',
+                    'title': task.title,
+                    'description': task.description or 'No description provided',
+                    'due_date': task.due_date.isoformat(),
+                    'days_remaining': days_remaining,
+                    'priority': priority,
+                    'case_id': task.case_id,
+                    'case_number': task.case.case_number if task.case else None,
+                    'case_title': task.case.title if task.case else None,
+                    'client_name': task.client.get_display_name() if task.client else (task.case.client.get_display_name() if task.case and task.case.client else None),
+                    'assignee_name': task.assignee_user.get_full_name() if task.assignee_user else None
+                })
+        
+        # Sort by days remaining and priority
+        priority_order = {'urgent': 0, 'high': 1, 'medium': 2, 'low': 3}
+        deadlines.sort(key=lambda x: (x['days_remaining'], priority_order.get(x['priority'], 4)))
+        
+        return jsonify({
+            'success': True,
+            'deadlines': deadlines,
+            'summary': {
+                'total': len(deadlines),
+                'urgent': len([d for d in deadlines if d['priority'] == 'urgent']),
+                'high': len([d for d in deadlines if d['priority'] == 'high']),
+                'upcoming_week': len([d for d in deadlines if d['days_remaining'] <= 7])
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching deadlines: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deadlines/calendar-events', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_create_calendar_event():
+    """Create a new calendar event/deadline"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_calendar_event()
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Validate required fields
+        if not data.get('title') or not data.get('start_datetime'):
+            return jsonify({
+                'success': False,
+                'error': 'Title and start datetime are required'
+            }), 400
+        
+        # Parse datetime
+        start_dt = datetime.fromisoformat(data['start_datetime'].replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(data['end_datetime'].replace('Z', '+00:00')) if data.get('end_datetime') else start_dt + timedelta(hours=1)
+        
+        # Create calendar event
+        event = CalendarEvent(
+            title=data['title'],
+            description=data.get('description'),
+            event_type=data.get('event_type', 'meeting'),
+            location=data.get('location'),
+            start_datetime=start_dt,
+            end_datetime=end_dt,
+            all_day=data.get('all_day', False),
+            reminder_minutes=data.get('reminder_minutes', 15),
+            case_id=data.get('case_id'),
+            client_id=data.get('client_id'),
+            created_by=user_id
+        )
+        
+        db.session.add(event)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'calendar_event', event.id, user_id, event.to_dict())
+        
+        logger.info(f"Calendar event created: {event.id}")
+        
+        return jsonify({
+            'success': True,
+            'event': event.to_dict(),
+            'message': 'Calendar event created successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Error creating calendar event: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deadlines/tasks', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_create_task():
+    """Create a new task with deadline"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_task()
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Validate required fields
+        if not data.get('title'):
+            return jsonify({
+                'success': False,
+                'error': 'Title is required'
+            }), 400
+        
+        # Parse due date if provided
+        due_date = None
+        if data.get('due_date'):
+            due_date = datetime.fromisoformat(data['due_date']).date()
+        
+        # Create task
+        task = Task(
+            title=data['title'],
+            description=data.get('description'),
+            status=TaskStatus(data.get('status', 'todo')),
+            priority=TaskPriority(data.get('priority', 'medium')),
+            due_date=due_date,
+            start_date=datetime.fromisoformat(data['start_date']).date() if data.get('start_date') else None,
+            estimated_hours=Decimal(str(data['estimated_hours'])) if data.get('estimated_hours') else None,
+            assignee_id=data.get('assignee_id', user_id),
+            case_id=data.get('case_id'),
+            client_id=data.get('client_id'),
+            created_by=user_id
+        )
+        
+        db.session.add(task)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'task', task.id, user_id, task.to_dict())
+        
+        logger.info(f"Task created: {task.id}")
+        
+        return jsonify({
+            'success': True,
+            'task': task.to_dict(),
+            'message': 'Task created successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Error creating task: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/deadlines/reminders', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_deadline_reminders():
+    """Get deadline reminders that need to be sent"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_reminders()
+        
+        current_time = datetime.now(timezone.utc)
+        reminders = []
+        
+        # Find calendar events with reminders due
+        upcoming_events = CalendarEvent.query.filter(
+            CalendarEvent.reminder_sent == False,
+            CalendarEvent.start_datetime > current_time,
+            CalendarEvent.start_datetime <= current_time + timedelta(minutes=CalendarEvent.reminder_minutes)
+        ).all()
+        
+        for event in upcoming_events:
+            reminders.append({
+                'id': event.id,
+                'type': 'calendar_event',
+                'title': event.title,
+                'description': event.description,
+                'due_datetime': event.start_datetime.isoformat(),
+                'case_id': event.case_id,
+                'client_id': event.client_id
+            })
+        
+        # Find tasks due soon (within 24 hours for urgent, 3 days for high priority)
+        urgent_tasks = Task.query.filter(
+            Task.due_date.isnot(None),
+            Task.status != TaskStatus.DONE,
+            Task.due_date <= (current_time + timedelta(days=1)).date()
+        ).all()
+        
+        for task in urgent_tasks:
+            reminders.append({
+                'id': task.id,
+                'type': 'task',
+                'title': task.title,
+                'description': task.description,
+                'due_date': task.due_date.isoformat(),
+                'priority': task.priority.value,
+                'assignee_id': task.assignee_id,
+                'case_id': task.case_id,
+                'client_id': task.client_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'reminders': reminders,
+            'count': len(reminders)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching reminders: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def _get_mock_deadlines():
+    """Mock deadlines for development"""
+    current_date = datetime.now().date()
+    return jsonify({
+        'success': True,
+        'deadlines': [
+            {
+                'id': 'statute_1',
+                'type': 'statute',
+                'title': 'Statute of Limitations - Personal Injury Case',
+                'description': 'Statute of limitations expires for case 2024-JS-001',
+                'due_date': (current_date + timedelta(days=15)).isoformat(),
+                'days_remaining': 15,
+                'priority': 'high',
+                'case_id': '1',
+                'case_number': '2024-JS-001',
+                'case_title': 'Smith v. Johnson Motor Co.',
+                'client_name': 'John Smith'
+            },
+            {
+                'id': 'court_1',
+                'type': 'court',
+                'title': 'Preliminary Hearing',
+                'description': 'Court appearance at Superior Court',
+                'due_date': (current_date + timedelta(days=3)).isoformat(),
+                'due_time': '09:30',
+                'days_remaining': 3,
+                'priority': 'urgent',
+                'case_id': '2',
+                'case_number': '2024-MC-005',
+                'case_title': 'Business Contract Dispute',
+                'client_name': 'TechCorp Industries',
+                'location': 'Superior Court, Room 304'
+            }
+        ],
+        'summary': {
+            'total': 2,
+            'urgent': 1,
+            'high': 1,
+            'upcoming_week': 1
+        }
+    })
+
+def _create_mock_calendar_event():
+    """Mock calendar event creation"""
+    return jsonify({
+        'success': True,
+        'event': {
+            'id': str(uuid.uuid4()),
+            'title': 'Mock Event',
+            'event_type': 'meeting',
+            'start_datetime': datetime.now().isoformat(),
+            'created_at': datetime.now().isoformat()
+        },
+        'message': 'Calendar event created successfully (mock)'
+    })
+
+def _create_mock_task():
+    """Mock task creation"""
+    return jsonify({
+        'success': True,
+        'task': {
+            'id': str(uuid.uuid4()),
+            'title': 'Mock Task',
+            'status': 'todo',
+            'priority': 'medium',
+            'created_at': datetime.now().isoformat()
+        },
+        'message': 'Task created successfully (mock)'
+    })
+
+def _get_mock_reminders():
+    """Mock reminders"""
+    return jsonify({
+        'success': True,
+        'reminders': [],
+        'count': 0
+    })
 
 def _get_case_recent_activity(case):
     """Get recent activity for a case"""

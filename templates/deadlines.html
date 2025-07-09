@@ -1,0 +1,1024 @@
+{% extends "base.html" %}
+
+{% block title %}Deadlines & Court Dates - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .deadlines-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .deadlines-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .deadlines-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .add-deadline-btn {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .add-deadline-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .deadline-filters {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .filter-input, .filter-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 2px rgba(46, 75, 60, 0.1);
+    }
+
+    .filter-btn {
+        background: #2E4B3C;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        height: fit-content;
+    }
+
+    .filter-btn:hover {
+        background: #1d2d23;
+    }
+
+    .deadline-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .summary-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .urgent { color: #dc2626; }
+    .high { color: #f59e0b; }
+    .medium { color: #10b981; }
+    .total { color: #2E4B3C; }
+
+    .deadlines-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .deadline-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .deadline-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .deadline-card.urgent {
+        border-left-color: #dc2626;
+        background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+    }
+
+    .deadline-card.high {
+        border-left-color: #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+    }
+
+    .deadline-card.medium {
+        border-left-color: #10b981;
+    }
+
+    .deadline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .deadline-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .deadline-type {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .type-statute {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .type-court {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .type-task {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+
+    .deadline-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        font-size: 0.875rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .deadline-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .deadline-actions {
+        display: flex;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .action-link {
+        color: #2E4B3C;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .action-link:hover {
+        background: #f3f4f6;
+        text-decoration: none;
+    }
+
+    .days-remaining {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .days-remaining.urgent {
+        color: #dc2626;
+    }
+
+    .days-remaining.high {
+        color: #f59e0b;
+    }
+
+    .days-remaining.medium {
+        color: #10b981;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Add Deadline Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close-btn:hover {
+        color: #374151;
+    }
+
+    .form-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-row.single {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+
+    .btn-secondary {
+        background: #f9fafb;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .deadline-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .deadline-actions {
+            flex-wrap: wrap;
+        }
+
+        .deadlines-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="deadlines-container">
+    <!-- Header -->
+    <div class="deadlines-header">
+        <h1 class="deadlines-title">
+            ⏰ Deadlines & Court Dates
+        </h1>
+        <div class="header-actions">
+            <button class="add-deadline-btn" onclick="openAddModal('court')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Court Date
+            </button>
+            <button class="add-deadline-btn" onclick="openAddModal('task')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Task
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="deadline-filters">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">Search Deadlines</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Search by title, case, or description...">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Type</label>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    <option value="statute">Statute of Limitations</option>
+                    <option value="court">Court Dates</option>
+                    <option value="task">Tasks</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Priority</label>
+                <select id="priorityFilter" class="filter-select">
+                    <option value="">All Priorities</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Days Ahead</label>
+                <select id="daysFilter" class="filter-select">
+                    <option value="7">Next 7 days</option>
+                    <option value="30" selected>Next 30 days</option>
+                    <option value="90">Next 90 days</option>
+                    <option value="365">Next year</option>
+                </select>
+            </div>
+            <button id="applyFilters" class="filter-btn">Search</button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="deadline-summary" id="deadlineSummary">
+        <div class="summary-card">
+            <div class="summary-number total" id="totalCount">0</div>
+            <div class="summary-label">Total Deadlines</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-number urgent" id="urgentCount">0</div>
+            <div class="summary-label">Urgent (≤7 days)</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-number high" id="highCount">0</div>
+            <div class="summary-label">High Priority</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-number medium" id="weekCount">0</div>
+            <div class="summary-label">This Week</div>
+        </div>
+    </div>
+
+    <!-- Deadlines Grid -->
+    <div id="deadlinesContainer">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Deadline Modal -->
+<div id="addDeadlineModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">Add Deadline</h2>
+            <button class="close-btn" onclick="closeAddModal()">×</button>
+        </div>
+        
+        <form id="deadlineForm">
+            <div class="form-section">
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="deadlineTitle" class="form-input" placeholder="Enter deadline title" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="deadlineDate" class="form-input" required>
+                    </div>
+                    <div class="form-group" id="timeGroup" style="display: none;">
+                        <label class="form-label">Time</label>
+                        <input type="time" id="deadlineTime" class="form-input" value="09:00">
+                    </div>
+                </div>
+                
+                <div class="form-row" id="eventTypeGroup" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Event Type</label>
+                        <select id="eventType" class="form-select">
+                            <option value="court">Court Hearing</option>
+                            <option value="hearing">Hearing</option>
+                            <option value="trial">Trial</option>
+                            <option value="deposition">Deposition</option>
+                            <option value="meeting">Meeting</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" id="deadlineLocation" class="form-input" placeholder="Court room or address">
+                    </div>
+                </div>
+                
+                <div class="form-row" id="taskPriorityGroup" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select id="taskPriority" class="form-select">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Estimated Hours</label>
+                        <input type="number" id="estimatedHours" class="form-input" placeholder="2.5" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Case (Optional)</label>
+                        <select id="deadlineCase" class="form-select">
+                            <option value="">Select case</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="deadlineDescription" class="form-textarea" placeholder="Additional details about this deadline"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="submitText">Add Deadline</span>
+                    <span id="submitSpinner" style="display: none;">...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Global variables
+let deadlines = [];
+let isLoading = false;
+let currentDeadlineType = 'court';
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadDeadlines();
+    loadCases();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Search and filters with debounce
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(loadDeadlines, 500);
+    });
+
+    ['typeFilter', 'priorityFilter', 'daysFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', loadDeadlines);
+    });
+
+    document.getElementById('applyFilters').addEventListener('click', loadDeadlines);
+    
+    // Form submission
+    document.getElementById('deadlineForm').addEventListener('submit', handleSubmit);
+}
+
+async function loadCases() {
+    try {
+        const response = await fetch('/api/cases');
+        const data = await response.json();
+        
+        if (data.success) {
+            const caseSelect = document.getElementById('deadlineCase');
+            data.cases.forEach(caseData => {
+                const option = document.createElement('option');
+                option.value = caseData.id;
+                option.textContent = `${caseData.case_number} - ${caseData.title}`;
+                caseSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading cases:', error);
+    }
+}
+
+async function loadDeadlines() {
+    if (isLoading) return;
+    isLoading = true;
+
+    try {
+        // Build query parameters
+        const params = new URLSearchParams();
+        
+        const days = document.getElementById('daysFilter').value;
+        if (days) params.append('days', days);
+        
+        const type = document.getElementById('typeFilter').value;
+        if (type) params.append('type', type);
+        
+        // Note: priority filter will be applied client-side since API doesn't support it directly
+
+        const response = await fetch(`/api/deadlines?${params}`);
+        const data = await response.json();
+
+        if (data.success) {
+            deadlines = data.deadlines;
+            
+            // Apply client-side priority filter
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            if (priorityFilter) {
+                deadlines = deadlines.filter(d => d.priority === priorityFilter);
+            }
+            
+            // Apply search filter
+            const search = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (search) {
+                deadlines = deadlines.filter(d => 
+                    d.title.toLowerCase().includes(search) ||
+                    d.description.toLowerCase().includes(search) ||
+                    (d.case_title && d.case_title.toLowerCase().includes(search)) ||
+                    (d.client_name && d.client_name.toLowerCase().includes(search))
+                );
+            }
+            
+            displayDeadlines(deadlines);
+            updateSummary(data.summary, deadlines);
+        } else {
+            showError('Failed to load deadlines: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error loading deadlines:', error);
+        showError('Network error while loading deadlines');
+    } finally {
+        isLoading = false;
+    }
+}
+
+function displayDeadlines(deadlineList) {
+    const container = document.getElementById('deadlinesContainer');
+    
+    if (deadlineList.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3>No deadlines found</h3>
+                <p>Try adjusting your search criteria or add a new deadline.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const deadlinesHtml = deadlineList.map(deadline => `
+        <div class="deadline-card ${deadline.priority}" data-deadline-id="${deadline.id}">
+            <div class="deadline-header">
+                <div>
+                    <h3 class="deadline-title">${escapeHtml(deadline.title)}</h3>
+                    <span class="deadline-type type-${deadline.type}">${deadline.type}</span>
+                </div>
+                <div class="days-remaining ${deadline.priority}">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    ${deadline.days_remaining} day${deadline.days_remaining !== 1 ? 's' : ''}
+                </div>
+            </div>
+
+            <div class="deadline-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Due Date</span>
+                    <span class="meta-value">
+                        ${formatDate(deadline.due_date)}
+                        ${deadline.due_time ? `at ${deadline.due_time}` : ''}
+                    </span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Case</span>
+                    <span class="meta-value">${deadline.case_number || 'No case'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Client</span>
+                    <span class="meta-value">${deadline.client_name || 'No client'}</span>
+                </div>
+            </div>
+
+            <div class="deadline-description">
+                ${escapeHtml(deadline.description)}
+                ${deadline.location ? `<br><strong>Location:</strong> ${escapeHtml(deadline.location)}` : ''}
+                ${deadline.assignee_name ? `<br><strong>Assigned to:</strong> ${escapeHtml(deadline.assignee_name)}` : ''}
+            </div>
+
+            <div class="deadline-actions">
+                ${deadline.case_id ? `<a href="/cases/${deadline.case_id}" class="action-link">View Case</a>` : ''}
+                ${deadline.type === 'task' ? `<a href="#" class="action-link" onclick="markTaskComplete('${deadline.id}')">Mark Complete</a>` : ''}
+                <a href="#" class="action-link" onclick="editDeadline('${deadline.id}')">Edit</a>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = `<div class="deadlines-grid">${deadlinesHtml}</div>`;
+}
+
+function updateSummary(apiSummary, filteredDeadlines) {
+    // Use filtered deadlines for accurate counts
+    const summary = {
+        total: filteredDeadlines.length,
+        urgent: filteredDeadlines.filter(d => d.priority === 'urgent').length,
+        high: filteredDeadlines.filter(d => d.priority === 'high').length,
+        upcoming_week: filteredDeadlines.filter(d => d.days_remaining <= 7).length
+    };
+    
+    document.getElementById('totalCount').textContent = summary.total;
+    document.getElementById('urgentCount').textContent = summary.urgent;
+    document.getElementById('highCount').textContent = summary.high;
+    document.getElementById('weekCount').textContent = summary.upcoming_week;
+}
+
+function openAddModal(type) {
+    currentDeadlineType = type;
+    const modal = document.getElementById('addDeadlineModal');
+    const title = document.getElementById('modalTitle');
+    const timeGroup = document.getElementById('timeGroup');
+    const eventTypeGroup = document.getElementById('eventTypeGroup');
+    const taskPriorityGroup = document.getElementById('taskPriorityGroup');
+    
+    // Reset form
+    document.getElementById('deadlineForm').reset();
+    
+    if (type === 'court') {
+        title.textContent = 'Add Court Date';
+        timeGroup.style.display = 'block';
+        eventTypeGroup.style.display = 'block';
+        taskPriorityGroup.style.display = 'none';
+    } else {
+        title.textContent = 'Add Task Deadline';
+        timeGroup.style.display = 'none';
+        eventTypeGroup.style.display = 'none';
+        taskPriorityGroup.style.display = 'block';
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeAddModal() {
+    document.getElementById('addDeadlineModal').style.display = 'none';
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    
+    submitBtn.disabled = true;
+    submitText.style.display = 'none';
+    submitSpinner.style.display = 'inline';
+    
+    try {
+        const data = {
+            title: document.getElementById('deadlineTitle').value,
+            description: document.getElementById('deadlineDescription').value,
+            case_id: document.getElementById('deadlineCase').value || null
+        };
+        
+        let endpoint;
+        
+        if (currentDeadlineType === 'court') {
+            const date = document.getElementById('deadlineDate').value;
+            const time = document.getElementById('deadlineTime').value || '09:00';
+            data.start_datetime = `${date}T${time}:00`;
+            data.event_type = document.getElementById('eventType').value;
+            data.location = document.getElementById('deadlineLocation').value;
+            endpoint = '/api/deadlines/calendar-events';
+        } else {
+            data.due_date = document.getElementById('deadlineDate').value;
+            data.priority = document.getElementById('taskPriority').value;
+            data.estimated_hours = document.getElementById('estimatedHours').value || null;
+            endpoint = '/api/deadlines/tasks';
+        }
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            closeAddModal();
+            loadDeadlines();
+            showSuccess(result.message);
+        } else {
+            showError(result.error || 'Failed to create deadline');
+        }
+    } catch (error) {
+        console.error('Error creating deadline:', error);
+        showError('Network error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline';
+        submitSpinner.style.display = 'none';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showError(message) {
+    const container = document.getElementById('deadlinesContainer');
+    container.innerHTML = `
+        <div class="empty-state">
+            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3>Error Loading Deadlines</h3>
+            <p>${message}</p>
+            <button onclick="loadDeadlines()" class="filter-btn" style="margin-top: 1rem;">Retry</button>
+        </div>
+    `;
+}
+
+function showSuccess(message) {
+    // Create temporary success notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dcfce7;
+        color: #166534;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-weight: 500;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('addDeadlineModal');
+    if (event.target === modal) {
+        closeAddModal();
+    }
+});
+
+// Placeholder functions for future implementation
+function markTaskComplete(deadlineId) {
+    console.log('Mark task complete:', deadlineId);
+    // TODO: Implement task completion
+}
+
+function editDeadline(deadlineId) {
+    console.log('Edit deadline:', deadlineId);
+    // TODO: Implement deadline editing
+}
+</script>
+{% endblock %}
