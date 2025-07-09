@@ -304,6 +304,15 @@ def landing_page():
     """Landing page"""
     return dashboard()
 
+@app.route('/profile')
+def profile_page():
+    """User profile page"""
+    try:
+        return render_template('user_profile.html')
+    except Exception as e:
+        logger.warning(f"Profile page error: {e}")
+        return render_template('dashboard.html')
+
 @app.route('/analytics')
 def analytics_dashboard():
     """Analytics and reporting dashboard"""
@@ -317,10 +326,10 @@ def analytics_dashboard():
             'avg_response_time': '2.3s',  # Placeholder
             'client_satisfaction': '94%'   # Placeholder
         }
-        return render_template('analytics.html', stats=stats)
+        return render_template('analytics_dashboard.html', stats=stats)
     except Exception as e:
         logger.warning(f"Analytics error: {e}")
-        return render_template('analytics.html', stats={})
+        return render_template('analytics_dashboard.html', stats={})
 
 @app.route('/deadlines')
 def deadlines_page():
@@ -347,7 +356,7 @@ def billing_page():
         return render_template('billing.html')
     except Exception as e:
         logger.warning(f"Billing page error: {e}")
-        return jsonify({"error": "Unable to load billing page", "success": False})
+        return render_template('billing.html')
 
 @app.route('/calendar')
 def calendar_page():
@@ -356,7 +365,7 @@ def calendar_page():
         return render_template('calendar.html')
     except Exception as e:
         logger.warning(f"Calendar page error: {e}")
-        return jsonify({"error": "Unable to load calendar page", "success": False})
+        return render_template('calendar.html')
 
 @app.route('/time-tracking')
 def time_tracking_page():
@@ -365,7 +374,7 @@ def time_tracking_page():
         return render_template('time_tracking.html')
     except Exception as e:
         logger.warning(f"Time tracking page error: {e}")
-        return jsonify({"error": "Unable to load time tracking page", "success": False})
+        return render_template('time_tracking.html')
 
 @app.route('/admin/users')
 def admin_users():
