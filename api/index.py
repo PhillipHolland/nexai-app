@@ -639,7 +639,17 @@ def deadlines_page():
 def admin_users():
     """Admin user management page"""
     try:
-        return render_template('dashboard.html')
+        stats = {
+            'total_chats': 24,
+            'total_documents': 8,
+            'research_queries': 15,
+            'total_clients': 3
+        }
+        return render_template('dashboard.html',
+                             user_role=session.get('user_role', 'attorney'),
+                             user_name=session.get('user_name', 'User'),
+                             stats=stats,
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin users page error: {e}")
         return f"Admin users error: {e}", 500
@@ -648,7 +658,17 @@ def admin_users():
 def admin_settings():
     """Admin settings page"""
     try:
-        return render_template('dashboard.html')
+        stats = {
+            'total_chats': 24,
+            'total_documents': 8,
+            'research_queries': 15,
+            'total_clients': 3
+        }
+        return render_template('dashboard.html',
+                             user_role=session.get('user_role', 'attorney'),
+                             user_name=session.get('user_name', 'User'),
+                             stats=stats,
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin settings page error: {e}")
         return f"Admin settings error: {e}", 500
@@ -657,7 +677,17 @@ def admin_settings():
 def admin_subscriptions():
     """Admin subscriptions page"""
     try:
-        return render_template('dashboard.html')
+        stats = {
+            'total_chats': 24,
+            'total_documents': 8,
+            'research_queries': 15,
+            'total_clients': 3
+        }
+        return render_template('dashboard.html',
+                             user_role=session.get('user_role', 'attorney'),
+                             user_name=session.get('user_name', 'User'),
+                             stats=stats,
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin subscriptions page error: {e}")
         return f"Admin subscriptions error: {e}", 500
@@ -666,7 +696,17 @@ def admin_subscriptions():
 def admin_audit_logs():
     """Admin audit logs page"""
     try:
-        return render_template('dashboard.html')
+        stats = {
+            'total_chats': 24,
+            'total_documents': 8,
+            'research_queries': 15,
+            'total_clients': 3
+        }
+        return render_template('dashboard.html',
+                             user_role=session.get('user_role', 'attorney'),
+                             user_name=session.get('user_name', 'User'),
+                             stats=stats,
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin audit logs page error: {e}")
         return f"Admin audit logs error: {e}", 500
