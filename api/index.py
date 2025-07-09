@@ -639,58 +639,57 @@ def deadlines_page():
 def admin_users():
     """Admin user management page - manage firm's user accounts"""
     try:
+        # User management stats
+        stats = {
+            'total_chats': 4,  # Total users
+            'total_documents': 3,  # Active users
+            'research_queries': 1,  # Inactive users
+            'total_clients': 2  # Admin users
+        }
+        
         # Mock firm user accounts (attorneys, staff, paralegals)
         firm_users = [
             {
-                'id': 'usr_001_partner',
                 'name': 'John Doe',
                 'email': 'john.doe@lawfirm.com',
-                'phone': '(555) 123-4567',
-                'case_type': 'Partner',  # Using case_type field for role
-                'updated_at': None,
                 'role': 'Partner',
                 'status': 'Active',
                 'last_login': '2024-07-09',
                 'permissions': 'Full Access'
             },
             {
-                'id': 'usr_002_associate',
                 'name': 'Jane Smith',
                 'email': 'jane.smith@lawfirm.com',
-                'phone': '(555) 234-5678',
-                'case_type': 'Associate',
-                'updated_at': None,
                 'role': 'Associate',
                 'status': 'Active',
                 'last_login': '2024-07-09',
                 'permissions': 'Limited Access'
             },
             {
-                'id': 'usr_003_paralegal',
                 'name': 'Bob Johnson',
                 'email': 'bob.johnson@lawfirm.com',
-                'phone': '(555) 345-6789',
-                'case_type': 'Paralegal',
-                'updated_at': None,
                 'role': 'Paralegal',
                 'status': 'Active',
                 'last_login': '2024-07-08',
                 'permissions': 'Basic Access'
             },
             {
-                'id': 'usr_004_admin',
                 'name': 'Sarah Wilson',
                 'email': 'sarah.wilson@lawfirm.com',
-                'phone': '(555) 456-7890',
-                'case_type': 'Admin',
-                'updated_at': None,
                 'role': 'Administrator',
                 'status': 'Active',
                 'last_login': '2024-07-09',
                 'permissions': 'Full Access'
             }
         ]
-        return render_template('clients.html', clients=firm_users)
+        
+        return render_template('dashboard.html',
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             stats=stats,
+                             firm_users=firm_users,
+                             page_title='User Management',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin users page error: {e}")
         return f"Admin users error: {e}", 500
