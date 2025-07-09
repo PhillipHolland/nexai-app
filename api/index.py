@@ -639,19 +639,34 @@ def deadlines_page():
 def admin_users():
     """Admin user management page"""
     try:
-        # Mock user data that matches template expectations
-        user = {
-            'first_name': 'Admin',
-            'last_name': 'User',
-            'email': 'admin@lexai.com',
-            'phone': '(555) 123-4567',
-            'firm_name': 'Demo Law Firm',
-            'job_title': 'System Administrator',
-            'role': 'Admin',
-            'bar_number': 'ADMIN001',
-            'bio': 'System administrator managing user accounts and system settings.'
-        }
-        return render_template('user_profile.html', user=user, page_title='User Management')
+        # Mock users data for user management list
+        users = [
+            {
+                'id': 1,
+                'name': 'John Doe',
+                'email': 'john@lawfirm.com',
+                'phone': '(555) 123-4567',
+                'case_type': 'Partner',
+                'updated_at': None
+            },
+            {
+                'id': 2,
+                'name': 'Jane Smith',
+                'email': 'jane@lawfirm.com',
+                'phone': '(555) 234-5678',
+                'case_type': 'Associate',
+                'updated_at': None
+            },
+            {
+                'id': 3,
+                'name': 'Bob Johnson',
+                'email': 'bob@lawfirm.com',
+                'phone': '(555) 345-6789',
+                'case_type': 'Paralegal',
+                'updated_at': None
+            }
+        ]
+        return render_template('clients.html', clients=users, page_title='User Management')
     except Exception as e:
         logger.error(f"Admin users page error: {e}")
         return f"Admin users error: {e}", 500
