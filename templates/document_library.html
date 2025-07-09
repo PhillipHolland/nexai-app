@@ -1,0 +1,1193 @@
+{% extends "base.html" %}
+
+{% block title %}Document Library - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .document-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .document-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .document-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .add-document-btn {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .add-document-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .document-filters {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .filter-input, .filter-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 2px rgba(46, 75, 60, 0.1);
+    }
+
+    .filter-btn {
+        background: #2E4B3C;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        height: fit-content;
+    }
+
+    .filter-btn:hover {
+        background: #1d2d23;
+    }
+
+    .document-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .documents-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .document-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #e5e7eb;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .document-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .document-card.confidential {
+        border-left-color: #dc2626;
+        background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+    }
+
+    .document-card.privileged {
+        border-left-color: #7c3aed;
+        background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%);
+    }
+
+    .document-card.draft {
+        border-left-color: #f59e0b;
+    }
+
+    .document-card.final {
+        border-left-color: #10b981;
+    }
+
+    .document-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .document-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .document-type {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .document-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .meta-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        font-size: 0.875rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .document-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .action-link {
+        color: #2E4B3C;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+
+    .action-link:hover {
+        background: #f3f4f6;
+        text-decoration: none;
+    }
+
+    .document-badges {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .badge {
+        padding: 0.125rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-confidential {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .badge-privileged {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+
+    .badge-status {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .badge-status.draft {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-status.review {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .badge-status.approved {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-status.final {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        color: #374151;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+
+    .pagination-btn:hover {
+        background: #f9fafb;
+    }
+
+    .pagination-btn.active {
+        background: #2E4B3C;
+        color: white;
+        border-color: #2E4B3C;
+    }
+
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Add Document Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close-btn:hover {
+        color: #374151;
+    }
+
+    .form-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-row.single {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .checkbox-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .checkbox-input {
+        accent-color: #2E4B3C;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+
+    .btn-secondary {
+        background: #f9fafb;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .document-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .document-actions {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .action-buttons {
+            justify-content: center;
+        }
+
+        .document-badges {
+            justify-content: center;
+        }
+
+        .document-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="document-container">
+    <!-- Header -->
+    <div class="document-header">
+        <h1 class="document-title">
+            📄 Document Library
+        </h1>
+        <div class="header-actions">
+            <button class="add-document-btn" onclick="openAddModal()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Document
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="document-filters">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">Search Documents</label>
+                <input type="text" id="searchInput" class="filter-input" placeholder="Search by title, description, or filename...">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Type</label>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All Types</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Status</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All Statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="review">Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="final">Final</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Case</label>
+                <select id="caseFilter" class="filter-select">
+                    <option value="">All Cases</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Client</label>
+                <select id="clientFilter" class="filter-select">
+                    <option value="">All Clients</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+            </div>
+            <button id="applyFilters" class="filter-btn">Search</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="document-stats" id="documentStats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalCount">0</div>
+            <div class="stat-label">Total Documents</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="draftCount">0</div>
+            <div class="stat-label">Drafts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="reviewCount">0</div>
+            <div class="stat-label">In Review</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="confidentialCount">0</div>
+            <div class="stat-label">Confidential</div>
+        </div>
+    </div>
+
+    <!-- Documents Grid -->
+    <div id="documentsContainer">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer"></div>
+</div>
+
+<!-- Add Document Modal -->
+<div id="addDocumentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add Document</h2>
+            <button class="close-btn" onclick="closeAddModal()">×</button>
+        </div>
+        
+        <form id="documentForm">
+            <div class="form-section">
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" id="documentTitle" class="form-input" placeholder="Enter document title" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Document Type</label>
+                        <select id="documentType" class="form-select" required>
+                            <option value="">Select type</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="documentStatus" class="form-select">
+                            <option value="draft">Draft</option>
+                            <option value="review">Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="final">Final</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Case (Optional)</label>
+                        <select id="documentCase" class="form-select">
+                            <option value="">Select case</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client (Optional)</label>
+                        <select id="documentClient" class="form-select">
+                            <option value="">Select client</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row single">
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="documentDescription" class="form-textarea" placeholder="Document description or summary"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Access Level</label>
+                        <select id="accessLevel" class="form-select">
+                            <option value="private">Private</option>
+                            <option value="restricted">Restricted</option>
+                            <option value="public">Public</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Security Flags</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="isConfidential" class="checkbox-input" checked>
+                                <label for="isConfidential">Confidential</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="isPrivileged" class="checkbox-input">
+                                <label for="isPrivileged">Privileged</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="submitText">Add Document</span>
+                    <span id="submitSpinner" style="display: none;">...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Global variables
+let documents = [];
+let currentPage = 1;
+let totalPages = 1;
+let isLoading = false;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadDocuments();
+    loadCases();
+    loadClients();
+    loadDocumentTypes();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    // Search and filters with debounce
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 1;
+            loadDocuments();
+        }, 500);
+    });
+
+    ['typeFilter', 'statusFilter', 'caseFilter', 'clientFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('change', function() {
+            currentPage = 1;
+            loadDocuments();
+        });
+    });
+
+    document.getElementById('applyFilters').addEventListener('click', function() {
+        currentPage = 1;
+        loadDocuments();
+    });
+    
+    // Form submission
+    document.getElementById('documentForm').addEventListener('submit', handleSubmit);
+}
+
+async function loadDocumentTypes() {
+    try {
+        const response = await fetch('/api/documents/types');
+        const data = await response.json();
+        
+        if (data.success) {
+            const typeFilter = document.getElementById('typeFilter');
+            const documentType = document.getElementById('documentType');
+            
+            data.document_types.forEach(type => {
+                const filterOption = document.createElement('option');
+                filterOption.value = type;
+                filterOption.textContent = type;
+                typeFilter.appendChild(filterOption);
+                
+                const formOption = document.createElement('option');
+                formOption.value = type;
+                formOption.textContent = type;
+                documentType.appendChild(formOption);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading document types:', error);
+    }
+}
+
+async function loadCases() {
+    try {
+        const response = await fetch('/api/cases');
+        const data = await response.json();
+        
+        if (data.success) {
+            const caseFilter = document.getElementById('caseFilter');
+            const documentCase = document.getElementById('documentCase');
+            
+            data.cases.forEach(caseData => {
+                const filterOption = document.createElement('option');
+                filterOption.value = caseData.id;
+                filterOption.textContent = `${caseData.case_number} - ${caseData.title}`;
+                caseFilter.appendChild(filterOption);
+                
+                const formOption = document.createElement('option');
+                formOption.value = caseData.id;
+                formOption.textContent = `${caseData.case_number} - ${caseData.title}`;
+                documentCase.appendChild(formOption);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading cases:', error);
+    }
+}
+
+async function loadClients() {
+    try {
+        const response = await fetch('/api/clients');
+        const data = await response.json();
+        
+        if (data.success) {
+            const clientFilter = document.getElementById('clientFilter');
+            const documentClient = document.getElementById('documentClient');
+            
+            data.clients.forEach(client => {
+                const filterOption = document.createElement('option');
+                filterOption.value = client.id;
+                filterOption.textContent = client.display_name;
+                clientFilter.appendChild(filterOption);
+                
+                const formOption = document.createElement('option');
+                formOption.value = client.id;
+                formOption.textContent = client.display_name;
+                documentClient.appendChild(formOption);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading clients:', error);
+    }
+}
+
+async function loadDocuments() {
+    if (isLoading) return;
+    isLoading = true;
+
+    try {
+        // Build query parameters
+        const params = new URLSearchParams({
+            page: currentPage,
+            per_page: 20
+        });
+
+        const search = document.getElementById('searchInput').value.trim();
+        if (search) params.append('search', search);
+
+        const type = document.getElementById('typeFilter').value;
+        if (type) params.append('document_type', type);
+
+        const status = document.getElementById('statusFilter').value;
+        if (status) params.append('status', status);
+
+        const caseId = document.getElementById('caseFilter').value;
+        if (caseId) params.append('case_id', caseId);
+
+        const clientId = document.getElementById('clientFilter').value;
+        if (clientId) params.append('client_id', clientId);
+
+        const response = await fetch(`/api/documents?${params}`);
+        const data = await response.json();
+
+        if (data.success) {
+            documents = data.documents;
+            displayDocuments(documents);
+            updatePagination(data.pagination);
+            updateStats(documents);
+        } else {
+            showError('Failed to load documents: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error loading documents:', error);
+        showError('Network error while loading documents');
+    } finally {
+        isLoading = false;
+    }
+}
+
+function displayDocuments(documentList) {
+    const container = document.getElementById('documentsContainer');
+    
+    if (documentList.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3>No documents found</h3>
+                <p>Try adjusting your search criteria or add a new document.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const documentsHtml = documentList.map(doc => `
+        <div class="document-card ${doc.is_confidential ? 'confidential' : ''} ${doc.is_privileged ? 'privileged' : ''} ${doc.status}" data-document-id="${doc.id}">
+            <div class="document-header-info">
+                <div>
+                    <h3 class="document-name">${escapeHtml(doc.title)}</h3>
+                    <span class="document-type">${doc.document_type}</span>
+                </div>
+                <div class="document-badges">
+                    <span class="badge badge-status ${doc.status}">${doc.status}</span>
+                    ${doc.is_confidential ? '<span class="badge badge-confidential">Confidential</span>' : ''}
+                    ${doc.is_privileged ? '<span class="badge badge-privileged">Privileged</span>' : ''}
+                </div>
+            </div>
+
+            <div class="document-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Case</span>
+                    <span class="meta-value">${doc.case_number || 'No case'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Client</span>
+                    <span class="meta-value">${doc.client_name || 'No client'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Size</span>
+                    <span class="meta-value">${doc.file_size_mb}MB</span>
+                </div>
+            </div>
+
+            ${doc.description ? `<div class="document-description">${escapeHtml(doc.description)}</div>` : ''}
+
+            <div class="document-actions">
+                <div class="action-buttons">
+                    <a href="#" class="action-link" onclick="viewDocument('${doc.id}')">View</a>
+                    <a href="#" class="action-link" onclick="editDocument('${doc.id}')">Edit</a>
+                    <a href="#" class="action-link" onclick="downloadDocument('${doc.id}')">Download</a>
+                    ${doc.case_id ? `<a href="/cases/${doc.case_id}" class="action-link">View Case</a>` : ''}
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Created</span>
+                    <span class="meta-value">${formatDate(doc.created_at)}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = `<div class="documents-grid">${documentsHtml}</div>`;
+}
+
+function updatePagination(pagination) {
+    const container = document.getElementById('paginationContainer');
+    totalPages = pagination.pages;
+
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let paginationHtml = `
+        <div class="pagination">
+            <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                Previous
+            </button>
+    `;
+
+    // Show page numbers
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        paginationHtml += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+
+    paginationHtml += `
+            <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                Next
+            </button>
+        </div>
+    `;
+
+    container.innerHTML = paginationHtml;
+}
+
+function updateStats(documentList) {
+    const total = documentList.length;
+    const drafts = documentList.filter(d => d.status === 'draft').length;
+    const reviews = documentList.filter(d => d.status === 'review').length;
+    const confidential = documentList.filter(d => d.is_confidential).length;
+    
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('draftCount').textContent = drafts;
+    document.getElementById('reviewCount').textContent = reviews;
+    document.getElementById('confidentialCount').textContent = confidential;
+}
+
+function changePage(page) {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+        currentPage = page;
+        loadDocuments();
+    }
+}
+
+function openAddModal() {
+    const modal = document.getElementById('addDocumentModal');
+    document.getElementById('documentForm').reset();
+    modal.style.display = 'block';
+}
+
+function closeAddModal() {
+    document.getElementById('addDocumentModal').style.display = 'none';
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    
+    submitBtn.disabled = true;
+    submitText.style.display = 'none';
+    submitSpinner.style.display = 'inline';
+    
+    try {
+        const data = {
+            title: document.getElementById('documentTitle').value,
+            document_type: document.getElementById('documentType').value,
+            description: document.getElementById('documentDescription').value,
+            status: document.getElementById('documentStatus').value,
+            case_id: document.getElementById('documentCase').value || null,
+            client_id: document.getElementById('documentClient').value || null,
+            access_level: document.getElementById('accessLevel').value,
+            is_confidential: document.getElementById('isConfidential').checked,
+            is_privileged: document.getElementById('isPrivileged').checked
+        };
+        
+        const response = await fetch('/api/documents', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            closeAddModal();
+            loadDocuments();
+            showSuccess(result.message);
+        } else {
+            showError(result.error || 'Failed to create document');
+        }
+    } catch (error) {
+        console.error('Error creating document:', error);
+        showError('Network error. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.style.display = 'inline';
+        submitSpinner.style.display = 'none';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showError(message) {
+    const container = document.getElementById('documentsContainer');
+    container.innerHTML = `
+        <div class="empty-state">
+            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3>Error Loading Documents</h3>
+            <p>${message}</p>
+            <button onclick="loadDocuments()" class="filter-btn" style="margin-top: 1rem;">Retry</button>
+        </div>
+    `;
+}
+
+function showSuccess(message) {
+    // Create temporary success notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dcfce7;
+        color: #166534;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-weight: 500;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('addDocumentModal');
+    if (event.target === modal) {
+        closeAddModal();
+    }
+});
+
+// Placeholder functions for future implementation
+function viewDocument(documentId) {
+    console.log('View document:', documentId);
+    // TODO: Implement document viewer
+}
+
+function editDocument(documentId) {
+    console.log('Edit document:', documentId);
+    // TODO: Implement document editing
+}
+
+function downloadDocument(documentId) {
+    console.log('Download document:', documentId);
+    // TODO: Implement document download
+}
+</script>
+{% endblock %}

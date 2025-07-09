@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Import database components
 try:
-    from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus, Task, CalendarEvent, CaseStatus, TaskStatus, TaskPriority, case_attorneys
+    from models import db, User, Client, Case, TimeEntry, Invoice, Expense, UserRole, TimeEntryStatus, InvoiceStatus, Task, CalendarEvent, CaseStatus, TaskStatus, TaskPriority, case_attorneys, Document, DocumentStatus
     from database import DatabaseManager, audit_log
     DATABASE_AVAILABLE = True
     logger.info("Database models loaded successfully")
@@ -175,14 +175,25 @@ def dashboard():
 
 @app.route('/documents')
 @login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
 def documents_page():
-    """Document analysis page"""
+    """Document management page"""
+    try:
+        return render_template('document_library.html')
+    except Exception as e:
+        logger.error(f"Documents page error: {e}")
+        return f"Documents error: {e}", 500
+
+@app.route('/documents/analysis')
+@login_required
+def document_analysis_page():
+    """Document analysis page (legacy)"""
     try:
         return render_template('documents.html',
                              bagel_available=BAGEL_AI_AVAILABLE)
     except Exception as e:
-        logger.error(f"Documents page error: {e}")
-        return f"Documents error: {e}", 500
+        logger.error(f"Document analysis page error: {e}")
+        return f"Document analysis error: {e}", 500
 
 @app.route('/contracts')
 @login_required
@@ -3252,6 +3263,420 @@ def _get_mock_reminders():
         'success': True,
         'reminders': [],
         'count': 0
+    })
+
+# ===== DOCUMENT MANAGEMENT API =====
+
+@app.route('/api/documents', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_documents():
+    """Get documents with filtering and search"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_documents()
+        
+        # Get query parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 20, type=int), 100)
+        search = request.args.get('search', '').strip()
+        case_id = request.args.get('case_id')
+        client_id = request.args.get('client_id')
+        document_type = request.args.get('document_type')
+        status = request.args.get('status')
+        
+        # Build query
+        query = Document.query
+        
+        # Apply filters
+        if search:
+            query = query.filter(
+                db.or_(
+                    Document.title.ilike(f'%{search}%'),
+                    Document.description.ilike(f'%{search}%'),
+                    Document.original_filename.ilike(f'%{search}%')
+                )
+            )
+        
+        if case_id:
+            query = query.filter(Document.case_id == case_id)
+        
+        if client_id:
+            query = query.filter(Document.client_id == client_id)
+        
+        if document_type:
+            query = query.filter(Document.document_type == document_type)
+        
+        if status:
+            query = query.filter(Document.status == DocumentStatus(status))
+        
+        # Apply pagination and ordering
+        documents = query.order_by(Document.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        # Convert to dict with additional info
+        documents_data = []
+        for doc in documents.items:
+            doc_dict = doc.to_dict()
+            doc_dict.update({
+                'case_title': doc.case.title if doc.case else None,
+                'case_number': doc.case.case_number if doc.case else None,
+                'client_name': doc.client.get_display_name() if doc.client else None,
+                'created_by_name': doc.created_by_user.get_full_name() if doc.created_by_user else None,
+                'file_size_mb': round(doc.file_size / (1024 * 1024), 2) if doc.file_size else 0
+            })
+            documents_data.append(doc_dict)
+        
+        return jsonify({
+            'success': True,
+            'documents': documents_data,
+            'pagination': {
+                'page': documents.page,
+                'pages': documents.pages,
+                'per_page': documents.per_page,
+                'total': documents.total,
+                'has_prev': documents.has_prev,
+                'has_next': documents.has_next
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching documents: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_create_document():
+    """Create a new document (metadata only - file upload handled separately)"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_document()
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Validate required fields
+        if not data.get('title') or not data.get('document_type'):
+            return jsonify({
+                'success': False,
+                'error': 'Title and document type are required'
+            }), 400
+        
+        # Create document
+        document = Document(
+            title=data['title'],
+            description=data.get('description'),
+            filename=data.get('filename', 'placeholder.pdf'),
+            original_filename=data.get('original_filename', data['title'] + '.pdf'),
+            file_size=data.get('file_size', 0),
+            mime_type=data.get('mime_type', 'application/pdf'),
+            storage_provider=data.get('storage_provider', 'local'),
+            storage_path=data.get('storage_path', '/uploads/documents/'),
+            document_type=data['document_type'],
+            status=DocumentStatus(data.get('status', 'draft')),
+            version=data.get('version', '1.0'),
+            is_confidential=data.get('is_confidential', True),
+            is_privileged=data.get('is_privileged', False),
+            access_level=data.get('access_level', 'private'),
+            case_id=data.get('case_id'),
+            client_id=data.get('client_id'),
+            created_by=user_id
+        )
+        
+        db.session.add(document)
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'document', document.id, user_id, document.to_dict())
+        
+        logger.info(f"Document created: {document.id}")
+        
+        return jsonify({
+            'success': True,
+            'document': document.to_dict(),
+            'message': 'Document created successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Error creating document: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/<document_id>', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_document(document_id):
+    """Get a specific document with full details"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_document(document_id)
+        
+        document = Document.query.get(document_id)
+        if not document:
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+        
+        # Check access permissions (basic implementation)
+        user_role = session.get('user_role', 'associate')
+        if document.access_level == 'restricted' and user_role not in ['admin', 'partner']:
+            return jsonify({
+                'success': False,
+                'error': 'Access denied'
+            }), 403
+        
+        doc_dict = document.to_dict()
+        doc_dict.update({
+            'case_title': document.case.title if document.case else None,
+            'case_number': document.case.case_number if document.case else None,
+            'client_name': document.client.get_display_name() if document.client else None,
+            'created_by_name': document.created_by_user.get_full_name() if document.created_by_user else None,
+            'file_size_mb': round(document.file_size / (1024 * 1024), 2) if document.file_size else 0,
+            'versions': [v.to_dict() for v in document.versions] if document.versions else []
+        })
+        
+        return jsonify({
+            'success': True,
+            'document': doc_dict
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching document: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/<document_id>', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_update_document(document_id):
+    """Update document metadata"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _update_mock_document(document_id)
+        
+        document = Document.query.get(document_id)
+        if not document:
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Store old values for audit
+        old_values = document.to_dict()
+        
+        # Update fields
+        if 'title' in data:
+            document.title = data['title']
+        if 'description' in data:
+            document.description = data['description']
+        if 'document_type' in data:
+            document.document_type = data['document_type']
+        if 'status' in data:
+            document.status = DocumentStatus(data['status'])
+        if 'is_confidential' in data:
+            document.is_confidential = data['is_confidential']
+        if 'is_privileged' in data:
+            document.is_privileged = data['is_privileged']
+        if 'access_level' in data:
+            document.access_level = data['access_level']
+        if 'case_id' in data:
+            document.case_id = data['case_id']
+        if 'client_id' in data:
+            document.client_id = data['client_id']
+        
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('update', 'document', document.id, user_id, {
+            'old_values': old_values,
+            'new_values': document.to_dict()
+        })
+        
+        logger.info(f"Document updated: {document.id}")
+        
+        return jsonify({
+            'success': True,
+            'document': document.to_dict(),
+            'message': 'Document updated successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Error updating document: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/<document_id>', methods=['DELETE'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_delete_document(document_id):
+    """Delete a document (soft delete by changing status)"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _delete_mock_document(document_id)
+        
+        document = Document.query.get(document_id)
+        if not document:
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+        
+        user_id = session.get('user_id', '1')
+        
+        # Soft delete by archiving
+        old_status = document.status.value
+        document.status = DocumentStatus.ARCHIVED
+        
+        db.session.commit()
+        
+        # Create audit log
+        audit_log('delete', 'document', document.id, user_id, {
+            'action': 'archived',
+            'old_status': old_status,
+            'new_status': 'archived'
+        })
+        
+        logger.info(f"Document archived: {document.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document archived successfully'
+        })
+        
+    except Exception as e:
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        logger.error(f"Error deleting document: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/types', methods=['GET'])
+@login_required
+def api_get_document_types():
+    """Get available document types"""
+    document_types = [
+        'Contract', 'Brief', 'Motion', 'Pleading', 'Discovery',
+        'Correspondence', 'Evidence', 'Research', 'Filing',
+        'Invoice', 'Settlement', 'Agreement', 'Memo', 'Other'
+    ]
+    
+    return jsonify({
+        'success': True,
+        'document_types': document_types
+    })
+
+def _get_mock_documents():
+    """Mock documents for development"""
+    return jsonify({
+        'success': True,
+        'documents': [
+            {
+                'id': '1',
+                'title': 'Settlement Agreement Draft',
+                'description': 'Initial settlement terms for Smith v. Johnson case',
+                'document_type': 'Settlement',
+                'status': 'draft',
+                'original_filename': 'settlement_draft_v1.pdf',
+                'file_size_mb': 2.5,
+                'case_title': 'Smith v. Johnson Motor Co.',
+                'case_number': '2024-JS-001',
+                'client_name': 'John Smith',
+                'created_by_name': 'Demo Attorney',
+                'created_at': datetime.now().isoformat(),
+                'is_confidential': True
+            },
+            {
+                'id': '2',
+                'title': 'Discovery Response',
+                'description': 'Response to interrogatories',
+                'document_type': 'Discovery',
+                'status': 'final',
+                'original_filename': 'discovery_response.pdf',
+                'file_size_mb': 1.8,
+                'case_title': 'Business Contract Dispute',
+                'case_number': '2024-MC-005',
+                'client_name': 'TechCorp Industries',
+                'created_by_name': 'Demo Attorney',
+                'created_at': (datetime.now() - timedelta(days=2)).isoformat(),
+                'is_confidential': True
+            }
+        ],
+        'pagination': {
+            'page': 1,
+            'pages': 1,
+            'per_page': 20,
+            'total': 2,
+            'has_prev': False,
+            'has_next': False
+        }
+    })
+
+def _create_mock_document():
+    """Mock document creation"""
+    return jsonify({
+        'success': True,
+        'document': {
+            'id': str(uuid.uuid4()),
+            'title': 'Mock Document',
+            'document_type': 'Other',
+            'status': 'draft',
+            'created_at': datetime.now().isoformat()
+        },
+        'message': 'Document created successfully (mock)'
+    })
+
+def _get_mock_document(document_id):
+    """Mock single document"""
+    return jsonify({
+        'success': True,
+        'document': {
+            'id': document_id,
+            'title': 'Mock Document',
+            'description': 'A mock document for development',
+            'document_type': 'Other',
+            'status': 'draft',
+            'created_at': datetime.now().isoformat()
+        }
+    })
+
+def _update_mock_document(document_id):
+    """Mock document update"""
+    return jsonify({
+        'success': True,
+        'document': {
+            'id': document_id,
+            'title': 'Updated Mock Document',
+            'status': 'review'
+        },
+        'message': 'Document updated successfully (mock)'
+    })
+
+def _delete_mock_document(document_id):
+    """Mock document deletion"""
+    return jsonify({
+        'success': True,
+        'message': 'Document archived successfully (mock)'
     })
 
 def _get_case_recent_activity(case):
