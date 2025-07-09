@@ -16,8 +16,8 @@ a:focus {
     outline: none;
 }
 
-/* Force main navigation links to use brand colors - but not dropdown menus */
-.main-nav a:not(.dropdown-content a), .main-nav a:not(.dropdown-content a):link, .main-nav a:not(.dropdown-content a):visited, .main-nav a:not(.dropdown-content a):focus, .main-nav a:not(.dropdown-content a):active,
+/* Force main navigation links to use brand colors - but not dropdown menus or Dashboard button */
+.main-nav a:not(.dropdown-content a):not(.active), .main-nav a:not(.dropdown-content a):not(.active):link, .main-nav a:not(.dropdown-content a):not(.active):visited, .main-nav a:not(.dropdown-content a):not(.active):focus, .main-nav a:not(.dropdown-content a):not(.active):active,
 .nav-links .nav-link, .nav-links .nav-link:link, .nav-links .nav-link:visited, .nav-links .nav-link:focus, .nav-links .nav-link:active {
     color: #F7EDDA !important;
     text-decoration: none !important;
