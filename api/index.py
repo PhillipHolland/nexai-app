@@ -3578,7 +3578,7 @@ def api_get_deadlines():
 @app.route('/api/deadlines/calendar-events', methods=['POST'])
 @login_required
 @role_required('admin', 'partner', 'associate', 'paralegal')
-def api_create_calendar_event():
+def api_create_deadline_calendar_event():
     """Create a new calendar event/deadline"""
     try:
         if not DATABASE_AVAILABLE:
