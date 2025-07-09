@@ -284,6 +284,102 @@ def analytics_dashboard():
         logger.warning(f"Analytics error: {e}")
         return render_template('analytics.html', stats={})
 
+@app.route('/deadlines')
+@login_required
+def deadlines_page():
+    """Deadlines and calendar management"""
+    try:
+        # Placeholder for deadlines functionality
+        return render_template('deadlines.html')
+    except Exception as e:
+        logger.warning(f"Deadlines page error: {e}")
+        return jsonify({"error": "Unable to load deadlines page", "success": False})
+
+@app.route('/contracts')
+@login_required
+def contracts_page():
+    """Contract management and generation"""
+    try:
+        return render_template('contracts.html')
+    except Exception as e:
+        logger.warning(f"Contracts page error: {e}")
+        return render_template('contracts.html')
+
+@app.route('/billing')
+@login_required
+def billing_page():
+    """Billing and invoicing management"""
+    try:
+        return render_template('billing.html')
+    except Exception as e:
+        logger.warning(f"Billing page error: {e}")
+        return jsonify({"error": "Unable to load billing page", "success": False})
+
+@app.route('/calendar')
+@login_required
+def calendar_page():
+    """Calendar and scheduling"""
+    try:
+        return render_template('calendar.html')
+    except Exception as e:
+        logger.warning(f"Calendar page error: {e}")
+        return jsonify({"error": "Unable to load calendar page", "success": False})
+
+@app.route('/time-tracking')
+@login_required
+def time_tracking_page():
+    """Time tracking management"""
+    try:
+        return render_template('time_tracking.html')
+    except Exception as e:
+        logger.warning(f"Time tracking page error: {e}")
+        return jsonify({"error": "Unable to load time tracking page", "success": False})
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    """Admin user management"""
+    try:
+        users = User.query.all()
+        return render_template('admin_users.html', users=users)
+    except Exception as e:
+        logger.warning(f"Admin users page error: {e}")
+        return jsonify({"error": "Unable to load admin users page", "success": False})
+
+@app.route('/admin/settings')
+@login_required
+@admin_required
+def admin_settings():
+    """Admin settings management"""
+    try:
+        return render_template('admin_settings.html')
+    except Exception as e:
+        logger.warning(f"Admin settings page error: {e}")
+        return jsonify({"error": "Unable to load admin settings page", "success": False})
+
+@app.route('/admin/subscriptions')
+@login_required
+@admin_required
+def admin_subscriptions():
+    """Admin subscription management"""
+    try:
+        return render_template('admin_subscriptions.html')
+    except Exception as e:
+        logger.warning(f"Admin subscriptions page error: {e}")
+        return jsonify({"error": "Unable to load admin subscriptions page", "success": False})
+
+@app.route('/admin/audit-logs')
+@login_required
+@admin_required
+def admin_audit_logs():
+    """Admin audit log management"""
+    try:
+        return render_template('admin_audit_logs.html')
+    except Exception as e:
+        logger.warning(f"Admin audit logs page error: {e}")
+        return jsonify({"error": "Unable to load admin audit logs page", "success": False})
+
 # ============================================================================
 # API ENDPOINTS
 # ============================================================================
