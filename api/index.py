@@ -635,6 +635,42 @@ def deadlines_page():
         logger.error(f"Deadlines page error: {e}")
         return f"Deadlines error: {e}", 500
 
+@app.route('/admin/users')
+def admin_users():
+    """Admin user management page"""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Admin users page error: {e}")
+        return f"Admin users error: {e}", 500
+
+@app.route('/admin/settings')
+def admin_settings():
+    """Admin settings page"""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Admin settings page error: {e}")
+        return f"Admin settings error: {e}", 500
+
+@app.route('/admin/subscriptions')
+def admin_subscriptions():
+    """Admin subscriptions page"""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Admin subscriptions page error: {e}")
+        return f"Admin subscriptions error: {e}", 500
+
+@app.route('/admin/audit-logs')
+def admin_audit_logs():
+    """Admin audit logs page"""
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.error(f"Admin audit logs page error: {e}")
+        return f"Admin audit logs error: {e}", 500
+
 @app.route('/cases/<case_id>/edit')
 @login_required
 def case_edit_page(case_id):
