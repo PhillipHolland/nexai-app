@@ -871,13 +871,13 @@ body {
     width: 80%;
 }
 
-/* NUCLEAR OPTION: Pure CSS hover dropdowns */
-.simple-dropdown {
+/* BULLETPROOF MENU THAT ACTUALLY WORKS */
+.menu-item {
     position: relative;
     display: inline-block;
 }
 
-.dropdown-label {
+.menu-label {
     color: #F7EDDA;
     font-weight: 500;
     padding: 0.5rem 0.75rem;
@@ -891,14 +891,14 @@ body {
     white-space: nowrap;
 }
 
-.dropdown-label:hover {
+.menu-label:hover {
     color: #FFA74F;
     background: rgba(255, 167, 79, 0.1);
     border-color: rgba(255, 167, 79, 0.2);
     transform: translateY(-1px);
 }
 
-.dropdown-menu {
+.submenu {
     position: absolute;
     top: 100%;
     left: 0;
@@ -910,22 +910,15 @@ body {
     border-radius: 0.75rem;
     overflow: hidden;
     margin-top: 0.25rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
+    display: none;
 }
 
-.simple-dropdown:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+.menu-item:hover .submenu {
+    display: block;
 }
 
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+.submenu a {
+    display: block;
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     color: #374151;
@@ -934,58 +927,46 @@ body {
     border-bottom: 1px solid #f3f4f6;
 }
 
-.dropdown-item:hover {
+.submenu a:hover {
     background-color: #f8fafc;
     color: #2E4B3C;
-    transform: translateX(4px);
 }
 
-.dropdown-item:last-child {
+.submenu a:last-child {
     border-bottom: none;
 }
 
-.dropdown-item svg {
-    width: 1rem;
-    height: 1rem;
-    color: #6b7280;
-    transition: color 0.2s ease;
-}
-
-.dropdown-item:hover svg {
-    color: #2E4B3C;
-}
-
-/* Responsive dropdown label adjustments */
+/* Responsive menu label adjustments */
 @media (min-width: 768px) and (max-width: 899px) {
-    .dropdown-label {
+    .menu-label {
         font-size: 0.75rem;
         padding: 0.375rem 0.5rem;
     }
 }
 
 @media (min-width: 900px) and (max-width: 1023px) {
-    .dropdown-label {
+    .menu-label {
         font-size: 0.8rem;
         padding: 0.4rem 0.6rem;
     }
 }
 
 @media (min-width: 1024px) and (max-width: 1199px) {
-    .dropdown-label {
+    .menu-label {
         font-size: 0.85rem;
         padding: 0.5rem 0.7rem;
     }
 }
 
 @media (min-width: 1200px) and (max-width: 1399px) {
-    .dropdown-label {
+    .menu-label {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
 }
 
 @media (min-width: 1400px) {
-    .dropdown-label {
+    .menu-label {
         font-size: 0.9rem;
         padding: 0.6rem 0.9rem;
     }
