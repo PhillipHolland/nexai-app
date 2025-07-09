@@ -925,6 +925,27 @@ body {
     overflow: hidden;
 }
 
+/* Active state for current page */
+.nav-item > a.active,
+.nav-item > a[aria-current="page"] {
+    color: #2E4B3C;
+    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%);
+    border-color: rgba(255, 167, 79, 0.5);
+    box-shadow: 
+        0 4px 12px rgba(255, 167, 79, 0.3),
+        0 2px 4px rgba(255, 167, 79, 0.2);
+    transform: translateY(-1px);
+}
+
+.nav-item > a.active:hover,
+.nav-item > a[aria-current="page"]:hover {
+    background: linear-gradient(135deg, #F0531C 0%, #e5490f 100%);
+    color: #2E4B3C;
+    box-shadow: 
+        0 6px 16px rgba(255, 167, 79, 0.4),
+        0 4px 8px rgba(255, 167, 79, 0.3);
+}
+
 /* Elegant hover effects with subtle animations */
 .nav-item > a:hover,
 .nav-link:hover {

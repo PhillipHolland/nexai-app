@@ -504,12 +504,14 @@ body::before {
 }
 
 .nav-link.active {
-  background: var(--primary-blue);
-  color: var(--white);
+  background: #FFA74F;
+  color: #2E4B3C;
+  box-shadow: 0 2px 4px rgba(255, 167, 79, 0.3);
 }
 
 .nav-link.active:hover {
-  background: var(--primary-blue-dark);
+  background: #F0531C;
+  color: #2E4B3C;
 }
 
 .nav-icon {
@@ -1922,8 +1924,9 @@ body::before {
 }
 
 .filter-chip.active {
-  background: var(--primary-blue);
-  color: var(--white);
+  background: #FFA74F;
+  color: #2E4B3C;
+  box-shadow: 0 2px 4px rgba(255, 167, 79, 0.3);
 }
 
 /* Timeline Component */
