@@ -17,9 +17,15 @@ a:focus {
 }
 
 /* Force main navigation links to use brand colors - but not dropdown menus */
-.main-nav a, .main-nav a:link, .main-nav a:visited, .main-nav a:focus, .main-nav a:active,
+.main-nav a:not(.dropdown-content a), .main-nav a:not(.dropdown-content a):link, .main-nav a:not(.dropdown-content a):visited, .main-nav a:not(.dropdown-content a):focus, .main-nav a:not(.dropdown-content a):active,
 .nav-links .nav-link, .nav-links .nav-link:link, .nav-links .nav-link:visited, .nav-links .nav-link:focus, .nav-links .nav-link:active {
     color: #F7EDDA !important;
+    text-decoration: none !important;
+}
+
+/* Exclude dropdown menu links from the above rule */
+.main-nav .dropdown-content a, .main-nav .dropdown-content a:link, .main-nav .dropdown-content a:visited, .main-nav .dropdown-content a:focus, .main-nav .dropdown-content a:active {
+    color: #111827 !important; /* Dark text for dropdown readability */
     text-decoration: none !important;
 }
 
