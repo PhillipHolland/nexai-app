@@ -503,8 +503,6 @@ def dashboard():
         return f"Dashboard error: {e}", 500
 
 @app.route('/documents')
-@login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def documents_page():
     """Document management page"""
     try:
