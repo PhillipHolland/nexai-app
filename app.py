@@ -244,7 +244,7 @@ def chat_interface(client_id=None):
                          practice_areas=PRACTICE_AREAS)
 
 @app.route('/clients')
-def clients_list():
+def clients_page():
     """Client management interface"""
     try:
         clients = Client.query.order_by(Client.updated_at.desc()).all()
@@ -273,11 +273,6 @@ def document_analysis_page():
         logger.warning(f"Document analysis page error: {e}")
         return render_template('documents.html', documents=[])
 
-@app.route('/chat')
-def chat_page():
-    """Chat interface alias"""
-    return chat_interface()
-
 @app.route('/legal-research')
 def legal_research_page():
     """Legal research interface"""
@@ -288,7 +283,7 @@ def legal_research_page():
         return render_template('dashboard.html')
 
 @app.route('/documents')
-def documents_list():
+def documents_page():
     """Document management interface"""
     try:
         return render_template('documents.html', documents=[])
@@ -296,21 +291,17 @@ def documents_list():
         logger.warning(f"Documents list error: {e}")
         return render_template('documents.html', documents=[])
 
-# Add function aliases for navigation
-def documents_page():
-    """Documents page alias"""
-    return documents_list()
+# Add alias
+documents_list = documents_page
 
-def clients_page():
-    """Clients page alias"""
-    return clients_list()
-
+@app.route('/chat')
 def chat_page():
-    """Chat page alias"""
+    """Chat interface"""
     return chat_interface()
 
+@app.route('/landing')
 def landing_page():
-    """Landing page alias"""
+    """Landing page"""
     return dashboard()
 
 @app.route('/analytics')
