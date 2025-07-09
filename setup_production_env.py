@@ -32,7 +32,7 @@ def show_production_env_setup():
     print("🤖 AI & CLOUD STORAGE VARIABLES:")
     print("-" * 40)
     ai_vars = {
-        "XAI_API_KEY": "xai-JXfs7xIBbPhA4a4yPyCFWhjmjbGab31orEzwGnvYNih2V5nmAIlvkSSuIAv047TjBYGwu1CdU7NVtAUi",
+        "XAI_API_KEY": "[REPLACE_WITH_YOUR_XAI_API_KEY]",
         "FILE_STORAGE_PROVIDER": "gcs",
         "GCS_BUCKET_NAME": "lexai-465013-bucket", 
         "GCP_PROJECT_ID": "lexai-465013"

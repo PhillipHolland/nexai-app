@@ -1139,7 +1139,7 @@ def api_chat():
                 'Content-Type': 'application/json'
             },
             json={
-                'model': 'grok-beta',
+                'model': 'grok-3-latest',
                 'messages': messages,
                 'max_tokens': 1000,
                 'temperature': 0.7

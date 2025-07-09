@@ -25,7 +25,7 @@ postgres://neondb_owner:npg_9OENS6QdCUoM@ep-weathered-voice-afzm9t1s-pooler.c-2.
 redis://default:mIFwUfqGu4ZMOwSWaT4lgSpVF6gMocmA@redis-13345.c241.us-east-1-4.ec2.redns.redis-cloud.com:13345
 
 4. XAI_API_KEY
-xai-JXfs7xIBbPhA4a4yPyCFWhjmjbGab31orEzwGnvYNih2V5nmAIlvkSSuIAv047TjBYGwu1CdU7NVtAUi
+[REPLACE_WITH_YOUR_XAI_API_KEY]
 
 5. FILE_STORAGE_PROVIDER
 gcs
