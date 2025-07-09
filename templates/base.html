@@ -236,21 +236,21 @@
                     </div>
                     
                     <div class="nav-item dropdown">
-                        <a href="{{ url_for('admin_users') }}" class="nav-link">Admin</a>
+                        <a href="/admin" class="nav-link">Admin</a>
                         <div class="dropdown-content" data-category="Administration">
-                            <a href="{{ url_for('admin_users') }}">
+                            <a href="/admin/users">
                                 <span class="menu-icon">👤</span>
                                 Users
                             </a>
-                            <a href="{{ url_for('admin_settings') }}">
+                            <a href="/admin/settings">
                                 <span class="menu-icon">⚙️</span>
                                 Settings
                             </a>
-                            <a href="{{ url_for('admin_subscriptions') }}">
+                            <a href="/admin/subscriptions">
                                 <span class="menu-icon">💳</span>
                                 Subscriptions
                             </a>
-                            <a href="{{ url_for('admin_audit_logs') }}">
+                            <a href="/admin/audit-logs">
                                 <span class="menu-icon">📋</span>
                                 Audit Logs
                             </a>
@@ -428,19 +428,19 @@
                         </svg>
                     </button>
                     <div class="mobile-accordion-content" id="admin-content">
-                        <a href="{{ url_for('admin_users') }}" 
+                        <a href="/admin/users" 
                            class="base-mobile-link submenu">
                             👤 Users
                         </a>
-                        <a href="{{ url_for('admin_settings') }}" 
+                        <a href="/admin/settings" 
                            class="base-mobile-link submenu">
                             ⚙️ Settings
                         </a>
-                        <a href="{{ url_for('admin_subscriptions') }}" 
+                        <a href="/admin/subscriptions" 
                            class="base-mobile-link submenu">
                             💳 Subscriptions
                         </a>
-                        <a href="{{ url_for('admin_audit_logs') }}" 
+                        <a href="/admin/audit-logs" 
                            class="base-mobile-link submenu">
                             📋 Audit Logs
                         </a>
