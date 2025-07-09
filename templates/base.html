@@ -321,9 +321,9 @@
         <!-- Mobile Navigation - NESTED ACCORDION STYLE -->
         <div id="mobile-menu" class="base-mobile-menu hidden">
             <div class="base-mobile-nav">
-                <!-- Dashboard -->
+                <!-- Dashboard - styled like "Enter Platform" button -->
                 <a href="{{ url_for('dashboard') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                   class="base-mobile-link dashboard-button {% if request.endpoint == 'dashboard' %}active{% endif %}">
                     🏠 Dashboard
                 </a>
                 
