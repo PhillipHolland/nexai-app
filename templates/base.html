@@ -570,6 +570,52 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserInfo();
             checkAuthStatus();
+            
+            // Add click handlers for dropdown buttons
+            document.querySelectorAll('.base-dropdown-button').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const dropdown = this.parentElement;
+                    const menu = dropdown.querySelector('.base-dropdown-menu');
+                    
+                    // Close all other dropdowns
+                    document.querySelectorAll('.base-dropdown-menu').forEach(function(otherMenu) {
+                        if (otherMenu !== menu) {
+                            otherMenu.style.display = 'none';
+                            otherMenu.style.opacity = '0';
+                            otherMenu.style.visibility = 'hidden';
+                            otherMenu.style.transform = 'translateY(-10px)';
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    if (menu.style.display === 'block') {
+                        menu.style.display = 'none';
+                        menu.style.opacity = '0';
+                        menu.style.visibility = 'hidden';
+                        menu.style.transform = 'translateY(-10px)';
+                    } else {
+                        menu.style.display = 'block';
+                        menu.style.opacity = '1';
+                        menu.style.visibility = 'visible';
+                        menu.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.base-dropdown')) {
+                    document.querySelectorAll('.base-dropdown-menu').forEach(function(menu) {
+                        menu.style.display = 'none';
+                        menu.style.opacity = '0';
+                        menu.style.visibility = 'hidden';
+                        menu.style.transform = 'translateY(-10px)';
+                    });
+                }
+            });
         });
     </script>
     

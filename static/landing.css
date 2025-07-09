@@ -881,18 +881,28 @@ body {
     border-radius: 0.75rem;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border: 1px solid #e5e7eb;
-    z-index: 50;
+    z-index: 9999 !important;
     overflow: hidden;
-    display: none;
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
 }
 
 /* Pure CSS hover dropdowns - bulletproof */
 .base-dropdown:hover .base-dropdown-menu {
     display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
 }
 
 .base-dropdown-menu:hover {
     display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
 }
 
 .base-dropdown-item {
