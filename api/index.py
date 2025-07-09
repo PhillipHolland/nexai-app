@@ -3840,6 +3840,435 @@ def _get_mock_reminders():
         'count': 0
     })
 
+# ===== CALENDAR MANAGEMENT API =====
+
+@app.route('/calendar')
+@login_required
+def calendar_page():
+    """Calendar page"""
+    try:
+        return render_template('calendar.html')
+    except Exception as e:
+        logger.error(f"Calendar page error: {e}")
+        return f"Calendar error: {e}", 500
+
+@app.route('/api/calendar/events', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_calendar_events():
+    """Get calendar events with filtering"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_calendar_events()
+        
+        # Get query parameters
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        event_type = request.args.get('type')
+        case_id = request.args.get('case_id')
+        client_id = request.args.get('client_id')
+        
+        # Build query
+        query = CalendarEvent.query
+        
+        # Filter by date range
+        if start_date:
+            try:
+                start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                query = query.filter(CalendarEvent.start_datetime >= start_dt)
+            except ValueError:
+                pass
+                
+        if end_date:
+            try:
+                end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                query = query.filter(CalendarEvent.end_datetime <= end_dt)
+            except ValueError:
+                pass
+        
+        # Filter by type
+        if event_type:
+            query = query.filter(CalendarEvent.event_type == event_type)
+            
+        # Filter by case
+        if case_id:
+            query = query.filter(CalendarEvent.case_id == case_id)
+            
+        # Filter by client
+        if client_id:
+            query = query.filter(CalendarEvent.client_id == client_id)
+        
+        # Get current user's events
+        user_id = session.get('user_id', '1')
+        query = query.filter(CalendarEvent.created_by == user_id)
+        
+        events = query.order_by(CalendarEvent.start_datetime.asc()).all()
+        
+        # Convert to calendar format
+        calendar_events = []
+        for event in events:
+            calendar_events.append({
+                'id': event.id,
+                'title': event.title,
+                'description': event.description,
+                'start': event.start_datetime.isoformat() if event.start_datetime else None,
+                'end': event.end_datetime.isoformat() if event.end_datetime else None,
+                'allDay': event.all_day,
+                'type': event.event_type,
+                'location': event.location,
+                'case_title': event.case.title if event.case else None,
+                'case_id': event.case_id,
+                'client_name': event.client.get_display_name() if event.client else None,
+                'client_id': event.client_id,
+                'reminder_minutes': event.reminder_minutes,
+                'className': f'event-{event.event_type}',
+                'color': _get_event_color(event.event_type)
+            })
+        
+        return jsonify({
+            'success': True,
+            'events': calendar_events,
+            'count': len(calendar_events)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching calendar events: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/calendar/events', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_create_calendar_event():
+    """Create a new calendar event"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_calendar_event()
+        
+        data = request.json
+        user_id = session.get('user_id', '1')
+        
+        # Validate required fields
+        if not data.get('title') or not data.get('start_datetime'):
+            return jsonify({
+                'success': False,
+                'error': 'Title and start date/time are required'
+            }), 400
+        
+        # Parse dates
+        try:
+            start_dt = datetime.fromisoformat(data['start_datetime'].replace('Z', '+00:00'))
+            end_dt = datetime.fromisoformat(data['end_datetime'].replace('Z', '+00:00')) if data.get('end_datetime') else start_dt + timedelta(hours=1)
+        except ValueError as e:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid date format: {e}'
+            }), 400
+        
+        # Create calendar event
+        event = CalendarEvent(
+            title=data['title'],
+            description=data.get('description', ''),
+            event_type=data.get('event_type', 'meeting'),
+            location=data.get('location', ''),
+            start_datetime=start_dt,
+            end_datetime=end_dt,
+            all_day=data.get('all_day', False),
+            reminder_minutes=data.get('reminder_minutes', 15),
+            case_id=data.get('case_id'),
+            client_id=data.get('client_id'),
+            created_by=user_id
+        )
+        
+        db.session.add(event)
+        db.session.commit()
+        
+        # Log the creation
+        audit_log('create', 'calendar_event', event.id, user_id, event.to_dict())
+        
+        logger.info(f"Created calendar event {event.id} for user {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calendar event created successfully',
+            'event': event.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating calendar event: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create calendar event'
+        }), 500
+
+@app.route('/api/calendar/events/<event_id>', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_update_calendar_event(event_id):
+    """Update calendar event"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+        
+        event = CalendarEvent.query.get(event_id)
+        if not event:
+            return jsonify({'success': False, 'error': 'Event not found'}), 404
+        
+        data = request.json
+        old_values = event.to_dict()
+        
+        # Update fields
+        if 'title' in data:
+            event.title = data['title']
+        if 'description' in data:
+            event.description = data['description']
+        if 'event_type' in data:
+            event.event_type = data['event_type']
+        if 'location' in data:
+            event.location = data['location']
+        if 'start_datetime' in data:
+            event.start_datetime = datetime.fromisoformat(data['start_datetime'].replace('Z', '+00:00'))
+        if 'end_datetime' in data:
+            event.end_datetime = datetime.fromisoformat(data['end_datetime'].replace('Z', '+00:00'))
+        if 'all_day' in data:
+            event.all_day = data['all_day']
+        if 'reminder_minutes' in data:
+            event.reminder_minutes = data['reminder_minutes']
+        if 'case_id' in data:
+            event.case_id = data['case_id']
+        if 'client_id' in data:
+            event.client_id = data['client_id']
+        
+        event.updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+        
+        # Log the update
+        audit_log('update', 'calendar_event', event_id, session.get('user_id'), 
+                 old_values=old_values, new_values=event.to_dict())
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calendar event updated successfully',
+            'event': event.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating calendar event: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update calendar event'
+        }), 500
+
+@app.route('/api/calendar/events/<event_id>', methods=['DELETE'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_delete_calendar_event(event_id):
+    """Delete calendar event"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return jsonify({'success': False, 'error': 'Database not available'}), 503
+        
+        event = CalendarEvent.query.get(event_id)
+        if not event:
+            return jsonify({'success': False, 'error': 'Event not found'}), 404
+        
+        # Log the deletion
+        audit_log('delete', 'calendar_event', event_id, session.get('user_id'), event.to_dict())
+        
+        db.session.delete(event)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Calendar event deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting calendar event: {e}")
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to delete calendar event'
+        }), 500
+
+@app.route('/api/calendar/availability', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_availability():
+    """Get availability for scheduling"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_availability()
+        
+        # Get query parameters
+        date_str = request.args.get('date')
+        duration = int(request.args.get('duration', 60))  # minutes
+        
+        if not date_str:
+            return jsonify({
+                'success': False,
+                'error': 'Date parameter required'
+            }), 400
+        
+        try:
+            target_date = datetime.fromisoformat(date_str).date()
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid date format'
+            }), 400
+        
+        # Get events for the day
+        start_of_day = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        end_of_day = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        
+        user_id = session.get('user_id', '1')
+        events = CalendarEvent.query.filter(
+            CalendarEvent.created_by == user_id,
+            CalendarEvent.start_datetime >= start_of_day,
+            CalendarEvent.start_datetime <= end_of_day
+        ).order_by(CalendarEvent.start_datetime.asc()).all()
+        
+        # Calculate available time slots
+        business_start = 9  # 9 AM
+        business_end = 17   # 5 PM
+        slot_duration = duration
+        
+        available_slots = []
+        current_time = business_start * 60  # Convert to minutes
+        end_time = business_end * 60
+        
+        for event in events:
+            event_start = event.start_datetime.hour * 60 + event.start_datetime.minute
+            event_end = event.end_datetime.hour * 60 + event.end_datetime.minute
+            
+            # Add slots before this event
+            while current_time + slot_duration <= event_start:
+                slot_time = f"{current_time // 60:02d}:{current_time % 60:02d}"
+                available_slots.append({
+                    'time': slot_time,
+                    'available': True,
+                    'duration': slot_duration
+                })
+                current_time += slot_duration
+            
+            # Skip past this event
+            current_time = max(current_time, event_end)
+        
+        # Add remaining slots
+        while current_time + slot_duration <= end_time:
+            slot_time = f"{current_time // 60:02d}:{current_time % 60:02d}"
+            available_slots.append({
+                'time': slot_time,
+                'available': True,
+                'duration': slot_duration
+            })
+            current_time += slot_duration
+        
+        return jsonify({
+            'success': True,
+            'date': date_str,
+            'available_slots': available_slots,
+            'business_hours': {
+                'start': f"{business_start:02d}:00",
+                'end': f"{business_end:02d}:00"
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting availability: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get availability'
+        }), 500
+
+@app.route('/api/calendar/google-sync', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_google_calendar_sync():
+    """Sync with Google Calendar"""
+    try:
+        # This would require Google Calendar API setup
+        # For now, return a mock response
+        return jsonify({
+            'success': True,
+            'message': 'Google Calendar sync initiated',
+            'sync_status': 'pending',
+            'note': 'Google Calendar integration requires API configuration'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error syncing with Google Calendar: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to sync with Google Calendar'
+        }), 500
+
+def _get_event_color(event_type):
+    """Get color for event type"""
+    colors = {
+        'court': '#dc2626',      # Red
+        'meeting': '#2563eb',    # Blue
+        'deadline': '#f59e0b',   # Amber
+        'appointment': '#059669', # Green
+        'consultation': '#7c3aed', # Purple
+        'deposition': '#ea580c',  # Orange
+        'hearing': '#dc2626',     # Red
+        'conference': '#2563eb',  # Blue
+        'default': '#6b7280'      # Gray
+    }
+    return colors.get(event_type, colors['default'])
+
+def _get_mock_calendar_events():
+    """Mock calendar events"""
+    mock_events = [
+        {
+            'id': '1',
+            'title': 'Client Meeting - Smith Case',
+            'start': (datetime.now() + timedelta(days=1)).isoformat(),
+            'end': (datetime.now() + timedelta(days=1, hours=1)).isoformat(),
+            'allDay': False,
+            'type': 'meeting',
+            'location': 'Conference Room A',
+            'color': '#2563eb'
+        },
+        {
+            'id': '2',
+            'title': 'Court Hearing - Johnson v. ABC Corp',
+            'start': (datetime.now() + timedelta(days=3)).isoformat(),
+            'end': (datetime.now() + timedelta(days=3, hours=2)).isoformat(),
+            'allDay': False,
+            'type': 'court',
+            'location': 'Superior Court',
+            'color': '#dc2626'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'events': mock_events,
+        'count': len(mock_events)
+    })
+
+def _get_mock_availability():
+    """Mock availability"""
+    return jsonify({
+        'success': True,
+        'date': datetime.now().date().isoformat(),
+        'available_slots': [
+            {'time': '09:00', 'available': True, 'duration': 60},
+            {'time': '10:00', 'available': True, 'duration': 60},
+            {'time': '11:00', 'available': False, 'duration': 60},
+            {'time': '14:00', 'available': True, 'duration': 60},
+            {'time': '15:00', 'available': True, 'duration': 60}
+        ],
+        'business_hours': {'start': '09:00', 'end': '17:00'}
+    })
+
 # ===== DOCUMENT MANAGEMENT API =====
 
 @app.route('/api/documents', methods=['GET'])
