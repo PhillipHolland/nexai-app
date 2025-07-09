@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import uuid
+import requests
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session, redirect
@@ -580,12 +581,83 @@ def api_chat():
                 'error': 'Message required'
             }), 400
         
-        # Basic response for now
-        return jsonify({
-            'success': True,
-            'response': 'I am LexAI, your legal practice assistant. How can I help you today?',
-            'timestamp': datetime.now().isoformat()
-        })
+        message = data['message']
+        practice_area = data.get('practice_area', 'general')
+        conversation_history = data.get('conversation_history', [])
+        has_document = data.get('has_document', False)
+        document_content = data.get('document_content', '')
+        
+        # Check if XAI API is available
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': True,
+                'response': 'I am LexAI, your legal practice assistant. How can I help you today? (Note: XAI API not configured)',
+                'timestamp': datetime.now().isoformat()
+            })
+        
+        # Prepare system prompt based on practice area
+        system_prompts = {
+            'general': "You are LexAI, a knowledgeable legal practice assistant. Provide helpful, accurate legal guidance while noting that you don't replace professional legal advice.",
+            'corporate': "You are LexAI, specializing in corporate law. Help with business formation, contracts, compliance, and corporate governance matters.",
+            'litigation': "You are LexAI, specializing in litigation. Help with case strategy, discovery, motions, and trial preparation.",
+            'family': "You are LexAI, specializing in family law. Help with divorce, custody, adoption, and domestic relations matters.",
+            'criminal': "You are LexAI, specializing in criminal law. Help with criminal defense, procedure, and constitutional law matters.",
+            'immigration': "You are LexAI, specializing in immigration law. Help with visas, citizenship, deportation defense, and immigration procedures.",
+            'real_estate': "You are LexAI, specializing in real estate law. Help with property transactions, leases, zoning, and real estate disputes.",
+            'employment': "You are LexAI, specializing in employment law. Help with workplace issues, discrimination, labor relations, and employment contracts.",
+            'ip': "You are LexAI, specializing in intellectual property law. Help with patents, trademarks, copyrights, and IP litigation.",
+            'tax': "You are LexAI, specializing in tax law. Help with tax planning, compliance, disputes, and tax-related legal matters."
+        }
+        
+        system_prompt = system_prompts.get(practice_area, system_prompts['general'])
+        
+        # Add document context if available
+        if has_document and document_content:
+            system_prompt += f"\n\nThe user has uploaded a document. Here's the content:\n{document_content[:5000]}..."
+        
+        # Build conversation for XAI API
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history
+        for msg in conversation_history[-8:]:  # Keep last 8 messages for context
+            messages.append(msg)
+        
+        # Add current message
+        messages.append({"role": "user", "content": message})
+        
+        # Call XAI API
+        xai_response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': messages,
+                'max_tokens': 1000,
+                'temperature': 0.7
+            },
+            timeout=30
+        )
+        
+        if xai_response.status_code == 200:
+            xai_data = xai_response.json()
+            response_content = xai_data['choices'][0]['message']['content']
+            
+            return jsonify({
+                'success': True,
+                'response': response_content,
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            logger.error(f"XAI API error: {xai_response.status_code} - {xai_response.text}")
+            return jsonify({
+                'success': True,
+                'response': 'I apologize, but I\'m having trouble connecting to my AI service right now. Please try again in a moment.',
+                'timestamp': datetime.now().isoformat()
+            })
         
     except Exception as e:
         logger.error(f"Chat error: {e}")
