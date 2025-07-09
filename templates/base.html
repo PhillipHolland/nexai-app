@@ -165,7 +165,7 @@
                     
                     <!-- Cases & Clients -->
                     <div class="base-dropdown">
-                        <button class="base-dropdown-button" onclick="toggleDropdown(this)">
+                        <button class="base-dropdown-button" onclick="var menu = this.nextElementSibling; var allMenus = document.querySelectorAll('.base-dropdown-menu'); allMenus.forEach(m => m.style.display = 'none'); if (menu.style.display !== 'block') menu.style.display = 'block';">
                             Cases & Clients
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -202,7 +202,7 @@
                     
                     <!-- Documents & AI -->
                     <div class="base-dropdown">
-                        <button class="base-dropdown-button" onclick="toggleDropdown(this)">
+                        <button class="base-dropdown-button" onclick="var menu = this.nextElementSibling; var allMenus = document.querySelectorAll('.base-dropdown-menu'); allMenus.forEach(m => m.style.display = 'none'); if (menu.style.display !== 'block') menu.style.display = 'block';">
                             Documents & AI
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -244,7 +244,7 @@
                     
                     <!-- Operations -->
                     <div class="base-dropdown">
-                        <button class="base-dropdown-button" onclick="toggleDropdown(this)">
+                        <button class="base-dropdown-button" onclick="var menu = this.nextElementSibling; var allMenus = document.querySelectorAll('.base-dropdown-menu'); allMenus.forEach(m => m.style.display = 'none'); if (menu.style.display !== 'block') menu.style.display = 'block';">
                             Operations
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -275,7 +275,7 @@
                     
                     <!-- Settings -->
                     <div class="base-dropdown">
-                        <button class="base-dropdown-button" onclick="toggleDropdown(this)">
+                        <button class="base-dropdown-button" onclick="var menu = this.nextElementSibling; var allMenus = document.querySelectorAll('.base-dropdown-menu'); allMenus.forEach(m => m.style.display = 'none'); if (menu.style.display !== 'block') menu.style.display = 'block';">
                             Settings
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -566,31 +566,17 @@
             return true;
         }
 
-        // Simple dropdown toggle function
-        function toggleDropdown(button) {
-            const menu = button.nextElementSibling;
-            const isVisible = menu.style.display === 'block';
-            
-            // Hide all dropdowns first
-            document.querySelectorAll('.base-dropdown-menu').forEach(m => m.style.display = 'none');
-            
-            // Show current dropdown if it was hidden
-            if (!isVisible) {
-                menu.style.display = 'block';
-            }
-        }
+        // Load user functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            checkAuthStatus();
+        });
         
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.base-dropdown')) {
                 document.querySelectorAll('.base-dropdown-menu').forEach(m => m.style.display = 'none');
             }
-        });
-        
-        // Load user functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserInfo();
-            checkAuthStatus();
         });
     </script>
     
