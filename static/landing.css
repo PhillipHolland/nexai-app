@@ -920,6 +920,16 @@ body {
     margin-top: 0.25rem;
 }
 
+/* Force show content when details is open */
+details[open] .nav-content {
+    display: block !important;
+    visibility: visible !important;
+}
+
+details:not([open]) .nav-content {
+    display: none !important;
+}
+
 details[open] .nav-summary::after {
     content: ' ▲';
 }
