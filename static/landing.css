@@ -16,8 +16,8 @@ a:focus {
     outline: none;
 }
 
-/* Force navigation links to use brand colors */
-nav a, nav a:link, nav a:visited, nav a:focus, nav a:active {
+/* Force main navigation links to use brand colors - but not dropdown menus */
+.main-nav > a, .main-nav > a:link, .main-nav > a:visited, .main-nav > a:focus, .main-nav > a:active {
     color: #F7EDDA !important;
     text-decoration: none !important;
 }
@@ -928,17 +928,13 @@ body {
 }
 
 .nav-item > a,
-.nav-link,
-.main-nav a,
-.main-nav a:link,
-.main-nav a:visited,
-.main-nav a:focus {
-    color: #F7EDDA !important;
+.nav-link {
+    color: #F7EDDA;
     font-weight: 500;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    text-decoration: none !important;
+    text-decoration: none;
     background: transparent;
     border: 1px solid transparent;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -949,79 +945,26 @@ body {
     overflow: hidden;
 }
 
-/* Active state for current page - HIGH SPECIFICITY */
+/* Active state for current page - Simple text color change */
 .main-nav .nav-item.active,
 .main-nav .nav-item > a.active,
 .main-nav .nav-item > a[aria-current="page"],
 .main-nav a.nav-item.active,
 .main-nav a.nav-item:is(.active),
 .main-nav a[class*="active"] {
-    color: #F7EDDA !important; /* Keep text light cream, not dark green */
-    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
-    border-color: rgba(255, 167, 79, 0.5) !important;
-    box-shadow: 
-        0 4px 12px rgba(255, 167, 79, 0.3),
-        0 2px 4px rgba(255, 167, 79, 0.2) !important;
-    transform: translateY(-1px) !important;
+    color: #F7EDDA !important; /* Light cream text like logo */
 }
 
+/* Active state hover - keep same light cream color */
 .main-nav .nav-item.active:hover,
 .main-nav .nav-item > a.active:hover,
 .main-nav .nav-item > a[aria-current="page"]:hover,
 .main-nav a.nav-item.active:hover,
 .main-nav a.nav-item:is(.active):hover,
 .main-nav a[class*="active"]:hover {
-    background: linear-gradient(135deg, #F0531C 0%, #e5490f 100%) !important;
-    color: #F7EDDA !important; /* Keep text light cream on hover too */
-    box-shadow: 
-        0 6px 16px rgba(255, 167, 79, 0.4),
-        0 4px 8px rgba(255, 167, 79, 0.3) !important;
+    color: #F7EDDA !important; /* Keep light cream text on hover */
 }
 
-/* Override any blue active states globally */
-.nav-item.active,
-.nav-item > a.active,
-a.active,
-.base-mobile-link.active,
-.base-mobile-nav a.active {
-    color: #F7EDDA !important; /* Light cream text, not dark green */
-    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
-}
-
-/* Ensure all navigation links start with proper colors */
-.main-nav *,
-.base-mobile-nav *,
-nav a,
-nav a:link,
-nav a:visited,
-nav a:focus,
-nav a:active {
-    color: inherit !important;
-    text-decoration: none !important;
-}
-
-/* NUCLEAR OPTION: Force eliminate all blue from navigation */
-.main-nav a:not(.active),
-.main-nav .nav-item:not(.active),
-.main-nav .nav-link:not(.active),
-.base-mobile-nav a:not(.active),
-.base-mobile-link:not(.active) {
-    color: #F7EDDA !important;
-    background: transparent !important;
-    border-color: transparent !important;
-}
-
-/* Force active states to use brand colors */
-.main-nav .active,
-.main-nav a.active,
-.main-nav .nav-item.active,
-.main-nav .nav-link.active,
-.base-mobile-nav .active,
-.base-mobile-link.active {
-    color: #F7EDDA !important; /* Light cream text on orange background */
-    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
-    box-shadow: 0 4px 12px rgba(255, 167, 79, 0.3) !important;
-}
 
 /* Elegant hover effects with subtle animations */
 .nav-item > a:hover,
@@ -1395,9 +1338,8 @@ nav a:active {
 }
 
 .base-mobile-link.active {
-    color: #F7EDDA !important; /* Light cream text on orange background */
-    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
-    box-shadow: 0 4px 12px rgba(255, 167, 79, 0.3) !important;
+    color: #F7EDDA; /* Light cream text like logo */
+    background-color: #2E4B3C; /* dark-green background */
 }
 
 /* Footer styles for base template */
