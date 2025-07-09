@@ -155,87 +155,57 @@
                     </a>
                 </div>
                 
-                <!-- Legal Utility Navigation -->
-                <!-- DEBUG: {{ user_role }} -->
+                <!-- Legal Utility Navigation - UNIVERSAL FOR ALL USERS -->
                 <nav class="base-nav-main">
-                    <!-- Dashboard - Universal -->
-                    {% if user_role == 'client' %}
-                        <a href="/client-portal" class="base-nav-link {% if request.endpoint == 'client_portal' %}active{% endif %}">
-                            Dashboard
-                        </a>
-                    {% elif user_role == 'paralegal' %}
-                        <a href="/paralegal-dashboard" class="base-nav-link {% if request.endpoint == 'paralegal_dashboard' %}active{% endif %}">
-                            Dashboard
-                        </a>
-                    {% elif user_role == 'admin' %}
-                        <a href="/admin-dashboard" class="base-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                            Dashboard
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('dashboard') }}" 
-                           class="base-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                            Dashboard
-                        </a>
-                    {% endif %}
+                    <!-- Dashboard -->
+                    <a href="{{ url_for('dashboard') }}" 
+                       class="base-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        Dashboard
+                    </a>
                     
-                    <!-- Matter Management - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Matter Management -->
                     <a href="{{ url_for('cases_page') }}" 
                        class="base-nav-link {% if request.endpoint in ['cases_page', 'case_detail'] %}active{% endif %}">
                         Matter Management
                     </a>
-                    {% endif %}
                     
-                    <!-- Client Portal - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Client Portal -->
                     <a href="{{ url_for('clients_page') }}" 
                        class="base-nav-link {% if request.endpoint in ['clients_page', 'client_detail'] %}active{% endif %}">
                         Client Portal
                     </a>
-                    {% endif %}
                     
-                    <!-- Document Center - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Document Center -->
                     <a href="{{ url_for('documents_page') }}" 
                        class="base-nav-link {% if request.endpoint in ['documents_page', 'document_analysis_page'] %}active{% endif %}">
                         Document Center
                     </a>
-                    {% endif %}
                     
-                    <!-- Calendar & Deadlines - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Calendar & Deadlines -->
                     <a href="{{ url_for('calendar_page') }}" 
                        class="base-nav-link {% if request.endpoint in ['calendar_page', 'deadlines_page', 'appointment_booking_page'] %}active{% endif %}">
                         Calendar & Deadlines
                     </a>
-                    {% endif %}
                     
-                    <!-- Time Entry - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Time Entry -->
                     <a href="{{ url_for('time_tracking_page') }}" 
                        class="base-nav-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
                         Time Entry
                     </a>
-                    {% endif %}
                     
-                    <!-- Billing Center - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <!-- Billing Center -->
                     <a href="{{ url_for('billing_page') }}" 
                        class="base-nav-link {% if request.endpoint in ['billing_page', 'expense_tracking_page'] %}active{% endif %}">
                         Billing Center
                     </a>
-                    {% endif %}
                     
-                    <!-- Reports & Analytics - Attorney/Admin -->
-                    {% if user_role in ['attorney', 'admin'] %}
+                    <!-- Reports & Analytics -->
                     <a href="{{ url_for('analytics_dashboard') }}" 
                        class="base-nav-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
                         Reports & Analytics
                     </a>
-                    {% endif %}
                     
-                    <!-- AI Tools - Attorney/Admin only -->
-                    {% if user_role in ['attorney', 'admin'] %}
+                    <!-- AI Tools -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
                             AI Tools
@@ -270,10 +240,8 @@
                             </a>
                         </div>
                     </div>
-                    {% endif %}
                     
-                    <!-- Firm Management - Admin only -->
-                    {% if user_role == 'admin' %}
+                    <!-- Firm Management -->
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
                             Firm Management
@@ -310,7 +278,6 @@
                             </a>
                         </div>
                     </div>
-                    {% endif %}
                 </nav>
                 
                 <!-- User Menu -->
@@ -373,87 +340,58 @@
             </div>
         </div>
         
-        <!-- Mobile Navigation -->
+        <!-- Mobile Navigation - UNIVERSAL FOR ALL USERS -->
         <div id="mobile-menu" class="base-mobile-menu hidden">
             <div class="base-mobile-nav">
-                <!-- Dashboard - Universal -->
-                {% if user_role == 'client' %}
-                    <a href="/client-portal" class="base-mobile-link {% if request.endpoint == 'client_portal' %}active{% endif %}">
-                        🏠 Dashboard
-                    </a>
-                {% elif user_role == 'paralegal' %}
-                    <a href="/paralegal-dashboard" class="base-mobile-link {% if request.endpoint == 'paralegal_dashboard' %}active{% endif %}">
-                        🏠 Dashboard
-                    </a>
-                {% elif user_role == 'admin' %}
-                    <a href="/admin-dashboard" class="base-mobile-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                        🏠 Dashboard
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('dashboard') }}" 
-                       class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                        🏠 Dashboard
-                    </a>
-                {% endif %}
+                <!-- Dashboard -->
+                <a href="{{ url_for('dashboard') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    🏠 Dashboard
+                </a>
                 
-                <!-- Matter Management - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Matter Management -->
                 <a href="{{ url_for('cases_page') }}" 
                    class="base-mobile-link {% if request.endpoint in ['cases_page', 'case_detail'] %}active{% endif %}">
                     ⚖️ Matter Management
                 </a>
-                {% endif %}
                 
-                <!-- Client Portal - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Client Portal -->
                 <a href="{{ url_for('clients_page') }}" 
                    class="base-mobile-link {% if request.endpoint in ['clients_page', 'client_detail'] %}active{% endif %}">
                     👥 Client Portal
                 </a>
-                {% endif %}
                 
-                <!-- Document Center - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Document Center -->
                 <a href="{{ url_for('documents_page') }}" 
                    class="base-mobile-link {% if request.endpoint in ['documents_page', 'document_analysis_page'] %}active{% endif %}">
                     📄 Document Center
                 </a>
-                {% endif %}
                 
-                <!-- Calendar & Deadlines - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Calendar & Deadlines -->
                 <a href="{{ url_for('calendar_page') }}" 
                    class="base-mobile-link {% if request.endpoint in ['calendar_page', 'deadlines_page', 'appointment_booking_page'] %}active{% endif %}">
                     📅 Calendar & Deadlines
                 </a>
-                {% endif %}
                 
-                <!-- Time Entry - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Time Entry -->
                 <a href="{{ url_for('time_tracking_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
                     ⏱️ Time Entry
                 </a>
-                {% endif %}
                 
-                <!-- Billing Center - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <!-- Billing Center -->
                 <a href="{{ url_for('billing_page') }}" 
                    class="base-mobile-link {% if request.endpoint in ['billing_page', 'expense_tracking_page'] %}active{% endif %}">
                     💰 Billing Center
                 </a>
-                {% endif %}
                 
-                <!-- Reports & Analytics - Attorney/Admin -->
-                {% if user_role in ['attorney', 'admin'] %}
+                <!-- Reports & Analytics -->
                 <a href="{{ url_for('analytics_dashboard') }}" 
                    class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
                     📊 Reports & Analytics
                 </a>
-                {% endif %}
                 
-                <!-- AI Tools - Attorney/Admin only -->
-                {% if user_role in ['attorney', 'admin'] %}
+                <!-- AI Tools -->
                 <a href="{{ url_for('chat_page') }}" 
                    class="base-mobile-link {% if request.endpoint == 'chat_page' %}active{% endif %}">
                     🤖 AI Legal Assistant
@@ -470,10 +408,8 @@
                    class="base-mobile-link {% if request.endpoint == 'contract_generator_page' %}active{% endif %}">
                     📝 Contract Generator
                 </a>
-                {% endif %}
                 
-                <!-- Firm Management - Admin only -->
-                {% if user_role == 'admin' %}
+                <!-- Firm Management -->
                 <a href="/admin/users" 
                    class="base-mobile-link">
                     👥 User Management
@@ -490,7 +426,6 @@
                    class="base-mobile-link">
                     📋 Audit Logs
                 </a>
-                {% endif %}
             </div>
         </div>
     </header>
