@@ -629,8 +629,6 @@ def case_profile_page(case_id):
         return f"Case profile error: {e}", 500
 
 @app.route('/deadlines')
-@login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def deadlines_page():
     """Deadline management and court calendar page"""
     try:
