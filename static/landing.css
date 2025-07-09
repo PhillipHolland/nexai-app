@@ -871,13 +871,36 @@ body {
     width: 80%;
 }
 
-/* Simple dropdown CSS - fresh start */
-.dropdown {
+/* Pure CSS hover dropdown - NO JAVASCRIPT */
+.nav-item {
     position: relative;
     display: inline-block;
 }
 
-.dropdown-content {
+.nav-parent {
+    color: #F7EDDA;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.nav-parent:hover {
+    color: #FFA74F;
+    background: rgba(255, 167, 79, 0.1);
+    border-color: rgba(255, 167, 79, 0.2);
+    transform: translateY(-1px);
+}
+
+.nav-dropdown {
     display: none;
     position: absolute;
     top: 100%;
@@ -892,7 +915,7 @@ body {
     margin-top: 0.25rem;
 }
 
-.dropdown-content.show {
+.nav-item:hover .nav-dropdown {
     display: block;
 }
 
