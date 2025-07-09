@@ -871,37 +871,42 @@ body {
     width: 80%;
 }
 
-/* Pure CSS hover dropdown - NO JAVASCRIPT */
-.nav-item {
+/* Native HTML details/summary dropdown - CLICK TO OPEN */
+.nav-dropdown {
     position: relative;
     display: inline-block;
 }
 
-.nav-parent {
+.nav-summary {
     color: #F7EDDA;
-    text-decoration: none;
     font-weight: 500;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    transition: all 0.2s ease;
-    position: relative;
-    white-space: nowrap;
+    cursor: pointer;
+    list-style: none;
     background: transparent;
     border: 1px solid transparent;
-    cursor: pointer;
-    display: inline-block;
+    transition: all 0.2s ease;
 }
 
-.nav-parent:hover {
+.nav-summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-summary::after {
+    content: ' ▼';
+    font-size: 0.75rem;
+}
+
+.nav-summary:hover {
     color: #FFA74F;
     background: rgba(255, 167, 79, 0.1);
     border-color: rgba(255, 167, 79, 0.2);
     transform: translateY(-1px);
 }
 
-.nav-dropdown {
-    display: none;
+.nav-content {
     position: absolute;
     top: 100%;
     left: 0;
@@ -915,8 +920,8 @@ body {
     margin-top: 0.25rem;
 }
 
-.nav-item:hover .nav-dropdown {
-    display: block;
+details[open] .nav-summary::after {
+    content: ' ▲';
 }
 
 .base-dropdown-item {
