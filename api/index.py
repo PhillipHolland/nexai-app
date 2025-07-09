@@ -646,25 +646,29 @@ def case_new_page():
         return f"Case new error: {e}", 500
 
 @app.route('/login')
+@app.route('/auth/login')
 def login_page():
     """Login page"""
     try:
         # Redirect if already logged in
         if session.get('logged_in'):
             return redirect('/dashboard')
-        return render_template('auth_login_enhanced.html')
+        return render_template('auth_login_enhanced.html',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Login page error: {e}")
         return f"Login error: {e}", 500
 
 @app.route('/register')
+@app.route('/auth/register')
 def register_page():
     """Registration page"""
     try:
         # Redirect if already logged in
         if session.get('logged_in'):
             return redirect('/dashboard')
-        return render_template('auth_register_enhanced.html')
+        return render_template('auth_register_enhanced.html',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Register page error: {e}")
         return f"Register error: {e}", 500
