@@ -460,7 +460,8 @@ def landing_page():
     """Landing page"""
     try:
         return render_template('landing.html',
-                             google_analytics_id=app.config.get('GOOGLE_ANALYTICS_ID'))
+                             google_analytics_id=app.config.get('GOOGLE_ANALYTICS_ID'),
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Landing page error: {e}")
         return f"LexAI Practice Partner - Error loading page: {e}", 500
@@ -481,7 +482,8 @@ def dashboard():
         return render_template('dashboard.html',
                              user_role=session.get('user_role', 'guest'),
                              user_name=session.get('user_name', 'User'),
-                             stats=stats)
+                             stats=stats,
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         return f"Dashboard error: {e}", 500
