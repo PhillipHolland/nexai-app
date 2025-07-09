@@ -2493,7 +2493,7 @@ def _login_mock_user(email, password):
     # Simple mock - any password works
     session['user_id'] = '1'
     session['user_email'] = email
-    session['user_role'] = 'associate'
+    session['user_role'] = 'attorney'
     session['user_name'] = 'Demo User'
     session['logged_in'] = True
     

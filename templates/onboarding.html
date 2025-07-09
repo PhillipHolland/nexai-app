@@ -1,0 +1,861 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to LexAI - Get Started{% endblock %}
+
+{% block extra_head %}
+    <style>
+        /* Onboarding Specific Styles */
+        .onboarding-container {
+            background: linear-gradient(135deg, #F7EDDA 0%, #E6F3FF 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .onboarding-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .onboarding-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .onboarding-subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+        
+        .progress-step {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+        }
+        
+        .progress-step.completed {
+            background-color: #16a34a;
+            color: white;
+        }
+        
+        .progress-line {
+            width: 3rem;
+            height: 2px;
+            background-color: #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-line.completed {
+            background-color: #16a34a;
+        }
+        
+        .onboarding-step {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .onboarding-step.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .step-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .step-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-description {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .step-content {
+            margin-bottom: 2rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .feature-card:hover {
+            border-color: #2E4B3C;
+            transform: translateY(-2px);
+        }
+        
+        .feature-card.selected {
+            border-color: #2E4B3C;
+            background-color: #f0fdf4;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        
+        .checkbox-input {
+            margin-top: 0.25rem;
+        }
+        
+        .checkbox-label {
+            color: #374151;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        
+        .step-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #2E4B3C;
+            color: #F7EDDA;
+        }
+        
+        .btn-primary:hover {
+            background-color: #09332C;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            color: #374151;
+            border-color: #9ca3af;
+        }
+        
+        .btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .demo-section {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .demo-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #16a34a;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .demo-btn {
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+            color: #16a34a;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .demo-btn:hover {
+            background-color: #dcfce7;
+            border-color: #16a34a;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+        
+        .completion-celebration {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+        
+        .celebration-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .completion-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 1rem;
+        }
+        
+        .completion-message {
+            color: #6b7280;
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .quick-link {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-link:hover {
+            border-color: #2E4B3C;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .skip-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .skip-btn {
+            color: #6b7280;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .skip-btn:hover {
+            color: #374151;
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .onboarding-title {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .progress-indicator {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            
+            .progress-line {
+                width: 2rem;
+            }
+            
+            .step-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="onboarding-container">
+    <div class="onboarding-content">
+        <!-- Onboarding Header -->
+        <div class="onboarding-header">
+            <h1 class="onboarding-title">🎉 Welcome to LexAI!</h1>
+            <p class="onboarding-subtitle">Let's get you set up with the most powerful AI-driven legal practice platform. This quick setup will take less than 5 minutes.</p>
+            
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-step active" data-step="1">1</div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="2">2</div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="3">3</div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="4">4</div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="5">5</div>
+            </div>
+        </div>
+        
+        <!-- Step 1: Welcome & Overview -->
+        <div class="onboarding-step active" data-step="1">
+            <div class="step-header">
+                <h2 class="step-title">Welcome to the Future of Legal Practice</h2>
+                <p class="step-description">LexAI combines cutting-edge AI technology with comprehensive practice management tools to revolutionize how you work with legal documents, research, and client management.</p>
+            </div>
+            
+            <div class="step-content">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3 class="feature-title">AI-Powered Analysis</h3>
+                        <p class="feature-description">Advanced document analysis, contract review, and legal research with Bagel RL AI enhancement</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3 class="feature-title">Enterprise Security</h3>
+                        <p class="feature-description">Bank-level security with encryption, audit logs, and compliance features</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🌐</div>
+                        <h3 class="feature-title">Multi-Language Support</h3>
+                        <p class="feature-description">Professional legal translation services with Spanish language support</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3 class="feature-title">Practice Analytics</h3>
+                        <p class="feature-description">Comprehensive insights into your practice performance and client metrics</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step-actions">
+                <div></div>
+                <button class="btn btn-primary" onclick="nextStep()">Get Started →</button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Practice Information -->
+        <div class="onboarding-step" data-step="2">
+            <div class="step-header">
+                <h2 class="step-title">Tell Us About Your Practice</h2>
+                <p class="step-description">Help us customize your experience by providing some basic information about your legal practice.</p>
+            </div>
+            
+            <div class="step-content">
+                <form id="practice-form">
+                    <div class="form-group">
+                        <label class="form-label">Firm/Practice Name</label>
+                        <input type="text" class="form-input" id="firm-name" placeholder="Smith & Associates Law Firm" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Primary Practice Area</label>
+                        <select class="form-select" id="practice-area" required>
+                            <option value="">Select your primary practice area</option>
+                            <option value="general">General Practice</option>
+                            <option value="corporate">Corporate Law</option>
+                            <option value="litigation">Litigation</option>
+                            <option value="family">Family Law</option>
+                            <option value="real-estate">Real Estate</option>
+                            <option value="criminal">Criminal Defense</option>
+                            <option value="employment">Employment Law</option>
+                            <option value="intellectual-property">Intellectual Property</option>
+                            <option value="tax">Tax Law</option>
+                            <option value="immigration">Immigration Law</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Firm Size</label>
+                        <select class="form-select" id="firm-size" required>
+                            <option value="">Select your firm size</option>
+                            <option value="solo">Solo Practitioner</option>
+                            <option value="small">Small Firm (2-10 attorneys)</option>
+                            <option value="medium">Medium Firm (11-50 attorneys)</option>
+                            <option value="large">Large Firm (50+ attorneys)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Primary Location</label>
+                        <input type="text" class="form-input" id="location" placeholder="Los Angeles, CA" required>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="step-actions">
+                <button class="btn btn-secondary" onclick="previousStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Feature Selection -->
+        <div class="onboarding-step" data-step="3">
+            <div class="step-header">
+                <h2 class="step-title">Choose Your Key Features</h2>
+                <p class="step-description">Select the features that are most important to your practice. You can always enable additional features later.</p>
+            </div>
+            
+            <div class="step-content">
+                <div class="feature-grid">
+                    <div class="feature-card selectable" data-feature="document-analysis">
+                        <div class="feature-icon">📄</div>
+                        <h3 class="feature-title">Document Analysis</h3>
+                        <p class="feature-description">AI-powered document review, classification, and insight extraction</p>
+                    </div>
+                    
+                    <div class="feature-card selectable" data-feature="contract-analysis">
+                        <div class="feature-icon">📋</div>
+                        <h3 class="feature-title">Contract Analysis</h3>
+                        <p class="feature-description">Advanced contract review with risk assessment and clause analysis</p>
+                    </div>
+                    
+                    <div class="feature-card selectable" data-feature="legal-research">
+                        <div class="feature-icon">🔍</div>
+                        <h3 class="feature-title">Legal Research</h3>
+                        <p class="feature-description">Comprehensive legal research across multiple databases with AI insights</p>
+                    </div>
+                    
+                    <div class="feature-card selectable" data-feature="client-management">
+                        <div class="feature-icon">👥</div>
+                        <h3 class="feature-title">Client Management</h3>
+                        <p class="feature-description">Complete client and case management with communication tracking</p>
+                    </div>
+                    
+                    <div class="feature-card selectable" data-feature="spanish-translation">
+                        <div class="feature-icon">🌐</div>
+                        <h3 class="feature-title">Spanish Translation</h3>
+                        <p class="feature-description">Professional legal translation services for broader client reach</p>
+                    </div>
+                    
+                    <div class="feature-card selectable" data-feature="billing">
+                        <div class="feature-icon">💰</div>
+                        <h3 class="feature-title">Billing & Invoicing</h3>
+                        <p class="feature-description">Automated billing, payment processing, and financial reporting</p>
+                    </div>
+                </div>
+                
+                <p style="text-align: center; color: #6b7280; margin-top: 1rem; font-size: 0.875rem;">
+                    Select the features you'd like to explore. All features remain available regardless of your selection.
+                </p>
+            </div>
+            
+            <div class="step-actions">
+                <button class="btn btn-secondary" onclick="previousStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()">Continue →</button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Demo & Try Features -->
+        <div class="onboarding-step" data-step="4">
+            <div class="step-header">
+                <h2 class="step-title">Try LexAI in Action</h2>
+                <p class="step-description">Experience the power of LexAI with these interactive demos using sample data.</p>
+            </div>
+            
+            <div class="step-content">
+                <div class="demo-section">
+                    <h3 class="demo-title">🚀 Interactive Demos</h3>
+                    <p>Try these features with sample data to see how LexAI can enhance your practice:</p>
+                    
+                    <div class="demo-actions">
+                        <a href="/contracts?demo=true" class="demo-btn" target="_blank">
+                            📋 Try Contract Analysis
+                        </a>
+                        <a href="/legal-research?demo=true" class="demo-btn" target="_blank">
+                            🔍 Try Legal Research
+                        </a>
+                        <a href="/documents?demo=true" class="demo-btn" target="_blank">
+                            📄 Try Document Analysis
+                        </a>
+                        <a href="/spanish?demo=true" class="demo-btn" target="_blank">
+                            🌐 Try Spanish Translation
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" class="checkbox-input" id="tried-features">
+                    <label for="tried-features" class="checkbox-label">
+                        I've tried the demo features and I'm ready to set up my account
+                    </label>
+                </div>
+            </div>
+            
+            <div class="step-actions">
+                <button class="btn btn-secondary" onclick="previousStep()">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep()" id="demo-continue-btn" disabled>Complete Setup →</button>
+            </div>
+            
+            <div class="skip-link">
+                <button class="skip-btn" onclick="nextStep()">Skip demos and continue →</button>
+            </div>
+        </div>
+        
+        <!-- Step 5: Completion -->
+        <div class="onboarding-step" data-step="5">
+            <div class="completion-celebration">
+                <div class="celebration-icon">🎉</div>
+                <h2 class="completion-title">Welcome to LexAI!</h2>
+                <p class="completion-message">
+                    Your account is ready! You now have access to the most advanced AI-powered legal practice platform. 
+                    Start exploring the features and see how LexAI can transform your legal practice.
+                </p>
+                
+                <div class="quick-links">
+                    <a href="/dashboard" class="quick-link">
+                        <div class="feature-icon">🏠</div>
+                        <h3 class="feature-title">Go to Dashboard</h3>
+                        <p class="feature-description">Access your main practice dashboard</p>
+                    </a>
+                    
+                    <a href="/documents" class="quick-link">
+                        <div class="feature-icon">📄</div>
+                        <h3 class="feature-title">Upload Your First Document</h3>
+                        <p class="feature-description">Start with AI-powered document analysis</p>
+                    </a>
+                    
+                    <a href="/clients" class="quick-link">
+                        <div class="feature-icon">👥</div>
+                        <h3 class="feature-title">Add Your First Client</h3>
+                        <p class="feature-description">Set up client and case management</p>
+                    </a>
+                    
+                    <a href="/docs" class="quick-link">
+                        <div class="feature-icon">📚</div>
+                        <h3 class="feature-title">View Documentation</h3>
+                        <p class="feature-description">Learn about all LexAI features</p>
+                    </a>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <a href="/dashboard" class="btn btn-primary" style="display: inline-block; text-decoration: none;">
+                        Start Using LexAI →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 5;
+    const selectedFeatures = new Set();
+    
+    // Handle feature selection
+    document.querySelectorAll('.feature-card.selectable').forEach(card => {
+        card.addEventListener('click', function() {
+            const feature = this.getAttribute('data-feature');
+            
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                selectedFeatures.delete(feature);
+            } else {
+                this.classList.add('selected');
+                selectedFeatures.add(feature);
+            }
+        });
+    });
+    
+    // Handle demo checkbox
+    const triedFeaturesCheckbox = document.getElementById('tried-features');
+    const demoContinueBtn = document.getElementById('demo-continue-btn');
+    
+    if (triedFeaturesCheckbox) {
+        triedFeaturesCheckbox.addEventListener('change', function() {
+            demoContinueBtn.disabled = !this.checked;
+        });
+    }
+    
+    // Navigation functions
+    window.nextStep = function() {
+        // Validate current step
+        if (!validateCurrentStep()) {
+            return;
+        }
+        
+        if (currentStep < totalSteps) {
+            // Hide current step
+            document.querySelector(`.onboarding-step[data-step="${currentStep}"]`).classList.remove('active');
+            
+            // Update progress
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('completed');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+            
+            if (currentStep < totalSteps) {
+                const progressLines = document.querySelectorAll('.progress-line');
+                if (progressLines[currentStep - 1]) {
+                    progressLines[currentStep - 1].classList.add('completed');
+                }
+            }
+            
+            // Move to next step
+            currentStep++;
+            
+            if (currentStep <= totalSteps) {
+                document.querySelector(`.onboarding-step[data-step="${currentStep}"]`).classList.add('active');
+                document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+            }
+        }
+        
+        // Save progress on final step
+        if (currentStep === totalSteps) {
+            saveOnboardingData();
+        }
+    };
+    
+    window.previousStep = function() {
+        if (currentStep > 1) {
+            // Hide current step
+            document.querySelector(`.onboarding-step[data-step="${currentStep}"]`).classList.remove('active');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('active');
+            
+            // Move to previous step
+            currentStep--;
+            
+            // Show previous step
+            document.querySelector(`.onboarding-step[data-step="${currentStep}"]`).classList.add('active');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.remove('completed');
+            document.querySelector(`.progress-step[data-step="${currentStep}"]`).classList.add('active');
+            
+            // Update progress line
+            const progressLines = document.querySelectorAll('.progress-line');
+            if (progressLines[currentStep - 1]) {
+                progressLines[currentStep - 1].classList.remove('completed');
+            }
+        }
+    };
+    
+    function validateCurrentStep() {
+        switch (currentStep) {
+            case 1:
+                return true; // Welcome step, no validation needed
+            
+            case 2:
+                // Validate practice information
+                const firmName = document.getElementById('firm-name').value.trim();
+                const practiceArea = document.getElementById('practice-area').value;
+                const firmSize = document.getElementById('firm-size').value;
+                const location = document.getElementById('location').value.trim();
+                
+                if (!firmName || !practiceArea || !firmSize || !location) {
+                    alert('Please fill in all required fields.');
+                    return false;
+                }
+                return true;
+            
+            case 3:
+                // Feature selection (optional, so always valid)
+                return true;
+            
+            case 4:
+                // Demo step (optional, so always valid)
+                return true;
+            
+            default:
+                return true;
+        }
+    }
+    
+    function saveOnboardingData() {
+        const onboardingData = {
+            firmName: document.getElementById('firm-name')?.value || '',
+            practiceArea: document.getElementById('practice-area')?.value || '',
+            firmSize: document.getElementById('firm-size')?.value || '',
+            location: document.getElementById('location')?.value || '',
+            selectedFeatures: Array.from(selectedFeatures),
+            completedAt: new Date().toISOString(),
+            onboardingCompleted: true
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('lexai_onboarding', JSON.stringify(onboardingData));
+        
+        // Send to server (optional)
+        fetch('/api/onboarding/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(onboardingData)
+        }).catch(error => {
+            console.log('Onboarding data saved locally, server update failed:', error);
+        });
+        
+        console.log('Onboarding completed:', onboardingData);
+    }
+    
+    // Check if user has already completed onboarding
+    const savedOnboarding = localStorage.getItem('lexai_onboarding');
+    if (savedOnboarding) {
+        const data = JSON.parse(savedOnboarding);
+        if (data.onboardingCompleted) {
+            // Pre-fill form with saved data
+            if (data.firmName) document.getElementById('firm-name').value = data.firmName;
+            if (data.practiceArea) document.getElementById('practice-area').value = data.practiceArea;
+            if (data.firmSize) document.getElementById('firm-size').value = data.firmSize;
+            if (data.location) document.getElementById('location').value = data.location;
+            
+            // Mark selected features
+            if (data.selectedFeatures) {
+                data.selectedFeatures.forEach(feature => {
+                    const card = document.querySelector(`[data-feature="${feature}"]`);
+                    if (card) {
+                        card.classList.add('selected');
+                        selectedFeatures.add(feature);
+                    }
+                });
+            }
+        }
+    }
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            nextStep();
+        } else if (e.key === 'Escape') {
+            if (currentStep > 1) {
+                previousStep();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
