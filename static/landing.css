@@ -1358,32 +1358,32 @@ body {
     background-color: #2E4B3C; /* dark-green background */
 }
 
-/* Dashboard Button - styled like "Enter Platform" */
+/* Dashboard Button - styled like "Enter Platform" - HIGHER SPECIFICITY */
 .base-mobile-link.dashboard-button {
-    background-color: #FFA74F; /* warm-orange */
-    color: #2E4B3C; /* dark-green */
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-bottom: 1rem;
-    border: none;
+    background-color: #FFA74F !important; /* warm-orange */
+    color: #2E4B3C !important; /* dark-green */
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+    margin-bottom: 1rem !important;
+    border: none !important;
 }
 
 .base-mobile-link.dashboard-button:hover {
-    background-color: #F0531C; /* bright-coral */
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    color: #2E4B3C; /* keep dark-green text */
+    background-color: #F0531C !important; /* bright-coral */
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    color: #2E4B3C !important; /* keep dark-green text */
 }
 
 .base-mobile-link.dashboard-button.active {
-    background-color: #F0531C; /* bright-coral for active state */
-    color: #2E4B3C; /* dark-green text */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background-color: #F0531C !important; /* bright-coral for active state */
+    color: #2E4B3C !important; /* dark-green text */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Mobile Accordion Styles */
