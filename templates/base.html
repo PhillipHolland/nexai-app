@@ -157,100 +157,148 @@
                 
                 <!-- Navigation -->
                 <nav class="base-nav-main">
-                    <!-- Dashboard link varies by role -->
+                    <!-- Dashboard -->
                     {% if user_role == 'client' %}
                         <a href="/client-portal" class="base-nav-link {% if request.endpoint == 'client_portal' %}active{% endif %}">
-                            My Portal
+                            🏠 My Portal
                         </a>
                     {% elif user_role == 'paralegal' %}
                         <a href="/paralegal-dashboard" class="base-nav-link {% if request.endpoint == 'paralegal_dashboard' %}active{% endif %}">
-                            Dashboard
+                            🏠 Dashboard
                         </a>
                     {% elif user_role == 'admin' %}
                         <a href="/admin-dashboard" class="base-nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                            Dashboard
+                            🏠 Dashboard
                         </a>
                     {% else %}
                         <a href="{{ url_for('dashboard') }}" 
                            class="base-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                            Dashboard
+                            🏠 Dashboard
                         </a>
                     {% endif %}
                     
-                    <!-- AI Tools Dropdown - Attorney/Admin only -->
+                    <!-- Clients - Paralegal+ -->
+                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <a href="{{ url_for('clients_page') }}" 
+                       class="base-nav-link {% if request.endpoint == 'clients_page' %}active{% endif %}">
+                        👥 Clients
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Cases - Paralegal+ -->
+                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <a href="{{ url_for('cases_page') }}" 
+                       class="base-nav-link {% if request.endpoint == 'cases_page' %}active{% endif %}">
+                        📁 Cases
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Documents - Paralegal+ -->
+                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <a href="{{ url_for('documents_page') }}" 
+                       class="base-nav-link {% if request.endpoint == 'documents_page' %}active{% endif %}">
+                        📄 Documents
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Calendar - Paralegal+ -->
+                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <a href="{{ url_for('calendar_page') }}" 
+                       class="base-nav-link {% if request.endpoint == 'calendar_page' %}active{% endif %}">
+                        📅 Calendar
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Time & Billing - Paralegal+ -->
+                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                    <a href="{{ url_for('time_tracking_page') }}" 
+                       class="base-nav-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
+                        ⏰ Time & Billing
+                    </a>
+                    {% endif %}
+                    
+                    <!-- AI Tools - Attorney/Admin only -->
                     {% if user_role in ['attorney', 'admin'] %}
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
-                            AI Tools
+                            🤖 AI Tools
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('documents_page') }}" class="base-dropdown-item">🔍 Evidence Analysis</a>
-                            <a href="{{ url_for('chat_page') }}" class="base-dropdown-item">AI Assistant</a>
-                            <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">🤖 AI Document Analysis</a>
-                            <a href="{{ url_for('legal_research_page') }}" class="base-dropdown-item">Legal Research</a>
-                            <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">Contract Generator</a>
+                            <a href="{{ url_for('chat_page') }}" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                AI Assistant
+                            </a>
+                            <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Document Analysis
+                            </a>
+                            <a href="{{ url_for('legal_research_page') }}" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                Legal Research
+                            </a>
+                            <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Contract Generator
+                            </a>
                         </div>
                     </div>
                     {% endif %}
                     
-                    <!-- Practice Management Dropdown - Paralegal+ -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            Practice
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('clients_page') }}" class="base-dropdown-item">📋 Client Management</a>
-                            <a href="{{ url_for('cases_page') }}" class="base-dropdown-item">📁 Case Management</a>
-                            <a href="{{ url_for('deadlines_page') }}" class="base-dropdown-item">⏰ Deadlines & Court Dates</a>
-                            <a href="{{ url_for('documents_page') }}" class="base-dropdown-item">📄 Document Library</a>
-                            <a href="{{ url_for('document_analysis_page') }}" class="base-dropdown-item">🤖 AI Document Analysis</a>
-                            <a href="{{ url_for('calendar_page') }}" class="base-dropdown-item">📅 Calendar</a>
-                            <a href="{{ url_for('appointment_booking_page') }}" class="base-dropdown-item">📞 Book Appointment</a>
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <!-- Financial Management Dropdown - Paralegal+ (billing access) -->
-                    {% if user_role in ['paralegal', 'attorney', 'admin'] %}
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
-                            {% if user_role == 'paralegal' %}Billing{% else %}Finance{% endif %}
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="base-dropdown-menu hidden">
-                            <a href="{{ url_for('time_tracking_page') }}" class="base-dropdown-item">Time Tracking</a>
-                            <a href="{{ url_for('billing_page') }}" class="base-dropdown-item">Billing & Invoices</a>
-                            <a href="{{ url_for('expense_tracking_page') }}" class="base-dropdown-item">Expenses</a>
-                            {% if user_role in ['attorney', 'admin'] %}
-                            <a href="{{ url_for('analytics_dashboard') }}" class="base-dropdown-item">Analytics</a>
-                            {% endif %}
-                        </div>
-                    </div>
+                    <!-- Analytics - Attorney/Admin only -->
+                    {% if user_role in ['attorney', 'admin'] %}
+                    <a href="{{ url_for('analytics_dashboard') }}" 
+                       class="base-nav-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
+                        📊 Analytics
+                    </a>
                     {% endif %}
                     
                     <!-- Admin-Only Section -->
                     {% if user_role == 'admin' %}
                     <div class="base-dropdown">
                         <button class="base-dropdown-button">
-                            Admin
+                            ⚙️ Admin
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
                         <div class="base-dropdown-menu hidden">
-                            <a href="/admin/users" class="base-dropdown-item">User Management</a>
-                            <a href="/admin/settings" class="base-dropdown-item">Firm Settings</a>
-                            <a href="/admin/subscriptions" class="base-dropdown-item">Subscriptions</a>
-                            <a href="/admin/audit-logs" class="base-dropdown-item">Audit Logs</a>
+                            <a href="/admin/users" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 4.354a4 4 0 110 6.292 4 4 0 010-6.292zM15 8a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                                </svg>
+                                User Management
+                            </a>
+                            <a href="/admin/settings" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Firm Settings
+                            </a>
+                            <a href="/admin/subscriptions" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                Subscriptions
+                            </a>
+                            <a href="/admin/audit-logs" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                Audit Logs
+                            </a>
                         </div>
                     </div>
                     {% endif %}
@@ -322,60 +370,80 @@
                 <!-- Dashboard link varies by role -->
                 {% if user_role == 'client' %}
                     <a href="/client-portal" class="base-mobile-link {% if request.endpoint == 'client_portal' %}active{% endif %}">
-                        My Portal
+                        🏠 My Portal
                     </a>
                 {% elif user_role == 'paralegal' %}
                     <a href="/paralegal-dashboard" class="base-mobile-link {% if request.endpoint == 'paralegal_dashboard' %}active{% endif %}">
-                        Dashboard
+                        🏠 Dashboard
                     </a>
                 {% elif user_role == 'admin' %}
                     <a href="/admin-dashboard" class="base-mobile-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
-                        Dashboard
+                        🏠 Dashboard
                     </a>
                 {% else %}
                     <a href="{{ url_for('dashboard') }}" 
                        class="base-mobile-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                        Dashboard
+                        🏠 Dashboard
                     </a>
+                {% endif %}
+                
+                <!-- Clients - Paralegal+ -->
+                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <a href="{{ url_for('clients_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'clients_page' %}active{% endif %}">
+                    👥 Clients
+                </a>
+                {% endif %}
+                
+                <!-- Cases - Paralegal+ -->
+                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <a href="{{ url_for('cases_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'cases_page' %}active{% endif %}">
+                    📁 Cases
+                </a>
+                {% endif %}
+                
+                <!-- Documents - Paralegal+ -->
+                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <a href="{{ url_for('documents_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'documents_page' %}active{% endif %}">
+                    📄 Documents
+                </a>
+                {% endif %}
+                
+                <!-- Calendar - Paralegal+ -->
+                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <a href="{{ url_for('calendar_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'calendar_page' %}active{% endif %}">
+                    📅 Calendar
+                </a>
+                {% endif %}
+                
+                <!-- Time & Billing - Paralegal+ -->
+                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
+                <a href="{{ url_for('time_tracking_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
+                    ⏰ Time & Billing
+                </a>
                 {% endif %}
                 
                 <!-- AI Tools - Attorney/Admin only -->
                 {% if user_role in ['attorney', 'admin'] %}
                 <a href="{{ url_for('chat_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'chat_interface' %}active{% endif %}">
-                    AI Tools
+                   class="base-mobile-link {% if request.endpoint == 'chat_page' %}active{% endif %}">
+                    🤖 AI Assistant
                 </a>
-                <a href="{{ url_for('documents_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'evidence_analysis' %}active{% endif %}">
-                    Evidence Analysis
+                <a href="{{ url_for('document_analysis_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'document_analysis_page' %}active{% endif %}">
+                    📊 Document Analysis
                 </a>
-                {% endif %}
-                
-                <!-- Practice Management - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
-                <a href="{{ url_for('clients_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'clients_list' %}active{% endif %}">
-                    Clients & Cases
+                <a href="{{ url_for('legal_research_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'legal_research_page' %}active{% endif %}">
+                    🔍 Legal Research
                 </a>
-                <a href="{{ url_for('documents_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'documents_list' %}active{% endif %}">
-                    Documents
-                </a>
-                <a href="{{ url_for('calendar_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'calendar_page' %}active{% endif %}">
-                    Calendar
-                </a>
-                {% endif %}
-                
-                <!-- Financial Management - Paralegal+ -->
-                {% if user_role in ['paralegal', 'attorney', 'admin'] %}
-                <a href="{{ url_for('time_tracking_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'time_tracking_page' %}active{% endif %}">
-                    Time Tracking
-                </a>
-                <a href="{{ url_for('billing_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'billing_page' %}active{% endif %}">
-                    Billing
+                <a href="{{ url_for('contract_generator_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'contract_generator_page' %}active{% endif %}">
+                    📝 Contract Generator
                 </a>
                 {% endif %}
                 
@@ -383,7 +451,7 @@
                 {% if user_role in ['attorney', 'admin'] %}
                 <a href="{{ url_for('analytics_dashboard') }}" 
                    class="base-mobile-link {% if request.endpoint == 'analytics_dashboard' %}active{% endif %}">
-                    Analytics
+                    📊 Analytics
                 </a>
                 {% endif %}
                 
@@ -391,11 +459,19 @@
                 {% if user_role == 'admin' %}
                 <a href="/admin/users" 
                    class="base-mobile-link">
-                    User Management
+                    👥 User Management
                 </a>
                 <a href="/admin/settings" 
                    class="base-mobile-link">
-                    Firm Settings
+                    ⚙️ Firm Settings
+                </a>
+                <a href="/admin/subscriptions" 
+                   class="base-mobile-link">
+                    💳 Subscriptions
+                </a>
+                <a href="/admin/audit-logs" 
+                   class="base-mobile-link">
+                    📋 Audit Logs
                 </a>
                 {% endif %}
             </div>
