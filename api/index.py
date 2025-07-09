@@ -388,13 +388,22 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
-            if request.is_json:
-                return jsonify({
-                    'success': False,
-                    'error': 'Authentication required'
-                }), 401
+            # DEVELOPMENT: Auto-create demo session for development
+            if not DATABASE_AVAILABLE:
+                logger.info("Auto-creating demo session for development")
+                session['user_id'] = 'demo'
+                session['user_email'] = 'demo@lexai.com'
+                session['user_role'] = 'attorney'
+                session['user_name'] = 'Demo User'
+                session['logged_in'] = True
             else:
-                return redirect('/login')
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Authentication required'
+                    }), 401
+                else:
+                    return redirect('/login')
         return f(*args, **kwargs)
     return decorated_function
 
@@ -479,8 +488,13 @@ def dashboard():
             'total_clients': 3
         }
         
+        # Debug: Log session data
+        logger.info(f"Session data: {dict(session)}")
+        user_role = session.get('user_role', 'attorney')
+        logger.info(f"User role being passed to template: {user_role}")
+        
         return render_template('dashboard.html',
-                             user_role=session.get('user_role', 'attorney'),  # Default to attorney for full menu access
+                             user_role=user_role,  # Default to attorney for full menu access
                              user_name=session.get('user_name', 'User'),
                              stats=stats,
                              cache_buster=str(uuid.uuid4())[:8])
