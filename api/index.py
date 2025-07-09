@@ -639,13 +639,19 @@ def deadlines_page():
 def admin_users():
     """Admin user management page"""
     try:
-        # Mock user data for demonstration
-        users = [
-            {'id': 1, 'name': 'John Doe', 'email': 'john@lawfirm.com', 'role': 'Partner', 'status': 'Active'},
-            {'id': 2, 'name': 'Jane Smith', 'email': 'jane@lawfirm.com', 'role': 'Associate', 'status': 'Active'},
-            {'id': 3, 'name': 'Bob Johnson', 'email': 'bob@lawfirm.com', 'role': 'Paralegal', 'status': 'Active'}
-        ]
-        return render_template('user_profile.html', users=users, page_title='User Management')
+        # Mock user data that matches template expectations
+        user = {
+            'first_name': 'Admin',
+            'last_name': 'User',
+            'email': 'admin@lexai.com',
+            'phone': '(555) 123-4567',
+            'firm_name': 'Demo Law Firm',
+            'job_title': 'System Administrator',
+            'role': 'Admin',
+            'bar_number': 'ADMIN001',
+            'bio': 'System administrator managing user accounts and system settings.'
+        }
+        return render_template('user_profile.html', user=user, page_title='User Management')
     except Exception as e:
         logger.error(f"Admin users page error: {e}")
         return f"Admin users error: {e}", 500
@@ -654,14 +660,19 @@ def admin_users():
 def admin_settings():
     """Admin settings page"""
     try:
-        # Mock settings data
-        settings = {
+        # Mock user data for settings page
+        user = {
+            'first_name': 'System',
+            'last_name': 'Settings',
+            'email': 'settings@lexai.com',
+            'phone': '(555) 123-4567',
             'firm_name': 'Demo Law Firm',
-            'email_notifications': True,
-            'sms_notifications': False,
-            'backup_frequency': 'Daily'
+            'job_title': 'System Configuration',
+            'role': 'Admin',
+            'bar_number': 'SETTINGS',
+            'bio': 'System settings and configuration management.'
         }
-        return render_template('user_profile.html', settings=settings, page_title='System Settings')
+        return render_template('user_profile.html', user=user, page_title='System Settings')
     except Exception as e:
         logger.error(f"Admin settings page error: {e}")
         return f"Admin settings error: {e}", 500
@@ -670,12 +681,19 @@ def admin_settings():
 def admin_subscriptions():
     """Admin subscriptions page"""
     try:
-        # Mock subscription data
-        subscriptions = [
-            {'plan': 'Professional', 'status': 'Active', 'next_billing': '2024-08-15', 'amount': '$99/month'},
-            {'plan': 'Document Analysis', 'status': 'Active', 'next_billing': '2024-08-15', 'amount': '$49/month'}
-        ]
-        return render_template('user_profile.html', subscriptions=subscriptions, page_title='Subscription Management')
+        # Mock user data for subscriptions page
+        user = {
+            'first_name': 'Subscription',
+            'last_name': 'Manager',
+            'email': 'billing@lexai.com',
+            'phone': '(555) 123-4567',
+            'firm_name': 'Demo Law Firm',
+            'job_title': 'Billing Administrator',
+            'role': 'Admin',
+            'bar_number': 'BILLING',
+            'bio': 'Managing subscriptions and billing information.'
+        }
+        return render_template('user_profile.html', user=user, page_title='Subscription Management')
     except Exception as e:
         logger.error(f"Admin subscriptions page error: {e}")
         return f"Admin subscriptions error: {e}", 500
@@ -684,13 +702,19 @@ def admin_subscriptions():
 def admin_audit_logs():
     """Admin audit logs page"""
     try:
-        # Mock audit log data
-        audit_logs = [
-            {'timestamp': '2024-07-09 21:30:00', 'user': 'john@lawfirm.com', 'action': 'Login', 'details': 'Successful login'},
-            {'timestamp': '2024-07-09 21:25:00', 'user': 'jane@lawfirm.com', 'action': 'Document Upload', 'details': 'contract.pdf uploaded'},
-            {'timestamp': '2024-07-09 21:20:00', 'user': 'bob@lawfirm.com', 'action': 'Case Created', 'details': 'New case #2024-001 created'}
-        ]
-        return render_template('user_profile.html', audit_logs=audit_logs, page_title='Audit Logs')
+        # Mock user data for audit logs page
+        user = {
+            'first_name': 'Audit',
+            'last_name': 'Logger',
+            'email': 'audit@lexai.com',
+            'phone': '(555) 123-4567',
+            'firm_name': 'Demo Law Firm',
+            'job_title': 'Security Administrator',
+            'role': 'Admin',
+            'bar_number': 'AUDIT',
+            'bio': 'Monitoring system activity and security events.'
+        }
+        return render_template('user_profile.html', user=user, page_title='Audit Logs')
     except Exception as e:
         logger.error(f"Admin audit logs page error: {e}")
         return f"Admin audit logs error: {e}", 500
