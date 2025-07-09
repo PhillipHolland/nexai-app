@@ -754,10 +754,13 @@ body {
 }
 
 .base-nav-link.active {
-    color: #FFA74F; /* warm-orange */
-    background: rgba(255, 167, 79, 0.15);
-    border-color: rgba(255, 167, 79, 0.3);
-    box-shadow: 0 2px 4px rgba(255, 167, 79, 0.2);
+    color: #2E4B3C !important;
+    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
+    border-color: rgba(255, 167, 79, 0.5) !important;
+    box-shadow: 
+        0 4px 12px rgba(255, 167, 79, 0.3),
+        0 2px 4px rgba(255, 167, 79, 0.2) !important;
+    transform: translateY(-1px);
 }
 
 /* Responsive navigation link adjustments */
@@ -925,25 +928,35 @@ body {
     overflow: hidden;
 }
 
-/* Active state for current page */
-.nav-item > a.active,
-.nav-item > a[aria-current="page"] {
-    color: #2E4B3C;
-    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%);
-    border-color: rgba(255, 167, 79, 0.5);
+/* Active state for current page - HIGH SPECIFICITY */
+.main-nav .nav-item.active,
+.main-nav .nav-item > a.active,
+.main-nav .nav-item > a[aria-current="page"] {
+    color: #2E4B3C !important;
+    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
+    border-color: rgba(255, 167, 79, 0.5) !important;
     box-shadow: 
         0 4px 12px rgba(255, 167, 79, 0.3),
-        0 2px 4px rgba(255, 167, 79, 0.2);
-    transform: translateY(-1px);
+        0 2px 4px rgba(255, 167, 79, 0.2) !important;
+    transform: translateY(-1px) !important;
 }
 
-.nav-item > a.active:hover,
-.nav-item > a[aria-current="page"]:hover {
-    background: linear-gradient(135deg, #F0531C 0%, #e5490f 100%);
-    color: #2E4B3C;
+.main-nav .nav-item.active:hover,
+.main-nav .nav-item > a.active:hover,
+.main-nav .nav-item > a[aria-current="page"]:hover {
+    background: linear-gradient(135deg, #F0531C 0%, #e5490f 100%) !important;
+    color: #2E4B3C !important;
     box-shadow: 
         0 6px 16px rgba(255, 167, 79, 0.4),
-        0 4px 8px rgba(255, 167, 79, 0.3);
+        0 4px 8px rgba(255, 167, 79, 0.3) !important;
+}
+
+/* Override any blue active states globally */
+.nav-item.active,
+.nav-item > a.active,
+a.active {
+    color: #2E4B3C !important;
+    background: linear-gradient(135deg, #FFA74F 0%, #F0531C 100%) !important;
 }
 
 /* Elegant hover effects with subtle animations */
