@@ -966,7 +966,7 @@ body {
     overflow: hidden;
 }
 
-/* Dashboard button styling - like "Enter Platform" */
+/* Dashboard button styling - EXACT match to btn-primary */
 .main-nav .nav-item.active,
 .main-nav .nav-item > a.active,
 .main-nav .nav-item > a[aria-current="page"],
@@ -975,13 +975,16 @@ body {
 .main-nav a[class*="active"] {
     background-color: #FFA74F !important; /* warm-orange */
     color: #2E4B3C !important; /* dark-green text */
+    padding: 0.5rem 1.5rem !important; /* exact btn-primary padding */
     border-radius: 0.5rem !important;
     font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-    transform: translateY(-1px) !important;
+    transform: none !important; /* remove translateY from default */
 }
 
-/* Dashboard button hover state */
+/* Dashboard button hover state - EXACT match to btn-primary:hover */
 .main-nav .nav-item.active:hover,
 .main-nav .nav-item > a.active:hover,
 .main-nav .nav-item > a[aria-current="page"]:hover,
@@ -990,6 +993,7 @@ body {
 .main-nav a[class*="active"]:hover {
     background-color: #F0531C !important; /* bright-coral */
     color: #2E4B3C !important; /* dark-green text */
+    transform: translateY(-1px) !important; /* exact btn-primary hover transform */
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -1071,7 +1075,7 @@ body {
     padding: 1rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #1f2937; /* Darker text for better desktop readability */
+    color: #111827 !important; /* Much darker text for desktop readability */
     text-decoration: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
