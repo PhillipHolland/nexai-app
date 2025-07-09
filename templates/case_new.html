@@ -1,0 +1,755 @@
+{% extends "base.html" %}
+
+{% block title %}New Case - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .case-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .form-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .form-subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .case-form {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-row.single {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: #dc2626;
+    }
+
+    .form-input, .form-select, .form-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .form-input.error, .form-select.error, .form-textarea.error {
+        border-color: #dc2626;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+
+    .form-error {
+        font-size: 0.75rem;
+        color: #dc2626;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .attorney-selection {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .attorney-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .attorney-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .attorney-checkbox {
+        width: 1rem;
+        height: 1rem;
+        accent-color: #2E4B3C;
+    }
+
+    .attorney-info {
+        flex: 1;
+    }
+
+    .attorney-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .attorney-role {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: capitalize;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-primary:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-secondary {
+        background: #f9fafb;
+        color: #374151;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-secondary:hover {
+        background: #f3f4f6;
+        color: #374151;
+        text-decoration: none;
+    }
+
+    .loading-spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid transparent;
+        border-top: 2px solid currentColor;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .success-message {
+        background: #dcfce7;
+        color: #166534;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    .error-message {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+
+    /* Auto-generated case number preview */
+    .case-number-preview {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 6px;
+        padding: 0.5rem;
+        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        font-size: 0.875rem;
+        color: #0369a1;
+        margin-top: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .attorney-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .case-form-container {
+            padding: 1rem;
+        }
+
+        .case-form {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="case-form-container">
+    <!-- Header -->
+    <div class="form-header">
+        <h1 class="form-title">📁 Create New Case</h1>
+        <p class="form-subtitle">Set up a new legal case with all necessary details and assignments</p>
+    </div>
+
+    <!-- Messages -->
+    <div id="successMessage" class="success-message"></div>
+    <div id="errorMessage" class="error-message"></div>
+
+    <!-- Case Form -->
+    <form class="case-form" id="caseForm">
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Basic Information
+            </h2>
+
+            <div class="form-row single">
+                <div class="form-group">
+                    <label class="form-label required">Case Title</label>
+                    <input type="text" class="form-input" id="title" name="title" placeholder="Enter a descriptive case title" required>
+                    <div class="form-help">Use a clear, descriptive title that identifies the case matter</div>
+                    <div class="form-error" id="titleError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Practice Area</label>
+                    <select class="form-select" id="practiceArea" name="practice_area" required>
+                        <option value="">Select practice area</option>
+                        <option value="Personal Injury">Personal Injury</option>
+                        <option value="Business Law">Business Law</option>
+                        <option value="Criminal Defense">Criminal Defense</option>
+                        <option value="Family Law">Family Law</option>
+                        <option value="Real Estate">Real Estate</option>
+                        <option value="Employment Law">Employment Law</option>
+                        <option value="Immigration">Immigration</option>
+                        <option value="Intellectual Property">Intellectual Property</option>
+                        <option value="Tax Law">Tax Law</option>
+                        <option value="Estate Planning">Estate Planning</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="form-error" id="practiceAreaError"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Case Type</label>
+                    <input type="text" class="form-input" id="caseType" name="case_type" placeholder="e.g., Litigation, Transactional">
+                    <div class="form-help">Specific type within the practice area</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Client</label>
+                    <select class="form-select" id="clientId" name="client_id" required>
+                        <option value="">Select client</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <div class="form-error" id="clientIdError"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Date Opened</label>
+                    <input type="date" class="form-input" id="dateOpened" name="date_opened" required>
+                    <div class="form-error" id="dateOpenedError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Case Number</label>
+                    <input type="text" class="form-input" id="caseNumber" name="case_number" placeholder="Leave blank for auto-generation">
+                    <div class="form-help">Leave blank to auto-generate based on client and year</div>
+                    <div id="caseNumberPreview" class="case-number-preview" style="display: none;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row single">
+                <div class="form-group">
+                    <label class="form-label">Case Description</label>
+                    <textarea class="form-textarea" id="description" name="description" placeholder="Detailed description of the case, including key facts and legal issues"></textarea>
+                    <div class="form-help">Provide a comprehensive overview of the case matter</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Court Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                Court Information
+            </h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Court Name</label>
+                    <input type="text" class="form-input" id="courtName" name="court_name" placeholder="e.g., Superior Court of California">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Judge Name</label>
+                    <input type="text" class="form-input" id="judgeName" name="judge_name" placeholder="Presiding judge name">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Court Case Number</label>
+                    <input type="text" class="form-input" id="courtCaseNumber" name="court_case_number" placeholder="Official court-assigned case number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Statute of Limitations</label>
+                    <input type="date" class="form-input" id="statuteLimitations" name="statute_of_limitations">
+                    <div class="form-help">Important deadline for legal action</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                </svg>
+                Financial Information
+            </h2>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Hourly Rate ($)</label>
+                    <input type="number" class="form-input" id="hourlyRate" name="hourly_rate" placeholder="350" min="0" step="0.01">
+                    <div class="form-help">Default hourly rate for this case</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estimated Hours</label>
+                    <input type="number" class="form-input" id="estimatedHours" name="estimated_hours" placeholder="120" min="0" step="0.1">
+                    <div class="form-help">Estimated total hours for case completion</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Flat Fee ($)</label>
+                    <input type="number" class="form-input" id="flatFee" name="flat_fee" placeholder="5000" min="0" step="0.01">
+                    <div class="form-help">Fixed fee for the entire case (if applicable)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Retainer Amount ($)</label>
+                    <input type="number" class="form-input" id="retainerAmount" name="retainer_amount" placeholder="2500" min="0" step="0.01">
+                    <div class="form-help">Initial retainer fee collected</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attorney Assignment -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Attorney Assignment
+            </h2>
+
+            <div class="form-row single">
+                <div class="form-group">
+                    <label class="form-label">Primary Attorney</label>
+                    <select class="form-select" id="primaryAttorney" name="primary_attorney_id">
+                        <option value="">Assign to me (current user)</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                    <div class="form-help">The lead attorney responsible for this case</div>
+                </div>
+            </div>
+
+            <div class="attorney-selection">
+                <label class="form-label">Additional Assigned Attorneys</label>
+                <div class="form-help">Select additional attorneys to work on this case</div>
+                <div id="attorneyGrid" class="attorney-grid">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="/cases" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span id="submitText">Create Case</span>
+                <span id="submitSpinner" class="loading-spinner" style="display: none;"></span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadClients();
+    loadAttorneys();
+    setupEventListeners();
+    setDefaultDate();
+});
+
+function setupEventListeners() {
+    document.getElementById('caseForm').addEventListener('submit', handleSubmit);
+    document.getElementById('clientId').addEventListener('change', updateCaseNumberPreview);
+    document.getElementById('title').addEventListener('input', updateCaseNumberPreview);
+}
+
+function setDefaultDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateOpened').value = today;
+}
+
+async function loadClients() {
+    try {
+        const response = await fetch('/api/clients');
+        const data = await response.json();
+        
+        if (data.success) {
+            const clientSelect = document.getElementById('clientId');
+            data.clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.display_name;
+                option.dataset.name = client.display_name;
+                clientSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading clients:', error);
+    }
+}
+
+async function loadAttorneys() {
+    try {
+        // In a real implementation, you'd have an attorneys endpoint
+        // For now, we'll use a mock list
+        const attorneys = [
+            { id: '1', name: 'John Smith', role: 'partner' },
+            { id: '2', name: 'Sarah Johnson', role: 'associate' },
+            { id: '3', name: 'Michael Brown', role: 'associate' },
+            { id: '4', name: 'Emily Davis', role: 'paralegal' }
+        ];
+
+        // Populate primary attorney dropdown
+        const primarySelect = document.getElementById('primaryAttorney');
+        attorneys.filter(a => a.role !== 'paralegal').forEach(attorney => {
+            const option = document.createElement('option');
+            option.value = attorney.id;
+            option.textContent = `${attorney.name} (${attorney.role})`;
+            primarySelect.appendChild(option);
+        });
+
+        // Populate attorney grid
+        const attorneyGrid = document.getElementById('attorneyGrid');
+        attorneys.forEach(attorney => {
+            const attorneyItem = document.createElement('div');
+            attorneyItem.className = 'attorney-item';
+            attorneyItem.innerHTML = `
+                <input type="checkbox" class="attorney-checkbox" id="attorney_${attorney.id}" name="attorney_ids" value="${attorney.id}">
+                <label for="attorney_${attorney.id}" class="attorney-info">
+                    <div class="attorney-name">${attorney.name}</div>
+                    <div class="attorney-role">${attorney.role}</div>
+                </label>
+            `;
+            attorneyGrid.appendChild(attorneyItem);
+        });
+    } catch (error) {
+        console.error('Error loading attorneys:', error);
+    }
+}
+
+function updateCaseNumberPreview() {
+    const clientSelect = document.getElementById('clientId');
+    const titleInput = document.getElementById('title');
+    const preview = document.getElementById('caseNumberPreview');
+    
+    if (clientSelect.value && titleInput.value) {
+        const clientOption = clientSelect.options[clientSelect.selectedIndex];
+        const clientName = clientOption.dataset.name || 'Client';
+        const year = new Date().getFullYear();
+        
+        // Generate initials from client name
+        const initials = clientName.split(' ')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
+        
+        const previewNumber = `${year}-${initials}-XXXX`;
+        preview.textContent = `Auto-generated: ${previewNumber}`;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    
+    // Clear previous errors
+    clearErrors();
+    
+    // Validate form
+    if (!validateForm()) {
+        return;
+    }
+    
+    // Prepare form data
+    const formData = new FormData(e.target);
+    const data = {};
+    
+    // Collect form data
+    for (let [key, value] of formData.entries()) {
+        if (key === 'attorney_ids') {
+            if (!data.attorney_ids) data.attorney_ids = [];
+            data.attorney_ids.push(value);
+        } else if (value.trim()) {
+            data[key] = value.trim();
+        }
+    }
+    
+    // Show loading state
+    setLoading(true);
+    
+    try {
+        const response = await fetch('/api/cases', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess('Case created successfully! Redirecting...');
+            setTimeout(() => {
+                window.location.href = `/cases/${result.case.id}`;
+            }, 1500);
+        } else {
+            showError(result.error || 'Failed to create case');
+        }
+    } catch (error) {
+        console.error('Error creating case:', error);
+        showError('Network error. Please try again.');
+    } finally {
+        setLoading(false);
+    }
+}
+
+function validateForm() {
+    let isValid = true;
+    
+    // Required fields
+    const requiredFields = [
+        { id: 'title', message: 'Case title is required' },
+        { id: 'practiceArea', message: 'Practice area is required' },
+        { id: 'clientId', message: 'Client selection is required' },
+        { id: 'dateOpened', message: 'Date opened is required' }
+    ];
+    
+    requiredFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (!element.value.trim()) {
+            showFieldError(field.id, field.message);
+            isValid = false;
+        }
+    });
+    
+    // Date validation
+    const dateOpened = document.getElementById('dateOpened').value;
+    const statuteLimitations = document.getElementById('statuteLimitations').value;
+    
+    if (statuteLimitations && dateOpened && new Date(statuteLimitations) <= new Date(dateOpened)) {
+        showFieldError('statuteLimitations', 'Statute of limitations must be after the date opened');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorElement = document.getElementById(fieldId + 'Error');
+    
+    field.classList.add('error');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function clearErrors() {
+    document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(element => {
+        element.classList.remove('error');
+    });
+    
+    document.querySelectorAll('.form-error').forEach(element => {
+        element.style.display = 'none';
+        element.textContent = '';
+    });
+}
+
+function setLoading(loading) {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    
+    submitBtn.disabled = loading;
+    
+    if (loading) {
+        submitText.textContent = 'Creating Case...';
+        submitSpinner.style.display = 'inline-block';
+    } else {
+        submitText.textContent = 'Create Case';
+        submitSpinner.style.display = 'none';
+    }
+}
+
+function showSuccess(message) {
+    const element = document.getElementById('successMessage');
+    element.textContent = message;
+    element.style.display = 'block';
+    document.getElementById('errorMessage').style.display = 'none';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showError(message) {
+    const element = document.getElementById('errorMessage');
+    element.textContent = message;
+    element.style.display = 'block';
+    document.getElementById('successMessage').style.display = 'none';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}

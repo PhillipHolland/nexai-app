@@ -479,26 +479,21 @@
             <form class="timer-form" id="timerForm">
                 <div class="form-group">
                     <label class="form-label" for="client">Client</label>
-                    <select id="client" class="form-select" required>
+                    <select id="client" class="form-select" onchange="loadClientCases()" required>
                         <option value="">Select Client</option>
-                        <option value="john-smith">John Smith - Family Law</option>
-                        <option value="abc-corp">ABC Corporation - Corporate</option>
-                        <option value="jane-doe">Jane Doe - Personal Injury</option>
-                        <option value="tech-startup">Tech Startup Inc. - Business</option>
-                        <option value="real-estate">Metro Real Estate - Property</option>
+                        <!-- Will be populated dynamically -->
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="project">Project/Case</label>
-                    <select id="project" class="form-select" required>
-                        <option value="">Select Project</option>
-                        <option value="divorce-case">Divorce Settlement</option>
-                        <option value="contract-review">Contract Review</option>
-                        <option value="litigation">Personal Injury Litigation</option>
-                        <option value="business-formation">Business Formation</option>
-                        <option value="property-sale">Property Sale Transaction</option>
+                    <label class="form-label" for="caseId">Case</label>
+                    <select id="caseId" class="form-select" required>
+                        <option value="">Select Case (choose client first)</option>
+                        <!-- Will be populated based on client selection -->
                     </select>
+                    <div class="form-help" style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">
+                        Select a client first to see available cases
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -1055,6 +1050,150 @@ document.addEventListener('DOMContentLoaded', function() {
             updateSummaryCards();
         }
     };
+
+    // Load clients and cases for case integration
+    async function loadClients() {
+        try {
+            const response = await fetch('/api/clients');
+            const data = await response.json();
+            
+            if (data.success) {
+                const clientSelect = document.getElementById('client');
+                const filterClientSelect = document.getElementById('filterClient');
+                
+                // Clear existing options except the first one
+                clientSelect.innerHTML = '<option value="">Select Client</option>';
+                if (filterClientSelect) {
+                    filterClientSelect.innerHTML = '<option value="">All Clients</option>';
+                }
+                
+                data.clients.forEach(client => {
+                    // Timer form client dropdown
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = client.display_name;
+                    clientSelect.appendChild(option);
+                    
+                    // Filter client dropdown
+                    if (filterClientSelect) {
+                        const filterOption = document.createElement('option');
+                        filterOption.value = client.id;
+                        filterOption.textContent = client.display_name;
+                        filterClientSelect.appendChild(filterOption);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading clients:', error);
+        }
+    }
+
+    window.loadClientCases = async function() {
+        const clientId = document.getElementById('client').value;
+        const caseSelect = document.getElementById('caseId');
+        
+        // Clear case options
+        caseSelect.innerHTML = '<option value="">Select Case</option>';
+        
+        if (!clientId) {
+            caseSelect.innerHTML = '<option value="">Select Case (choose client first)</option>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/cases?client_id=${clientId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                if (data.cases.length === 0) {
+                    caseSelect.innerHTML = '<option value="">No cases found for this client</option>';
+                    return;
+                }
+                
+                data.cases.forEach(caseData => {
+                    const option = document.createElement('option');
+                    option.value = caseData.id;
+                    option.textContent = `${caseData.case_number} - ${caseData.title}`;
+                    option.dataset.practiceArea = caseData.practice_area;
+                    option.dataset.hourlyRate = caseData.hourly_rate || '';
+                    caseSelect.appendChild(option);
+                });
+                
+                // Update hourly rate when case is selected
+                caseSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.dataset.hourlyRate) {
+                        document.getElementById('rate').value = selectedOption.dataset.hourlyRate;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading cases:', error);
+            caseSelect.innerHTML = '<option value="">Error loading cases</option>';
+        }
+    };
+
+    // Update timer form validation to use caseId instead of project
+    function validateTimerForm() {
+        const client = document.getElementById('client').value;
+        const caseId = document.getElementById('caseId').value;
+        const task = document.getElementById('task').value;
+        
+        return client && caseId && task;
+    }
+
+    // Update saveTimeEntry to use case data
+    function saveTimeEntry() {
+        const client = document.getElementById('client');
+        const caseSelect = document.getElementById('caseId');
+        const task = document.getElementById('task');
+        const description = document.getElementById('description').value;
+        const rate = parseFloat(document.getElementById('rate').value) || 350;
+
+        const duration = timerState.currentSeconds / 3600; // Convert to hours
+        const amount = duration * rate;
+
+        const timeEntryData = {
+            description: description,
+            hours: duration,
+            hourly_rate: rate,
+            case_id: caseSelect.value,
+            billable: true,
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        // Save via API
+        fetch('/api/time/entries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(timeEntryData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reset form and timer
+                resetTimer();
+                document.getElementById('timerForm').reset();
+                
+                // Refresh entries
+                refreshEntries();
+                updateSummaryCards();
+                
+                alert('Time entry saved successfully!');
+            } else {
+                alert('Error saving time entry: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error saving time entry:', error);
+            alert('Network error saving time entry');
+        });
+    }
+
+    // Load clients on page load
+    loadClients();
 });
 </script>
 {% endblock %}

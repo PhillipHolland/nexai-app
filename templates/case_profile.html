@@ -1,0 +1,808 @@
+{% extends "base.html" %}
+
+{% block title %}Case Details - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .case-header {
+        background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .case-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .case-meta {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .case-number {
+        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .case-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-closed {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .status-on_hold {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .case-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .case-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .case-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .case-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 0.875rem;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .description-text {
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-icon {
+        width: 2rem;
+        height: 2rem;
+        background: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+    }
+
+    .activity-description {
+        font-size: 0.875rem;
+        color: #1f2937;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .activity-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin: 0;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+        margin: 0.25rem 0 0 0;
+    }
+
+    .list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .list-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-item-content {
+        flex: 1;
+    }
+
+    .list-item-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .list-item-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .list-item-action {
+        color: #2E4B3C;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .list-item-action:hover {
+        text-decoration: underline;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        width: 3rem;
+        height: 3rem;
+        margin: 0 auto 1rem;
+        opacity: 0.5;
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .status-update-form {
+        display: flex;
+        gap: 1rem;
+        align-items: end;
+        margin-top: 1rem;
+    }
+
+    .status-select {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+    }
+
+    .update-btn {
+        background: #2E4B3C;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .update-btn:hover {
+        background: #1d2d23;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .case-content {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .case-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .case-actions {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+    <!-- Loading State -->
+    <div id="loadingContainer" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Case Content -->
+    <div id="caseContent" style="display: none;">
+        <!-- Case Header -->
+        <div class="case-header">
+            <h1 class="case-title" id="caseTitle">Loading...</h1>
+            <div class="case-meta">
+                <span class="case-number" id="caseNumber">...</span>
+                <span class="case-status" id="caseStatus">...</span>
+                <span id="casePriority">Priority: ...</span>
+            </div>
+            <div class="case-actions">
+                <a href="#" id="editCaseBtn" class="action-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit Case
+                </a>
+                <a href="/cases" class="action-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Cases
+                </a>
+            </div>
+        </div>
+
+        <!-- Case Content Grid -->
+        <div class="case-content">
+            <!-- Main Content -->
+            <div class="case-main">
+                <!-- Case Information -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Case Information
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Practice Area</span>
+                            <span class="info-value" id="practiceArea">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Case Type</span>
+                            <span class="info-value" id="caseType">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Date Opened</span>
+                            <span class="info-value" id="dateOpened">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Date Closed</span>
+                            <span class="info-value" id="dateClosed">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Statute of Limitations</span>
+                            <span class="info-value" id="statuteLimitations">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Primary Attorney</span>
+                            <span class="info-value" id="primaryAttorney">...</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;" id="caseDescriptionContainer">
+                        <div class="info-label">Description</div>
+                        <p class="description-text" id="caseDescription">...</p>
+                    </div>
+                </div>
+
+                <!-- Court Information -->
+                <div class="section-card" id="courtInfoSection">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        Court Information
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Court Name</span>
+                            <span class="info-value" id="courtName">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Judge</span>
+                            <span class="info-value" id="judgeName">...</span>
+                        </div>
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <span class="info-label">Court Case Number</span>
+                            <span class="info-value" id="courtCaseNumber">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Recent Activity
+                    </h2>
+                    <div id="recentActivity">
+                        <div class="empty-state">
+                            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p>No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="case-sidebar">
+                <!-- Case Statistics -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Statistics
+                    </h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="timeEntryCount">0</div>
+                            <div class="stat-label">Time Entries</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="documentCount">0</div>
+                            <div class="stat-label">Documents</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="taskCount">0</div>
+                            <div class="stat-label">Tasks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="attorneyCount">0</div>
+                            <div class="stat-label">Attorneys</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Information -->
+                <div class="section-card" id="financialInfoSection">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                        Financial Info
+                    </h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Hourly Rate</span>
+                            <span class="info-value" id="hourlyRate">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estimated Hours</span>
+                            <span class="info-value" id="estimatedHours">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Flat Fee</span>
+                            <span class="info-value" id="flatFee">...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Retainer</span>
+                            <span class="info-value" id="retainerAmount">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Information -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Client
+                    </h2>
+                    <div id="clientInfo">
+                        <div class="info-item">
+                            <span class="info-label">Name</span>
+                            <span class="info-value" id="clientName">...</span>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <a href="#" id="viewClientBtn" class="list-item-action">View Client Profile →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Management -->
+                <div class="section-card">
+                    <h2 class="section-title">
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                        </svg>
+                        Update Status
+                    </h2>
+                    <div class="status-update-form">
+                        <select id="newStatus" class="status-select">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="closed">Closed</option>
+                            <option value="on_hold">On Hold</option>
+                        </select>
+                        <button id="updateStatusBtn" class="update-btn">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Get case ID from URL
+const caseId = '{{ case_id }}';
+let caseData = null;
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadCase();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    document.getElementById('updateStatusBtn').addEventListener('click', updateCaseStatus);
+}
+
+async function loadCase() {
+    try {
+        const response = await fetch(`/api/cases/${caseId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            caseData = data.case;
+            displayCaseData(caseData);
+            document.getElementById('loadingContainer').style.display = 'none';
+            document.getElementById('caseContent').style.display = 'block';
+        } else {
+            showError('Failed to load case: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error loading case:', error);
+        showError('Network error while loading case');
+    }
+}
+
+function displayCaseData(case) {
+    // Header information
+    document.getElementById('caseTitle').textContent = case.title;
+    document.getElementById('caseNumber').textContent = case.case_number;
+    document.getElementById('caseStatus').textContent = case.status.replace('_', ' ').toUpperCase();
+    document.getElementById('caseStatus').className = `case-status status-${case.status}`;
+    document.getElementById('casePriority').textContent = `Priority: ${case.priority}`;
+
+    // Set edit button href
+    document.getElementById('editCaseBtn').href = `/cases/${case.id}/edit`;
+
+    // Case information
+    document.getElementById('practiceArea').textContent = case.practice_area || 'Not specified';
+    document.getElementById('caseType').textContent = case.case_type || 'Not specified';
+    document.getElementById('dateOpened').textContent = formatDate(case.date_opened);
+    document.getElementById('dateClosed').textContent = formatDate(case.date_closed) || 'Not closed';
+    document.getElementById('statuteLimitations').textContent = formatDate(case.statute_of_limitations) || 'Not set';
+    document.getElementById('primaryAttorney').textContent = case.primary_attorney?.full_name || 'Not assigned';
+    document.getElementById('caseDescription').textContent = case.description || 'No description provided';
+
+    // Court information
+    const hasCourtInfo = case.court_name || case.judge_name || case.court_case_number;
+    if (hasCourtInfo) {
+        document.getElementById('courtName').textContent = case.court_name || 'Not specified';
+        document.getElementById('judgeName').textContent = case.judge_name || 'Not specified';
+        document.getElementById('courtCaseNumber').textContent = case.court_case_number || 'Not specified';
+    } else {
+        document.getElementById('courtInfoSection').style.display = 'none';
+    }
+
+    // Statistics
+    document.getElementById('timeEntryCount').textContent = case.time_entries?.length || 0;
+    document.getElementById('documentCount').textContent = case.documents?.length || 0;
+    document.getElementById('taskCount').textContent = case.tasks?.length || 0;
+    document.getElementById('attorneyCount').textContent = (case.attorneys?.length || 0) + (case.primary_attorney ? 1 : 0);
+
+    // Financial information
+    const hasFinancialInfo = case.hourly_rate || case.estimated_hours || case.flat_fee || case.retainer_amount;
+    if (hasFinancialInfo) {
+        document.getElementById('hourlyRate').textContent = case.hourly_rate ? `$${case.hourly_rate}/hr` : 'Not set';
+        document.getElementById('estimatedHours').textContent = case.estimated_hours ? `${case.estimated_hours}h` : 'Not set';
+        document.getElementById('flatFee').textContent = case.flat_fee ? `$${case.flat_fee}` : 'Not set';
+        document.getElementById('retainerAmount').textContent = case.retainer_amount ? `$${case.retainer_amount}` : 'Not set';
+    } else {
+        document.getElementById('financialInfoSection').style.display = 'none';
+    }
+
+    // Client information
+    if (case.client) {
+        document.getElementById('clientName').textContent = case.client.display_name;
+        document.getElementById('viewClientBtn').href = `/clients/${case.client.id}`;
+    }
+
+    // Recent activity
+    displayRecentActivity(case.recent_activity || []);
+
+    // Set current status in dropdown
+    document.getElementById('newStatus').value = case.status;
+}
+
+function displayRecentActivity(activity) {
+    const container = document.getElementById('recentActivity');
+    
+    if (!activity || activity.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p>No recent activity</p>
+            </div>
+        `;
+        return;
+    }
+
+    const activityHtml = activity.map(item => `
+        <div class="activity-item">
+            <div class="activity-icon">
+                ${getActivityIcon(item.type)}
+            </div>
+            <div class="activity-content">
+                <div class="activity-description">${item.description}</div>
+                <div class="activity-meta">${item.user} • ${formatDateTime(item.timestamp)}</div>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = activityHtml;
+}
+
+function getActivityIcon(type) {
+    const icons = {
+        time_entry: '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+        document: '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>',
+        task: '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>'
+    };
+    return icons[type] || icons.document;
+}
+
+async function updateCaseStatus() {
+    const newStatus = document.getElementById('newStatus').value;
+    const updateBtn = document.getElementById('updateStatusBtn');
+    
+    if (newStatus === caseData.status) return;
+
+    updateBtn.disabled = true;
+    updateBtn.textContent = 'Updating...';
+
+    try {
+        const response = await fetch(`/api/cases/${caseId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update UI
+            caseData.status = newStatus;
+            document.getElementById('caseStatus').textContent = newStatus.replace('_', ' ').toUpperCase();
+            document.getElementById('caseStatus').className = `case-status status-${newStatus}`;
+            
+            // Show success message
+            showSuccess('Case status updated successfully');
+        } else {
+            showError('Failed to update status: ' + data.error);
+            // Reset dropdown
+            document.getElementById('newStatus').value = caseData.status;
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showError('Network error while updating status');
+        // Reset dropdown
+        document.getElementById('newStatus').value = caseData.status;
+    } finally {
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Update';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return 'Unknown time';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
+}
+
+function showError(message) {
+    const container = document.getElementById('loadingContainer');
+    container.innerHTML = `
+        <div class="empty-state">
+            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3>Error Loading Case</h3>
+            <p>${message}</p>
+            <button onclick="loadCase()" class="update-btn" style="margin-top: 1rem;">Retry</button>
+        </div>
+    `;
+    container.style.display = 'block';
+    document.getElementById('caseContent').style.display = 'none';
+}
+
+function showSuccess(message) {
+    // Create temporary success notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dcfce7;
+        color: #166534;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        font-weight: 500;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

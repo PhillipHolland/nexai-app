@@ -267,6 +267,46 @@ def client_new_page():
         logger.error(f"Client new page error: {e}")
         return f"Client new error: {e}", 500
 
+@app.route('/cases')
+@login_required
+def cases_page():
+    """Case management page"""
+    try:
+        return render_template('cases.html')
+    except Exception as e:
+        logger.error(f"Cases page error: {e}")
+        return f"Cases error: {e}", 500
+
+@app.route('/cases/<case_id>')
+@login_required
+def case_profile_page(case_id):
+    """Individual case profile page"""
+    try:
+        return render_template('case_profile.html', case_id=case_id)
+    except Exception as e:
+        logger.error(f"Case profile page error: {e}")
+        return f"Case profile error: {e}", 500
+
+@app.route('/cases/<case_id>/edit')
+@login_required
+def case_edit_page(case_id):
+    """Case edit page"""
+    try:
+        return render_template('case_edit.html', case_id=case_id)
+    except Exception as e:
+        logger.error(f"Case edit page error: {e}")
+        return f"Case edit error: {e}", 500
+
+@app.route('/cases/new')
+@login_required
+def case_new_page():
+    """New case creation page"""
+    try:
+        return render_template('case_new.html')
+    except Exception as e:
+        logger.error(f"Case new page error: {e}")
+        return f"Case new error: {e}", 500
+
 @app.route('/login')
 def login_page():
     """Login page"""
@@ -2326,6 +2366,649 @@ def _delete_mock_client(client_id):
     return jsonify({
         'success': True,
         'message': 'Client deactivated successfully (mock data)'
+    })
+
+# ===== CASE MANAGEMENT APIs =====
+
+@app.route('/api/cases', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_cases():
+    """Get all cases with optional search and filtering"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_cases()
+        
+        # Get query parameters
+        search = request.args.get('search', '').strip()
+        status = request.args.get('status', '')
+        practice_area = request.args.get('practice_area', '')
+        client_id = request.args.get('client_id', '')
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        
+        # Get current user for role-based filtering
+        user_id = session.get('user_id', '1')
+        user_role = session.get('user_role', 'associate')
+        
+        # Build query - show all cases for admin/partner, own assigned cases for others
+        if user_role in ['admin', 'partner']:
+            query = Case.query
+        else:
+            # Show cases where user is primary attorney or assigned attorney
+            query = Case.query.filter(
+                db.or_(
+                    Case.primary_attorney_id == user_id,
+                    Case.attorneys.any(User.id == user_id)
+                )
+            )
+        
+        # Apply filters
+        if search:
+            query = query.filter(
+                db.or_(
+                    Case.title.ilike(f'%{search}%'),
+                    Case.case_number.ilike(f'%{search}%'),
+                    Case.description.ilike(f'%{search}%')
+                )
+            )
+        
+        if status:
+            query = query.filter(Case.status == status)
+            
+        if practice_area:
+            query = query.filter(Case.practice_area.ilike(f'%{practice_area}%'))
+            
+        if client_id:
+            query = query.filter(Case.client_id == client_id)
+        
+        # Get total count for pagination
+        total = query.count()
+        
+        # Apply pagination and ordering
+        cases = query.order_by(Case.created_at.desc()).offset((page - 1) * per_page).limit(per_page).all()
+        
+        # Convert to dictionaries with additional details
+        cases_data = []
+        for case in cases:
+            case_dict = case.to_dict()
+            case_dict.update({
+                'client_id': case.client_id,
+                'primary_attorney_name': case.primary_attorney.get_full_name() if case.primary_attorney else None,
+                'court_name': case.court_name,
+                'judge_name': case.judge_name,
+                'date_closed': case.date_closed.isoformat() if case.date_closed else None,
+                'statute_of_limitations': case.statute_of_limitations.isoformat() if case.statute_of_limitations else None,
+                'estimated_hours': float(case.estimated_hours) if case.estimated_hours else None,
+                'hourly_rate': float(case.hourly_rate) if case.hourly_rate else None,
+                'flat_fee': float(case.flat_fee) if case.flat_fee else None,
+                'retainer_amount': float(case.retainer_amount) if case.retainer_amount else None,
+                'attorney_count': len(case.attorneys),
+                'task_count': case.tasks.count(),
+                'document_count': case.documents.count(),
+                'time_entry_count': case.time_entries.count()
+            })
+            cases_data.append(case_dict)
+        
+        return jsonify({
+            'success': True,
+            'cases': cases_data,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'pages': (total + per_page - 1) // per_page
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get cases error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve cases'
+        }), 500
+
+@app.route('/api/cases', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_create_case():
+    """Create a new case"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'practice_area', 'client_id', 'date_opened']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({
+                    'success': False,
+                    'error': f'Missing required field: {field}'
+                }), 400
+        
+        if not DATABASE_AVAILABLE:
+            return _create_mock_case(data)
+        
+        # Get current user
+        user_id = session.get('user_id', '1')
+        
+        # Verify client exists
+        client = Client.query.get(data['client_id'])
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Generate unique case number
+        case_number = data.get('case_number')
+        if not case_number:
+            # Auto-generate case number: YYYY-CLIENT_INITIALS-XXXX
+            from datetime import datetime
+            year = datetime.now().year
+            client_initials = ''.join([word[0] for word in client.get_display_name().split()][:2]).upper()
+            # Find next number for this client
+            existing_count = Case.query.filter(Case.case_number.like(f'{year}-{client_initials}-%')).count()
+            case_number = f'{year}-{client_initials}-{existing_count + 1:04d}'
+        
+        # Check for duplicate case number
+        if Case.query.filter_by(case_number=case_number).first():
+            return jsonify({
+                'success': False,
+                'error': 'Case number already exists'
+            }), 400
+        
+        # Parse date
+        from datetime import datetime
+        date_opened = datetime.strptime(data['date_opened'], '%Y-%m-%d').date()
+        
+        # Create case
+        case = Case(
+            case_number=case_number,
+            title=data['title'],
+            description=data.get('description', ''),
+            practice_area=data['practice_area'],
+            case_type=data.get('case_type', ''),
+            status=CaseStatus.ACTIVE,
+            priority=data.get('priority', 'medium'),
+            court_name=data.get('court_name', ''),
+            judge_name=data.get('judge_name', ''),
+            court_case_number=data.get('court_case_number', ''),
+            date_opened=date_opened,
+            client_id=data['client_id'],
+            primary_attorney_id=data.get('primary_attorney_id', user_id)
+        )
+        
+        # Set optional dates
+        if data.get('date_closed'):
+            case.date_closed = datetime.strptime(data['date_closed'], '%Y-%m-%d').date()
+        if data.get('statute_of_limitations'):
+            case.statute_of_limitations = datetime.strptime(data['statute_of_limitations'], '%Y-%m-%d').date()
+        
+        # Set financial information
+        if data.get('estimated_hours'):
+            case.estimated_hours = Decimal(str(data['estimated_hours']))
+        if data.get('hourly_rate'):
+            case.hourly_rate = Decimal(str(data['hourly_rate']))
+        if data.get('flat_fee'):
+            case.flat_fee = Decimal(str(data['flat_fee']))
+        if data.get('retainer_amount'):
+            case.retainer_amount = Decimal(str(data['retainer_amount']))
+        
+        db.session.add(case)
+        db.session.commit()
+        
+        # Add assigned attorneys if provided
+        if data.get('attorney_ids'):
+            for attorney_id in data['attorney_ids']:
+                attorney = User.query.get(attorney_id)
+                if attorney and attorney.role.value in ['admin', 'partner', 'associate']:
+                    case.attorneys.append(attorney)
+            db.session.commit()
+        
+        # Create audit log
+        audit_log('create', 'case', case.id, user_id, {
+            'case_number': case_number,
+            'title': data['title'],
+            'client_id': data['client_id']
+        })
+        
+        logger.info(f"Case created: {case.id} - {case_number}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Case created successfully',
+            'case': case.to_dict()
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Create case error: {e}")
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create case'
+        }), 500
+
+@app.route('/api/cases/<case_id>', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_get_case(case_id):
+    """Get a specific case with full details"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_case(case_id)
+        
+        case = Case.query.get(case_id)
+        if not case:
+            return jsonify({
+                'success': False,
+                'error': 'Case not found'
+            }), 404
+        
+        # Check permission - user must be assigned to case or have admin/partner role
+        user_id = session.get('user_id', '1')
+        user_role = session.get('user_role', 'associate')
+        
+        if user_role not in ['admin', 'partner']:
+            if case.primary_attorney_id != user_id and not any(attorney.id == user_id for attorney in case.attorneys):
+                return jsonify({
+                    'success': False,
+                    'error': 'Access denied - not assigned to this case'
+                }), 403
+        
+        # Get comprehensive case details
+        case_data = case.to_dict()
+        case_data.update({
+            'client': case.client.to_dict() if case.client else None,
+            'primary_attorney': case.primary_attorney.to_dict() if case.primary_attorney else None,
+            'attorneys': [attorney.to_dict() for attorney in case.attorneys],
+            'court_name': case.court_name,
+            'judge_name': case.judge_name,
+            'court_case_number': case.court_case_number,
+            'date_closed': case.date_closed.isoformat() if case.date_closed else None,
+            'statute_of_limitations': case.statute_of_limitations.isoformat() if case.statute_of_limitations else None,
+            'estimated_hours': float(case.estimated_hours) if case.estimated_hours else None,
+            'hourly_rate': float(case.hourly_rate) if case.hourly_rate else None,
+            'flat_fee': float(case.flat_fee) if case.flat_fee else None,
+            'retainer_amount': float(case.retainer_amount) if case.retainer_amount else None,
+            'tasks': [task.to_dict() for task in case.tasks.order_by(Task.created_at.desc()).limit(10)],
+            'documents': [doc.to_dict() for doc in case.documents.order_by(Document.created_at.desc()).limit(10)],
+            'time_entries': [entry.to_dict() for entry in case.time_entries.order_by(TimeEntry.created_at.desc()).limit(10)],
+            'recent_activity': _get_case_recent_activity(case)
+        })
+        
+        return jsonify({
+            'success': True,
+            'case': case_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Get case error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve case'
+        }), 500
+
+@app.route('/api/cases/<case_id>', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_update_case(case_id):
+    """Update a case"""
+    try:
+        data = request.get_json()
+        
+        if not DATABASE_AVAILABLE:
+            return _update_mock_case(case_id, data)
+        
+        case = Case.query.get(case_id)
+        if not case:
+            return jsonify({
+                'success': False,
+                'error': 'Case not found'
+            }), 404
+        
+        # Check permission
+        user_id = session.get('user_id', '1')
+        user_role = session.get('user_role', 'associate')
+        
+        if user_role not in ['admin', 'partner']:
+            if case.primary_attorney_id != user_id:
+                return jsonify({
+                    'success': False,
+                    'error': 'Access denied - only primary attorney or admin/partner can update case'
+                }), 403
+        
+        # Store old values for audit
+        old_values = {
+            'title': case.title,
+            'status': case.status.value,
+            'priority': case.priority
+        }
+        
+        # Update fields
+        if 'title' in data:
+            case.title = data['title']
+        if 'description' in data:
+            case.description = data['description']
+        if 'practice_area' in data:
+            case.practice_area = data['practice_area']
+        if 'case_type' in data:
+            case.case_type = data['case_type']
+        if 'status' in data:
+            case.status = CaseStatus(data['status'])
+        if 'priority' in data:
+            case.priority = data['priority']
+        if 'court_name' in data:
+            case.court_name = data['court_name']
+        if 'judge_name' in data:
+            case.judge_name = data['judge_name']
+        if 'court_case_number' in data:
+            case.court_case_number = data['court_case_number']
+        
+        # Update dates
+        if 'date_closed' in data and data['date_closed']:
+            case.date_closed = datetime.strptime(data['date_closed'], '%Y-%m-%d').date()
+        if 'statute_of_limitations' in data and data['statute_of_limitations']:
+            case.statute_of_limitations = datetime.strptime(data['statute_of_limitations'], '%Y-%m-%d').date()
+        
+        # Update financial fields
+        if 'estimated_hours' in data and data['estimated_hours']:
+            case.estimated_hours = Decimal(str(data['estimated_hours']))
+        if 'hourly_rate' in data and data['hourly_rate']:
+            case.hourly_rate = Decimal(str(data['hourly_rate']))
+        if 'flat_fee' in data and data['flat_fee']:
+            case.flat_fee = Decimal(str(data['flat_fee']))
+        if 'retainer_amount' in data and data['retainer_amount']:
+            case.retainer_amount = Decimal(str(data['retainer_amount']))
+        
+        # Update primary attorney
+        if 'primary_attorney_id' in data:
+            attorney = User.query.get(data['primary_attorney_id'])
+            if attorney and attorney.role.value in ['admin', 'partner', 'associate']:
+                case.primary_attorney_id = data['primary_attorney_id']
+        
+        db.session.commit()
+        
+        # Update assigned attorneys if provided
+        if 'attorney_ids' in data:
+            # Clear existing assignments
+            case.attorneys.clear()
+            # Add new assignments
+            for attorney_id in data['attorney_ids']:
+                attorney = User.query.get(attorney_id)
+                if attorney and attorney.role.value in ['admin', 'partner', 'associate']:
+                    case.attorneys.append(attorney)
+            db.session.commit()
+        
+        # Create audit log
+        new_values = {
+            'title': case.title,
+            'status': case.status.value,
+            'priority': case.priority
+        }
+        
+        audit_log('update', 'case', case.id, user_id, {
+            'old_values': old_values,
+            'new_values': new_values
+        })
+        
+        logger.info(f"Case updated: {case.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Case updated successfully',
+            'case': case.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Update case error: {e}")
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update case'
+        }), 500
+
+@app.route('/api/cases/<case_id>/status', methods=['PUT'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_update_case_status(case_id):
+    """Update case status (active -> pending -> closed -> on_hold)"""
+    try:
+        data = request.get_json()
+        
+        if 'status' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Status is required'
+            }), 400
+        
+        if not DATABASE_AVAILABLE:
+            return _update_mock_case_status(case_id, data['status'])
+        
+        case = Case.query.get(case_id)
+        if not case:
+            return jsonify({
+                'success': False,
+                'error': 'Case not found'
+            }), 404
+        
+        old_status = case.status.value
+        new_status = data['status']
+        
+        # Validate status transition
+        valid_statuses = ['active', 'pending', 'closed', 'on_hold']
+        if new_status not in valid_statuses:
+            return jsonify({
+                'success': False,
+                'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'
+            }), 400
+        
+        case.status = CaseStatus(new_status)
+        
+        # Set date_closed if closing case
+        if new_status == 'closed' and not case.date_closed:
+            case.date_closed = datetime.now(timezone.utc).date()
+        elif new_status != 'closed':
+            case.date_closed = None
+        
+        db.session.commit()
+        
+        # Create audit log
+        user_id = session.get('user_id', '1')
+        audit_log('update', 'case', case.id, user_id, {
+            'action': 'status_change',
+            'old_status': old_status,
+            'new_status': new_status,
+            'notes': data.get('notes', '')
+        })
+        
+        logger.info(f"Case status updated: {case.id} from {old_status} to {new_status}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Case status updated to {new_status}',
+            'case': case.to_dict()
+        })
+        
+    except Exception as e:
+        logger.error(f"Update case status error: {e}")
+        if DATABASE_AVAILABLE:
+            db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update case status'
+        }), 500
+
+def _get_case_recent_activity(case):
+    """Get recent activity for a case"""
+    try:
+        activity = []
+        
+        # Recent time entries
+        recent_time = case.time_entries.order_by(TimeEntry.created_at.desc()).limit(3).all()
+        for entry in recent_time:
+            activity.append({
+                'type': 'time_entry',
+                'description': f'Time logged: {entry.hours}h - {entry.description[:50]}...',
+                'user': entry.user.get_full_name() if entry.user else 'Unknown',
+                'timestamp': entry.created_at.isoformat()
+            })
+        
+        # Recent documents
+        recent_docs = case.documents.order_by(Document.created_at.desc()).limit(3).all()
+        for doc in recent_docs:
+            activity.append({
+                'type': 'document',
+                'description': f'Document added: {doc.title}',
+                'user': doc.created_by_user.get_full_name() if doc.created_by_user else 'Unknown',
+                'timestamp': doc.created_at.isoformat()
+            })
+        
+        # Sort by timestamp and return most recent
+        activity.sort(key=lambda x: x['timestamp'], reverse=True)
+        return activity[:5]
+        
+    except Exception as e:
+        logger.error(f"Get case activity error: {e}")
+        return []
+
+# Mock functions for database fallback
+def _get_mock_cases():
+    """Return mock cases data"""
+    import random
+    cases = [
+        {
+            'id': '1',
+            'case_number': '2024-JD-0001',
+            'title': 'Personal Injury - Car Accident',
+            'description': 'Client injured in rear-end collision on Highway 101',
+            'practice_area': 'Personal Injury',
+            'status': 'active',
+            'priority': 'high',
+            'client_name': 'John Doe',
+            'primary_attorney_name': 'Attorney Smith',
+            'date_opened': '2024-01-15',
+            'estimated_hours': 120.0,
+            'hourly_rate': 350.0,
+            'task_count': 8,
+            'document_count': 15,
+            'time_entry_count': 25,
+            'created_at': datetime.now().isoformat()
+        },
+        {
+            'id': '2',
+            'case_number': '2024-AC-0002',
+            'title': 'Contract Dispute - Business Partnership',
+            'description': 'Partnership dissolution and asset distribution',
+            'practice_area': 'Business Law',
+            'status': 'pending',
+            'priority': 'medium',
+            'client_name': 'Acme Corp',
+            'primary_attorney_name': 'Attorney Johnson',
+            'date_opened': '2024-02-01',
+            'estimated_hours': 80.0,
+            'hourly_rate': 400.0,
+            'task_count': 5,
+            'document_count': 12,
+            'time_entry_count': 18,
+            'created_at': datetime.now().isoformat()
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'cases': cases,
+        'pagination': {
+            'page': 1,
+            'per_page': 20,
+            'total': len(cases),
+            'pages': 1
+        }
+    })
+
+def _create_mock_case(data):
+    """Create mock case"""
+    import uuid
+    import random
+    case = {
+        'id': str(uuid.uuid4()),
+        'case_number': data.get('case_number', f'2024-{data["title"][:2].upper()}-{random.randint(1000, 9999)}'),
+        'title': data['title'],
+        'description': data.get('description', ''),
+        'practice_area': data['practice_area'],
+        'status': 'active',
+        'priority': data.get('priority', 'medium'),
+        'client_name': 'Mock Client',
+        'date_opened': data['date_opened'],
+        'created_at': datetime.now().isoformat()
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Case created successfully (demo mode)',
+        'case': case
+    }), 201
+
+def _get_mock_case(case_id):
+    """Get mock case details"""
+    case = {
+        'id': case_id,
+        'case_number': '2024-JD-0001',
+        'title': 'Personal Injury - Car Accident',
+        'description': 'Client injured in rear-end collision on Highway 101',
+        'practice_area': 'Personal Injury',
+        'status': 'active',
+        'priority': 'high',
+        'client': {
+            'id': '1',
+            'display_name': 'John Doe',
+            'email': 'john.doe@email.com'
+        },
+        'primary_attorney': {
+            'id': '1',
+            'full_name': 'Attorney Smith',
+            'email': 'attorney@lawfirm.com'
+        },
+        'attorneys': [],
+        'date_opened': '2024-01-15',
+        'estimated_hours': 120.0,
+        'hourly_rate': 350.0,
+        'tasks': [],
+        'documents': [],
+        'time_entries': [],
+        'recent_activity': [],
+        'created_at': datetime.now().isoformat()
+    }
+    
+    return jsonify({
+        'success': True,
+        'case': case
+    })
+
+def _update_mock_case(case_id, data):
+    """Update mock case"""
+    return jsonify({
+        'success': True,
+        'message': 'Case updated successfully (demo mode)',
+        'case': {
+            'id': case_id,
+            'title': data.get('title', 'Updated Case'),
+            'status': data.get('status', 'active'),
+            'updated_at': datetime.now().isoformat()
+        }
+    })
+
+def _update_mock_case_status(case_id, status):
+    """Update mock case status"""
+    return jsonify({
+        'success': True,
+        'message': f'Case status updated to {status} (demo mode)',
+        'case': {
+            'id': case_id,
+            'status': status,
+            'updated_at': datetime.now().isoformat()
+        }
     })
 
 # ===== ERROR HANDLERS =====
