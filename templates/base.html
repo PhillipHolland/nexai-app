@@ -574,15 +574,25 @@
             // Check authentication status
             checkAuthStatus();
             
+            console.log('Initializing dropdown functionality...');
             const dropdowns = document.querySelectorAll('.base-dropdown');
+            console.log('Found dropdowns:', dropdowns.length);
             
-            dropdowns.forEach(dropdown => {
+            dropdowns.forEach((dropdown, index) => {
                 const button = dropdown.querySelector('button');
                 const menu = dropdown.querySelector('.base-dropdown-menu');
                 
+                console.log(`Dropdown ${index}:`, { button: !!button, menu: !!menu });
+                
                 if (button && menu) {
+                    // Ensure menu starts hidden
+                    menu.classList.add('hidden');
+                    menu.style.display = 'none';
                     button.addEventListener('click', function(e) {
+                        e.preventDefault();
                         e.stopPropagation();
+                        
+                        console.log('Dropdown button clicked:', index);
                         
                         // Close other dropdowns
                         dropdowns.forEach(otherDropdown => {
@@ -590,24 +600,41 @@
                                 const otherMenu = otherDropdown.querySelector('.base-dropdown-menu');
                                 if (otherMenu) {
                                     otherMenu.classList.add('hidden');
+                                    otherMenu.style.display = 'none';
                                 }
                             }
                         });
                         
                         // Toggle current dropdown
-                        menu.classList.toggle('hidden');
+                        const isHidden = menu.classList.contains('hidden');
+                        console.log('Menu was hidden:', isHidden);
+                        console.log('Menu current classes:', menu.className);
+                        
+                        if (isHidden) {
+                            menu.classList.remove('hidden');
+                            menu.style.display = 'block';
+                        } else {
+                            menu.classList.add('hidden');
+                            menu.style.display = 'none';
+                        }
+                        
+                        console.log('Menu now hidden:', menu.classList.contains('hidden'));
+                        console.log('Menu display style:', menu.style.display);
                     });
                 }
             });
             
             // Close dropdowns when clicking outside
-            document.addEventListener('click', function() {
-                dropdowns.forEach(dropdown => {
-                    const menu = dropdown.querySelector('.base-dropdown-menu');
-                    if (menu) {
-                        menu.classList.add('hidden');
-                    }
-                });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.base-dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        const menu = dropdown.querySelector('.base-dropdown-menu');
+                        if (menu) {
+                            menu.classList.add('hidden');
+                            menu.style.display = 'none';
+                        }
+                    });
+                }
             });
         });
     </script>
