@@ -962,24 +962,31 @@ body {
     overflow: hidden;
 }
 
-/* Active state for current page - Simple text color change */
+/* Dashboard button styling - like "Enter Platform" */
 .main-nav .nav-item.active,
 .main-nav .nav-item > a.active,
 .main-nav .nav-item > a[aria-current="page"],
 .main-nav a.nav-item.active,
 .main-nav a.nav-item:is(.active),
 .main-nav a[class*="active"] {
-    color: #F7EDDA !important; /* Light cream text like logo */
+    background-color: #FFA74F !important; /* warm-orange */
+    color: #2E4B3C !important; /* dark-green text */
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* Active state hover - keep same light cream color */
+/* Dashboard button hover state */
 .main-nav .nav-item.active:hover,
 .main-nav .nav-item > a.active:hover,
 .main-nav .nav-item > a[aria-current="page"]:hover,
 .main-nav a.nav-item.active:hover,
 .main-nav a.nav-item:is(.active):hover,
 .main-nav a[class*="active"]:hover {
-    color: #F7EDDA !important; /* Keep light cream text on hover */
+    background-color: #F0531C !important; /* bright-coral */
+    color: #2E4B3C !important; /* dark-green text */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
 
@@ -1060,7 +1067,7 @@ body {
     padding: 1rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
+    color: #1f2937; /* Darker text for better desktop readability */
     text-decoration: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -1417,6 +1424,7 @@ body {
     padding-left: 2rem;
     border-left: 2px solid rgba(255, 167, 79, 0.3);
     font-size: 0.9rem;
+    color: #F7EDDA; /* Light cream for mobile readability */
 }
 
 .base-mobile-link.submenu.active {
