@@ -672,10 +672,12 @@ body {
     display: none; /* Chrome, Safari and Opera */
 }
 
-/* Mobile navigation adjustments */
+/* Mobile navigation adjustments - FIXED TO ALWAYS SHOW MENUS */
 @media (max-width: 767px) {
     .base-nav-main {
-        display: none; /* Hide on mobile, use mobile menu instead */
+        display: flex; /* ALWAYS SHOW - don't hide navigation! */
+        flex-direction: column;
+        gap: 0.5rem;
     }
 }
 

@@ -223,7 +223,7 @@
                         <button class="base-user-avatar" id="userMenuButton">
                             <span id="userInitials">DU</span>
                         </button>
-                        <div class="base-dropdown-menu base-user-dropdown hidden">
+                        <div class="base-dropdown-menu base-user-dropdown" style="display: none;">
                             <div class="base-user-info">
                                 <div class="base-user-name" id="userName">Demo User</div>
                                 <div class="base-user-email" id="userEmail">demo@lexai.com</div>
@@ -468,7 +468,22 @@
             checkAuthStatus();
         });
 
-        // Pure CSS dropdowns - no JavaScript needed!
+        // User dropdown functionality
+        document.getElementById('userMenuButton').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.querySelector('.base-user-dropdown');
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', function() {
+            const dropdown = document.querySelector('.base-user-dropdown');
+            dropdown.style.display = 'none';
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
