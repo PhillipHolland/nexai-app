@@ -1,0 +1,835 @@
+{% extends "base.html" %}
+
+{% block title %}AI Document Analysis - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .analysis-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .analysis-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .analysis-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .analysis-main {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .analysis-main {
+            grid-template-columns: 1fr 400px;
+        }
+    }
+
+    .document-input {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .input-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .input-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .input-body {
+        padding: 1.5rem;
+    }
+
+    .document-textarea {
+        width: 100%;
+        min-height: 300px;
+        padding: 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        resize: vertical;
+    }
+
+    .document-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 2px rgba(46, 75, 60, 0.1);
+    }
+
+    .file-upload {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .file-upload:hover {
+        border-color: #2E4B3C;
+        background-color: #f9fafb;
+    }
+
+    .file-upload.dragover {
+        border-color: #2E4B3C;
+        background-color: #f0f9ff;
+    }
+
+    .upload-text {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .analysis-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .action-btn {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+
+    .action-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .action-btn.secondary {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+
+    .action-btn.secondary:hover {
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .results-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+
+    .results-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .results-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .results-body {
+        padding: 1.5rem;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .result-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .result-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .result-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .result-content {
+        color: #6b7280;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #2E4B3C;
+    }
+
+    .confidence-score {
+        display: inline-block;
+        background: #10b981;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    .confidence-score.medium {
+        background: #f59e0b;
+    }
+
+    .confidence-score.low {
+        background: #ef4444;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f4f6;
+        border-top: 2px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6b7280;
+    }
+
+    .empty-state svg {
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .error-message {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 6px;
+        border-left: 4px solid #dc2626;
+        margin-bottom: 1rem;
+    }
+
+    .tag {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .extraction-item {
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid #2E4B3C;
+    }
+
+    .extraction-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .extraction-value {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .tabs {
+        display: flex;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+    }
+
+    .tab {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        font-weight: 500;
+        color: #6b7280;
+        transition: all 0.2s ease;
+    }
+
+    .tab.active {
+        color: #2E4B3C;
+        border-bottom-color: #2E4B3C;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1024px) {
+        .analysis-main {
+            grid-template-columns: 1fr;
+        }
+        
+        .analysis-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .analysis-container {
+            padding: 1rem;
+        }
+        
+        .analysis-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        
+        .analysis-title {
+            font-size: 1.5rem;
+        }
+        
+        .analysis-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-container">
+    <div class="analysis-header">
+        <h1 class="analysis-title">🤖 AI Document Analysis</h1>
+    </div>
+    
+    <div class="analysis-main">
+        <!-- Document Input Section -->
+        <div class="document-input">
+            <div class="input-header">
+                <h2 class="input-title">📄 Document Input</h2>
+            </div>
+            <div class="input-body">
+                <!-- File Upload -->
+                <div class="file-upload" id="fileUpload">
+                    <div>📁 Drop files here or click to browse</div>
+                    <div class="upload-text">Supports PDF, DOCX, TXT files</div>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display: none;">
+                </div>
+                
+                <!-- Text Input -->
+                <textarea id="documentText" class="document-textarea" 
+                          placeholder="Paste your document text here or upload a file above..."></textarea>
+                
+                <!-- Analysis Actions -->
+                <div class="analysis-actions">
+                    <button class="action-btn" onclick="analyzeDocument()">
+                        🔍 Analyze Document
+                    </button>
+                    <button class="action-btn" onclick="categorizeDocument()">
+                        📂 Categorize
+                    </button>
+                    <button class="action-btn secondary" onclick="extractInfo()">
+                        📋 Extract Info
+                    </button>
+                    <button class="action-btn secondary" onclick="summarizeDocument()">
+                        📝 Summarize
+                    </button>
+                    <button class="action-btn" onclick="findSimilar()">
+                        🔗 Find Similar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Panel -->
+        <div class="results-panel">
+            <div class="results-header">
+                <h2 class="results-title">📊 Analysis Results</h2>
+            </div>
+            <div class="results-body">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('analysis')">Analysis</div>
+                    <div class="tab" onclick="showTab('categorization')">Category</div>
+                    <div class="tab" onclick="showTab('extraction')">Extraction</div>
+                    <div class="tab" onclick="showTab('summary')">Summary</div>
+                    <div class="tab" onclick="showTab('similar')">Similar</div>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div id="analysis-tab" class="tab-content active">
+                    <div id="analysisResults" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p>No analysis results yet. Upload a document and click "Analyze Document" to get started.</p>
+                    </div>
+                </div>
+                
+                <div id="categorization-tab" class="tab-content">
+                    <div id="categorizationResults" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <p>No categorization results yet. Click "Categorize" to classify your document.</p>
+                    </div>
+                </div>
+                
+                <div id="extraction-tab" class="tab-content">
+                    <div id="extractionResults" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p>No extraction results yet. Click "Extract Info" to pull key information from your document.</p>
+                    </div>
+                </div>
+                
+                <div id="summary-tab" class="tab-content">
+                    <div id="summaryResults" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4 6h16M4 12h16M4 18h7"/>
+                        </svg>
+                        <p>No summary available yet. Click "Summarize" to generate a document summary.</p>
+                    </div>
+                </div>
+                
+                <div id="similar-tab" class="tab-content">
+                    <div id="similarResults" class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                        </svg>
+                        <p>No similar documents found yet. Click "Find Similar" to locate related documents.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDocument = '';
+    let analysisInProgress = false;
+
+    // File upload handling
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    document.getElementById('fileUpload').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    // Drag and drop
+    document.getElementById('fileUpload').addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('dragover');
+    });
+
+    document.getElementById('fileUpload').addEventListener('dragleave', (e) => {
+        e.currentTarget.classList.remove('dragover');
+    });
+
+    document.getElementById('fileUpload').addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload({ target: { files: files } });
+        }
+    });
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target.result;
+            document.getElementById('documentText').value = text;
+            currentDocument = text;
+        };
+        reader.readAsText(file);
+    }
+
+    function showTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        document.getElementById(tabName + '-tab').classList.add('active');
+        
+        // Add active class to clicked tab
+        event.target.classList.add('active');
+    }
+
+    function setLoading(resultId, isLoading) {
+        const element = document.getElementById(resultId);
+        if (isLoading) {
+            element.innerHTML = '<div class="loading-spinner"></div> Processing...';
+        }
+    }
+
+    function showError(resultId, message) {
+        const element = document.getElementById(resultId);
+        element.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    async function analyzeDocument() {
+        const text = document.getElementById('documentText').value.trim();
+        if (!text) {
+            alert('Please enter document text or upload a file');
+            return;
+        }
+
+        if (analysisInProgress) return;
+        analysisInProgress = true;
+
+        setLoading('analysisResults', true);
+        showTab('analysis');
+
+        try {
+            const response = await fetch('/api/documents/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayAnalysisResults(data.analysis);
+            } else {
+                showError('analysisResults', data.error || 'Analysis failed');
+            }
+        } catch (error) {
+            showError('analysisResults', 'Network error occurred');
+        } finally {
+            analysisInProgress = false;
+        }
+    }
+
+    async function categorizeDocument() {
+        const text = document.getElementById('documentText').value.trim();
+        if (!text) {
+            alert('Please enter document text or upload a file');
+            return;
+        }
+
+        setLoading('categorizationResults', true);
+        showTab('categorization');
+
+        try {
+            const response = await fetch('/api/documents/categorize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text, filename: 'document.txt' })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayCategorizationResults(data.categorization);
+            } else {
+                showError('categorizationResults', data.error || 'Categorization failed');
+            }
+        } catch (error) {
+            showError('categorizationResults', 'Network error occurred');
+        }
+    }
+
+    async function extractInfo() {
+        const text = document.getElementById('documentText').value.trim();
+        if (!text) {
+            alert('Please enter document text or upload a file');
+            return;
+        }
+
+        setLoading('extractionResults', true);
+        showTab('extraction');
+
+        try {
+            const response = await fetch('/api/documents/extract', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text, document_type: 'general' })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayExtractionResults(data.extraction);
+            } else {
+                showError('extractionResults', data.error || 'Extraction failed');
+            }
+        } catch (error) {
+            showError('extractionResults', 'Network error occurred');
+        }
+    }
+
+    async function summarizeDocument() {
+        const text = document.getElementById('documentText').value.trim();
+        if (!text) {
+            alert('Please enter document text or upload a file');
+            return;
+        }
+
+        setLoading('summaryResults', true);
+        showTab('summary');
+
+        try {
+            const response = await fetch('/api/documents/summarize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text, summary_type: 'standard' })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displaySummaryResults(data.summary);
+            } else {
+                showError('summaryResults', data.error || 'Summarization failed');
+            }
+        } catch (error) {
+            showError('summaryResults', 'Network error occurred');
+        }
+    }
+
+    async function findSimilar() {
+        const text = document.getElementById('documentText').value.trim();
+        if (!text) {
+            alert('Please enter document text or upload a file');
+            return;
+        }
+
+        setLoading('similarResults', true);
+        showTab('similar');
+
+        try {
+            const response = await fetch('/api/documents/search-similar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text, limit: 10 })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displaySimilarResults(data.similar_documents);
+            } else {
+                showError('similarResults', data.error || 'Similarity search failed');
+            }
+        } catch (error) {
+            showError('similarResults', 'Network error occurred');
+        }
+    }
+
+    function displayAnalysisResults(analysis) {
+        const confidenceClass = analysis.confidence >= 0.8 ? 'high' : 
+                               analysis.confidence >= 0.6 ? 'medium' : 'low';
+        
+        document.getElementById('analysisResults').innerHTML = `
+            <div class="result-section">
+                <div class="result-label">
+                    🔍 Full Analysis
+                    <span class="confidence-score ${confidenceClass}">${(analysis.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="result-content">${analysis.full_analysis || 'No detailed analysis available'}</div>
+            </div>
+            <div class="result-section">
+                <div class="result-label">📊 Document Statistics</div>
+                <div class="result-content">
+                    <strong>Word Count:</strong> ${analysis.word_count || 0}<br>
+                    <strong>Character Count:</strong> ${analysis.character_count || 0}<br>
+                    <strong>Analysis Date:</strong> ${new Date(analysis.analysis_date).toLocaleString()}
+                </div>
+            </div>
+        `;
+    }
+
+    function displayCategorizationResults(categorization) {
+        const confidenceClass = categorization.confidence >= 0.8 ? 'high' : 
+                               categorization.confidence >= 0.6 ? 'medium' : 'low';
+        
+        document.getElementById('categorizationResults').innerHTML = `
+            <div class="result-section">
+                <div class="result-label">
+                    📂 AI Categorization
+                    <span class="confidence-score ${confidenceClass}">${(categorization.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="result-content">${categorization.ai_categorization || 'No categorization available'}</div>
+            </div>
+            <div class="result-section">
+                <div class="result-label">🏷️ Suggested Tags</div>
+                <div class="result-content">
+                    ${categorization.suggested_tags ? categorization.suggested_tags.map(tag => `<span class="tag">${tag}</span>`).join('') : 'No tags suggested'}
+                </div>
+            </div>
+        `;
+    }
+
+    function displayExtractionResults(extraction) {
+        const confidenceClass = extraction.confidence >= 0.8 ? 'high' : 
+                               extraction.confidence >= 0.6 ? 'medium' : 'low';
+        
+        document.getElementById('extractionResults').innerHTML = `
+            <div class="result-section">
+                <div class="result-label">
+                    📋 Extracted Information
+                    <span class="confidence-score ${confidenceClass}">${(extraction.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="result-content">${extraction.extracted_info || 'No information extracted'}</div>
+            </div>
+            <div class="result-section">
+                <div class="result-label">📅 Extraction Date</div>
+                <div class="result-content">${new Date(extraction.extraction_date).toLocaleString()}</div>
+            </div>
+        `;
+    }
+
+    function displaySummaryResults(summary) {
+        const confidenceClass = summary.confidence >= 0.8 ? 'high' : 
+                               summary.confidence >= 0.6 ? 'medium' : 'low';
+        
+        document.getElementById('summaryResults').innerHTML = `
+            <div class="result-section">
+                <div class="result-label">
+                    📝 Document Summary
+                    <span class="confidence-score ${confidenceClass}">${(summary.confidence * 100).toFixed(0)}%</span>
+                </div>
+                <div class="result-content">${summary.summary || 'No summary available'}</div>
+            </div>
+            <div class="result-section">
+                <div class="result-label">📊 Summary Statistics</div>
+                <div class="result-content">
+                    <strong>Summary Type:</strong> ${summary.summary_type || 'Standard'}<br>
+                    <strong>Word Count:</strong> ${summary.word_count || 0}<br>
+                    <strong>Generated:</strong> ${new Date(summary.summary_date).toLocaleString()}
+                </div>
+            </div>
+        `;
+    }
+
+    function displaySimilarResults(similarDocs) {
+        if (!similarDocs || similarDocs.length === 0) {
+            document.getElementById('similarResults').innerHTML = `
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No similar documents found in the database.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const resultsHtml = similarDocs.map(doc => `
+            <div class="extraction-item">
+                <div class="extraction-label">${doc.title}</div>
+                <div class="extraction-value">
+                    <strong>Type:</strong> ${doc.document_type}<br>
+                    <strong>Similarity:</strong> ${(doc.similarity_score * 100).toFixed(0)}%<br>
+                    ${doc.case_title ? `<strong>Case:</strong> ${doc.case_title}<br>` : ''}
+                    ${doc.client_name ? `<strong>Client:</strong> ${doc.client_name}` : ''}
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('similarResults').innerHTML = `
+            <div class="result-section">
+                <div class="result-label">🔗 Similar Documents (${similarDocs.length})</div>
+                <div class="result-content">${resultsHtml}</div>
+            </div>
+        `;
+    }
+
+    // Initialize with first tab
+    document.addEventListener('DOMContentLoaded', function() {
+        showTab('analysis');
+    });
+</script>
+{% endblock %}

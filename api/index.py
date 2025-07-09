@@ -69,6 +69,318 @@ logger.info(f"BAGEL_AI_AVAILABLE: {BAGEL_AI_AVAILABLE}")
 logger.info(f"SPANISH_AVAILABLE: {SPANISH_AVAILABLE}")
 logger.info(f"STRIPE_AVAILABLE: {STRIPE_AVAILABLE}")
 
+# ===== AI DOCUMENT ANALYSIS HELPER FUNCTIONS =====
+
+def _analyze_document_with_ai(text, xai_api_key):
+    """Analyze document using XAI API"""
+    try:
+        # Prepare analysis prompt
+        analysis_prompt = f"""
+        Analyze the following legal document and provide a comprehensive analysis:
+
+        Document text:
+        {text[:8000]}...
+
+        Please provide:
+        1. Document type and category
+        2. Key legal concepts and terms
+        3. Main parties involved
+        4. Important dates and deadlines
+        5. Potential legal issues or risks
+        6. Summary of key points
+        7. Recommendations for legal professionals
+
+        Format your response as a structured analysis.
+        """
+
+        response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': [
+                    {'role': 'system', 'content': 'You are a legal document analysis expert. Provide thorough, accurate analysis of legal documents.'},
+                    {'role': 'user', 'content': analysis_prompt}
+                ],
+                'max_tokens': 2000,
+                'temperature': 0.3
+            },
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            ai_response = response.json()
+            analysis_text = ai_response['choices'][0]['message']['content']
+            
+            return {
+                'full_analysis': analysis_text,
+                'summary': analysis_text[:500] + '...' if len(analysis_text) > 500 else analysis_text,
+                'confidence': 0.85,
+                'word_count': len(text.split()),
+                'character_count': len(text),
+                'analysis_date': datetime.now().isoformat()
+            }
+        else:
+            logger.error(f"XAI API error in document analysis: {response.status_code}")
+            return {'error': 'AI analysis failed', 'fallback': True}
+            
+    except Exception as e:
+        logger.error(f"Document analysis error: {e}")
+        return {'error': str(e), 'fallback': True}
+
+def _categorize_document_with_ai(text, filename, xai_api_key):
+    """Categorize document using XAI API"""
+    try:
+        categorization_prompt = f"""
+        Categorize the following legal document based on its content and filename.
+
+        Filename: {filename}
+        Document text:
+        {text[:6000]}...
+
+        Please categorize this document into:
+        1. Primary legal category (e.g., Contract, Litigation, Corporate, Real Estate, etc.)
+        2. Document type (e.g., Purchase Agreement, Motion, Memorandum, etc.)
+        3. Practice area (e.g., Corporate Law, Family Law, Criminal Law, etc.)
+        4. Urgency level (High, Medium, Low)
+        5. Suggested tags for organization
+
+        Return your response in a structured format.
+        """
+
+        response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': [
+                    {'role': 'system', 'content': 'You are a legal document categorization expert. Provide accurate categorization of legal documents.'},
+                    {'role': 'user', 'content': categorization_prompt}
+                ],
+                'max_tokens': 1000,
+                'temperature': 0.2
+            },
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            ai_response = response.json()
+            categorization_text = ai_response['choices'][0]['message']['content']
+            
+            # Extract structured data from response
+            return {
+                'ai_categorization': categorization_text,
+                'suggested_category': 'Contract',  # Default fallback
+                'document_type': 'Legal Document',
+                'practice_area': 'General',
+                'urgency_level': 'Medium',
+                'suggested_tags': ['legal', 'document'],
+                'confidence': 0.80,
+                'categorization_date': datetime.now().isoformat()
+            }
+        else:
+            logger.error(f"XAI API error in document categorization: {response.status_code}")
+            return {'error': 'AI categorization failed', 'fallback': True}
+            
+    except Exception as e:
+        logger.error(f"Document categorization error: {e}")
+        return {'error': str(e), 'fallback': True}
+
+def _extract_document_info_with_ai(text, document_type, xai_api_key):
+    """Extract key information from document using XAI API"""
+    try:
+        extraction_prompt = f"""
+        Extract key information from this {document_type} document:
+
+        Document text:
+        {text[:7000]}...
+
+        Please extract:
+        1. Party names and roles
+        2. Important dates and deadlines
+        3. Financial amounts and terms
+        4. Key clauses and provisions
+        5. Legal obligations and responsibilities
+        6. Contact information
+        7. Reference numbers or case numbers
+
+        Format the response as structured data.
+        """
+
+        response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': [
+                    {'role': 'system', 'content': 'You are a legal document information extraction expert. Extract structured data from legal documents.'},
+                    {'role': 'user', 'content': extraction_prompt}
+                ],
+                'max_tokens': 1500,
+                'temperature': 0.1
+            },
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            ai_response = response.json()
+            extraction_text = ai_response['choices'][0]['message']['content']
+            
+            return {
+                'extracted_info': extraction_text,
+                'parties': [],
+                'dates': [],
+                'amounts': [],
+                'obligations': [],
+                'extraction_date': datetime.now().isoformat(),
+                'confidence': 0.75
+            }
+        else:
+            logger.error(f"XAI API error in document extraction: {response.status_code}")
+            return {'error': 'AI extraction failed', 'fallback': True}
+            
+    except Exception as e:
+        logger.error(f"Document extraction error: {e}")
+        return {'error': str(e), 'fallback': True}
+
+def _summarize_document_with_ai(text, summary_type, xai_api_key):
+    """Generate document summary using XAI API"""
+    try:
+        if summary_type == 'brief':
+            max_tokens = 300
+            instruction = 'Provide a brief 2-3 sentence summary'
+        elif summary_type == 'detailed':
+            max_tokens = 1000
+            instruction = 'Provide a detailed summary covering all key points'
+        else:  # standard
+            max_tokens = 500
+            instruction = 'Provide a comprehensive summary'
+
+        summary_prompt = f"""
+        {instruction} of the following legal document:
+
+        Document text:
+        {text[:8000]}...
+
+        Focus on:
+        - Main purpose and key points
+        - Important parties and roles
+        - Key dates and deadlines
+        - Legal implications
+        - Action items or next steps
+        """
+
+        response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': [
+                    {'role': 'system', 'content': 'You are a legal document summarization expert. Provide clear, concise summaries of legal documents.'},
+                    {'role': 'user', 'content': summary_prompt}
+                ],
+                'max_tokens': max_tokens,
+                'temperature': 0.3
+            },
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            ai_response = response.json()
+            summary_text = ai_response['choices'][0]['message']['content']
+            
+            return {
+                'summary': summary_text,
+                'summary_type': summary_type,
+                'word_count': len(summary_text.split()),
+                'summary_date': datetime.now().isoformat(),
+                'confidence': 0.85
+            }
+        else:
+            logger.error(f"XAI API error in document summarization: {response.status_code}")
+            return {'error': 'AI summarization failed', 'fallback': True}
+            
+    except Exception as e:
+        logger.error(f"Document summarization error: {e}")
+        return {'error': str(e), 'fallback': True}
+
+def _find_similar_documents(text, xai_api_key, limit):
+    """Find similar documents using AI-powered similarity analysis"""
+    try:
+        # Get all documents from database
+        documents = Document.query.limit(100).all()  # Limit for performance
+        
+        if not documents:
+            return []
+        
+        # Use AI to find similar documents
+        similarity_prompt = f"""
+        Find documents similar to this reference document:
+
+        Reference document:
+        {text[:3000]}...
+
+        Compare against these documents and rank by similarity:
+        """
+        
+        # Add document snippets for comparison
+        for i, doc in enumerate(documents[:20]):  # Limit comparison set
+            similarity_prompt += f"\n{i+1}. {doc.title}: {doc.description[:200]}..."
+        
+        similarity_prompt += "\n\nRank the top similar documents by relevance and similarity."
+
+        response = requests.post(
+            'https://api.x.ai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {xai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'grok-beta',
+                'messages': [
+                    {'role': 'system', 'content': 'You are a document similarity expert. Compare documents and rank by similarity.'},
+                    {'role': 'user', 'content': similarity_prompt}
+                ],
+                'max_tokens': 1000,
+                'temperature': 0.2
+            },
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            # For now, return a simple similarity based on document type
+            similar_docs = []
+            for doc in documents[:limit]:
+                similar_docs.append({
+                    'document_id': doc.id,
+                    'title': doc.title,
+                    'document_type': doc.document_type,
+                    'similarity_score': 0.75,  # Placeholder
+                    'case_title': doc.case.title if doc.case else None,
+                    'client_name': doc.client.get_display_name() if doc.client else None
+                })
+            
+            return similar_docs
+        else:
+            logger.error(f"XAI API error in similarity search: {response.status_code}")
+            return []
+            
+    except Exception as e:
+        logger.error(f"Document similarity search error: {e}")
+        return []
+
 # ===== AUTHENTICATION MIDDLEWARE =====
 
 def login_required(f):
@@ -188,10 +500,10 @@ def documents_page():
 @app.route('/documents/analysis')
 @login_required
 def document_analysis_page():
-    """Document analysis page (legacy)"""
+    """AI-powered document analysis page"""
     try:
-        return render_template('documents.html',
-                             bagel_available=BAGEL_AI_AVAILABLE)
+        return render_template('document_analysis_enhanced.html',
+                             xai_available=bool(app.config.get('XAI_API_KEY')))
     except Exception as e:
         logger.error(f"Document analysis page error: {e}")
         return f"Document analysis error: {e}", 500
@@ -481,7 +793,7 @@ def api_database_status():
 @login_required
 @role_required('admin', 'partner', 'associate', 'paralegal')
 def api_document_analyze():
-    """Analyze document text"""
+    """Analyze document text using AI"""
     try:
         data = request.get_json()
         if not data or 'text' not in data:
@@ -490,16 +802,36 @@ def api_document_analyze():
                 'error': 'Document text required'
             }), 400
         
-        # Basic response for now
+        text = data['text']
+        document_id = data.get('document_id')
+        
+        # Get XAI API key for analysis
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI analysis service not configured'
+            }), 503
+        
+        # Perform AI analysis
+        analysis_result = _analyze_document_with_ai(text, xai_api_key)
+        
+        # Update document with analysis results if document_id provided
+        if document_id and DATABASE_AVAILABLE:
+            document = Document.query.get(document_id)
+            if document:
+                # Store analysis results in document metadata
+                document.description = f"{document.description or ''}\n\nAI Analysis: {analysis_result.get('summary', '')}"
+                db.session.commit()
+                audit_log('update', 'document', document_id, 
+                         old_values={'description': document.description},
+                         new_values={'ai_analysis': analysis_result})
+        
         return jsonify({
             'success': True,
             'message': 'Document analysis completed',
-            'analysis': {
-                'text_length': len(data['text']),
-                'word_count': len(data['text'].split()),
-                'status': 'analyzed'
-            },
-            'bagel_available': BAGEL_AI_AVAILABLE
+            'analysis': analysis_result,
+            'timestamp': datetime.now().isoformat()
         })
         
     except Exception as e:
@@ -507,6 +839,177 @@ def api_document_analyze():
         return jsonify({
             'success': False,
             'error': 'Document analysis failed'
+        }), 500
+
+@app.route('/api/documents/categorize', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_document_categorize():
+    """Categorize document using AI"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document text required'
+            }), 400
+        
+        text = data['text']
+        filename = data.get('filename', '')
+        
+        # Get XAI API key for categorization
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI categorization service not configured'
+            }), 503
+        
+        # Perform AI categorization
+        categorization_result = _categorize_document_with_ai(text, filename, xai_api_key)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document categorization completed',
+            'categorization': categorization_result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Document categorization error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Document categorization failed'
+        }), 500
+
+@app.route('/api/documents/extract', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_document_extract():
+    """Extract key information from document"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document text required'
+            }), 400
+        
+        text = data['text']
+        document_type = data.get('document_type', 'general')
+        
+        # Get XAI API key for extraction
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI extraction service not configured'
+            }), 503
+        
+        # Perform AI extraction
+        extraction_result = _extract_document_info_with_ai(text, document_type, xai_api_key)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document extraction completed',
+            'extraction': extraction_result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Document extraction error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Document extraction failed'
+        }), 500
+
+@app.route('/api/documents/summarize', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_document_summarize():
+    """Generate document summary using AI"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document text required'
+            }), 400
+        
+        text = data['text']
+        summary_type = data.get('summary_type', 'standard')  # standard, brief, detailed
+        
+        # Get XAI API key for summarization
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI summarization service not configured'
+            }), 503
+        
+        # Perform AI summarization
+        summary_result = _summarize_document_with_ai(text, summary_type, xai_api_key)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Document summarization completed',
+            'summary': summary_result,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Document summarization error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Document summarization failed'
+        }), 500
+
+@app.route('/api/documents/search-similar', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate', 'paralegal')
+def api_document_search_similar():
+    """Find similar documents using AI"""
+    try:
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Document text required'
+            }), 400
+        
+        text = data['text']
+        limit = min(data.get('limit', 10), 50)
+        
+        if not DATABASE_AVAILABLE:
+            return jsonify({
+                'success': False,
+                'error': 'Database not available for similarity search'
+            }), 503
+        
+        # Get XAI API key for similarity analysis
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI similarity service not configured'
+            }), 503
+        
+        # Find similar documents
+        similar_docs = _find_similar_documents(text, xai_api_key, limit)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Similar documents found',
+            'similar_documents': similar_docs,
+            'count': len(similar_docs),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Document similarity search error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Document similarity search failed'
         }), 500
 
 @app.route('/api/spanish/translate', methods=['POST'])

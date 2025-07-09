@@ -984,6 +984,7 @@ function displayDocuments(documentList) {
                     <a href="#" class="action-link" onclick="viewDocument('${doc.id}')">View</a>
                     <a href="#" class="action-link" onclick="editDocument('${doc.id}')">Edit</a>
                     <a href="#" class="action-link" onclick="downloadDocument('${doc.id}')">Download</a>
+                    <a href="#" class="action-link" onclick="analyzeDocument('${doc.id}')" style="color: #7c3aed;">🤖 AI Analysis</a>
                     ${doc.case_id ? `<a href="/cases/${doc.case_id}" class="action-link">View Case</a>` : ''}
                 </div>
                 <div class="meta-item">
@@ -1127,6 +1128,29 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function analyzeDocument(documentId) {
+    // Redirect to AI document analysis page with document ID
+    window.location.href = `/documents/analysis?doc_id=${documentId}`;
+}
+
+function viewDocument(documentId) {
+    // Placeholder for view document functionality
+    console.log('View document:', documentId);
+    alert('View document functionality coming soon!');
+}
+
+function editDocument(documentId) {
+    // Placeholder for edit document functionality
+    console.log('Edit document:', documentId);
+    alert('Edit document functionality coming soon!');
+}
+
+function downloadDocument(documentId) {
+    // Placeholder for download document functionality
+    console.log('Download document:', documentId);
+    alert('Download document functionality coming soon!');
 }
 
 function showError(message) {
