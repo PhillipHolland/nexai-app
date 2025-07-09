@@ -17,7 +17,8 @@ a:focus {
 }
 
 /* Force main navigation links to use brand colors - but not dropdown menus */
-.main-nav a, .main-nav a:link, .main-nav a:visited, .main-nav a:focus, .main-nav a:active {
+.main-nav a, .main-nav a:link, .main-nav a:visited, .main-nav a:focus, .main-nav a:active,
+.nav-links .nav-link, .nav-links .nav-link:link, .nav-links .nav-link:visited, .nav-links .nav-link:focus, .nav-links .nav-link:active {
     color: #F7EDDA !important;
     text-decoration: none !important;
 }
@@ -1358,36 +1359,6 @@ body {
     background-color: #2E4B3C; /* dark-green background */
 }
 
-/* Dashboard Button - styled like "Enter Platform" */
-.dashboard-button {
-    background-color: #FFA74F; /* warm-orange */
-    color: #2E4B3C; /* dark-green */
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin-bottom: 1rem;
-    border: none;
-    display: block;
-    font-size: 1rem;
-}
-
-.dashboard-button:hover {
-    background-color: #F0531C; /* bright-coral */
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    color: #2E4B3C; /* keep dark-green text */
-    text-decoration: none;
-}
-
-.dashboard-button.active {
-    background-color: #F0531C; /* bright-coral for active state */
-    color: #2E4B3C; /* dark-green text */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
 
 /* Mobile Accordion Styles */
 .mobile-accordion-section {
@@ -1446,7 +1417,6 @@ body {
     padding-left: 2rem;
     border-left: 2px solid rgba(255, 167, 79, 0.3);
     font-size: 0.9rem;
-    color: #1f2937; /* Dark text for better readability */
 }
 
 .base-mobile-link.submenu.active {
