@@ -640,30 +640,31 @@ def admin_users():
     """Admin user management page"""
     try:
         # Mock users data for user management list
+        from datetime import datetime
         users = [
             {
-                'id': 1,
+                'id': 'user_001',
                 'name': 'John Doe',
                 'email': 'john@lawfirm.com',
                 'phone': '(555) 123-4567',
                 'case_type': 'Partner',
-                'updated_at': None
+                'updated_at': datetime(2024, 7, 8)
             },
             {
-                'id': 2,
+                'id': 'user_002',
                 'name': 'Jane Smith',
                 'email': 'jane@lawfirm.com',
                 'phone': '(555) 234-5678',
                 'case_type': 'Associate',
-                'updated_at': None
+                'updated_at': datetime(2024, 7, 7)
             },
             {
-                'id': 3,
+                'id': 'user_003',
                 'name': 'Bob Johnson',
                 'email': 'bob@lawfirm.com',
                 'phone': '(555) 345-6789',
                 'case_type': 'Paralegal',
-                'updated_at': None
+                'updated_at': datetime(2024, 7, 6)
             }
         ]
         return render_template('clients.html', clients=users, page_title='User Management')
