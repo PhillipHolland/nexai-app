@@ -890,8 +890,10 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Pure CSS hover dropdowns - bulletproof */
-.base-dropdown:hover .base-dropdown-menu {
+/* Simple CSS dropdown - works everywhere */
+.base-dropdown:hover > .base-dropdown-menu,
+.base-dropdown:focus-within > .base-dropdown-menu,
+.base-dropdown.open > .base-dropdown-menu {
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
