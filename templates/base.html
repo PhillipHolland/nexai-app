@@ -183,7 +183,7 @@
                     
                     <!-- Calendar & Deadlines -->
                     <a href="{{ url_for('calendar_page') }}" 
-                       class="base-nav-link {% if request.endpoint in ['calendar_page', 'deadlines_page', 'appointment_booking_page'] %}active{% endif %}">
+                       class="base-nav-link {% if request.endpoint in ['calendar_page', 'deadlines_page'] %}active{% endif %}">
                         Calendar & Deadlines
                     </a>
                     
@@ -232,7 +232,7 @@
                                 </svg>
                                 Legal Research
                             </a>
-                            <a href="{{ url_for('contract_generator_page') }}" class="base-dropdown-item">
+                            <a href="{{ url_for('contracts_page') }}" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
@@ -369,7 +369,7 @@
                 
                 <!-- Calendar & Deadlines -->
                 <a href="{{ url_for('calendar_page') }}" 
-                   class="base-mobile-link {% if request.endpoint in ['calendar_page', 'deadlines_page', 'appointment_booking_page'] %}active{% endif %}">
+                   class="base-mobile-link {% if request.endpoint in ['calendar_page', 'deadlines_page'] %}active{% endif %}">
                     📅 Calendar & Deadlines
                 </a>
                 
@@ -404,8 +404,8 @@
                    class="base-mobile-link {% if request.endpoint == 'legal_research_page' %}active{% endif %}">
                     🔍 Legal Research
                 </a>
-                <a href="{{ url_for('contract_generator_page') }}" 
-                   class="base-mobile-link {% if request.endpoint == 'contract_generator_page' %}active{% endif %}">
+                <a href="{{ url_for('contracts_page') }}" 
+                   class="base-mobile-link {% if request.endpoint == 'contracts_page' %}active{% endif %}">
                     📝 Contract Generator
                 </a>
                 
