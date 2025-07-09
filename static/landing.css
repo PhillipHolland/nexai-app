@@ -123,10 +123,14 @@ body {
         display: none !important;
     }
     
-    /* Ensure main nav stays visible with just Dashboard */
+    /* Hide Dashboard from top nav on mobile portrait (redundant with mobile menu) */
+    .main-nav .nav-item:not(.dropdown) {
+        display: none !important;
+    }
+    
+    /* Hide main nav completely on mobile portrait */
     .main-nav {
-        display: flex !important;
-        gap: 1rem;
+        display: none !important;
     }
     
     .nav-content {
