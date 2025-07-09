@@ -155,7 +155,7 @@
                     </a>
                 </div>
                 
-                <!-- WORKING MENU STRUCTURE -->
+                <!-- FLAT MENU - NO DROPDOWNS, ALL LINKS VISIBLE -->
                 <nav class="base-nav-main">
                     <!-- Dashboard -->
                     <a href="{{ url_for('dashboard') }}" 
@@ -163,49 +163,21 @@
                         Dashboard
                     </a>
                     
-                    <!-- Cases & Clients -->
-                    <div class="menu-item">
-                        <span class="menu-label">Cases & Clients ▼</span>
-                        <div class="submenu">
-                            <a href="{{ url_for('cases_page') }}">All Cases</a>
-                            <a href="{{ url_for('clients_page') }}">Client Directory</a>
-                            <a href="{{ url_for('deadlines_page') }}">Deadlines</a>
-                            <a href="{{ url_for('calendar_page') }}">Calendar</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Documents & AI -->
-                    <div class="menu-item">
-                        <span class="menu-label">Documents & AI ▼</span>
-                        <div class="submenu">
-                            <a href="{{ url_for('documents_page') }}">Document Library</a>
-                            <a href="{{ url_for('document_analysis_page') }}">AI Document Analysis</a>
-                            <a href="{{ url_for('contracts_page') }}">Contract Generator</a>
-                            <a href="{{ url_for('legal_research_page') }}">Legal Research</a>
-                            <a href="{{ url_for('chat_page') }}">AI Legal Assistant</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Operations -->
-                    <div class="menu-item">
-                        <span class="menu-label">Operations ▼</span>
-                        <div class="submenu">
-                            <a href="{{ url_for('time_tracking_page') }}">Time Tracking</a>
-                            <a href="{{ url_for('billing_page') }}">Billing & Invoicing</a>
-                            <a href="{{ url_for('analytics_dashboard') }}">Reports & Analytics</a>
-                        </div>
-                    </div>
-                    
-                    <!-- Settings -->
-                    <div class="menu-item">
-                        <span class="menu-label">Settings ▼</span>
-                        <div class="submenu">
-                            <a href="/admin/users">User Management</a>
-                            <a href="/admin/settings">Firm Settings</a>
-                            <a href="/admin/subscriptions">Subscriptions</a>
-                            <a href="/admin/audit-logs">Audit Logs</a>
-                        </div>
-                    </div>
+                    <!-- All menu items as direct links -->
+                    <a href="{{ url_for('cases_page') }}" class="base-nav-link">Cases</a>
+                    <a href="{{ url_for('clients_page') }}" class="base-nav-link">Clients</a>
+                    <a href="{{ url_for('deadlines_page') }}" class="base-nav-link">Deadlines</a>
+                    <a href="{{ url_for('calendar_page') }}" class="base-nav-link">Calendar</a>
+                    <a href="{{ url_for('documents_page') }}" class="base-nav-link">Documents</a>
+                    <a href="{{ url_for('document_analysis_page') }}" class="base-nav-link">AI Analysis</a>
+                    <a href="{{ url_for('contracts_page') }}" class="base-nav-link">Contracts</a>
+                    <a href="{{ url_for('legal_research_page') }}" class="base-nav-link">Research</a>
+                    <a href="{{ url_for('chat_page') }}" class="base-nav-link">AI Chat</a>
+                    <a href="{{ url_for('time_tracking_page') }}" class="base-nav-link">Time</a>
+                    <a href="{{ url_for('billing_page') }}" class="base-nav-link">Billing</a>
+                    <a href="{{ url_for('analytics_dashboard') }}" class="base-nav-link">Analytics</a>
+                    <a href="/admin/users" class="base-nav-link">Users</a>
+                    <a href="/admin/settings" class="base-nav-link">Settings</a>
                 </nav>
                 
                 <!-- User Menu -->
