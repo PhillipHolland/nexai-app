@@ -1339,8 +1339,8 @@ body {
 
 .base-mobile-link {
     display: block;
-    padding: 0.5rem 0.75rem;
-    font-size: 1rem;
+    padding: 0.75rem; /* Match accordion header padding */
+    font-size: 1rem; /* Same as parent menu items */
     font-weight: 500;
     color: #F7EDDA; /* light-cream */
     text-decoration: none;
@@ -1372,10 +1372,15 @@ body {
     background: transparent;
     border: none;
     color: #F7EDDA; /* light-cream */
-    font-size: 1rem;
+    font-size: 1rem; /* Same as Dashboard link */
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+.mobile-accordion-header.parent-active {
+    color: #FFA74F; /* warm-orange for active parent sections */
+    background-color: rgba(255, 167, 79, 0.15);
 }
 
 .mobile-accordion-header:hover {
@@ -1410,6 +1415,7 @@ body {
     padding-left: 2rem;
     border-left: 2px solid rgba(255, 167, 79, 0.3);
     font-size: 0.9rem;
+    color: #F7EDDA; /* Light cream text for better readability */
 }
 
 .base-mobile-link.submenu.active {

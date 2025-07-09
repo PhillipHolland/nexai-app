@@ -329,7 +329,7 @@
                 
                 <!-- Cases Section -->
                 <div class="mobile-accordion-section">
-                    <button class="mobile-accordion-header" data-section="cases">
+                    <button class="mobile-accordion-header {% if request.endpoint in ['cases_page', 'case_detail', 'clients_page', 'client_detail', 'deadlines_page', 'calendar_page'] %}parent-active{% endif %}" data-section="cases">
                         <span>📋 Cases</span>
                         <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -357,7 +357,7 @@
                 
                 <!-- Documents Section -->
                 <div class="mobile-accordion-section">
-                    <button class="mobile-accordion-header" data-section="documents">
+                    <button class="mobile-accordion-header {% if request.endpoint in ['documents_page', 'document_analysis_page', 'contracts_page'] %}parent-active{% endif %}" data-section="documents">
                         <span>📄 Documents</span>
                         <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -381,7 +381,7 @@
                 
                 <!-- AI Tools Section -->
                 <div class="mobile-accordion-section">
-                    <button class="mobile-accordion-header" data-section="ai-tools">
+                    <button class="mobile-accordion-header {% if request.endpoint in ['chat_page', 'legal_research_page', 'document_analysis_page'] %}parent-active{% endif %}" data-section="ai-tools">
                         <span>🤖 AI Tools</span>
                         <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -405,7 +405,7 @@
                 
                 <!-- Business Section -->
                 <div class="mobile-accordion-section">
-                    <button class="mobile-accordion-header" data-section="business">
+                    <button class="mobile-accordion-header {% if request.endpoint in ['time_tracking_page', 'billing_page', 'expense_tracking_page', 'analytics_dashboard'] %}parent-active{% endif %}" data-section="business">
                         <span>💼 Business</span>
                         <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -429,7 +429,7 @@
                 
                 <!-- Admin Section -->
                 <div class="mobile-accordion-section">
-                    <button class="mobile-accordion-header" data-section="admin">
+                    <button class="mobile-accordion-header {% if request.endpoint and request.endpoint.startswith('admin_') %}parent-active{% endif %}" data-section="admin">
                         <span>⚙️ Admin</span>
                         <svg class="mobile-accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -510,6 +510,19 @@
                     content.classList.add('active');
                 }
             });
+        });
+
+        // Auto-expand parent section if child page is active
+        document.addEventListener('DOMContentLoaded', function() {
+            const parentActiveHeader = document.querySelector('.mobile-accordion-header.parent-active');
+            if (parentActiveHeader) {
+                const section = parentActiveHeader.dataset.section;
+                const content = document.getElementById(section + '-content');
+                if (content) {
+                    parentActiveHeader.classList.add('active');
+                    content.classList.add('active');
+                }
+            }
         });
 
         // Authentication and user session management
