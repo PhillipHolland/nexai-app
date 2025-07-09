@@ -161,48 +161,99 @@
                     
                     <div class="nav-item dropdown">
                         <span class="nav-link">Cases</span>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('cases_page') }}">All Cases</a>
-                            <a href="{{ url_for('clients_page') }}">Clients</a>
-                            <a href="{{ url_for('deadlines_page') }}">Deadlines</a>
-                            <a href="{{ url_for('calendar_page') }}">Calendar</a>
+                        <div class="dropdown-content" data-category="Case Management">
+                            <a href="{{ url_for('cases_page') }}">
+                                <span class="menu-icon">📋</span>
+                                All Cases
+                            </a>
+                            <a href="{{ url_for('clients_page') }}">
+                                <span class="menu-icon">👥</span>
+                                Clients
+                            </a>
+                            <a href="{{ url_for('deadlines_page') }}">
+                                <span class="menu-icon">⏰</span>
+                                Deadlines
+                            </a>
+                            <a href="{{ url_for('calendar_page') }}">
+                                <span class="menu-icon">📅</span>
+                                Calendar
+                            </a>
                         </div>
                     </div>
                     
                     <div class="nav-item dropdown">
                         <span class="nav-link">Documents</span>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('documents_page') }}">Document Library</a>
-                            <a href="{{ url_for('document_analysis_page') }}">AI Analysis</a>
-                            <a href="{{ url_for('contracts_page') }}">Contracts</a>
+                        <div class="dropdown-content" data-category="Document Center">
+                            <a href="{{ url_for('documents_page') }}">
+                                <span class="menu-icon">📄</span>
+                                Document Library
+                            </a>
+                            <a href="{{ url_for('document_analysis_page') }}">
+                                <span class="menu-icon">🔍</span>
+                                AI Analysis
+                            </a>
+                            <a href="{{ url_for('contracts_page') }}">
+                                <span class="menu-icon">📝</span>
+                                Contracts
+                            </a>
                         </div>
                     </div>
                     
                     <div class="nav-item dropdown">
                         <span class="nav-link">AI Tools</span>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('chat_page') }}">Legal Assistant</a>
-                            <a href="{{ url_for('legal_research_page') }}">Research</a>
-                            <a href="{{ url_for('document_analysis_page') }}">Document Analysis</a>
+                        <div class="dropdown-content" data-category="AI Assistant">
+                            <a href="{{ url_for('chat_page') }}">
+                                <span class="menu-icon">🤖</span>
+                                Legal Assistant
+                            </a>
+                            <a href="{{ url_for('legal_research_page') }}">
+                                <span class="menu-icon">🔬</span>
+                                Research
+                            </a>
+                            <a href="{{ url_for('document_analysis_page') }}">
+                                <span class="menu-icon">📊</span>
+                                Document Analysis
+                            </a>
                         </div>
                     </div>
                     
                     <div class="nav-item dropdown">
                         <span class="nav-link">Business</span>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('time_tracking_page') }}">Time Tracking</a>
-                            <a href="{{ url_for('billing_page') }}">Billing</a>
-                            <a href="{{ url_for('analytics_dashboard') }}">Analytics</a>
+                        <div class="dropdown-content" data-category="Operations">
+                            <a href="{{ url_for('time_tracking_page') }}">
+                                <span class="menu-icon">⏱️</span>
+                                Time Tracking
+                            </a>
+                            <a href="{{ url_for('billing_page') }}">
+                                <span class="menu-icon">💰</span>
+                                Billing
+                            </a>
+                            <a href="{{ url_for('analytics_dashboard') }}">
+                                <span class="menu-icon">📈</span>
+                                Analytics
+                            </a>
                         </div>
                     </div>
                     
                     <div class="nav-item dropdown">
                         <span class="nav-link">Admin</span>
-                        <div class="dropdown-content">
-                            <a href="/admin/users">Users</a>
-                            <a href="/admin/settings">Settings</a>
-                            <a href="/admin/subscriptions">Subscriptions</a>
-                            <a href="/admin/audit-logs">Audit Logs</a>
+                        <div class="dropdown-content" data-category="Administration">
+                            <a href="/admin/users">
+                                <span class="menu-icon">👤</span>
+                                Users
+                            </a>
+                            <a href="/admin/settings">
+                                <span class="menu-icon">⚙️</span>
+                                Settings
+                            </a>
+                            <a href="/admin/subscriptions">
+                                <span class="menu-icon">💳</span>
+                                Subscriptions
+                            </a>
+                            <a href="/admin/audit-logs">
+                                <span class="menu-icon">📋</span>
+                                Audit Logs
+                            </a>
                         </div>
                     </div>
                 </nav>

@@ -13,11 +13,15 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Navigation */
+/* Premium Navigation Bar */
 .navbar {
-    background-color: #2E4B3C; /* dark-green */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-container {
@@ -31,12 +35,27 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 4rem;
+    height: 4.5rem;
+    position: relative;
+}
+
+.logo {
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
 }
 
 .logo img {
     height: 3rem;
     width: auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: filter 0.3s ease;
+}
+
+.logo:hover img {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
 .nav-links {
@@ -873,13 +892,14 @@ body {
     width: 80%;
 }
 
-/* APPLE-STYLE NAVIGATION - BULLETPROOF DROPDOWNS */
+/* PREMIUM NAVIGATION - POLISHED UI/UX */
 .main-nav {
     display: flex;
     align-items: center;
     gap: 1rem;
     flex: 1;
     justify-content: center;
+    position: relative;
 }
 
 .nav-item {
@@ -891,68 +911,176 @@ body {
 .nav-link {
     color: #F7EDDA;
     font-weight: 500;
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     text-decoration: none;
     background: transparent;
     border: 1px solid transparent;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: block;
     white-space: nowrap;
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
 }
 
+/* Elegant hover effects with subtle animations */
 .nav-item > a:hover,
 .nav-link:hover {
     color: #FFA74F;
-    background: rgba(255, 167, 79, 0.1);
-    border-color: rgba(255, 167, 79, 0.2);
+    background: rgba(255, 167, 79, 0.12);
+    border-color: rgba(255, 167, 79, 0.3);
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 167, 79, 0.2);
 }
 
+/* Add subtle shimmer effect on hover */
+.nav-item > a::before,
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.nav-item > a:hover::before,
+.nav-link:hover::before {
+    left: 100%;
+}
+
+/* Premium dropdown styling */
 .dropdown-content {
     position: absolute;
     top: 100%;
-    left: 0;
-    background-color: white;
-    min-width: 200px;
-    box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    min-width: 240px;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
     z-index: 9999;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 0.75rem;
     overflow: hidden;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
 }
 
 .dropdown:hover .dropdown-content {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
+    animation: dropdownSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+@keyframes dropdownSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+/* Polished dropdown items */
 .dropdown-content a {
-    display: block;
-    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
     font-size: 0.875rem;
+    font-weight: 500;
     color: #374151;
     text-decoration: none;
-    transition: all 0.15s ease;
-    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.dropdown-content a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #FFA74F;
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
 }
 
 .dropdown-content a:hover {
-    background-color: #f8fafc;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     color: #2E4B3C;
     transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(46, 75, 60, 0.1);
+}
+
+.dropdown-content a:hover::before {
+    transform: scaleY(1);
 }
 
 .dropdown-content a:last-child {
     border-bottom: none;
+}
+
+/* Menu icons styling */
+.menu-icon {
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+    display: inline-block;
+    min-width: 1.5rem;
+    text-align: center;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.dropdown-content a:hover .menu-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Add subtle icons to dropdown items */
+.dropdown-content a::after {
+    content: '→';
+    margin-left: auto;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.2s ease;
+    color: #FFA74F;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.dropdown-content a:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Dropdown category headers for better organization */
+.dropdown-content::before {
+    content: attr(data-category);
+    display: block;
+    padding: 0.75rem 1.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
 }
 
 /* Responsive adjustments */
