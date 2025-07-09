@@ -164,14 +164,14 @@
                     </a>
                     
                     <!-- Cases & Clients -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
+                    <div class="dropdown">
+                        <button onclick="toggleDropdown('dropdown1')" class="base-dropdown-button">
                             Cases & Clients
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="base-dropdown-menu">
+                        <div class="dropdown-content" id="dropdown1">
                             <a href="{{ url_for('cases_page') }}" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
@@ -201,14 +201,14 @@
                     </div>
                     
                     <!-- Documents & AI -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
+                    <div class="dropdown">
+                        <button onclick="toggleDropdown('dropdown2')" class="base-dropdown-button">
                             Documents & AI
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="base-dropdown-menu">
+                        <div class="dropdown-content" id="dropdown2">
                             <a href="{{ url_for('documents_page') }}" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h10l6-6V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>
@@ -243,14 +243,14 @@
                     </div>
                     
                     <!-- Operations -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
+                    <div class="dropdown">
+                        <button onclick="toggleDropdown('dropdown3')" class="base-dropdown-button">
                             Operations
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="base-dropdown-menu">
+                        <div class="dropdown-content" id="dropdown3">
                             <a href="{{ url_for('time_tracking_page') }}" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
@@ -274,14 +274,14 @@
                     </div>
                     
                     <!-- Settings -->
-                    <div class="base-dropdown">
-                        <button class="base-dropdown-button">
+                    <div class="dropdown">
+                        <button onclick="toggleDropdown('dropdown4')" class="base-dropdown-button">
                             Settings
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="base-dropdown-menu">
+                        <div class="dropdown-content" id="dropdown4">
                             <a href="/admin/users" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 4.354a4 4 0 110 6.292 4 4 0 010-6.292zM15 8a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -566,39 +566,34 @@
             return true;
         }
 
+        // Simple dropdown function
+        function toggleDropdown(dropdownId) {
+            // Close all dropdowns first
+            var dropdowns = document.querySelectorAll('.dropdown-content');
+            dropdowns.forEach(function(dropdown) {
+                if (dropdown.id !== dropdownId) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            // Toggle the clicked dropdown
+            document.getElementById(dropdownId).classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.base-dropdown-button') && !event.target.closest('.base-dropdown-button')) {
+                var dropdowns = document.querySelectorAll('.dropdown-content');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        }
+        
         // Load user functionality
         document.addEventListener('DOMContentLoaded', function() {
             loadUserInfo();
             checkAuthStatus();
-            
-            // Simple click toggle for dropdowns
-            document.querySelectorAll('.base-dropdown-button').forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const dropdown = this.parentElement;
-                    
-                    // Close all other dropdowns
-                    document.querySelectorAll('.base-dropdown').forEach(function(otherDropdown) {
-                        if (otherDropdown !== dropdown) {
-                            otherDropdown.classList.remove('open');
-                        }
-                    });
-                    
-                    // Toggle current dropdown
-                    dropdown.classList.toggle('open');
-                });
-            });
-            
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.base-dropdown')) {
-                    document.querySelectorAll('.base-dropdown').forEach(function(dropdown) {
-                        dropdown.classList.remove('open');
-                    });
-                }
-            });
         });
     </script>
     
