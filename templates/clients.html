@@ -411,6 +411,40 @@
             border-bottom: 1px solid #e5e7eb;
         }
 
+        .toolbar-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            color: #374151;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toolbar-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .toolbar-btn.ai-btn {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        .toolbar-btn.ai-btn:hover {
+            background: #f3f4f6;
+            border-color: #7c3aed;
+            color: #7c3aed;
+        }
+
         .doc-search {
             flex: 1;
             padding: 0.5rem;
@@ -683,6 +717,298 @@
         .upload-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        /* Global Search Modal Styles */
+        .search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1002;
+            padding: 1rem;
+        }
+
+        .search-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .search-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-search {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .close-search:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .search-form {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input-main {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .search-input-main:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .search-btn {
+            padding: 0.75rem 1.5rem;
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: #4a7c59;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .search-filter-select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: white;
+            min-width: 120px;
+        }
+
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .search-placeholder {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        /* AI Analysis Modal Styles */
+        .analysis-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1003;
+            padding: 1rem;
+        }
+
+        .analysis-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .analysis-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .analysis-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-analysis {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .close-analysis:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .analysis-type-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .analysis-type-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .analysis-type-btn:hover {
+            background: #f3f4f6;
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        .analysis-type-btn.active {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .analysis-action-btn {
+            padding: 0.5rem 1rem;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .analysis-action-btn:hover {
+            background: #f97316;
+        }
+
+        .analysis-results {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .analysis-loading {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .analysis-content-text {
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .analysis-content-text h4 {
+            margin: 1.5rem 0 0.75rem 0;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .analysis-content-text ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .doc-action-btn.ai-action {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .doc-action-btn.ai-action:hover {
+            background: #7c3aed;
         }
         
         .empty-state {
@@ -1281,7 +1607,11 @@
             </div>
             <div class="documents-toolbar">
                 <input type="text" class="doc-search" id="docSearch" placeholder="Search documents...">
-                <button class="upload-doc-btn" onclick="showUploadModalFromDocs()">+ Upload Document</button>
+                <div class="toolbar-actions">
+                    <button class="toolbar-btn ai-btn" onclick="showGlobalSearch()">🔍 Global Search</button>
+                    <button class="toolbar-btn ai-btn" onclick="analyzeAllDocuments()">🤖 AI Analyze All</button>
+                    <button class="upload-doc-btn" onclick="showUploadModalFromDocs()">+ Upload Document</button>
+                </div>
             </div>
             <div class="documents-list" id="documentsList">
                 <div class="empty-documents">
@@ -1347,6 +1677,75 @@
                     <button type="submit" class="upload-btn upload" id="uploadSubmitBtn">Upload Document</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Global Search Modal -->
+    <div class="search-modal" id="searchModal">
+        <div class="search-content">
+            <div class="search-header">
+                <h3 class="search-title">Global Document Search</h3>
+                <button class="close-search" onclick="closeGlobalSearch()">&times;</button>
+            </div>
+            <div class="search-form">
+                <div class="search-bar">
+                    <input type="text" id="globalSearchInput" class="search-input-main" placeholder="Search across all documents..." autofocus>
+                    <button class="search-btn" onclick="performGlobalSearch()">🔍 Search</button>
+                </div>
+                <div class="search-filters">
+                    <select id="searchClientFilter" class="search-filter-select">
+                        <option value="">All Clients</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                    <select id="searchTypeFilter" class="search-filter-select">
+                        <option value="">All Types</option>
+                        <option value="Contract">Contract</option>
+                        <option value="Brief">Brief</option>
+                        <option value="Motion">Motion</option>
+                        <option value="Pleading">Pleading</option>
+                        <option value="Discovery">Discovery</option>
+                        <option value="Correspondence">Correspondence</option>
+                        <option value="Evidence">Evidence</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="date" id="searchDateFrom" class="search-filter-select">
+                    <input type="date" id="searchDateTo" class="search-filter-select">
+                </div>
+            </div>
+            <div class="search-results" id="searchResults">
+                <div class="search-placeholder">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: #d1d5db;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <h4>Search Across All Documents</h4>
+                    <p>Enter search terms to find documents across all clients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Analysis Results Modal -->
+    <div class="analysis-modal" id="analysisModal">
+        <div class="analysis-content">
+            <div class="analysis-header">
+                <h3 class="analysis-title" id="analysisTitle">AI Document Analysis</h3>
+                <button class="close-analysis" onclick="closeAnalysis()">&times;</button>
+            </div>
+            <div class="analysis-toolbar">
+                <div class="analysis-type-selector">
+                    <button class="analysis-type-btn active" data-type="comprehensive">Comprehensive</button>
+                    <button class="analysis-type-btn" data-type="summary">Summary</button>
+                    <button class="analysis-type-btn" data-type="key_points">Key Points</button>
+                    <button class="analysis-type-btn" data-type="entities">Entities</button>
+                </div>
+                <button class="analysis-action-btn" onclick="regenerateAnalysis()">🔄 Regenerate</button>
+            </div>
+            <div class="analysis-results" id="analysisResults">
+                <div class="analysis-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Analyzing document with AI...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1640,6 +2039,7 @@
                         </div>
                     </div>
                     <div class="doc-actions">
+                        <button class="doc-action-btn ai-action" onclick="analyzeDocument('${doc.id}')">🤖 Analyze</button>
                         <button class="doc-action-btn primary" onclick="downloadDocument('${doc.id}')">Download</button>
                         <button class="doc-action-btn" onclick="previewDocument('${doc.id}')">Preview</button>
                     </div>
@@ -1802,6 +2202,364 @@
             if (e.target === this) {
                 closeUploadModal();
             }
+        });
+
+        // Global search functionality
+        function showGlobalSearch() {
+            document.getElementById('searchModal').classList.add('active');
+            document.getElementById('globalSearchInput').focus();
+            populateClientFilter();
+        }
+
+        function closeGlobalSearch() {
+            document.getElementById('searchModal').classList.remove('active');
+        }
+
+        function populateClientFilter() {
+            const clientFilter = document.getElementById('searchClientFilter');
+            const clientCards = document.querySelectorAll('.client-item');
+            
+            // Clear existing options except "All Clients"
+            clientFilter.innerHTML = '<option value="">All Clients</option>';
+            
+            clientCards.forEach(card => {
+                const clientId = card.dataset.clientId;
+                const clientName = card.dataset.name;
+                const option = document.createElement('option');
+                option.value = clientId;
+                option.textContent = clientName;
+                clientFilter.appendChild(option);
+            });
+        }
+
+        async function performGlobalSearch() {
+            const query = document.getElementById('globalSearchInput').value.trim();
+            const clientId = document.getElementById('searchClientFilter').value;
+            const docType = document.getElementById('searchTypeFilter').value;
+            const dateFrom = document.getElementById('searchDateFrom').value;
+            const dateTo = document.getElementById('searchDateTo').value;
+
+            if (!query && !clientId && !docType && !dateFrom && !dateTo) {
+                alert('Please enter search terms or select filters');
+                return;
+            }
+
+            const searchResults = document.getElementById('searchResults');
+            searchResults.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6b7280;">Searching...</div>';
+
+            try {
+                const params = new URLSearchParams();
+                if (query) params.append('q', query);
+                if (clientId) params.append('client_id', clientId);
+                if (docType) params.append('document_type', docType);
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+
+                const response = await fetch(`/api/documents/search?${params}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displaySearchResults(data.documents, query);
+                } else {
+                    searchResults.innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc2626;">Search failed: ' + data.error + '</div>';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc2626;">Search failed. Please try again.</div>';
+            }
+        }
+
+        function displaySearchResults(documents, query) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (documents.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-placeholder">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: #d1d5db;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <h4>No Documents Found</h4>
+                        <p>Try different search terms or filters</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const resultsHtml = documents.map(doc => {
+                const relevanceScore = doc.relevance_score || 0;
+                const highlightedTitle = query ? highlightText(doc.title, query) : doc.title;
+                
+                return `
+                    <div class="search-result-item" style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <h4 style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem;">${highlightedTitle}</h4>
+                                <div style="font-size: 0.875rem; color: #6b7280; display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <span><strong>Client:</strong> ${doc.client_name}</span>
+                                    <span><strong>Type:</strong> ${doc.document_type}</span>
+                                    <span><strong>Size:</strong> ${(doc.file_size_mb || (doc.file_size / 1024 / 1024)).toFixed(2)} MB</span>
+                                    <span><strong>Date:</strong> ${new Date(doc.created_at).toLocaleDateString()}</span>
+                                </div>
+                                ${doc.description ? `<p style="color: #4b5563; font-size: 0.875rem;">${highlightText(doc.description, query)}</p>` : ''}
+                            </div>
+                            ${relevanceScore > 0 ? `<div style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500;">Score: ${relevanceScore}</div>` : ''}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                            <button class="doc-action-btn ai-action" onclick="analyzeDocument('${doc.id}', '${doc.title}')">🤖 Analyze</button>
+                            <button class="doc-action-btn primary" onclick="downloadDocument('${doc.id}')">Download</button>
+                            <button class="doc-action-btn" onclick="viewClientDocuments('${doc.client_id}', '${doc.client_name}')">View Client Docs</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            searchResults.innerHTML = `
+                <div style="margin-bottom: 1rem; padding: 0.75rem; background: #f0f9ff; border-radius: 0.5rem; font-size: 0.875rem; color: #1e40af;">
+                    Found ${documents.length} document${documents.length !== 1 ? 's' : ''} ${query ? `matching "${query}"` : 'matching your filters'}
+                </div>
+                ${resultsHtml}
+            `;
+        }
+
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark style="background: #fef08a; color: #92400e;">$1</mark>');
+        }
+
+        function viewClientDocuments(clientId, clientName) {
+            closeGlobalSearch();
+            showDocuments(clientId, clientName);
+        }
+
+        // AI Analysis functionality
+        let currentAnalysisDocumentId = null;
+
+        function analyzeDocument(documentId, documentTitle) {
+            currentAnalysisDocumentId = documentId;
+            document.getElementById('analysisTitle').textContent = `AI Analysis - ${documentTitle || 'Document'}`;
+            document.getElementById('analysisModal').classList.add('active');
+            
+            // Reset to comprehensive analysis
+            document.querySelectorAll('.analysis-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('[data-type="comprehensive"]').classList.add('active');
+            
+            // Start analysis
+            performDocumentAnalysis('comprehensive');
+        }
+
+        function closeAnalysis() {
+            document.getElementById('analysisModal').classList.remove('active');
+            currentAnalysisDocumentId = null;
+        }
+
+        function regenerateAnalysis() {
+            const activeType = document.querySelector('.analysis-type-btn.active').dataset.type;
+            performDocumentAnalysis(activeType);
+        }
+
+        async function performDocumentAnalysis(analysisType) {
+            if (!currentAnalysisDocumentId) return;
+
+            const analysisResults = document.getElementById('analysisResults');
+            analysisResults.innerHTML = `
+                <div class="analysis-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Analyzing document with AI...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/api/documents/${currentAnalysisDocumentId}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        analysis_type: analysisType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayAnalysisResults(data);
+                } else {
+                    analysisResults.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: #dc2626;">
+                            <h4>Analysis Failed</h4>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                analysisResults.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #dc2626;">
+                        <h4>Analysis Failed</h4>
+                        <p>Unable to analyze document. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayAnalysisResults(data) {
+            const analysisResults = document.getElementById('analysisResults');
+            
+            analysisResults.innerHTML = `
+                <div class="analysis-content-text">
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; border-left: 4px solid #8b5cf6;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #8b5cf6;">Document Information</h4>
+                        <div style="font-size: 0.875rem; color: #6b7280;">
+                            <strong>Title:</strong> ${data.document_info.title}<br>
+                            <strong>Type:</strong> ${data.document_info.type}<br>
+                            <strong>Client:</strong> ${data.document_info.client_name}<br>
+                            <strong>Created:</strong> ${new Date(data.document_info.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div style="line-height: 1.6; white-space: pre-wrap;">${formatAnalysisText(data.analysis)}</div>
+                </div>
+            `;
+        }
+
+        function formatAnalysisText(text) {
+            // Convert markdown-style formatting to HTML
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\* (.*?)(?=\n|$)/g, '<li>$1</li>')
+                .replace(/(?:^|\n)(#{1,6})\s+(.*?)(?=\n|$)/g, (match, hashes, title) => {
+                    const level = hashes.length;
+                    return `<h${level + 2}>${title}</h${level + 2}>`;
+                })
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+        }
+
+        async function analyzeAllDocuments() {
+            if (!currentClientId) {
+                alert('Please select a client first');
+                return;
+            }
+
+            // Get all documents for current client
+            try {
+                const response = await fetch(`/api/clients/${currentClientId}/documents`);
+                const data = await response.json();
+                
+                if (data.success && data.documents.length > 0) {
+                    const documentIds = data.documents.map(doc => doc.id);
+                    
+                    // Show loading state
+                    const analysisResults = document.getElementById('analysisResults');
+                    document.getElementById('analysisTitle').textContent = `Batch AI Analysis - ${currentClientName}`;
+                    document.getElementById('analysisModal').classList.add('active');
+                    
+                    analysisResults.innerHTML = `
+                        <div class="analysis-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Analyzing ${documentIds.length} documents with AI...</p>
+                        </div>
+                    `;
+
+                    // Call batch analysis API
+                    const batchResponse = await fetch('/api/documents/batch-analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            document_ids: documentIds,
+                            analysis_type: 'summary'
+                        })
+                    });
+
+                    const batchData = await batchResponse.json();
+                    
+                    if (batchData.success) {
+                        displayBatchAnalysisResults(batchData);
+                    } else {
+                        analysisResults.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: #dc2626;">
+                                <h4>Batch Analysis Failed</h4>
+                                <p>${batchData.error}</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    alert('No documents found for this client');
+                }
+            } catch (error) {
+                console.error('Batch analysis error:', error);
+                alert('Failed to analyze documents. Please try again.');
+            }
+        }
+
+        function displayBatchAnalysisResults(data) {
+            const analysisResults = document.getElementById('analysisResults');
+            
+            const resultsHtml = data.results.map(result => `
+                <div style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                        <div>
+                            <h4 style="margin: 0 0 0.25rem 0; color: #1f2937; font-weight: 600;">${result.title}</h4>
+                            <div style="font-size: 0.875rem; color: #6b7280;">
+                                <span><strong>Type:</strong> ${result.type}</span> • 
+                                <span><strong>Client:</strong> ${result.client_name}</span>
+                            </div>
+                        </div>
+                        <div style="background: ${result.status === 'completed' ? '#dcfce7' : '#fef2f2'}; color: ${result.status === 'completed' ? '#166534' : '#dc2626'}; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500;">
+                            ${result.status === 'completed' ? '✓ Analyzed' : '✗ Failed'}
+                        </div>
+                    </div>
+                    <div style="background: #f8fafc; padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; line-height: 1.5;">
+                        ${result.analysis}
+                    </div>
+                </div>
+            `).join('');
+
+            analysisResults.innerHTML = `
+                <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f0f9ff; border-radius: 0.5rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1e40af;">Batch Analysis Complete</h4>
+                    <div style="font-size: 0.875rem; color: #1e40af;">
+                        Processed ${data.total_processed} documents, ${data.successful} successful
+                    </div>
+                </div>
+                ${resultsHtml}
+            `;
+        }
+
+        // Analysis type selector functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.analysis-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.analysis-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Perform new analysis
+                    const analysisType = this.dataset.type;
+                    performDocumentAnalysis(analysisType);
+                });
+            });
+
+            // Global search enter key
+            document.getElementById('globalSearchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performGlobalSearch();
+                }
+            });
+
+            // Modal click outside to close
+            document.getElementById('searchModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeGlobalSearch();
+                }
+            });
+
+            document.getElementById('analysisModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAnalysis();
+                }
+            });
         });
 
         // Initialize everything when DOM is loaded

@@ -5230,6 +5230,491 @@ def _upload_mock_client_document(client_id):
         'message': 'Document uploaded successfully (mock)'
     })
 
+# ===== DOCUMENT SEARCH & AI ANALYSIS =====
+
+@app.route('/api/documents/search', methods=['GET'])
+@login_required
+def api_search_documents():
+    """Global document search with AI-powered insights"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _search_mock_documents()
+        
+        # Get search parameters
+        query = request.args.get('q', '').strip()
+        client_id = request.args.get('client_id', '')
+        document_type = request.args.get('document_type', '')
+        date_from = request.args.get('date_from', '')
+        date_to = request.args.get('date_to', '')
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 20, type=int), 50)
+        
+        # Get current user
+        user_id = session.get('user_id', '1')
+        
+        # Build base query - only show user's documents
+        base_query = Document.query.join(Client).filter(Client.created_by == user_id)
+        
+        # Apply filters
+        if query:
+            # Search in title, description, and content
+            search_filter = db.or_(
+                Document.title.ilike(f'%{query}%'),
+                Document.description.ilike(f'%{query}%'),
+                Document.original_filename.ilike(f'%{query}%'),
+                Document.content_text.ilike(f'%{query}%')  # Assuming we store extracted text
+            )
+            base_query = base_query.filter(search_filter)
+        
+        if client_id:
+            base_query = base_query.filter(Document.client_id == client_id)
+        
+        if document_type:
+            base_query = base_query.filter(Document.document_type == document_type)
+        
+        if date_from:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            base_query = base_query.filter(Document.created_at >= date_from_obj)
+        
+        if date_to:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            base_query = base_query.filter(Document.created_at <= date_to_obj)
+        
+        # Order by relevance (most recent first for now)
+        base_query = base_query.order_by(Document.created_at.desc())
+        
+        # Paginate
+        paginated = base_query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        # Prepare results with client info
+        results = []
+        for doc in paginated.items:
+            doc_dict = doc.to_dict()
+            doc_dict['client_name'] = doc.client.first_name + ' ' + doc.client.last_name if doc.client else 'Unknown'
+            doc_dict['client_id'] = doc.client_id
+            
+            # Add search relevance score (simplified)
+            if query:
+                score = 0
+                query_lower = query.lower()
+                if query_lower in doc.title.lower():
+                    score += 10
+                if query_lower in (doc.description or '').lower():
+                    score += 5
+                if query_lower in doc.original_filename.lower():
+                    score += 3
+                doc_dict['relevance_score'] = score
+            
+            results.append(doc_dict)
+        
+        # Sort by relevance if searching
+        if query:
+            results.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'documents': results,
+            'search_query': query,
+            'pagination': {
+                'page': page,
+                'pages': paginated.pages,
+                'per_page': per_page,
+                'total': paginated.total,
+                'has_prev': paginated.has_prev,
+                'has_next': paginated.has_next
+            },
+            'filters': {
+                'client_id': client_id,
+                'document_type': document_type,
+                'date_from': date_from,
+                'date_to': date_to
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Document search error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/<document_id>/analyze', methods=['POST'])
+@login_required
+def api_analyze_single_document(document_id):
+    """AI analysis of a single document"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _analyze_mock_document(document_id)
+        
+        # Get document
+        user_id = session.get('user_id', '1')
+        document = Document.query.join(Client).filter(
+            Document.id == document_id,
+            Client.created_by == user_id
+        ).first()
+        
+        if not document:
+            return jsonify({
+                'success': False,
+                'error': 'Document not found'
+            }), 404
+        
+        # Get analysis type
+        data = request.json or {}
+        analysis_type = data.get('analysis_type', 'comprehensive')  # comprehensive, summary, key_points, entities
+        
+        # Get XAI API key
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI analysis not available - XAI API key not configured'
+            }), 503
+        
+        # Prepare analysis prompt based on type
+        if analysis_type == 'comprehensive':
+            prompt = f"""
+            Analyze this legal document comprehensively:
+            
+            Document Title: {document.title}
+            Document Type: {document.document_type}
+            Client: {document.client.first_name + ' ' + document.client.last_name if document.client else 'Unknown'}
+            
+            Please provide:
+            1. Document Summary (2-3 sentences)
+            2. Key Legal Points and Concepts
+            3. Important Dates and Deadlines
+            4. Parties Involved
+            5. Potential Legal Issues or Risks
+            6. Action Items for Legal Professional
+            7. Document Classification Confidence
+            
+            Document Content: {document.content_text or 'Content not available for analysis'}
+            """
+        elif analysis_type == 'summary':
+            prompt = f"""
+            Provide a concise legal summary of this document:
+            
+            Document: {document.title} ({document.document_type})
+            Content: {document.content_text or 'Content not available for analysis'}
+            
+            Provide a 2-3 sentence professional summary suitable for legal case notes.
+            """
+        elif analysis_type == 'key_points':
+            prompt = f"""
+            Extract the key legal points from this document:
+            
+            Document: {document.title}
+            Content: {document.content_text or 'Content not available for analysis'}
+            
+            List the 5 most important legal points, obligations, or clauses in bullet format.
+            """
+        elif analysis_type == 'entities':
+            prompt = f"""
+            Extract key entities from this legal document:
+            
+            Document: {document.title}
+            Content: {document.content_text or 'Content not available for analysis'}
+            
+            Identify and list:
+            - People/Parties
+            - Companies/Organizations  
+            - Dates
+            - Monetary amounts
+            - Legal references
+            - Locations
+            """
+        
+        # Call XAI API
+        try:
+            import requests
+            response = requests.post(
+                'https://api.x.ai/v1/chat/completions',
+                headers={
+                    'Authorization': f'Bearer {xai_api_key}',
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'model': 'grok-beta',
+                    'messages': [
+                        {'role': 'system', 'content': 'You are a legal AI assistant specializing in document analysis. Provide accurate, professional analysis suitable for legal professionals.'},
+                        {'role': 'user', 'content': prompt}
+                    ],
+                    'max_tokens': 1500,
+                    'temperature': 0.3
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                ai_response = response.json()
+                analysis_result = ai_response['choices'][0]['message']['content']
+                
+                # Store analysis result in document record
+                if hasattr(document, 'ai_analysis'):
+                    document.ai_analysis = analysis_result
+                    document.analysis_date = datetime.now()
+                    db.session.commit()
+                
+                return jsonify({
+                    'success': True,
+                    'document_id': document_id,
+                    'analysis_type': analysis_type,
+                    'analysis': analysis_result,
+                    'document_info': {
+                        'title': document.title,
+                        'type': document.document_type,
+                        'client_name': document.client.first_name + ' ' + document.client.last_name if document.client else 'Unknown',
+                        'created_at': document.created_at.isoformat()
+                    }
+                })
+            else:
+                logger.error(f"XAI API error: {response.status_code} - {response.text}")
+                return jsonify({
+                    'success': False,
+                    'error': 'AI analysis service unavailable'
+                }), 503
+                
+        except requests.RequestException as e:
+            logger.error(f"XAI API request error: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'AI analysis service unavailable'
+            }), 503
+        
+    except Exception as e:
+        logger.error(f"Document analysis error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/documents/batch-analyze', methods=['POST'])
+@login_required
+def api_batch_analyze_documents():
+    """Batch AI analysis of multiple documents"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _batch_analyze_mock_documents()
+        
+        data = request.json or {}
+        document_ids = data.get('document_ids', [])
+        analysis_type = data.get('analysis_type', 'summary')
+        
+        if not document_ids:
+            return jsonify({
+                'success': False,
+                'error': 'No document IDs provided'
+            }), 400
+        
+        # Check XAI API availability
+        xai_api_key = app.config.get('XAI_API_KEY')
+        if not xai_api_key:
+            return jsonify({
+                'success': False,
+                'error': 'AI analysis not available'
+            }), 503
+        
+        # Get user's documents
+        user_id = session.get('user_id', '1')
+        documents = Document.query.join(Client).filter(
+            Document.id.in_(document_ids),
+            Client.created_by == user_id
+        ).all()
+        
+        results = []
+        for doc in documents:
+            # Simplified batch analysis
+            try:
+                import requests
+                prompt = f"Provide a brief legal summary of this document: {doc.title} ({doc.document_type})"
+                
+                response = requests.post(
+                    'https://api.x.ai/v1/chat/completions',
+                    headers={
+                        'Authorization': f'Bearer {xai_api_key}',
+                        'Content-Type': 'application/json'
+                    },
+                    json={
+                        'model': 'grok-beta',
+                        'messages': [
+                            {'role': 'system', 'content': 'You are a legal AI assistant. Provide concise legal summaries.'},
+                            {'role': 'user', 'content': prompt}
+                        ],
+                        'max_tokens': 300,
+                        'temperature': 0.3
+                    },
+                    timeout=15
+                )
+                
+                if response.status_code == 200:
+                    ai_response = response.json()
+                    analysis = ai_response['choices'][0]['message']['content']
+                else:
+                    analysis = "Analysis unavailable"
+                    
+            except Exception as e:
+                logger.error(f"Batch analysis error for doc {doc.id}: {e}")
+                analysis = "Analysis failed"
+            
+            results.append({
+                'document_id': doc.id,
+                'title': doc.title,
+                'type': doc.document_type,
+                'client_name': doc.client.first_name + ' ' + doc.client.last_name if doc.client else 'Unknown',
+                'analysis': analysis,
+                'status': 'completed' if 'unavailable' not in analysis and 'failed' not in analysis else 'failed'
+            })
+        
+        return jsonify({
+            'success': True,
+            'analysis_type': analysis_type,
+            'results': results,
+            'total_processed': len(results),
+            'successful': len([r for r in results if r['status'] == 'completed'])
+        })
+        
+    except Exception as e:
+        logger.error(f"Batch analysis error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ===== MOCK FUNCTIONS FOR SEARCH & AI ANALYSIS =====
+
+def _search_mock_documents():
+    """Mock document search for development"""
+    return jsonify({
+        'success': True,
+        'documents': [
+            {
+                'id': '1',
+                'title': 'Retainer Agreement - John Smith',
+                'description': 'Initial retainer agreement for personal injury case',
+                'document_type': 'Contract',
+                'original_filename': 'retainer_smith.pdf',
+                'file_size': 245760,
+                'file_size_mb': 0.24,
+                'created_at': datetime.now().isoformat(),
+                'client_name': 'John Smith',
+                'client_id': '1',
+                'relevance_score': 10,
+                'is_confidential': True
+            },
+            {
+                'id': '2',
+                'title': 'Medical Records - Jane Doe',
+                'description': 'Hospital records and medical documentation',
+                'document_type': 'Evidence',
+                'original_filename': 'medical_records.pdf',
+                'file_size': 1234567,
+                'file_size_mb': 1.23,
+                'created_at': (datetime.now() - timedelta(days=1)).isoformat(),
+                'client_name': 'Jane Doe',
+                'client_id': '2',
+                'relevance_score': 8,
+                'is_confidential': True
+            },
+            {
+                'id': '3',
+                'title': 'Contract Amendment',
+                'description': 'Amendment to original service agreement',
+                'document_type': 'Contract',
+                'original_filename': 'amendment_v2.docx',
+                'file_size': 89012,
+                'file_size_mb': 0.09,
+                'created_at': (datetime.now() - timedelta(days=3)).isoformat(),
+                'client_name': 'TechCorp Ltd',
+                'client_id': '3',
+                'relevance_score': 6,
+                'is_confidential': False
+            }
+        ],
+        'search_query': 'contract',
+        'pagination': {
+            'page': 1,
+            'pages': 1,
+            'per_page': 20,
+            'total': 3,
+            'has_prev': False,
+            'has_next': False
+        },
+        'filters': {}
+    })
+
+def _analyze_mock_document(document_id):
+    """Mock document analysis for development"""
+    return jsonify({
+        'success': True,
+        'document_id': document_id,
+        'analysis_type': 'comprehensive',
+        'analysis': """**Document Summary:**
+This retainer agreement establishes the attorney-client relationship for representation in a personal injury matter arising from a motor vehicle accident.
+
+**Key Legal Points:**
+• Attorney fees set at 33.33% contingency basis
+• Client responsible for case expenses regardless of outcome
+• Attorney has discretion to accept or reject settlement offers under $50,000
+• Exclusive representation agreement with termination clauses
+
+**Important Dates:**
+• Agreement effective: Current date
+• Statute of limitations: 2 years from incident date
+• Case review deadline: 90 days from signing
+
+**Parties Involved:**
+• Client: John Smith
+• Attorney: [Law Firm Name]
+• Opposing parties: To be determined through investigation
+
+**Potential Legal Issues:**
+• Standard contingency fee structure - ensure compliance with state regulations
+• Expense responsibility clause may need client acknowledgment
+• Settlement authority limits should be clearly understood by client
+
+**Action Items:**
+1. Obtain signed copy with client acknowledgment
+2. Begin case file setup and intake process
+3. Schedule initial case strategy meeting
+4. Request preliminary documentation from client""",
+        'document_info': {
+            'title': 'Retainer Agreement - John Smith',
+            'type': 'Contract',
+            'client_name': 'John Smith',
+            'created_at': datetime.now().isoformat()
+        }
+    })
+
+def _batch_analyze_mock_documents():
+    """Mock batch analysis for development"""
+    return jsonify({
+        'success': True,
+        'analysis_type': 'summary',
+        'results': [
+            {
+                'document_id': '1',
+                'title': 'Retainer Agreement',
+                'type': 'Contract',
+                'client_name': 'John Smith',
+                'analysis': 'Standard contingency fee retainer agreement for personal injury representation with 33.33% fee structure.',
+                'status': 'completed'
+            },
+            {
+                'document_id': '2',
+                'title': 'Medical Records',
+                'type': 'Evidence',
+                'client_name': 'Jane Doe',
+                'analysis': 'Comprehensive medical documentation supporting injury claims with treatment timeline and prognosis.',
+                'status': 'completed'
+            }
+        ],
+        'total_processed': 2,
+        'successful': 2
+    })
+
 # ===== INITIALIZATION =====
 
 logger.info("✅ LexAI Clean Flask app initialized for serverless deployment")
