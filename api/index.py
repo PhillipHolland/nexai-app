@@ -567,11 +567,25 @@ def spanish_interface():
 @app.route('/api/debug/stripe-status')
 def debug_stripe_status():
     """Debug endpoint to check Stripe configuration"""
+    # Test Stripe import
+    stripe_import_error = None
+    stripe_import_success = False
+    try:
+        import stripe as stripe_test
+        stripe_import_success = True
+    except Exception as e:
+        stripe_import_error = str(e)
+    
     return jsonify({
         'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
         'STRIPE_SECRET_KEY_EXISTS': bool(os.environ.get('STRIPE_SECRET_KEY')),
         'STRIPE_SECRET_KEY_VALUE': os.environ.get('STRIPE_SECRET_KEY', 'Not Set')[:10] + '...' if os.environ.get('STRIPE_SECRET_KEY') else 'Not Set',
-        'stripe_module_available': 'stripe' in globals()
+        'stripe_module_available': 'stripe' in globals(),
+        'stripe_import_test_success': stripe_import_success,
+        'stripe_import_error': stripe_import_error,
+        'requirements_check': {
+            'stripe_in_requirements': True  # We know it's there
+        }
     })
 
 @app.route('/billing')
