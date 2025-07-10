@@ -1944,7 +1944,8 @@ def _get_mock_invoices():
             'issue_date': issue_date.isoformat(),
             'due_date': due_date.isoformat(),
             'payment_terms': 'Net 30',
-            'created_at': issue_date.isoformat()
+            'created_at': issue_date.isoformat(),
+            'payment_intent_id': f'pi_3{random.randint(10000000, 99999999)}LexAI{str(i+1).zfill(3)}' if status == 'paid' else None
         }
         
         if paid_date:

@@ -347,7 +347,7 @@
             <div class="action-card" onclick="setupStripeConnect()">
                 <div class="action-icon">💳</div>
                 <h3 class="action-title">Payment Setup</h3>
-                <p class="action-description">Configure Stripe for client payments</p>
+                <p class="action-description">{{ 'Stripe Connected' if stripe_available else 'Configure Stripe for client payments' }}</p>
             </div>
             <div class="action-card" onclick="exportReports()">
                 <div class="action-icon">📊</div>
@@ -548,7 +548,7 @@ function renderInvoicesTable(invoices) {
                     </button>
                     ` : ''}
                     ${invoice.status === 'paid' && invoice.amount_paid > 0 ? `
-                    <button class="btn btn-secondary" onclick="processRefund('${invoice.id}', '${invoice.invoice_number}', ${invoice.amount_paid})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #fee2e2; color: #dc2626;">
+                    <button class="btn btn-secondary" onclick="processRefund('${invoice.id}', '${invoice.invoice_number}', ${invoice.amount_paid}, '${invoice.payment_intent_id || ''}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #fee2e2; color: #dc2626;">
                         💰 Refund
                     </button>
                     ` : ''}
@@ -643,11 +643,16 @@ function sendInvoice(invoiceId) {
     alert(`Send invoice ${invoiceId} - functionality coming soon!`);
 }
 
-async function processRefund(invoiceId, invoiceNumber, amount) {
+async function processRefund(invoiceId, invoiceNumber, amount, paymentIntentId) {
+    if (!paymentIntentId) {
+        alert('No payment intent ID found for this invoice. Cannot process refund.');
+        return;
+    }
+    
     const reason = prompt(`Enter refund reason for ${invoiceNumber}:`, 'Client requested refund');
     if (!reason) return;
     
-    const confirmRefund = confirm(`Process refund of $${amount.toFixed(2)} for ${invoiceNumber}?\n\nReason: ${reason}`);
+    const confirmRefund = confirm(`Process refund of $${amount.toFixed(2)} for ${invoiceNumber}?\n\nReason: ${reason}\n\nThis will create a real Stripe refund.`);
     if (!confirmRefund) return;
     
     try {
@@ -657,7 +662,7 @@ async function processRefund(invoiceId, invoiceNumber, amount) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                payment_intent_id: `pi_mock_${invoiceId}`,
+                payment_intent_id: paymentIntentId,
                 amount: Math.round(amount * 100), // Convert to cents
                 reason: reason
             })
