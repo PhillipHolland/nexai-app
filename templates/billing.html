@@ -646,7 +646,9 @@ async function createPaymentIntent(invoiceId, amount, clientEmail) {
         const data = await response.json();
         
         if (data.success) {
-            alert(`✅ Payment intent created successfully!\n\nPayment Intent ID: ${data.payment_intent_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${data.status}\n\nThis would normally redirect to Stripe Checkout.`);
+            const demoText = data.demo_mode ? ' (DEMO MODE)' : '';
+            const statusText = data.demo_mode ? `${data.status} - ${data.message}` : data.status;
+            alert(`✅ Payment intent created successfully!${demoText}\n\nPayment Intent ID: ${data.payment_intent_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${statusText}\n\n${data.demo_mode ? 'This is a demo response since Stripe module is unavailable.' : 'This would normally redirect to Stripe Checkout.'}`);
         } else {
             alert('Failed to create payment intent: ' + data.error);
         }
@@ -704,7 +706,10 @@ async function processRefund(invoiceId, invoiceNumber, amount, paymentIntentId) 
         const data = await response.json();
         
         if (data.success) {
-            alert(`Refund processed successfully!\n\nRefund ID: ${data.refund_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${data.status}`);
+            const demoText = data.demo_mode ? ' (DEMO MODE)' : '';
+            const amountText = typeof data.amount === 'number' ? `$${(data.amount / 100).toFixed(2)}` : data.amount;
+            const statusText = data.demo_mode ? `${data.status} - ${data.message}` : data.status;
+            alert(`Refund processed successfully!${demoText}\n\nRefund ID: ${data.refund_id}\nAmount: ${amountText}\nStatus: ${statusText}${data.demo_mode ? '\n\nThis is a demo response since Stripe module is unavailable.' : ''}`);
             loadInvoices(); // Refresh the invoice list
         } else {
             alert('Failed to process refund: ' + data.error);

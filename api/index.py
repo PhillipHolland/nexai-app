@@ -8286,13 +8286,6 @@ def create_payment_link():
 def process_refund():
     """Process a refund for a payment"""
     try:
-        if not STRIPE_MODULE_AVAILABLE:
-            return jsonify({'error': 'Stripe module not available on server'}), 503
-            
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'error': 'Authentication required'}), 401
-        
         data = request.get_json()
         payment_intent_id = data.get('payment_intent_id')
         refund_amount = data.get('amount')  # Optional - full refund if not specified
@@ -8300,6 +8293,28 @@ def process_refund():
         
         if not payment_intent_id:
             return jsonify({'error': 'Payment intent ID required'}), 400
+        
+        if not STRIPE_MODULE_AVAILABLE:
+            # Return mock refund for demo/testing purposes
+            import random
+            mock_refund_id = f're_demo_{random.randint(100000, 999999)}'
+            logger.info(f"Created DEMO refund {mock_refund_id} for payment intent {payment_intent_id} (Stripe module not available)")
+            
+            return jsonify({
+                'success': True,
+                'refund_id': mock_refund_id,
+                'amount': refund_amount if refund_amount else 'full_amount',
+                'status': 'demo_succeeded',
+                'currency': 'usd',
+                'payment_intent_id': payment_intent_id,
+                'reason': reason,
+                'demo_mode': True,
+                'message': 'Demo refund processed (Stripe module unavailable)'
+            })
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
         
         # Create refund
         refund_data = {
@@ -8320,7 +8335,8 @@ def process_refund():
             'success': True,
             'refund_id': refund.id,
             'amount': refund.amount,
-            'status': refund.status
+            'status': refund.status,
+            'demo_mode': False
         })
         
     except Exception as e:
@@ -8431,13 +8447,6 @@ def create_sample_invoice():
 def create_invoice_payment_intent():
     """Create Stripe payment intent for an unpaid invoice"""
     try:
-        if not STRIPE_MODULE_AVAILABLE:
-            return jsonify({'error': 'Stripe module not available on server'}), 503
-            
-        current_user = get_current_user()
-        if not current_user:
-            return jsonify({'error': 'Authentication required'}), 401
-        
         data = request.get_json()
         invoice_id = data.get('invoice_id')
         amount = data.get('amount')  # Amount in dollars
@@ -8448,7 +8457,28 @@ def create_invoice_payment_intent():
         # Convert amount to cents for Stripe
         amount_cents = int(float(amount) * 100)
         
-        # Create payment intent
+        if not STRIPE_MODULE_AVAILABLE:
+            # Return mock payment intent for demo/testing purposes
+            import random
+            mock_payment_intent_id = f'pi_demo_{random.randint(100000, 999999)}'
+            logger.info(f"Created DEMO payment intent {mock_payment_intent_id} for invoice {invoice_id} (Stripe module not available)")
+            
+            return jsonify({
+                'success': True,
+                'payment_intent_id': mock_payment_intent_id,
+                'client_secret': f'{mock_payment_intent_id}_secret_demo',
+                'amount': amount_cents,
+                'currency': 'usd',
+                'status': 'demo_mode',
+                'demo_mode': True,
+                'message': 'Demo payment intent created (Stripe module unavailable)'
+            })
+        
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+            
+        # Create real payment intent
         payment_intent = stripe.PaymentIntent.create(
             amount=amount_cents,
             currency='usd',
@@ -8464,7 +8494,7 @@ def create_invoice_payment_intent():
             },
         )
         
-        logger.info(f"Created payment intent {payment_intent.id} for invoice {invoice_id}")
+        logger.info(f"Created real payment intent {payment_intent.id} for invoice {invoice_id}")
         
         return jsonify({
             'success': True,
@@ -8472,12 +8502,13 @@ def create_invoice_payment_intent():
             'client_secret': payment_intent.client_secret,
             'amount': amount_cents,
             'currency': payment_intent.currency,
-            'status': payment_intent.status
+            'status': payment_intent.status,
+            'demo_mode': False
         })
         
     except Exception as e:
         logger.error(f"Payment intent creation error: {e}")
-        return jsonify({'error': 'Failed to create payment intent'}), 500
+        return jsonify({'error': f'Failed to create payment intent: {str(e)}'}), 500
 
 @app.route('/api/billing/create-test-invoices', methods=['POST'])
 # @login_required  # Temporarily disabled for demo mode
