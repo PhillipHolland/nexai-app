@@ -60,14 +60,18 @@ app.config.update({
 })
 
 # Initialize Stripe if available
+STRIPE_AVAILABLE = bool(os.environ.get('STRIPE_SECRET_KEY'))
+STRIPE_MODULE_AVAILABLE = False
 try:
     import stripe
     stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
-    STRIPE_AVAILABLE = bool(os.environ.get('STRIPE_SECRET_KEY'))
+    STRIPE_MODULE_AVAILABLE = True
     logger.info("Stripe initialized successfully")
-except ImportError:
-    logger.warning("Stripe not available - billing features disabled")
-    STRIPE_AVAILABLE = False
+except ImportError as e:
+    logger.warning(f"Stripe import failed: {e}")
+    logger.info("Stripe functionality may be limited without the stripe package")
+    # Still consider Stripe available if environment variable is set
+    # This allows the billing interface to work with external Stripe integrations
 
 # Service availability flags
 BAGEL_AI_AVAILABLE = bool(os.environ.get('BAGEL_RL_API_KEY'))
@@ -578,6 +582,7 @@ def debug_stripe_status():
     
     return jsonify({
         'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
+        'STRIPE_MODULE_AVAILABLE': STRIPE_MODULE_AVAILABLE,
         'STRIPE_SECRET_KEY_EXISTS': bool(os.environ.get('STRIPE_SECRET_KEY')),
         'STRIPE_SECRET_KEY_VALUE': os.environ.get('STRIPE_SECRET_KEY', 'Not Set')[:10] + '...' if os.environ.get('STRIPE_SECRET_KEY') else 'Not Set',
         'stripe_module_available': 'stripe' in globals(),
@@ -8089,8 +8094,8 @@ def _get_mock_available_slots(client_id, date_range):
 def stripe_connect_onboard():
     """Create Stripe Connect account for law firm to accept client payments"""
     try:
-        if not STRIPE_AVAILABLE:
-            return jsonify({'error': 'Stripe not configured'}), 503
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
             
         current_user = get_current_user()
         if not current_user:
@@ -8138,8 +8143,8 @@ def stripe_connect_onboard():
 def create_payment_link():
     """Create Stripe payment link for invoice"""
     try:
-        if not STRIPE_AVAILABLE:
-            return jsonify({'error': 'Stripe not configured'}), 503
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
             
         current_user = get_current_user()
         if not current_user:
@@ -8186,8 +8191,8 @@ def create_payment_link():
 def process_refund():
     """Process a refund for a payment"""
     try:
-        if not STRIPE_AVAILABLE:
-            return jsonify({'error': 'Stripe not configured'}), 503
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
             
         current_user = get_current_user()
         if not current_user:
@@ -8231,8 +8236,8 @@ def process_refund():
 def create_payment_intent():
     """Create payment intent for invoice payment"""
     try:
-        if not STRIPE_AVAILABLE:
-            return jsonify({'error': 'Stripe not configured'}), 503
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
         
         data = request.get_json()
         amount = data.get('amount')
