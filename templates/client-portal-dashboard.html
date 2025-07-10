@@ -778,6 +778,348 @@
             background-color: #f3f4f6;
         }
 
+        /* Case Progress */
+        .progress-overview {
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1rem;
+        }
+        
+        .progress-percentage {
+            font-weight: 700;
+            color: #2E4B3C;
+            font-size: 1.125rem;
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 0.75rem;
+            background: #e5e7eb;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            border-radius: 0.375rem;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-phase {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .current-phase {
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        .phase-status {
+            color: #6b7280;
+        }
+        
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid transparent;
+        }
+        
+        .milestone-item.completed {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .milestone-item.upcoming {
+            border-left-color: #f59e0b;
+            background: #fefce8;
+        }
+        
+        .milestone-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .milestone-icon.completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .milestone-icon.upcoming {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .milestone-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .milestone-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.875rem;
+            margin-bottom: 0.125rem;
+        }
+        
+        .milestone-description {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.125rem;
+        }
+        
+        .milestone-date {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        /* Progress Modal */
+        .progress-modal-content {
+            max-width: 1000px;
+        }
+        
+        .timeline-container {
+            padding: 1.5rem;
+        }
+        
+        .timeline-header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .timeline-case-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.25rem;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .timeline-progress-fill {
+            height: 100%;
+            background: #FFA74F;
+            border-radius: 0.25rem;
+            transition: width 0.5s ease;
+        }
+        
+        .phase-section {
+            margin-bottom: 2rem;
+        }
+        
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            border-left: 4px solid transparent;
+        }
+        
+        .phase-header.completed {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .phase-header.in-progress {
+            border-left-color: #f59e0b;
+            background: #fefce8;
+        }
+        
+        .phase-header.upcoming {
+            border-left-color: #6b7280;
+            background: #f9fafb;
+        }
+        
+        .phase-status-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .phase-status-icon.completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .phase-status-icon.in-progress {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .phase-status-icon.upcoming {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .phase-info {
+            flex: 1;
+        }
+        
+        .phase-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .phase-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .phase-dates {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+        
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-left: 3.5rem;
+        }
+        
+        .milestone-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .milestone-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .milestone-card.completed {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        
+        .milestone-card.pending {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+        }
+        
+        .milestone-card.scheduled {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        .milestone-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .milestone-type-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .milestone-card-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.875rem;
+        }
+        
+        .milestone-card-description {
+            color: #374151;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        
+        .milestone-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+        
+        .milestone-card-date {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .milestone-status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .milestone-status-badge.completed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .milestone-status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .milestone-status-badge.scheduled {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
         /* Quick Actions */
         .quick-actions {
             display: grid;
@@ -955,6 +1297,23 @@
                     </div>
                 </div>
 
+                <!-- Case Progress -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">📈</span>
+                        <h2 class="card-title">Case Progress</h2>
+                    </div>
+                    <div id="caseProgressOverview">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button onclick="viewDetailedProgress()" class="action-btn" style="width: 100%; border: none; background: #f8fafc;">
+                            <span class="action-icon">🗓️</span>
+                            <span class="action-title">View Full Timeline</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -1010,6 +1369,30 @@
                         <div id="messageDetail">
                             <p style="color: #6b7280; text-align: center; padding: 2rem;">Select a message to view details</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content progress-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Case Timeline & Progress</h2>
+                <button class="modal-close" onclick="closeProgressModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="timeline-container">
+                    <div id="timelineHeader">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div id="timelinePhases">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div id="progressLoading" class="loading" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p>Loading case timeline...</p>
                     </div>
                 </div>
             </div>
@@ -1099,6 +1482,9 @@
 
             // Recent Messages (load separately)
             loadRecentMessages();
+
+            // Case Progress (load separately)
+            loadCaseProgress();
 
             // Quick Actions
             const quickActions = document.getElementById('quickActions');
@@ -1580,10 +1966,198 @@
             document.getElementById('messagesModal').style.display = 'none';
         }
 
+        // Case Progress Management Functions
+        async function loadCaseProgress() {
+            try {
+                const response = await fetch('/api/client-portal/case-progress');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderCaseProgressOverview(data.progress);
+                } else {
+                    document.getElementById('caseProgressOverview').innerHTML = 
+                        '<p style="color: #6b7280; text-align: center; padding: 1rem;">No progress data available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading case progress:', error);
+                document.getElementById('caseProgressOverview').innerHTML = 
+                    '<p style="color: #dc2626; text-align: center; padding: 1rem;">Error loading progress</p>';
+            }
+        }
+
+        function renderCaseProgressOverview(progress) {
+            const progressOverview = document.getElementById('caseProgressOverview');
+            
+            progressOverview.innerHTML = `
+                <div class="progress-overview">
+                    <div class="progress-header">
+                        <div class="progress-title">${progress.current_phase.name}</div>
+                        <div class="progress-percentage">${progress.case_info.overall_progress}%</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${progress.case_info.overall_progress}%"></div>
+                    </div>
+                    <div class="progress-phase">
+                        <span class="current-phase">${progress.current_phase.description}</span>
+                        <span class="phase-status">${progress.current_phase.progress}% complete</span>
+                    </div>
+                </div>
+                
+                ${progress.recent_progress.slice(0, 2).map(milestone => `
+                    <div class="milestone-item completed">
+                        <div class="milestone-icon completed">✓</div>
+                        <div class="milestone-info">
+                            <div class="milestone-title">${milestone.milestone}</div>
+                            <div class="milestone-description">${milestone.description}</div>
+                            <div class="milestone-date">${formatDate(milestone.date)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+                
+                ${progress.upcoming_milestones.slice(0, 1).map(milestone => `
+                    <div class="milestone-item upcoming">
+                        <div class="milestone-icon upcoming">⏳</div>
+                        <div class="milestone-info">
+                            <div class="milestone-title">${milestone.milestone}</div>
+                            <div class="milestone-description">${milestone.description}</div>
+                            <div class="milestone-date">${formatDate(milestone.date)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function viewDetailedProgress() {
+            const modal = document.getElementById('progressModal');
+            const loading = document.getElementById('progressLoading');
+            const timelineHeader = document.getElementById('timelineHeader');
+            const timelinePhases = document.getElementById('timelinePhases');
+            
+            // Show modal and loading state
+            modal.style.display = 'block';
+            loading.style.display = 'block';
+            timelineHeader.style.display = 'none';
+            timelinePhases.style.display = 'none';
+            
+            try {
+                const [progressResponse, milestonesResponse] = await Promise.all([
+                    fetch('/api/client-portal/case-progress'),
+                    fetch('/api/client-portal/case-progress/milestones')
+                ]);
+                
+                const progressData = await progressResponse.json();
+                const milestonesData = await milestonesResponse.json();
+
+                if (progressData.success && milestonesData.success) {
+                    renderDetailedTimeline(progressData.progress, milestonesData.milestones);
+                } else {
+                    timelinePhases.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading timeline</p>';
+                }
+            } catch (error) {
+                console.error('Error loading detailed progress:', error);
+                timelinePhases.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading timeline</p>';
+            } finally {
+                loading.style.display = 'none';
+                timelineHeader.style.display = 'block';
+                timelinePhases.style.display = 'block';
+            }
+        }
+
+        function renderDetailedTimeline(progress, milestones) {
+            const timelineHeader = document.getElementById('timelineHeader');
+            const timelinePhases = document.getElementById('timelinePhases');
+            
+            // Render timeline header
+            timelineHeader.innerHTML = `
+                <div class="timeline-header">
+                    <div class="timeline-case-title">${progress.case_info.title}</div>
+                    <div style="color: rgba(255, 255, 255, 0.9); font-size: 0.875rem;">
+                        ${progress.case_info.case_type} • ${progress.case_info.attorney}
+                    </div>
+                    <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.75rem; margin-top: 0.5rem;">
+                        Started: ${formatDate(progress.case_info.start_date)} • 
+                        Est. Completion: ${formatDate(progress.case_info.estimated_completion)}
+                    </div>
+                    <div class="timeline-progress-bar">
+                        <div class="timeline-progress-fill" style="width: ${progress.case_info.overall_progress}%"></div>
+                    </div>
+                    <div style="text-align: center; margin-top: 0.5rem; font-weight: 600;">
+                        ${progress.case_info.overall_progress}% Complete
+                    </div>
+                </div>
+            `;
+            
+            // Render phases and milestones
+            timelinePhases.innerHTML = milestones.phases.map(phase => `
+                <div class="phase-section">
+                    <div class="phase-header ${phase.status}">
+                        <div class="phase-status-icon ${phase.status}">
+                            ${getPhaseStatusIcon(phase.status)}
+                        </div>
+                        <div class="phase-info">
+                            <div class="phase-name">${phase.name}</div>
+                            <div class="phase-description">${phase.status === 'completed' ? 'Completed' : phase.status === 'in_progress' ? 'In Progress' : 'Upcoming'}</div>
+                            <div class="phase-dates">
+                                ${formatDate(phase.start_date)} - ${formatDate(phase.end_date)}
+                            </div>
+                        </div>
+                        <div style="margin-left: auto; font-weight: 600; color: inherit;">
+                            ${phase.progress}%
+                        </div>
+                    </div>
+                    
+                    <div class="milestones-grid">
+                        ${phase.milestones.map(milestone => `
+                            <div class="milestone-card ${milestone.status}">
+                                <div class="milestone-card-header">
+                                    <div class="milestone-type-icon">
+                                        ${getMilestoneTypeIcon(milestone.type)}
+                                    </div>
+                                    <div class="milestone-card-title">${milestone.title}</div>
+                                </div>
+                                <div class="milestone-card-description">${milestone.description}</div>
+                                <div class="milestone-card-meta">
+                                    <span class="milestone-card-date">${formatDate(milestone.date)}</span>
+                                    <span class="milestone-status-badge ${milestone.status}">${milestone.status}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getPhaseStatusIcon(status) {
+            const icons = {
+                'completed': '✓',
+                'in_progress': '⏳',
+                'upcoming': '○'
+            };
+            return icons[status] || '○';
+        }
+
+        function getMilestoneTypeIcon(type) {
+            const icons = {
+                'meeting': '🤝',
+                'document': '📄',
+                'court_filing': '⚖️',
+                'court_appearance': '🏛️',
+                'evaluation': '📊',
+                'review': '🔍',
+                'scheduling': '📅'
+            };
+            return icons[type] || '📋';
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progressModal').style.display = 'none';
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function(event) {
             const documentsModal = document.getElementById('documentsModal');
             const messagesModal = document.getElementById('messagesModal');
+            const progressModal = document.getElementById('progressModal');
             
             if (event.target === documentsModal) {
                 closeDocumentsModal();
@@ -1591,6 +2165,10 @@
             
             if (event.target === messagesModal) {
                 closeMessagesModal();
+            }
+            
+            if (event.target === progressModal) {
+                closeProgressModal();
             }
         }
     </script>

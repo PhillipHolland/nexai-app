@@ -7387,6 +7387,286 @@ def _get_mock_message_details(message_id, client_id):
             'error': 'Message not found or not accessible'
         }), 404
 
+# ===== CLIENT PORTAL CASE PROGRESS TRACKING =====
+
+@app.route('/api/client-portal/case-progress', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_case_progress():
+    """Get case progress and timeline for client"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query case and milestone data
+            pass
+        
+        return _get_mock_case_progress(client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving case progress: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve case progress'
+        }), 500
+
+@app.route('/api/client-portal/case-progress/milestones', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_case_milestones():
+    """Get detailed milestone information for client case"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query milestone data
+            pass
+        
+        return _get_mock_case_milestones(client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving case milestones: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve case milestones'
+        }), 500
+
+def _get_mock_case_progress(client_id):
+    """Mock case progress data for development"""
+    progress_data = {
+        'case_info': {
+            'id': 'case_1',
+            'title': 'Smith vs. Jones - Divorce Proceedings',
+            'case_type': 'Family Law - Divorce',
+            'status': 'Discovery Phase',
+            'attorney': 'Attorney Sarah Johnson',
+            'start_date': '2025-06-01T00:00:00Z',
+            'estimated_completion': '2025-10-15T00:00:00Z',
+            'overall_progress': 65  # Percentage complete
+        },
+        'current_phase': {
+            'name': 'Discovery Phase',
+            'description': 'Gathering and reviewing financial documents and evidence',
+            'start_date': '2025-06-15T00:00:00Z',
+            'estimated_end': '2025-08-01T00:00:00Z',
+            'progress': 85,
+            'status': 'in_progress'
+        },
+        'next_phase': {
+            'name': 'Settlement Negotiations',
+            'description': 'Negotiating terms with opposing party',
+            'estimated_start': '2025-08-01T00:00:00Z',
+            'estimated_end': '2025-09-15T00:00:00Z'
+        },
+        'recent_progress': [
+            {
+                'date': '2025-07-08T14:30:00Z',
+                'milestone': 'Financial Discovery Complete',
+                'description': 'All financial documents received and reviewed',
+                'type': 'milestone_complete',
+                'importance': 'high'
+            },
+            {
+                'date': '2025-07-06T16:45:00Z',
+                'milestone': 'Response Filed',
+                'description': 'Divorce petition response filed with court',
+                'type': 'court_filing',
+                'importance': 'high'
+            },
+            {
+                'date': '2025-07-03T10:00:00Z',
+                'milestone': 'Settlement Conference Scheduled',
+                'description': 'Mediation session scheduled for July 25th',
+                'type': 'scheduling',
+                'importance': 'medium'
+            }
+        ],
+        'upcoming_milestones': [
+            {
+                'date': '2025-07-25T10:00:00Z',
+                'milestone': 'Settlement Conference',
+                'description': 'Mediation session with court mediator',
+                'type': 'court_appearance',
+                'importance': 'high',
+                'preparation_needed': True
+            },
+            {
+                'date': '2025-08-15T09:00:00Z',
+                'milestone': 'Final Settlement Review',
+                'description': 'Review and finalize settlement terms',
+                'type': 'meeting',
+                'importance': 'high',
+                'preparation_needed': True
+            }
+        ],
+        'progress_statistics': {
+            'total_milestones': 12,
+            'completed_milestones': 8,
+            'remaining_milestones': 4,
+            'days_elapsed': 38,
+            'estimated_days_remaining': 75
+        }
+    }
+    
+    return jsonify({
+        'success': True,
+        'progress': progress_data
+    })
+
+def _get_mock_case_milestones(client_id):
+    """Mock detailed milestone data for development"""
+    milestones_data = {
+        'phases': [
+            {
+                'name': 'Case Initiation',
+                'start_date': '2025-06-01T00:00:00Z',
+                'end_date': '2025-06-15T00:00:00Z',
+                'status': 'completed',
+                'progress': 100,
+                'milestones': [
+                    {
+                        'id': 'milestone_1',
+                        'title': 'Initial Consultation',
+                        'description': 'First meeting to discuss case details and strategy',
+                        'date': '2025-06-01T14:00:00Z',
+                        'status': 'completed',
+                        'type': 'meeting',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_2',
+                        'title': 'Retainer Agreement Signed',
+                        'description': 'Legal representation agreement executed',
+                        'date': '2025-06-03T10:00:00Z',
+                        'status': 'completed',
+                        'type': 'document',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_3',
+                        'title': 'Divorce Petition Filed',
+                        'description': 'Initial divorce petition filed with family court',
+                        'date': '2025-06-15T16:30:00Z',
+                        'status': 'completed',
+                        'type': 'court_filing',
+                        'importance': 'high'
+                    }
+                ]
+            },
+            {
+                'name': 'Discovery Phase',
+                'start_date': '2025-06-15T00:00:00Z',
+                'end_date': '2025-08-01T00:00:00Z',
+                'status': 'in_progress',
+                'progress': 85,
+                'milestones': [
+                    {
+                        'id': 'milestone_4',
+                        'title': 'Financial Affidavits Filed',
+                        'description': 'Both parties submitted financial disclosure forms',
+                        'date': '2025-06-25T00:00:00Z',
+                        'status': 'completed',
+                        'type': 'document',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_5',
+                        'title': 'Asset Valuation Completed',
+                        'description': 'Professional appraisal of marital assets',
+                        'date': '2025-07-02T00:00:00Z',
+                        'status': 'completed',
+                        'type': 'evaluation',
+                        'importance': 'medium'
+                    },
+                    {
+                        'id': 'milestone_6',
+                        'title': 'Response to Petition Filed',
+                        'description': 'Official response to divorce petition submitted',
+                        'date': '2025-07-06T16:45:00Z',
+                        'status': 'completed',
+                        'type': 'court_filing',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_7',
+                        'title': 'Discovery Document Review',
+                        'description': 'Analysis of all financial documents received',
+                        'date': '2025-07-08T14:30:00Z',
+                        'status': 'completed',
+                        'type': 'review',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_8',
+                        'title': 'Child Custody Evaluation',
+                        'description': 'Court-ordered custody assessment',
+                        'date': '2025-07-20T10:00:00Z',
+                        'status': 'pending',
+                        'type': 'evaluation',
+                        'importance': 'high'
+                    }
+                ]
+            },
+            {
+                'name': 'Settlement Negotiations',
+                'start_date': '2025-08-01T00:00:00Z',
+                'end_date': '2025-09-15T00:00:00Z',
+                'status': 'upcoming',
+                'progress': 0,
+                'milestones': [
+                    {
+                        'id': 'milestone_9',
+                        'title': 'Initial Settlement Conference',
+                        'description': 'First mediation session with court mediator',
+                        'date': '2025-08-05T10:00:00Z',
+                        'status': 'scheduled',
+                        'type': 'court_appearance',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_10',
+                        'title': 'Settlement Agreement Draft',
+                        'description': 'Preparation of proposed settlement terms',
+                        'date': '2025-08-20T00:00:00Z',
+                        'status': 'pending',
+                        'type': 'document',
+                        'importance': 'high'
+                    }
+                ]
+            },
+            {
+                'name': 'Finalization',
+                'start_date': '2025-09-15T00:00:00Z',
+                'end_date': '2025-10-15T00:00:00Z',
+                'status': 'upcoming',
+                'progress': 0,
+                'milestones': [
+                    {
+                        'id': 'milestone_11',
+                        'title': 'Final Decree Preparation',
+                        'description': 'Drafting of final divorce decree',
+                        'date': '2025-09-30T00:00:00Z',
+                        'status': 'pending',
+                        'type': 'document',
+                        'importance': 'high'
+                    },
+                    {
+                        'id': 'milestone_12',
+                        'title': 'Final Court Hearing',
+                        'description': 'Final hearing for divorce decree approval',
+                        'date': '2025-10-15T14:00:00Z',
+                        'status': 'pending',
+                        'type': 'court_appearance',
+                        'importance': 'high'
+                    }
+                ]
+            }
+        ]
+    }
+    
+    return jsonify({
+        'success': True,
+        'milestones': milestones_data
+    })
+
 # ===== INITIALIZATION =====
 
 logger.info("✅ LexAI Clean Flask app initialized for serverless deployment")
