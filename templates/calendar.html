@@ -12,23 +12,29 @@
         }
 
         .calendar-header {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            margin-bottom: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
         .calendar-title {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
             color: #1f2937;
             margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .calendar-subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            max-width: 32rem;
+            margin: 0 auto 2rem;
         }
 
         .calendar-main {
-            max-width: 1400px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 3rem 1rem;
         }
 
         /* Calendar Controls */
@@ -733,13 +739,12 @@
 
 {% block content %}
 <div class="calendar-container">
-    <!-- Calendar Header -->
-    <div class="calendar-header">
-        <h1 class="calendar-title">Calendar & Scheduling</h1>
-    </div>
-
-    <!-- Main Content -->
     <div class="calendar-main">
+        <!-- Calendar Header -->
+        <div class="calendar-header">
+            <h1 class="calendar-title">📅 Calendar & Scheduling</h1>
+            <p class="calendar-subtitle">Manage appointments, court dates, and schedule important meetings</p>
+        </div>
         <!-- Calendar Controls -->
         <div class="calendar-controls">
             <div class="calendar-nav">

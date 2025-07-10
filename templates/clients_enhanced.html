@@ -14,50 +14,65 @@
         .clients-container {
             max-width: 1280px;
             margin: 0 auto;
-            padding: 2rem 1rem;
+            padding: 3rem 1rem;
         }
 
         .clients-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
         }
 
         .clients-title {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
             color: #1f2937;
-            margin: 0;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .clients-subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            max-width: 32rem;
+            margin: 0 auto 2rem;
         }
 
         .add-client-btn {
-            background: #2E4B3C;
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
+            border-radius: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .add-client-btn:hover {
-            background: #1d2d23;
-            transform: translateY(-1px);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            color: white;
+            text-decoration: none;
         }
 
         /* Search and Filters */
         .search-filters {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-filters:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .search-row {
@@ -129,17 +144,20 @@
         }
 
         .client-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-            border: 1px solid #e5e7eb;
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
         }
 
         .client-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: inherit;
         }
 
         .client-header {
@@ -352,7 +370,8 @@
     <div class="clients-container">
         <!-- Header -->
         <div class="clients-header">
-            <h1 class="clients-title">Client Management</h1>
+            <h1 class="clients-title">👥 Client Management</h1>
+            <p class="clients-subtitle">Manage client information, relationships, and case assignments</p>
             <button class="add-client-btn" onclick="openAddClientModal()">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

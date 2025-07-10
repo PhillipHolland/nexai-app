@@ -4,29 +4,37 @@
 
 {% block extra_head %}
 <style>
+    /* Main layout matching dashboard styling */
+    .document-main {
+        background-color: #F7EDDA; /* light-cream background like main dashboard */
+        min-height: calc(100vh - 4rem); /* Account for navbar height */
+        padding: 0;
+    }
+
     .document-container {
-        max-width: 1200px;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 2rem 1rem;
+        padding: 3rem 1rem;
     }
 
     .document-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #e5e7eb;
+        text-align: center;
+        margin-bottom: 3rem;
     }
 
     .document-title {
-        font-size: 2rem;
+        font-size: 3rem;
         font-weight: 700;
         color: #1f2937;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        margin-bottom: 1rem;
+        line-height: 1.1;
+    }
+
+    .document-subtitle {
+        font-size: 1.25rem;
+        color: #6b7280;
+        max-width: 32rem;
+        margin: 0 auto 2rem;
     }
 
     .header-actions {
@@ -39,29 +47,36 @@
         color: white;
         border: none;
         padding: 0.75rem 1.5rem;
-        border-radius: 8px;
+        border-radius: 0.75rem;
         font-weight: 600;
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
         cursor: pointer;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .add-document-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         color: white;
         text-decoration: none;
     }
 
     .document-filters {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .document-filters:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
     .filter-row {
@@ -119,11 +134,17 @@
     }
 
     .stat-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
         text-align: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
     .stat-number {
@@ -146,18 +167,22 @@
     }
 
     .document-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid #e5e7eb;
-        transition: all 0.2s ease;
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
         cursor: pointer;
+        border-left: 4px solid #e5e7eb;
     }
 
     .document-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
     }
 
     .document-card.confidential {
@@ -580,13 +605,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="document-container">
-    <!-- Header -->
-    <div class="document-header">
-        <h1 class="document-title">
-            📄 Document Library
-        </h1>
-        <div class="header-actions">
+<div class="document-main">
+    <div class="document-container">
+        <!-- Header -->
+        <div class="document-header">
+            <h1 class="document-title">📄 Document Library</h1>
+            <p class="document-subtitle">Manage legal documents, contracts, and case files with AI-powered analysis</p>
             <button class="add-document-btn" onclick="openAddModal()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -594,7 +618,6 @@
                 Add Document
             </button>
         </div>
-    </div>
 
     <!-- Filters -->
     <div class="document-filters">
@@ -666,8 +689,9 @@
         </div>
     </div>
 
-    <!-- Pagination -->
-    <div id="paginationContainer"></div>
+        <!-- Pagination -->
+        <div id="paginationContainer"></div>
+    </div>
 </div>
 
 <!-- Add Document Modal -->
