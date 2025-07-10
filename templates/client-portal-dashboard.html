@@ -281,6 +281,225 @@
             color: #f59e0b;
         }
         
+        /* Documents */
+        .document-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .document-item:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+        
+        .document-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        
+        .document-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .document-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .document-meta {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .document-size {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        /* Document Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 2rem auto;
+            padding: 0;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .document-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: white;
+            transition: all 0.2s ease;
+        }
+        
+        .document-card:hover {
+            border-color: #2E4B3C;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .document-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .document-card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        
+        .document-card-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1rem;
+            flex: 1;
+        }
+        
+        .document-card-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .document-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        
+        .document-card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-download {
+            background-color: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+        
+        .btn-download:hover {
+            background-color: #1a3429;
+            transform: translateY(-1px);
+        }
+        
+        .btn-details {
+            background-color: #f8fafc;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-details:hover {
+            background-color: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
         /* Quick Actions */
         .quick-actions {
             display: grid;
@@ -423,6 +642,23 @@
                     </div>
                 </div>
 
+                <!-- Documents -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">📄</span>
+                        <h2 class="card-title">Recent Documents</h2>
+                    </div>
+                    <div id="recentDocuments">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button onclick="viewAllDocuments()" class="action-btn" style="width: 100%; border: none; background: #f8fafc;">
+                            <span class="action-icon">📂</span>
+                            <span class="action-title">View All Documents</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -436,6 +672,25 @@
             </div>
         </div>
     </main>
+
+    <!-- Documents Modal -->
+    <div id="documentsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Your Documents</h2>
+                <button class="modal-close" onclick="closeDocumentsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="documentsGrid" class="documents-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div id="documentsLoading" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading your documents...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Load dashboard data on page load
@@ -515,6 +770,9 @@
                 </div>
             `).join('');
 
+            // Recent Documents (load separately)
+            loadRecentDocuments();
+
             // Quick Actions
             const quickActions = document.getElementById('quickActions');
             quickActions.innerHTML = dashboard.quick_actions.map(action => `
@@ -556,7 +814,7 @@
         function handleQuickAction(action) {
             switch (action) {
                 case 'documents':
-                    alert('Document viewing feature coming soon!');
+                    viewAllDocuments();
                     break;
                 case 'messages':
                     alert('Messaging feature coming soon!');
@@ -581,6 +839,182 @@
             } catch (error) {
                 console.error('Logout error:', error);
                 window.location.href = '/client-portal/login';
+            }
+        }
+
+        // Document Management Functions
+        async function loadRecentDocuments() {
+            try {
+                const response = await fetch('/api/client-portal/documents');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderRecentDocuments(data.documents.slice(0, 3)); // Show only 3 most recent
+                } else {
+                    document.getElementById('recentDocuments').innerHTML = 
+                        '<p style="color: #6b7280; text-align: center; padding: 1rem;">No documents available</p>';
+                }
+            } catch (error) {
+                console.error('Error loading recent documents:', error);
+                document.getElementById('recentDocuments').innerHTML = 
+                    '<p style="color: #dc2626; text-align: center; padding: 1rem;">Error loading documents</p>';
+            }
+        }
+
+        function renderRecentDocuments(documents) {
+            const recentDocuments = document.getElementById('recentDocuments');
+            
+            if (documents.length === 0) {
+                recentDocuments.innerHTML = 
+                    '<p style="color: #6b7280; text-align: center; padding: 1rem;">No recent documents</p>';
+                return;
+            }
+
+            recentDocuments.innerHTML = documents.map(doc => `
+                <div class="document-item" onclick="downloadDocument('${doc.id}')">
+                    <div class="document-icon">
+                        ${getDocumentIcon(doc.document_type)}
+                    </div>
+                    <div class="document-info">
+                        <div class="document-title">${doc.title}</div>
+                        <div class="document-meta">${doc.document_type} • ${formatDate(doc.created_at)}</div>
+                        <div class="document-size">${formatFileSize(doc.file_size)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function viewAllDocuments() {
+            const modal = document.getElementById('documentsModal');
+            const loading = document.getElementById('documentsLoading');
+            const grid = document.getElementById('documentsGrid');
+            
+            // Show modal and loading state
+            modal.style.display = 'block';
+            loading.style.display = 'block';
+            grid.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/client-portal/documents');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderAllDocuments(data.documents);
+                } else {
+                    grid.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading documents</p>';
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                grid.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading documents</p>';
+            } finally {
+                loading.style.display = 'none';
+                grid.style.display = 'grid';
+            }
+        }
+
+        function renderAllDocuments(documents) {
+            const grid = document.getElementById('documentsGrid');
+            
+            if (documents.length === 0) {
+                grid.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem; grid-column: 1 / -1;">No documents available</p>';
+                return;
+            }
+
+            grid.innerHTML = documents.map(doc => `
+                <div class="document-card">
+                    <div class="document-card-header">
+                        <div class="document-card-icon">
+                            ${getDocumentIcon(doc.document_type)}
+                        </div>
+                        <div class="document-card-title">${doc.title}</div>
+                    </div>
+                    <div class="document-card-description">${doc.description || 'No description available'}</div>
+                    <div class="document-card-meta">
+                        <span>${doc.document_type}</span>
+                        <span>${formatFileSize(doc.file_size)}</span>
+                        <span>${formatDate(doc.created_at)}</span>
+                    </div>
+                    <div class="document-card-actions">
+                        <button class="btn-download" onclick="downloadDocument('${doc.id}')">
+                            📥 Download
+                        </button>
+                        <button class="btn-details" onclick="viewDocumentDetails('${doc.id}')">
+                            ℹ️ Details
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function downloadDocument(documentId) {
+            try {
+                const response = await fetch(`/api/client-portal/documents/${documentId}/download`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // In a real implementation, this would trigger the actual file download
+                    // For now, show a success message
+                    alert(`Download initiated for: ${data.download_info.filename}\nFile size: ${formatFileSize(data.download_info.file_size)}`);
+                } else {
+                    alert('Error: ' + (data.error || 'Unable to download document'));
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Error downloading document. Please try again.');
+            }
+        }
+
+        async function viewDocumentDetails(documentId) {
+            try {
+                const response = await fetch(`/api/client-portal/documents/${documentId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const doc = data.document;
+                    let versionsText = doc.versions.length > 0 ? 
+                        `\n\nVersions: ${doc.versions.map(v => v.version).join(', ')}` : '';
+                    
+                    alert(`Document Details:\n\nTitle: ${doc.title}\nType: ${doc.document_type}\nStatus: ${doc.status}\nVersion: ${doc.version}\nCreated: ${formatDate(doc.created_at)}\nSize: ${formatFileSize(doc.file_size)}${versionsText}\n\nDescription:\n${doc.description || 'No description available'}`);
+                } else {
+                    alert('Error: ' + (data.error || 'Unable to load document details'));
+                }
+            } catch (error) {
+                console.error('Details error:', error);
+                alert('Error loading document details. Please try again.');
+            }
+        }
+
+        function closeDocumentsModal() {
+            document.getElementById('documentsModal').style.display = 'none';
+        }
+
+        function getDocumentIcon(documentType) {
+            const icons = {
+                'Court Filing': '⚖️',
+                'Legal Form': '📋',
+                'Contract': '📄',
+                'Court Notice': '📢',
+                'Legal Brief': '📑',
+                'Agreement': '🤝',
+                'Motion': '⚖️',
+                'Pleading': '📜'
+            };
+            return icons[documentType] || '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('documentsModal');
+            if (event.target === modal) {
+                closeDocumentsModal();
             }
         }
     </script>

@@ -6757,6 +6757,348 @@ def _get_client_upcoming_deadlines(client_id, limit=3):
         }
     ]
 
+# ===== CLIENT PORTAL DOCUMENT SHARING =====
+
+@app.route('/api/client-portal/documents', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_documents():
+    """Get documents accessible to client"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # Get documents for this client
+            documents = Document.query.filter_by(
+                client_id=client_id,
+                access_level='client'  # Only documents marked for client access
+            ).filter(
+                Document.status.in_([DocumentStatus.APPROVED, DocumentStatus.FINAL])
+            ).order_by(Document.created_at.desc()).all()
+            
+            document_list = []
+            for doc in documents:
+                document_list.append({
+                    'id': doc.id,
+                    'title': doc.title,
+                    'description': doc.description,
+                    'document_type': doc.document_type,
+                    'original_filename': doc.original_filename,
+                    'file_size': doc.file_size,
+                    'mime_type': doc.mime_type,
+                    'created_at': doc.created_at.isoformat(),
+                    'updated_at': doc.updated_at.isoformat(),
+                    'version': doc.version,
+                    'case_id': doc.case_id,
+                    'download_url': f'/api/client-portal/documents/{doc.id}/download'
+                })
+            
+            return jsonify({
+                'success': True,
+                'documents': document_list,
+                'total_count': len(document_list)
+            })
+        else:
+            return _get_mock_client_documents(client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving client documents: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve documents'
+        }), 500
+
+@app.route('/api/client-portal/documents/<document_id>/download', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_document_download(document_id):
+    """Download a specific document (with security checks)"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # Security check: ensure document belongs to client and is accessible
+            document = Document.query.filter_by(
+                id=document_id,
+                client_id=client_id,
+                access_level='client'
+            ).filter(
+                Document.status.in_([DocumentStatus.APPROVED, DocumentStatus.FINAL])
+            ).first()
+            
+            if not document:
+                return jsonify({
+                    'success': False,
+                    'error': 'Document not found or not accessible'
+                }), 404
+            
+            # Log access for audit trail
+            if DATABASE_AVAILABLE:
+                audit_log(
+                    action='client_document_download',
+                    user_id=client_id,
+                    details={
+                        'document_id': document_id,
+                        'document_title': document.title,
+                        'client_id': client_id
+                    }
+                )
+            
+            # In production, implement secure file serving
+            # For now, return file info for frontend handling
+            return jsonify({
+                'success': True,
+                'download_info': {
+                    'filename': document.original_filename,
+                    'mime_type': document.mime_type,
+                    'file_size': document.file_size,
+                    'download_token': f'secure_token_{document_id}'
+                }
+            })
+        else:
+            return _get_mock_document_download(document_id, client_id)
+            
+    except Exception as e:
+        logger.error(f"Error downloading document {document_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to download document'
+        }), 500
+
+@app.route('/api/client-portal/documents/<document_id>', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_document_details(document_id):
+    """Get detailed information about a specific document"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # Security check: ensure document belongs to client
+            document = Document.query.filter_by(
+                id=document_id,
+                client_id=client_id,
+                access_level='client'
+            ).filter(
+                Document.status.in_([DocumentStatus.APPROVED, DocumentStatus.FINAL])
+            ).first()
+            
+            if not document:
+                return jsonify({
+                    'success': False,
+                    'error': 'Document not found or not accessible'
+                }), 404
+            
+            # Get document history/versions if available
+            versions = Document.query.filter_by(
+                parent_document_id=document_id,
+                client_id=client_id,
+                access_level='client'
+            ).order_by(Document.created_at.desc()).all()
+            
+            version_list = []
+            for version in versions:
+                version_list.append({
+                    'id': version.id,
+                    'version': version.version,
+                    'created_at': version.created_at.isoformat(),
+                    'status': version.status.value
+                })
+            
+            return jsonify({
+                'success': True,
+                'document': {
+                    'id': document.id,
+                    'title': document.title,
+                    'description': document.description,
+                    'document_type': document.document_type,
+                    'original_filename': document.original_filename,
+                    'file_size': document.file_size,
+                    'mime_type': document.mime_type,
+                    'created_at': document.created_at.isoformat(),
+                    'updated_at': document.updated_at.isoformat(),
+                    'version': document.version,
+                    'status': document.status.value,
+                    'case_id': document.case_id,
+                    'versions': version_list,
+                    'download_url': f'/api/client-portal/documents/{document.id}/download'
+                }
+            })
+        else:
+            return _get_mock_document_details(document_id, client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving document details {document_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve document details'
+        }), 500
+
+def _get_mock_client_documents(client_id):
+    """Mock documents for development"""
+    mock_documents = [
+        {
+            'id': 'doc_1',
+            'title': 'Divorce Petition Response',
+            'description': 'Official response to divorce petition filed with court',
+            'document_type': 'Court Filing',
+            'original_filename': 'divorce_response.pdf',
+            'file_size': 245760,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-06T16:45:00Z',
+            'updated_at': '2025-07-06T16:45:00Z',
+            'version': '1.0',
+            'case_id': 'case_1',
+            'download_url': '/api/client-portal/documents/doc_1/download'
+        },
+        {
+            'id': 'doc_2',
+            'title': 'Financial Disclosure Form',
+            'description': 'Completed financial disclosure documentation',
+            'document_type': 'Legal Form',
+            'original_filename': 'financial_disclosure.pdf',
+            'file_size': 189432,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-05T14:20:00Z',
+            'updated_at': '2025-07-05T14:20:00Z',
+            'version': '1.0',
+            'case_id': 'case_1',
+            'download_url': '/api/client-portal/documents/doc_2/download'
+        },
+        {
+            'id': 'doc_3',
+            'title': 'Child Custody Agreement Draft',
+            'description': 'Proposed custody arrangement terms',
+            'document_type': 'Contract',
+            'original_filename': 'custody_agreement_draft.pdf',
+            'file_size': 167890,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-04T11:30:00Z',
+            'updated_at': '2025-07-04T11:30:00Z',
+            'version': '2.1',
+            'case_id': 'case_1',
+            'download_url': '/api/client-portal/documents/doc_3/download'
+        },
+        {
+            'id': 'doc_4',
+            'title': 'Settlement Conference Notice',
+            'description': 'Court notice for upcoming settlement conference',
+            'document_type': 'Court Notice',
+            'original_filename': 'settlement_notice.pdf',
+            'file_size': 98234,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-03T09:15:00Z',
+            'updated_at': '2025-07-03T09:15:00Z',
+            'version': '1.0',
+            'case_id': 'case_1',
+            'download_url': '/api/client-portal/documents/doc_4/download'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'documents': mock_documents,
+        'total_count': len(mock_documents)
+    })
+
+def _get_mock_document_download(document_id, client_id):
+    """Mock document download for development"""
+    mock_downloads = {
+        'doc_1': {
+            'filename': 'divorce_response.pdf',
+            'mime_type': 'application/pdf',
+            'file_size': 245760,
+            'download_token': 'secure_token_doc_1'
+        },
+        'doc_2': {
+            'filename': 'financial_disclosure.pdf',
+            'mime_type': 'application/pdf',
+            'file_size': 189432,
+            'download_token': 'secure_token_doc_2'
+        },
+        'doc_3': {
+            'filename': 'custody_agreement_draft.pdf',
+            'mime_type': 'application/pdf',
+            'file_size': 167890,
+            'download_token': 'secure_token_doc_3'
+        },
+        'doc_4': {
+            'filename': 'settlement_notice.pdf',
+            'mime_type': 'application/pdf',
+            'file_size': 98234,
+            'download_token': 'secure_token_doc_4'
+        }
+    }
+    
+    if document_id in mock_downloads:
+        return jsonify({
+            'success': True,
+            'download_info': mock_downloads[document_id]
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Document not found or not accessible'
+        }), 404
+
+def _get_mock_document_details(document_id, client_id):
+    """Mock document details for development"""
+    mock_details = {
+        'doc_1': {
+            'id': 'doc_1',
+            'title': 'Divorce Petition Response',
+            'description': 'Official response to divorce petition filed with court. This document contains our formal response to all allegations and requests made in the original petition.',
+            'document_type': 'Court Filing',
+            'original_filename': 'divorce_response.pdf',
+            'file_size': 245760,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-06T16:45:00Z',
+            'updated_at': '2025-07-06T16:45:00Z',
+            'version': '1.0',
+            'status': 'final',
+            'case_id': 'case_1',
+            'versions': [],
+            'download_url': '/api/client-portal/documents/doc_1/download'
+        },
+        'doc_3': {
+            'id': 'doc_3',
+            'title': 'Child Custody Agreement Draft',
+            'description': 'Proposed custody arrangement terms including visitation schedule, decision-making authority, and support obligations.',
+            'document_type': 'Contract',
+            'original_filename': 'custody_agreement_draft.pdf',
+            'file_size': 167890,
+            'mime_type': 'application/pdf',
+            'created_at': '2025-07-04T11:30:00Z',
+            'updated_at': '2025-07-04T11:30:00Z',
+            'version': '2.1',
+            'status': 'approved',
+            'case_id': 'case_1',
+            'versions': [
+                {
+                    'id': 'doc_3_v1',
+                    'version': '1.0',
+                    'created_at': '2025-07-02T10:00:00Z',
+                    'status': 'approved'
+                },
+                {
+                    'id': 'doc_3_v2',
+                    'version': '2.0',
+                    'created_at': '2025-07-03T15:30:00Z',
+                    'status': 'approved'
+                }
+            ],
+            'download_url': '/api/client-portal/documents/doc_3/download'
+        }
+    }
+    
+    if document_id in mock_details:
+        return jsonify({
+            'success': True,
+            'document': mock_details[document_id]
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Document not found or not accessible'
+        }), 404
+
 # ===== INITIALIZATION =====
 
 logger.info("✅ LexAI Clean Flask app initialized for serverless deployment")
