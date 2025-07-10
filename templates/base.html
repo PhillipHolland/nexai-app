@@ -50,22 +50,21 @@
     {% if not request.endpoint or not request.endpoint.startswith('admin_') %}
     <style>
         .main-nav a.nav-item.active {
-            background: linear-gradient(135deg, #2E4B3C, #4a7c59) !important;
-            color: white !important;
-            padding: 0.75rem 1.5rem !important;
-            border-radius: 0.75rem !important;
+            background-color: #FFA74F !important; /* warm-orange */
+            color: #2E4B3C !important; /* dark-green */
+            padding: 0.5rem 1.5rem !important;
+            border-radius: 0.5rem !important;
             font-weight: 600 !important;
             text-decoration: none !important;
-            transition: all 0.3s ease !important;
+            transition: all 0.2s ease !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-            transform: none !important;
         }
         
         .main-nav a.nav-item.active:hover {
-            background: linear-gradient(135deg, #2E4B3C, #4a7c59) !important;
-            color: white !important;
-            transform: translateY(-4px) !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            background-color: #F0531C !important; /* bright-coral */
+            color: #2E4B3C !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
         }
     </style>
     {% endif %}
