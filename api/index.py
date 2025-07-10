@@ -7099,6 +7099,252 @@ def _get_mock_document_details(document_id, client_id):
             'error': 'Document not found or not accessible'
         }), 404
 
+# ===== CLIENT PORTAL MESSAGING SYSTEM =====
+
+@app.route('/api/client-portal/messages', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_messages():
+    """Get messages for client"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query a Message model
+            # For now, return mock data
+            pass
+        
+        return _get_mock_client_messages(client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving client messages: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve messages'
+        }), 500
+
+@app.route('/api/client-portal/messages', methods=['POST'])
+@client_portal_auth_required
+def api_client_portal_send_message():
+    """Send a new message from client"""
+    try:
+        client_id = session.get('client_portal_user')
+        data = request.json
+        
+        if not data or not data.get('content'):
+            return jsonify({
+                'success': False,
+                'error': 'Message content is required'
+            }), 400
+        
+        message_content = data.get('content', '').strip()
+        subject = data.get('subject', '').strip()
+        
+        if len(message_content) > 5000:
+            return jsonify({
+                'success': False,
+                'error': 'Message content too long (max 5000 characters)'
+            }), 400
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, save to database and send notifications
+            pass
+        
+        # Log the message for audit trail
+        if DATABASE_AVAILABLE:
+            audit_log(
+                action='client_message_sent',
+                user_id=client_id,
+                details={
+                    'subject': subject,
+                    'content_length': len(message_content),
+                    'client_id': client_id
+                }
+            )
+        
+        # Mock successful response
+        message_id = f"msg_{int(datetime.now().timestamp())}"
+        return jsonify({
+            'success': True,
+            'message': {
+                'id': message_id,
+                'subject': subject or 'New Message',
+                'content': message_content,
+                'sender': 'client',
+                'timestamp': datetime.now().isoformat(),
+                'status': 'sent'
+            }
+        })
+            
+    except Exception as e:
+        logger.error(f"Error sending client message: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to send message'
+        }), 500
+
+@app.route('/api/client-portal/messages/<message_id>', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_message_details(message_id):
+    """Get detailed information about a specific message"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, query database for specific message
+            pass
+        
+        return _get_mock_message_details(message_id, client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving message details {message_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve message details'
+        }), 500
+
+@app.route('/api/client-portal/messages/<message_id>/read', methods=['POST'])
+@client_portal_auth_required
+def api_client_portal_mark_message_read(message_id):
+    """Mark a message as read"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, update message read status
+            pass
+        
+        return jsonify({
+            'success': True,
+            'message': f'Message {message_id} marked as read'
+        })
+            
+    except Exception as e:
+        logger.error(f"Error marking message as read {message_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to mark message as read'
+        }), 500
+
+def _get_mock_client_messages(client_id):
+    """Mock messages for development"""
+    mock_messages = [
+        {
+            'id': 'msg_1',
+            'subject': 'Case Update - Discovery Phase Complete',
+            'content': 'Dear John,\n\nI wanted to update you on the progress of your case. We have successfully completed the discovery phase and received all requested documents from the opposing party. The financial disclosure documents have been reviewed and we found several discrepancies that strengthen our position.\n\nNext steps:\n1. Review the settlement proposal\n2. Prepare for mediation session scheduled for next week\n3. Discuss custody arrangement preferences\n\nPlease let me know if you have any questions or concerns.\n\nBest regards,\nAttorney Sarah Johnson',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'timestamp': '2025-07-08T10:30:00Z',
+            'is_read': False,
+            'priority': 'normal',
+            'message_type': 'case_update'
+        },
+        {
+            'id': 'msg_2',
+            'subject': 'Document Signature Required',
+            'content': 'Hello John,\n\nI need your signature on the updated financial affidavit. The document has been uploaded to your portal and needs to be signed and returned by Friday.\n\nThe changes include:\n- Updated asset valuations\n- Revised income statements\n- Additional retirement account details\n\nPlease review and sign at your earliest convenience.\n\nThank you,\nSarah',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'timestamp': '2025-07-07T14:15:00Z',
+            'is_read': True,
+            'priority': 'high',
+            'message_type': 'action_required'
+        },
+        {
+            'id': 'msg_3',
+            'subject': 'Re: Questions about custody schedule',
+            'content': 'Thank you for your questions about the proposed custody schedule. I understand your concerns about the weekday arrangements and we can definitely discuss modifications that work better for your schedule.\n\nI will review the alternative proposal you mentioned and get back to you with feedback by tomorrow. We want to make sure any arrangement prioritizes the children\'s best interests while being practical for both parents.\n\nWe can schedule a call this week to discuss the details further.',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'timestamp': '2025-07-06T16:45:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'response'
+        },
+        {
+            'id': 'msg_4',
+            'subject': 'Questions about custody schedule',
+            'content': 'Hi Sarah,\n\nI have some concerns about the proposed custody schedule. The current arrangement has me picking up the kids every other weekend, but with my work schedule, weekday pickups would actually work better for me.\n\nCould we discuss modifying the schedule to include some weekday time instead of just weekends? I think this would be better for everyone involved.\n\nPlease let me know your thoughts.\n\nThanks,\nJohn',
+            'sender': 'client',
+            'sender_name': 'John Smith',
+            'timestamp': '2025-07-05T09:20:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'question'
+        },
+        {
+            'id': 'msg_5',
+            'subject': 'Welcome to Your Client Portal',
+            'content': 'Dear John,\n\nWelcome to your secure client portal! This platform will be our primary communication channel throughout your case.\n\nThrough this portal you can:\n- View case updates and documents\n- Send secure messages to our legal team\n- Track important deadlines\n- Access your billing information\n\nIf you have any questions about using the portal, please don\'t hesitate to reach out.\n\nBest regards,\nAttorney Sarah Johnson\nLexAI Legal Practice',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'timestamp': '2025-07-01T08:00:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'welcome'
+        }
+    ]
+    
+    # Calculate unread count
+    unread_count = sum(1 for msg in mock_messages if not msg['is_read'])
+    
+    return jsonify({
+        'success': True,
+        'messages': mock_messages,
+        'total_count': len(mock_messages),
+        'unread_count': unread_count
+    })
+
+def _get_mock_message_details(message_id, client_id):
+    """Mock message details for development"""
+    mock_details = {
+        'msg_1': {
+            'id': 'msg_1',
+            'subject': 'Case Update - Discovery Phase Complete',
+            'content': 'Dear John,\n\nI wanted to update you on the progress of your case. We have successfully completed the discovery phase and received all requested documents from the opposing party. The financial disclosure documents have been reviewed and we found several discrepancies that strengthen our position.\n\nNext steps:\n1. Review the settlement proposal\n2. Prepare for mediation session scheduled for next week\n3. Discuss custody arrangement preferences\n\nPlease let me know if you have any questions or concerns.\n\nBest regards,\nAttorney Sarah Johnson',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'sender_email': 'sarah.johnson@lexai.com',
+            'timestamp': '2025-07-08T10:30:00Z',
+            'is_read': False,
+            'priority': 'normal',
+            'message_type': 'case_update',
+            'attachments': [],
+            'thread_id': 'thread_1'
+        },
+        'msg_2': {
+            'id': 'msg_2',
+            'subject': 'Document Signature Required',
+            'content': 'Hello John,\n\nI need your signature on the updated financial affidavit. The document has been uploaded to your portal and needs to be signed and returned by Friday.\n\nThe changes include:\n- Updated asset valuations\n- Revised income statements\n- Additional retirement account details\n\nPlease review and sign at your earliest convenience.\n\nThank you,\nSarah',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'sender_email': 'sarah.johnson@lexai.com',
+            'timestamp': '2025-07-07T14:15:00Z',
+            'is_read': True,
+            'priority': 'high',
+            'message_type': 'action_required',
+            'attachments': [
+                {
+                    'name': 'financial_affidavit_updated.pdf',
+                    'size': 234567,
+                    'type': 'application/pdf'
+                }
+            ],
+            'thread_id': 'thread_2'
+        }
+    }
+    
+    if message_id in mock_details:
+        return jsonify({
+            'success': True,
+            'message': mock_details[message_id]
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Message not found or not accessible'
+        }), 404
+
 # ===== INITIALIZATION =====
 
 logger.info("✅ LexAI Clean Flask app initialized for serverless deployment")
