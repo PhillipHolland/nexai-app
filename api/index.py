@@ -2678,7 +2678,6 @@ def _get_mock_current_user():
 
 @app.route('/api/clients', methods=['GET'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_clients():
     """Get all clients with optional search and filtering"""
     try:
@@ -2765,7 +2764,6 @@ def api_get_clients():
 
 @app.route('/api/clients', methods=['POST'])
 @login_required
-@role_required('admin', 'partner', 'associate')
 def api_create_client():
     """Create a new client"""
     try:
@@ -2839,7 +2837,6 @@ def api_create_client():
 
 @app.route('/api/clients/<client_id>', methods=['GET'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_client(client_id):
     """Get a specific client with full details"""
     try:
@@ -2900,7 +2897,6 @@ def api_get_client(client_id):
 
 @app.route('/api/clients/<client_id>', methods=['PUT'])
 @login_required
-@role_required('admin', 'partner', 'associate')
 def api_update_client(client_id):
     """Update a client"""
     try:
@@ -2962,7 +2958,6 @@ def api_update_client(client_id):
 
 @app.route('/api/clients/<client_id>', methods=['DELETE'])
 @login_required
-@role_required('admin', 'partner')
 def api_delete_client(client_id):
     """Delete a client (soft delete by setting status to inactive)"""
     try:
