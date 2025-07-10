@@ -523,6 +523,11 @@ function renderInvoicesTable(invoices) {
                         📧 Send
                     </button>
                     ` : ''}
+                    ${invoice.status === 'paid' && invoice.amount_paid > 0 ? `
+                    <button class="btn btn-secondary" onclick="processRefund('${invoice.id}', '${invoice.invoice_number}', ${invoice.amount_paid})" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #fee2e2; color: #dc2626;">
+                        💰 Refund
+                    </button>
+                    ` : ''}
                 </div>
             </td>
         </tr>
@@ -612,6 +617,40 @@ function viewInvoice(invoiceId) {
 
 function sendInvoice(invoiceId) {
     alert(`Send invoice ${invoiceId} - functionality coming soon!`);
+}
+
+async function processRefund(invoiceId, invoiceNumber, amount) {
+    const reason = prompt(`Enter refund reason for ${invoiceNumber}:`, 'Client requested refund');
+    if (!reason) return;
+    
+    const confirmRefund = confirm(`Process refund of $${amount.toFixed(2)} for ${invoiceNumber}?\n\nReason: ${reason}`);
+    if (!confirmRefund) return;
+    
+    try {
+        const response = await fetch('/api/billing/refund', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                payment_intent_id: `pi_mock_${invoiceId}`,
+                amount: Math.round(amount * 100), // Convert to cents
+                reason: reason
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Refund processed successfully!\n\nRefund ID: ${data.refund_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${data.status}`);
+            loadInvoices(); // Refresh the invoice list
+        } else {
+            alert('Failed to process refund: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error processing refund:', error);
+        alert('Error processing refund');
+    }
 }
 </script>
 {% endblock %}
