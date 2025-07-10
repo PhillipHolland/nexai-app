@@ -568,6 +568,8 @@ def spanish_interface():
 def billing_page():
     """Billing and payments page"""
     try:
+        logger.info(f"Billing page - STRIPE_AVAILABLE: {STRIPE_AVAILABLE}")
+        logger.info(f"Billing page - STRIPE_SECRET_KEY exists: {bool(os.environ.get('STRIPE_SECRET_KEY'))}")
         return render_template('billing.html',
                              stripe_available=STRIPE_AVAILABLE)
     except Exception as e:
