@@ -8059,7 +8059,7 @@ def _get_mock_available_slots(client_id, date_range):
 # ===== STRIPE BILLING INTEGRATION =====
 
 @app.route('/api/billing/stripe-connect', methods=['POST'])
-@auth_required
+@login_required
 def stripe_connect_onboard():
     """Create Stripe Connect account for law firm to accept client payments"""
     try:
@@ -8108,7 +8108,7 @@ def stripe_connect_onboard():
         return jsonify({'error': 'Failed to create payment account'}), 500
 
 @app.route('/api/billing/create-payment-link', methods=['POST'])
-@auth_required
+@login_required
 def create_payment_link():
     """Create Stripe payment link for invoice"""
     try:
@@ -8156,7 +8156,7 @@ def create_payment_link():
         return jsonify({'error': 'Failed to create payment link'}), 500
 
 @app.route('/api/billing/refund', methods=['POST'])
-@auth_required
+@login_required
 def process_refund():
     """Process a refund for a payment"""
     try:
@@ -8235,7 +8235,7 @@ def create_payment_intent():
         return jsonify({'error': 'Failed to create payment intent'}), 500
 
 @app.route('/api/billing/sample-invoice', methods=['POST'])
-@auth_required
+@login_required
 def create_sample_invoice():
     """Create a sample invoice with realistic data"""
     try:
