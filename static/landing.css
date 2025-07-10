@@ -1468,6 +1468,26 @@ body {
     border-left-color: #FFA74F;
 }
 
+/* Mobile Dashboard button styling - matches desktop but with lighter text */
+.base-mobile-link.mobile-dashboard-btn {
+    background-color: #FFA74F !important; /* warm-orange */
+    color: #ffffff !important; /* white text for better readability on mobile */
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    margin: 0.5rem 0 !important;
+}
+
+.base-mobile-link.mobile-dashboard-btn:hover {
+    background-color: #F0531C !important; /* bright-coral */
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Footer styles for base template */
 .base-footer {
     background-color: #2E4B3C; /* dark-green */
