@@ -400,47 +400,312 @@
             color: #6b7280;
         }
 
-        /* Mobile responsiveness */
+        /* Mobile responsiveness - Modern Chat Interface */
         @media (max-width: 768px) {
+            .chat-container {
+                min-height: 100vh;
+                background-color: #ffffff;
+            }
+
+            .chat-header {
+                padding: 1rem;
+                background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .chat-title {
+                font-size: 1.25rem;
+                color: white;
+                margin-bottom: 0.25rem;
+            }
+
+            .chat-subtitle {
+                font-size: 0.875rem;
+                color: rgba(255, 255, 255, 0.9);
+            }
+
             .chat-main {
                 flex-direction: column;
-                padding: 0.5rem;
+                padding: 0;
+                height: calc(100vh - 140px);
+                max-width: 100%;
             }
 
             .practice-areas {
                 width: 100%;
                 order: 2;
                 padding: 1rem;
+                background-color: #f8fafc;
+                border-radius: 0;
+                box-shadow: none;
+                border-top: 1px solid #e2e8f0;
+                display: none; /* Hidden by default on mobile */
+            }
+
+            .practice-areas.mobile-visible {
+                display: block;
             }
 
             .sidebar-section {
-                margin-bottom: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .sidebar-section h3 {
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
             }
 
             .document-upload-area {
                 padding: 0.75rem;
+                font-size: 0.875rem;
+            }
+
+            .upload-text {
+                font-size: 0.875rem;
+            }
+
+            .upload-subtext {
+                font-size: 0.75rem;
             }
 
             .chat-interface {
-                height: 60vh;
+                height: calc(100vh - 140px);
                 order: 1;
+                border-radius: 0;
+                box-shadow: none;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chat-messages {
+                flex: 1;
+                padding: 1rem;
+                padding-bottom: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .message {
-                max-width: 95%;
+                max-width: 85%;
+                margin-bottom: 1rem;
+            }
+
+            .message-avatar {
+                width: 2rem;
+                height: 2rem;
+                font-size: 0.75rem;
+            }
+
+            .message-content {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                line-height: 1.4;
+                border-radius: 1.25rem;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+
+            .message.user .message-content {
+                background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+                color: white;
+                margin-left: 2rem;
+            }
+
+            .message.assistant .message-content {
+                background-color: #f1f5f9;
+                color: #334155;
+                margin-right: 2rem;
+            }
+
+            .chat-input-container {
+                padding: 1rem;
+                background-color: white;
+                border-top: 1px solid #e2e8f0;
+                position: sticky;
+                bottom: 0;
+                z-index: 50;
+            }
+
+            .chat-input-form {
+                gap: 0.75rem;
+                align-items: flex-end;
+            }
+
+            .chat-input {
+                min-height: 2.75rem;
+                max-height: 6rem;
+                padding: 0.875rem 1rem;
+                border: 1px solid #cbd5e1;
+                border-radius: 1.5rem;
+                font-size: 1rem;
+                line-height: 1.4;
+                background-color: #f8fafc;
+                -webkit-appearance: none;
+                resize: none;
+            }
+
+            .chat-input:focus {
+                border-color: #2E4B3C;
+                background-color: white;
+                box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+            }
+
+            .chat-send-btn {
+                width: 2.75rem;
+                height: 2.75rem;
+                padding: 0;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                font-size: 0;
+                box-shadow: 0 2px 8px rgba(46, 75, 60, 0.3);
+            }
+
+            .chat-send-btn:hover {
+                transform: scale(1.05);
+                box-shadow: 0 4px 12px rgba(46, 75, 60, 0.4);
+            }
+
+            .chat-send-btn:disabled {
+                background: #94a3b8;
+                box-shadow: none;
+                transform: none;
+            }
+
+            .chat-send-btn svg {
+                width: 1.25rem;
+                height: 1.25rem;
             }
 
             .practice-area {
-                padding: 0.5rem;
-                margin-bottom: 0.25rem;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                border-radius: 0.75rem;
+                font-size: 0.875rem;
             }
 
             .practice-area-name {
                 font-size: 0.875rem;
+                margin-bottom: 0.25rem;
             }
 
             .practice-area-desc {
                 font-size: 0.75rem;
+                opacity: 0.7;
+            }
+
+            .suggested-prompts {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                margin-top: 1rem;
+            }
+
+            .suggested-prompt {
+                padding: 0.75rem;
+                border-radius: 0.75rem;
+                font-size: 0.875rem;
+            }
+
+            .suggested-prompt-title {
+                font-size: 0.875rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .suggested-prompt-desc {
+                font-size: 0.75rem;
+            }
+
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.125rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .empty-state p {
+                font-size: 0.875rem;
+            }
+
+            .empty-state svg {
+                width: 3rem;
+                height: 3rem;
+                margin-bottom: 1rem;
+            }
+
+            .typing-indicator {
+                padding-left: 1rem;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Ultra-modern mobile optimizations */
+        @media (max-width: 480px) {
+            .chat-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .message-content {
+                padding: 0.625rem 0.875rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Mobile toolbar for options */
+        .mobile-toolbar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            z-index: 1000;
+        }
+
+        .mobile-toolbar-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            color: #64748b;
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-toolbar-btn:hover,
+        .mobile-toolbar-btn.active {
+            background-color: #f1f5f9;
+            color: #2E4B3C;
+        }
+
+        .mobile-toolbar-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toolbar {
+                display: flex;
+                justify-content: space-around;
             }
         }
     </style>
@@ -589,6 +854,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Toolbar -->
+    <div class="mobile-toolbar">
+        <button class="mobile-toolbar-btn" id="mobile-upload-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            Upload
+        </button>
+        <button class="mobile-toolbar-btn" id="mobile-areas-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-2H5m14-2H5m14-2H5"/>
+            </svg>
+            Areas
+        </button>
+        <button class="mobile-toolbar-btn" id="mobile-clear-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Clear
+        </button>
+        <button class="mobile-toolbar-btn" id="mobile-new-btn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            New
+        </button>
+    </div>
 </div>
 
 <script>
@@ -601,6 +894,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const typingIndicator = document.getElementById('typing-indicator');
     const practiceAreas = document.querySelectorAll('.practice-area');
     const suggestedPrompts = document.querySelectorAll('.suggested-prompt');
+
+    // Mobile elements
+    const practiceAreasDiv = document.querySelector('.practice-areas');
+    const mobileUploadBtn = document.getElementById('mobile-upload-btn');
+    const mobileAreasBtn = document.getElementById('mobile-areas-btn');
+    const mobileClearBtn = document.getElementById('mobile-clear-btn');
+    const mobileNewBtn = document.getElementById('mobile-new-btn');
 
     let currentPracticeArea = 'general';
     let conversationHistory = [];
@@ -638,6 +938,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Mobile toolbar functionality
+    if (mobileUploadBtn) {
+        mobileUploadBtn.addEventListener('click', function() {
+            docUploadInput.click();
+            this.classList.add('active');
+            setTimeout(() => this.classList.remove('active'), 300);
+        });
+    }
+
+    if (mobileAreasBtn) {
+        mobileAreasBtn.addEventListener('click', function() {
+            if (practiceAreasDiv) {
+                practiceAreasDiv.classList.toggle('mobile-visible');
+                this.classList.toggle('active');
+            }
+        });
+    }
+
+    if (mobileClearBtn) {
+        mobileClearBtn.addEventListener('click', function() {
+            if (confirm('Clear all messages?')) {
+                clearChat();
+                this.classList.add('active');
+                setTimeout(() => this.classList.remove('active'), 300);
+            }
+        });
+    }
+
+    if (mobileNewBtn) {
+        mobileNewBtn.addEventListener('click', function() {
+            clearChat();
+            this.classList.add('active');
+            setTimeout(() => this.classList.remove('active'), 300);
+        });
+    }
 
     // Document Upload Functionality
     documentUploadArea.addEventListener('click', function() {
@@ -748,6 +1084,38 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideEmptyState() {
         if (emptyState) {
             emptyState.style.display = 'none';
+        }
+    }
+
+    function clearChat() {
+        // Clear messages except typing indicator and empty state
+        const messages = chatMessages.querySelectorAll('.message');
+        messages.forEach(message => message.remove());
+        
+        // Clear conversation history
+        conversationHistory = [];
+        
+        // Show empty state
+        if (emptyState) {
+            emptyState.style.display = 'block';
+        }
+        
+        // Remove uploaded document
+        if (uploadedDocument) {
+            removeDocument();
+        }
+        
+        // Reset practice area to general
+        practiceAreas.forEach(area => area.classList.remove('active'));
+        document.querySelector('[data-area="general"]')?.classList.add('active');
+        currentPracticeArea = 'general';
+        
+        // Hide practice areas on mobile
+        if (practiceAreasDiv) {
+            practiceAreasDiv.classList.remove('mobile-visible');
+        }
+        if (mobileAreasBtn) {
+            mobileAreasBtn.classList.remove('active');
         }
     }
 
