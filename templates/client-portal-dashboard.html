@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Portal Dashboard - LexAI Practice Partner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .portal-header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .client-name {
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Main Content */
+        .portal-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .welcome-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .welcome-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+        
+        .case-status {
+            display: inline-block;
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        /* Case Summary */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2E4B3C;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        /* Activities */
+        .activity-list {
+            space-y: 1rem;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .activity-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        
+        .activity-icon.document {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        
+        .activity-icon.call {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+        
+        .activity-icon.court {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        
+        .activity-details {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .activity-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .activity-date {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        /* Deadlines */
+        .deadline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .deadline-info {
+            flex: 1;
+        }
+        
+        .deadline-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .deadline-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .deadline-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .deadline-badge.high {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .deadline-badge.medium {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #374151;
+        }
+        
+        .action-btn:hover {
+            background: #f3f4f6;
+            border-color: #2E4B3C;
+            transform: translateY(-1px);
+        }
+        
+        .action-icon {
+            font-size: 1.25rem;
+        }
+        
+        .action-title {
+            font-weight: 600;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .loading-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #2E4B3C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .portal-main {
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .welcome-section {
+                padding: 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="portal-header">
+        <div class="header-content">
+            <div class="logo">⚖️ LexAI Client Portal</div>
+            <div class="header-actions">
+                <span class="client-name" id="clientName">Loading...</span>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="portal-main">
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your dashboard...</p>
+        </div>
+
+        <div id="dashboardContent" style="display: none;">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <h1 class="welcome-title" id="welcomeTitle">Welcome back!</h1>
+                <p class="welcome-subtitle" id="welcomeSubtitle">Here's an overview of your case progress</p>
+                <div class="case-status" id="caseStatus">Active Case</div>
+            </section>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Case Summary -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <h2 class="card-title">Case Summary</h2>
+                    </div>
+                    <div class="summary-stats" id="caseSummary">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">📋</span>
+                        <h2 class="card-title">Recent Activities</h2>
+                    </div>
+                    <div class="activity-list" id="recentActivities">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Upcoming Deadlines -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">⏰</span>
+                        <h2 class="card-title">Upcoming Deadlines</h2>
+                    </div>
+                    <div id="upcomingDeadlines">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">⚡</span>
+                        <h2 class="card-title">Quick Actions</h2>
+                    </div>
+                    <div class="quick-actions" id="quickActions">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/client-portal/dashboard');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderDashboard(data.dashboard);
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('dashboardContent').style.display = 'block';
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/client-portal/login';
+                }
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <p style="color: #dc2626;">Error loading dashboard. Please refresh the page.</p>
+                `;
+            }
+        }
+
+        function renderDashboard(dashboard) {
+            // Update header
+            document.getElementById('clientName').textContent = dashboard.client_info.name;
+            
+            // Update welcome section
+            document.getElementById('welcomeTitle').textContent = `Welcome back, ${dashboard.client_info.name}!`;
+            document.getElementById('welcomeSubtitle').textContent = `${dashboard.client_info.case_type} • Attorney: ${dashboard.client_info.attorney_name}`;
+            document.getElementById('caseStatus').textContent = dashboard.client_info.case_status;
+
+            // Case Summary
+            const caseSummary = document.getElementById('caseSummary');
+            caseSummary.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${dashboard.case_summary.active_cases}</div>
+                    <div class="stat-label">Active Cases</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${dashboard.case_summary.total_documents}</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+            `;
+
+            // Recent Activities
+            const recentActivities = document.getElementById('recentActivities');
+            recentActivities.innerHTML = dashboard.recent_activities.map(activity => `
+                <div class="activity-item">
+                    <div class="activity-icon ${activity.type}">
+                        ${getActivityIcon(activity.type)}
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-description">${activity.description}</div>
+                        <div class="activity-date">${formatDate(activity.date)}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Upcoming Deadlines
+            const upcomingDeadlines = document.getElementById('upcomingDeadlines');
+            upcomingDeadlines.innerHTML = dashboard.upcoming_deadlines.map(deadline => `
+                <div class="deadline-item">
+                    <div class="deadline-info">
+                        <div class="deadline-title">${deadline.title}</div>
+                        <div class="deadline-description">${deadline.description}</div>
+                    </div>
+                    <div class="deadline-badge ${deadline.priority}">
+                        ${deadline.days_until} days
+                    </div>
+                </div>
+            `).join('');
+
+            // Quick Actions
+            const quickActions = document.getElementById('quickActions');
+            quickActions.innerHTML = dashboard.quick_actions.map(action => `
+                <a href="#" class="action-btn" onclick="handleQuickAction('${action.action}')">
+                    <span class="action-icon">${action.icon}</span>
+                    <span class="action-title">${action.title}</span>
+                </a>
+            `).join('');
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'document': '📄',
+                'call': '📞',
+                'court': '⚖️',
+                'email': '📧',
+                'meeting': '🤝'
+            };
+            return icons[type] || '📋';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return 'Today';
+            } else if (diffDays === 1) {
+                return 'Yesterday';
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        function handleQuickAction(action) {
+            switch (action) {
+                case 'documents':
+                    alert('Document viewing feature coming soon!');
+                    break;
+                case 'messages':
+                    alert('Messaging feature coming soon!');
+                    break;
+                case 'schedule':
+                    alert('Appointment scheduling feature coming soon!');
+                    break;
+                case 'billing':
+                    alert('Billing view feature coming soon!');
+                    break;
+                default:
+                    alert('Feature coming soon!');
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/client-portal/auth/logout', {
+                    method: 'POST'
+                });
+                window.location.href = '/client-portal/login';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/client-portal/login';
+            }
+        }
+    </script>
+</body>
+</html>

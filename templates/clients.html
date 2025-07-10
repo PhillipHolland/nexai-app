@@ -1401,6 +1401,263 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Timeline Modal Styles */
+        .timeline-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1004;
+            padding: 1rem;
+        }
+        
+        .timeline-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .timeline-content {
+            background: white;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+        }
+        
+        .timeline-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .close-timeline {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        
+        .close-timeline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .timeline-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+        
+        .timeline-filters {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        
+        .timeline-filter-select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+        
+        .timeline-action-btn {
+            padding: 0.5rem 1rem;
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .timeline-action-btn:hover {
+            background: #4a7c59;
+        }
+        
+        .timeline-refresh-btn {
+            padding: 0.5rem 0.75rem;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 0.5rem;
+        }
+        
+        .timeline-refresh-btn:hover {
+            background: #4b5563;
+        }
+        
+        .timeline-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        
+        .timeline-loading {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+        
+        .timeline-event {
+            display: flex;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        .timeline-event:before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 3rem;
+            bottom: -1.5rem;
+            width: 2px;
+            background: #e5e7eb;
+        }
+        
+        .timeline-event:last-child:before {
+            display: none;
+        }
+        
+        .timeline-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timeline-icon.call {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+        
+        .timeline-icon.email {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        
+        .timeline-icon.meeting {
+            background: #f3e8ff;
+            color: #8b5cf6;
+        }
+        
+        .timeline-icon.document {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        
+        .timeline-icon.milestone {
+            background: #fecaca;
+            color: #ef4444;
+        }
+        
+        .timeline-icon.deadline {
+            background: #fed7d7;
+            color: #e53e3e;
+        }
+        
+        .timeline-content-area {
+            flex: 1;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        
+        .timeline-event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-event-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+        
+        .timeline-event-date {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .timeline-event-description {
+            color: #4b5563;
+            line-height: 1.5;
+            margin: 0.5rem 0 0 0;
+        }
+        
+        .timeline-event-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .empty-timeline {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-timeline svg {
+            width: 3rem;
+            height: 3rem;
+            margin: 0 auto 1rem;
+            color: #d1d5db;
+        }
+        
+        .billable-tag {
+            background: #fef3c7;
+            color: #f59e0b;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
     </style>
 {% endblock %}
 
@@ -1495,6 +1752,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                             Notes
+                        </button>
+                        <button class="quick-action-btn timeline" onclick="openTimeline('{{ client.id }}', '{{ client.name }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Timeline
                         </button>
                     </div>
                     
@@ -1744,6 +2007,41 @@
                 <div class="analysis-loading">
                     <div class="loading-spinner"></div>
                     <p>Analyzing document with AI...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Modal -->
+    <div class="timeline-modal" id="timelineModal">
+        <div class="timeline-content">
+            <div class="timeline-header">
+                <h3 class="timeline-title" id="timelineTitle">Client Timeline</h3>
+                <button class="close-timeline" onclick="closeTimeline()">&times;</button>
+            </div>
+            <div class="timeline-toolbar">
+                <div class="timeline-filters">
+                    <select id="timelineActivityFilter" class="timeline-filter-select" onchange="filterTimeline()">
+                        <option value="">All Activities</option>
+                        <option value="call">Calls</option>
+                        <option value="email">Emails</option>
+                        <option value="meeting">Meetings</option>
+                        <option value="document">Documents</option>
+                        <option value="milestone">Milestones</option>
+                        <option value="deadline">Deadlines</option>
+                        <option value="note">Notes</option>
+                        <option value="task">Tasks</option>
+                    </select>
+                    <input type="date" id="timelineStartDate" class="timeline-filter-select" onchange="filterTimeline()">
+                    <input type="date" id="timelineEndDate" class="timeline-filter-select" onchange="filterTimeline()">
+                    <button class="timeline-refresh-btn" onclick="refreshTimeline()">🔄 Refresh</button>
+                </div>
+                <button class="timeline-action-btn" onclick="addActivity()">+ Add Activity</button>
+            </div>
+            <div class="timeline-container" id="timelineContainer">
+                <div class="timeline-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading timeline...</p>
                 </div>
             </div>
         </div>
@@ -2582,6 +2880,292 @@
                 
                 // Load document count for each client
                 updateDocumentCountFromCard(clientId);
+            });
+        });
+
+        // Timeline & Activity Feed functionality
+        let currentTimelineClientId = null;
+        let currentTimelineClientName = null;
+        let allTimelineData = [];
+        let filteredTimelineData = [];
+
+        function openTimeline(clientId, clientName) {
+            currentTimelineClientId = clientId;
+            currentTimelineClientName = clientName;
+            
+            document.getElementById('timelineTitle').textContent = `Activity Feed - ${clientName}`;
+            document.getElementById('timelineModal').classList.add('active');
+            
+            // Reset filters
+            document.getElementById('timelineActivityFilter').value = '';
+            document.getElementById('timelineStartDate').value = '';
+            document.getElementById('timelineEndDate').value = '';
+            
+            // Load comprehensive activity feed for this client
+            loadClientActivityFeed(clientId);
+        }
+
+        function closeTimeline() {
+            document.getElementById('timelineModal').classList.remove('active');
+            currentTimelineClientId = null;
+            currentTimelineClientName = null;
+        }
+
+        async function loadClientActivityFeed(clientId) {
+            const timelineContainer = document.getElementById('timelineContainer');
+            
+            // Show loading state
+            timelineContainer.innerHTML = `
+                <div class="timeline-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading activity feed...</p>
+                </div>
+            `;
+
+            try {
+                // Load both activities and timeline data
+                const [activitiesResponse, timelineResponse] = await Promise.all([
+                    fetch(`/api/clients/${clientId}/activities`),
+                    fetch(`/api/clients/${clientId}/timeline`)
+                ]);
+
+                const activitiesData = await activitiesResponse.json();
+                const timelineData = await timelineResponse.json();
+
+                // Combine and process all activity data
+                let combinedData = [];
+                
+                if (activitiesData.success && activitiesData.activities) {
+                    combinedData = [...combinedData, ...activitiesData.activities];
+                }
+                
+                if (timelineData.success && timelineData.timeline) {
+                    combinedData = [...combinedData, ...timelineData.timeline];
+                }
+
+                if (combinedData.length > 0) {
+                    // Sort by date (newest first)
+                    combinedData.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+                    allTimelineData = combinedData;
+                    filteredTimelineData = combinedData;
+                    renderActivityFeed(combinedData);
+                } else {
+                    showEmptyActivityFeed();
+                }
+            } catch (error) {
+                console.error('Error loading activity feed:', error);
+                showMockActivityFeed(clientId);
+            }
+        }
+
+        function refreshTimeline() {
+            if (currentTimelineClientId) {
+                loadClientActivityFeed(currentTimelineClientId);
+            }
+        }
+
+        function filterTimeline() {
+            const activityFilter = document.getElementById('timelineActivityFilter').value;
+            const startDate = document.getElementById('timelineStartDate').value;
+            const endDate = document.getElementById('timelineEndDate').value;
+
+            filteredTimelineData = allTimelineData.filter(activity => {
+                // Filter by activity type
+                if (activityFilter && activity.activity_type !== activityFilter) {
+                    return false;
+                }
+
+                // Filter by date range
+                const activityDate = new Date(activity.date || activity.created_at);
+                if (startDate && activityDate < new Date(startDate)) {
+                    return false;
+                }
+                if (endDate && activityDate > new Date(endDate + 'T23:59:59')) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (filteredTimelineData.length > 0) {
+                renderActivityFeed(filteredTimelineData);
+            } else {
+                showEmptyActivityFeed();
+            }
+        }
+
+        function renderActivityFeed(activityData) {
+            const timelineContainer = document.getElementById('timelineContainer');
+            
+            const activityHtml = activityData.map(activity => `
+                <div class="timeline-event">
+                    <div class="timeline-icon ${activity.activity_type}">
+                        ${getActivityIcon(activity.activity_type)}
+                    </div>
+                    <div class="timeline-content-area">
+                        <div class="timeline-event-header">
+                            <h4 class="timeline-event-title">${activity.title || activity.description}</h4>
+                            <span class="timeline-event-date">${formatEventDate(activity.date || activity.created_at)}</span>
+                        </div>
+                        <p class="timeline-event-description">${activity.description || activity.notes || ''}</p>
+                        <div class="timeline-event-meta">
+                            <span><strong>Type:</strong> ${getActivityTypeName(activity.activity_type)}</span>
+                            ${activity.duration ? `<span><strong>Duration:</strong> ${activity.duration}</span>` : ''}
+                            ${activity.outcome ? `<span><strong>Outcome:</strong> ${activity.outcome}</span>` : ''}
+                            ${activity.user_id ? `<span><strong>By:</strong> ${activity.user_name || 'Attorney'}</span>` : ''}
+                            ${activity.is_billable ? `<span class="billable-tag">💰 Billable</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            timelineContainer.innerHTML = activityHtml;
+        }
+
+        function showEmptyActivityFeed() {
+            const timelineContainer = document.getElementById('timelineContainer');
+            timelineContainer.innerHTML = `
+                <div class="empty-timeline">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h4>No Activity Found</h4>
+                    <p>No activities match your current filters, or start adding activities to build this client's activity feed</p>
+                </div>
+            `;
+        }
+
+        function showMockActivityFeed(clientId) {
+            const mockData = [
+                {
+                    id: '1',
+                    title: 'Initial Client Consultation',
+                    description: 'First meeting to discuss case details and legal strategy. Reviewed family dynamics, financial situation, and custody preferences.',
+                    activity_type: 'meeting',
+                    date: '2025-07-08T10:00:00Z',
+                    duration: '1.5 hours',
+                    outcome: 'Retainer signed',
+                    user_name: 'Attorney Smith',
+                    is_billable: true
+                },
+                {
+                    id: '2',
+                    title: 'Document Collection Completed',
+                    description: 'Received and organized financial records, divorce papers, and property documentation from client',
+                    activity_type: 'document',
+                    date: '2025-07-06T14:30:00Z',
+                    duration: null,
+                    outcome: 'Complete',
+                    user_name: 'Paralegal Jones',
+                    is_billable: false
+                },
+                {
+                    id: '3',
+                    title: 'Follow-up Call',
+                    description: 'Called client to clarify property details and custody preferences. Discussed timeline for proceedings.',
+                    activity_type: 'call',
+                    date: '2025-07-05T16:15:00Z',
+                    duration: '25 minutes',
+                    outcome: 'Information gathered',
+                    user_name: 'Attorney Smith',
+                    is_billable: true
+                },
+                {
+                    id: '4',
+                    title: 'Case Strategy Email',
+                    description: 'Sent detailed email to client outlining legal strategy and next steps in the divorce proceedings',
+                    activity_type: 'email',
+                    date: '2025-07-04T11:20:00Z',
+                    duration: null,
+                    outcome: 'Sent',
+                    user_name: 'Attorney Smith',
+                    is_billable: true
+                },
+                {
+                    id: '5',
+                    title: 'Court Filing Deadline',
+                    description: 'Submit response to divorce petition - Priority deadline',
+                    activity_type: 'deadline',
+                    date: '2025-07-15T17:00:00Z',
+                    duration: null,
+                    outcome: 'Pending',
+                    user_name: 'System',
+                    is_billable: false
+                },
+                {
+                    id: '6',
+                    title: 'Case Research Note',
+                    description: 'Completed research on property division laws relevant to client case. Found favorable precedents.',
+                    activity_type: 'note',
+                    date: '2025-07-03T09:45:00Z',
+                    duration: '2 hours',
+                    outcome: 'Complete',
+                    user_name: 'Associate Williams',
+                    is_billable: true
+                }
+            ];
+
+            allTimelineData = mockData;
+            filteredTimelineData = mockData;
+            renderActivityFeed(mockData);
+        }
+
+        function getActivityIcon(activityType) {
+            const icons = {
+                'call': '📞',
+                'email': '📧',
+                'meeting': '🤝',
+                'document': '📄',
+                'milestone': '🎯',
+                'deadline': '⏰',
+                'note': '📝',
+                'task': '✅'
+            };
+            return icons[activityType] || '📋';
+        }
+
+        function getActivityTypeName(activityType) {
+            const typeNames = {
+                'call': 'Phone Call',
+                'email': 'Email',
+                'meeting': 'Meeting',
+                'document': 'Document',
+                'milestone': 'Milestone',
+                'deadline': 'Deadline',
+                'note': 'Note',
+                'task': 'Task'
+            };
+            return typeNames[activityType] || 'Activity';
+        }
+
+        function formatEventDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return 'Today';
+            } else if (diffDays === 1) {
+                return 'Yesterday';
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        function addActivity() {
+            // Placeholder for add activity functionality
+            alert('Add Activity feature coming soon!');
+        }
+
+        // Modal click outside to close
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('timelineModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeTimeline();
+                }
             });
         });
     </script>

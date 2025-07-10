@@ -882,6 +882,44 @@ def analytics_dashboard():
         logger.error(f"Analytics dashboard error: {e}")
         return f"Analytics dashboard error: {e}", 500
 
+# ===== CLIENT PORTAL ROUTES =====
+
+def client_portal_auth_required(f):
+    """Decorator to require client portal authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('client_portal_logged_in'):
+            if request.is_json:
+                return jsonify({'error': 'Client portal authentication required'}), 401
+            return redirect('/client-portal/login')
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/client-portal/login')
+def client_portal_login_page():
+    """Client portal login page"""
+    try:
+        # Redirect if already logged in to client portal
+        if session.get('client_portal_logged_in'):
+            return redirect('/client-portal/dashboard')
+        return render_template('client-portal-login.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Client portal login page error: {e}")
+        return f"Client portal login error: {e}", 500
+
+@app.route('/client-portal/dashboard')
+@client_portal_auth_required
+def client_portal_dashboard_page():
+    """Client portal dashboard page"""
+    try:
+        return render_template('client-portal-dashboard.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Client portal dashboard page error: {e}")
+        return f"Client portal dashboard error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')
@@ -5714,6 +5752,1010 @@ def _batch_analyze_mock_documents():
         'total_processed': 2,
         'successful': 2
     })
+
+# ===== CLIENT ACTIVITY & TIMELINE TRACKING =====
+
+@app.route('/api/clients/<client_id>/activities', methods=['GET'])
+@login_required
+def api_get_client_activities(client_id):
+    """Get activity timeline for a specific client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client_activities(client_id)
+        
+        # Verify client access
+        user_id = session.get('user_id', '1')
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Get query parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 20, type=int), 50)
+        activity_type = request.args.get('activity_type', '')
+        date_from = request.args.get('date_from', '')
+        date_to = request.args.get('date_to', '')
+        
+        # Get activities from audit logs and other sources
+        activities = []
+        
+        # Get audit log activities for this client
+        audit_query = AuditLog.query.filter(
+            AuditLog.resource_type.in_(['client', 'document', 'case']),
+            AuditLog.resource_id == client_id,
+            AuditLog.user_id == user_id
+        )
+        
+        # Apply date filters
+        if date_from:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            audit_query = audit_query.filter(AuditLog.created_at >= date_from_obj)
+        
+        if date_to:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            audit_query = audit_query.filter(AuditLog.created_at <= date_to_obj)
+        
+        audit_logs = audit_query.order_by(AuditLog.created_at.desc()).limit(100).all()
+        
+        # Convert audit logs to activity format
+        for log in audit_logs:
+            activity_data = {
+                'id': log.id,
+                'type': f"{log.resource_type}_{log.action}",
+                'title': _format_activity_title(log),
+                'description': _format_activity_description(log),
+                'timestamp': log.created_at.isoformat(),
+                'user_id': log.user_id,
+                'metadata': {
+                    'resource_type': log.resource_type,
+                    'resource_id': log.resource_id,
+                    'action': log.action,
+                    'success': log.success
+                }
+            }
+            activities.append(activity_data)
+        
+        # Get document activities for this client
+        documents = Document.query.filter_by(client_id=client_id).all()
+        for doc in documents:
+            # Document creation activity
+            activities.append({
+                'id': f"doc_created_{doc.id}",
+                'type': 'document_created',
+                'title': f"Document uploaded: {doc.title}",
+                'description': f"Added {doc.document_type} document ({doc.original_filename})",
+                'timestamp': doc.created_at.isoformat(),
+                'user_id': doc.created_by,
+                'metadata': {
+                    'resource_type': 'document',
+                    'resource_id': doc.id,
+                    'document_type': doc.document_type,
+                    'file_size': doc.file_size
+                }
+            })
+        
+        # Sort activities by timestamp (newest first)
+        activities.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Apply activity type filter
+        if activity_type:
+            activities = [a for a in activities if a['type'].startswith(activity_type)]
+        
+        # Paginate
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        paginated_activities = activities[start_idx:end_idx]
+        
+        total_activities = len(activities)
+        total_pages = (total_activities + per_page - 1) // per_page
+        
+        return jsonify({
+            'success': True,
+            'client_id': client_id,
+            'activities': paginated_activities,
+            'pagination': {
+                'page': page,
+                'pages': total_pages,
+                'per_page': per_page,
+                'total': total_activities,
+                'has_prev': page > 1,
+                'has_next': page < total_pages
+            },
+            'filters': {
+                'activity_type': activity_type,
+                'date_from': date_from,
+                'date_to': date_to
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get client activities error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>/activities', methods=['POST'])
+@login_required
+def api_create_client_activity(client_id):
+    """Create a new activity for a client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_activity(client_id)
+        
+        # Verify client access
+        user_id = session.get('user_id', '1')
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        data = request.json or {}
+        
+        # Validate required fields
+        activity_type = data.get('type')
+        title = data.get('title')
+        description = data.get('description', '')
+        
+        if not activity_type or not title:
+            return jsonify({
+                'success': False,
+                'error': 'Activity type and title are required'
+            }), 400
+        
+        # Create audit log entry for this activity
+        from database import audit_log
+        audit_log(
+            action=activity_type,
+            resource_type='client_activity',
+            resource_id=client_id,
+            user_id=user_id,
+            notes=f"{title}: {description}"
+        )
+        
+        # Return the created activity
+        return jsonify({
+            'success': True,
+            'activity': {
+                'type': activity_type,
+                'title': title,
+                'description': description,
+                'timestamp': datetime.now().isoformat(),
+                'client_id': client_id,
+                'user_id': user_id
+            },
+            'message': 'Activity created successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Create client activity error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>/timeline', methods=['GET'])
+@login_required
+def api_get_client_timeline(client_id):
+    """Get comprehensive timeline view for a client including milestones and deadlines"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client_timeline(client_id)
+        
+        # Verify client access
+        user_id = session.get('user_id', '1')
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Get comprehensive timeline data
+        timeline_events = []
+        
+        # 1. Client creation milestone
+        timeline_events.append({
+            'id': f"client_created_{client.id}",
+            'type': 'milestone',
+            'category': 'client',
+            'title': 'Client Created',
+            'description': f"Client {client.first_name} {client.last_name} was added to the system",
+            'timestamp': client.created_at.isoformat(),
+            'icon': '👤',
+            'status': 'completed'
+        })
+        
+        # 2. Document events
+        documents = Document.query.filter_by(client_id=client_id).order_by(Document.created_at.desc()).all()
+        for doc in documents:
+            timeline_events.append({
+                'id': f"document_{doc.id}",
+                'type': 'activity',
+                'category': 'document',
+                'title': f"Document Added: {doc.title}",
+                'description': f"Uploaded {doc.document_type} document ({doc.original_filename})",
+                'timestamp': doc.created_at.isoformat(),
+                'icon': '📄',
+                'status': 'completed',
+                'metadata': {
+                    'document_id': doc.id,
+                    'document_type': doc.document_type,
+                    'file_size': doc.file_size
+                }
+            })
+        
+        # 3. Case events (if any cases exist)
+        try:
+            cases = Case.query.filter_by(client_id=client_id).order_by(Case.created_at.desc()).all()
+            for case in cases:
+                timeline_events.append({
+                    'id': f"case_{case.id}",
+                    'type': 'milestone',
+                    'category': 'case',
+                    'title': f"Case Opened: {case.title}",
+                    'description': f"{case.practice_area} case opened with status: {case.status}",
+                    'timestamp': case.created_at.isoformat(),
+                    'icon': '⚖️',
+                    'status': 'active' if case.status == 'active' else 'completed'
+                })
+        except Exception:
+            # Case model might not be available
+            pass
+        
+        # 4. Recent activities from audit logs
+        audit_logs = AuditLog.query.filter(
+            AuditLog.resource_type == 'client',
+            AuditLog.resource_id == client_id,
+            AuditLog.user_id == user_id
+        ).order_by(AuditLog.created_at.desc()).limit(10).all()
+        
+        for log in audit_logs:
+            if log.action not in ['view', 'list']:  # Skip read-only actions
+                timeline_events.append({
+                    'id': f"audit_{log.id}",
+                    'type': 'activity',
+                    'category': 'system',
+                    'title': _format_activity_title(log),
+                    'description': _format_activity_description(log),
+                    'timestamp': log.created_at.isoformat(),
+                    'icon': '🔄',
+                    'status': 'completed' if log.success else 'failed'
+                })
+        
+        # 5. Add upcoming deadlines and milestones
+        upcoming_events = _generate_upcoming_milestones(client)
+        timeline_events.extend(upcoming_events)
+        
+        # Sort timeline by timestamp (newest first)
+        timeline_events.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        # Get timeline statistics
+        timeline_stats = {
+            'total_events': len(timeline_events),
+            'documents_count': len([e for e in timeline_events if e['category'] == 'document']),
+            'milestones_count': len([e for e in timeline_events if e['type'] == 'milestone']),
+            'activities_count': len([e for e in timeline_events if e['type'] == 'activity']),
+            'case_duration_days': (datetime.now() - client.created_at).days
+        }
+        
+        return jsonify({
+            'success': True,
+            'client_id': client_id,
+            'client_name': f"{client.first_name} {client.last_name}",
+            'timeline': timeline_events,
+            'statistics': timeline_stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Get client timeline error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Helper functions for activity formatting
+def _format_activity_title(audit_log):
+    """Format audit log into readable activity title"""
+    action_map = {
+        'create': 'Created',
+        'update': 'Updated', 
+        'delete': 'Deleted',
+        'view': 'Viewed',
+        'upload': 'Uploaded'
+    }
+    
+    action = action_map.get(audit_log.action, audit_log.action.title())
+    resource = audit_log.resource_type.replace('_', ' ').title()
+    
+    return f"{action} {resource}"
+
+def _format_activity_description(audit_log):
+    """Format audit log into readable activity description"""
+    if audit_log.notes:
+        return audit_log.notes
+    
+    return f"{audit_log.action} operation on {audit_log.resource_type}"
+
+def _generate_upcoming_milestones(client):
+    """Generate upcoming milestones and deadlines for a client"""
+    upcoming = []
+    now = datetime.now()
+    
+    # Generate some example upcoming milestones based on case type
+    case_type = getattr(client, 'case_type', 'general')
+    
+    if case_type == 'personal_injury':
+        # Statute of limitations reminder (2 years from incident)
+        sol_date = client.created_at + timedelta(days=730)
+        if sol_date > now:
+            upcoming.append({
+                'id': f"sol_{client.id}",
+                'type': 'deadline',
+                'category': 'legal',
+                'title': 'Statute of Limitations Deadline',
+                'description': 'Two-year statute of limitations approaching for personal injury case',
+                'timestamp': sol_date.isoformat(),
+                'icon': '⚠️',
+                'status': 'pending',
+                'priority': 'high'
+            })
+    
+    # Follow-up reminders
+    last_contact = client.updated_at or client.created_at
+    next_followup = last_contact + timedelta(days=30)
+    
+    if next_followup > now:
+        upcoming.append({
+            'id': f"followup_{client.id}",
+            'type': 'reminder',
+            'category': 'communication',
+            'title': 'Client Follow-up Due',
+            'description': 'Scheduled follow-up with client for case status update',
+            'timestamp': next_followup.isoformat(),
+            'icon': '📞',
+            'status': 'pending',
+            'priority': 'medium'
+        })
+    
+    return upcoming
+
+# ===== DEADLINE MANAGEMENT APIs =====
+
+@app.route('/api/clients/<client_id>/deadlines', methods=['GET'])
+@login_required
+def api_get_client_deadlines(client_id):
+    """Get all deadlines for a specific client with alert status"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client_deadlines(client_id)
+        
+        # Verify client access
+        user_id = session.get('user_id', '1')
+        
+        # Get deadlines from various sources
+        deadlines = []
+        current_time = datetime.now()
+        
+        # Generate comprehensive deadline list
+        deadlines = _generate_client_deadlines(client_id)
+        
+        # Add alert status to each deadline
+        for deadline in deadlines:
+            deadline_date = datetime.fromisoformat(deadline['due_date'].replace('Z', '+00:00'))
+            days_until = (deadline_date - current_time).days
+            
+            if days_until < 0:
+                deadline['alert_status'] = 'overdue'
+                deadline['alert_level'] = 'critical'
+            elif days_until <= 1:
+                deadline['alert_status'] = 'urgent'
+                deadline['alert_level'] = 'high'
+            elif days_until <= 3:
+                deadline['alert_status'] = 'upcoming'
+                deadline['alert_level'] = 'medium'
+            elif days_until <= 7:
+                deadline['alert_status'] = 'reminder'
+                deadline['alert_level'] = 'low'
+            else:
+                deadline['alert_status'] = 'future'
+                deadline['alert_level'] = 'info'
+            
+            deadline['days_until'] = days_until
+        
+        # Sort by urgency (overdue first, then by due date)
+        deadlines.sort(key=lambda x: (x['alert_level'] == 'info', x['due_date']))
+        
+        return jsonify({
+            'success': True,
+            'deadlines': deadlines,
+            'summary': {
+                'total': len(deadlines),
+                'overdue': len([d for d in deadlines if d['alert_status'] == 'overdue']),
+                'urgent': len([d for d in deadlines if d['alert_status'] == 'urgent']),
+                'upcoming': len([d for d in deadlines if d['alert_status'] == 'upcoming']),
+                'this_week': len([d for d in deadlines if 0 <= d['days_until'] <= 7])
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get client deadlines error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve client deadlines'
+        }), 500
+
+@app.route('/api/clients/<client_id>/deadlines', methods=['POST'])
+@login_required
+def api_create_client_deadline(client_id):
+    """Create a new deadline for a client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _create_mock_deadline(client_id, request.get_json())
+        
+        user_id = session.get('user_id', '1')
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'due_date', 'deadline_type']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({
+                    'success': False,
+                    'error': f'{field} is required'
+                }), 400
+
+        # Create new deadline
+        deadline = {
+            'id': str(uuid.uuid4()),
+            'client_id': client_id,
+            'title': data['title'],
+            'description': data.get('description', ''),
+            'deadline_type': data['deadline_type'],
+            'due_date': data['due_date'],
+            'priority': data.get('priority', 'medium'),
+            'status': 'pending',
+            'created_by': user_id,
+            'created_at': datetime.now().isoformat(),
+            'alert_enabled': data.get('alert_enabled', True),
+            'alert_days_before': data.get('alert_days_before', 3)
+        }
+        
+        logger.info(f"Deadline created: {deadline['title']} for client {client_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Deadline created successfully',
+            'deadline': deadline
+        })
+        
+    except Exception as e:
+        logger.error(f"Create deadline error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create deadline'
+        }), 500
+
+@app.route('/api/deadlines/alerts', methods=['GET'])
+@login_required
+def api_get_deadline_alerts():
+    """Get all urgent deadline alerts for the current user"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_deadline_alerts()
+        
+        user_id = session.get('user_id', '1')
+        alerts = []
+        current_time = datetime.now()
+        
+        # Generate alerts for all user's clients
+        all_deadlines = _generate_all_user_deadlines(user_id)
+        
+        for deadline in all_deadlines:
+            deadline_date = datetime.fromisoformat(deadline['due_date'].replace('Z', '+00:00'))
+            days_until = (deadline_date - current_time).days
+            
+            # Only include urgent alerts (overdue or due within alert threshold)
+            if days_until <= deadline.get('alert_days_before', 3):
+                if days_until < 0:
+                    alert_type = 'overdue'
+                    alert_level = 'critical'
+                elif days_until <= 1:
+                    alert_type = 'urgent'
+                    alert_level = 'high'
+                else:
+                    alert_type = 'upcoming'
+                    alert_level = 'medium'
+                
+                alerts.append({
+                    'id': deadline['id'],
+                    'client_id': deadline['client_id'],
+                    'client_name': deadline.get('client_name', 'Unknown Client'),
+                    'title': deadline['title'],
+                    'description': deadline.get('description', ''),
+                    'deadline_type': deadline['deadline_type'],
+                    'due_date': deadline['due_date'],
+                    'days_until': days_until,
+                    'alert_type': alert_type,
+                    'alert_level': alert_level,
+                    'priority': deadline.get('priority', 'medium')
+                })
+        
+        # Sort by urgency
+        alerts.sort(key=lambda x: (x['days_until'], x['priority'] != 'high'))
+        
+        return jsonify({
+            'success': True,
+            'alerts': alerts,
+            'summary': {
+                'total_alerts': len(alerts),
+                'critical': len([a for a in alerts if a['alert_level'] == 'critical']),
+                'high': len([a for a in alerts if a['alert_level'] == 'high']),
+                'medium': len([a for a in alerts if a['alert_level'] == 'medium'])
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get deadline alerts error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve deadline alerts'
+        }), 500
+
+# ===== DEADLINE HELPER FUNCTIONS =====
+
+def _generate_client_deadlines(client_id):
+    """Generate comprehensive deadline list for a client"""
+    deadlines = []
+    
+    # Court filing deadlines
+    deadlines.extend([
+        {
+            'id': f"court_filing_{client_id}_1",
+            'title': 'Response to Divorce Petition',
+            'description': 'Submit formal response to divorce petition filed by opposing party',
+            'deadline_type': 'court_filing',
+            'due_date': (datetime.now() + timedelta(days=8)).isoformat(),
+            'priority': 'high',
+            'status': 'pending',
+            'court_name': 'Superior Court of California',
+            'case_number': 'FL-2025-001234'
+        },
+        {
+            'id': f"court_filing_{client_id}_2",
+            'title': 'Financial Disclosure Documents',
+            'description': 'Submit required financial disclosure forms (FL-140, FL-150)',
+            'deadline_type': 'document_submission',
+            'due_date': (datetime.now() + timedelta(days=15)).isoformat(),
+            'priority': 'high',
+            'status': 'pending'
+        }
+    ])
+    
+    # Payment deadlines
+    deadlines.extend([
+        {
+            'id': f"payment_{client_id}_1",
+            'title': 'Monthly Retainer Payment',
+            'description': 'Monthly retainer fee payment due',
+            'deadline_type': 'payment',
+            'due_date': (datetime.now() + timedelta(days=5)).isoformat(),
+            'priority': 'medium',
+            'status': 'pending',
+            'amount': 2500.00
+        }
+    ])
+    
+    # Discovery deadlines
+    deadlines.extend([
+        {
+            'id': f"discovery_{client_id}_1",
+            'title': 'Respond to Discovery Requests',
+            'description': 'Provide responses to interrogatories and document requests',
+            'deadline_type': 'discovery',
+            'due_date': (datetime.now() + timedelta(days=12)).isoformat(),
+            'priority': 'high',
+            'status': 'pending'
+        }
+    ])
+    
+    return deadlines
+
+def _generate_all_user_deadlines(user_id):
+    """Generate deadlines for all clients of a user"""
+    # Mock implementation - in real app, would query database
+    client_ids = ['client_1', 'client_2', 'client_3']
+    all_deadlines = []
+    
+    for client_id in client_ids:
+        client_deadlines = _generate_client_deadlines(client_id)
+        for deadline in client_deadlines:
+            deadline['client_name'] = f'Client {client_id[-1]}'
+        all_deadlines.extend(client_deadlines)
+    
+    return all_deadlines
+
+def _get_mock_client_deadlines(client_id):
+    """Mock deadline data for development"""
+    deadlines = _generate_client_deadlines(client_id)
+    current_time = datetime.now()
+    
+    # Add alert status
+    for deadline in deadlines:
+        deadline_date = datetime.fromisoformat(deadline['due_date'])
+        days_until = (deadline_date - current_time).days
+        deadline['days_until'] = days_until
+        
+        if days_until < 0:
+            deadline['alert_status'] = 'overdue'
+            deadline['alert_level'] = 'critical'
+        elif days_until <= 1:
+            deadline['alert_status'] = 'urgent'
+            deadline['alert_level'] = 'high'
+        elif days_until <= 3:
+            deadline['alert_status'] = 'upcoming'
+            deadline['alert_level'] = 'medium'
+        else:
+            deadline['alert_status'] = 'future'
+            deadline['alert_level'] = 'info'
+    
+    return jsonify({
+        'success': True,
+        'deadlines': deadlines,
+        'summary': {
+            'total': len(deadlines),
+            'overdue': len([d for d in deadlines if d['alert_status'] == 'overdue']),
+            'urgent': len([d for d in deadlines if d['alert_status'] == 'urgent']),
+            'upcoming': len([d for d in deadlines if d['alert_status'] == 'upcoming']),
+            'this_week': len([d for d in deadlines if 0 <= d['days_until'] <= 7])
+        }
+    })
+
+def _get_mock_deadline_alerts():
+    """Mock deadline alerts for development"""
+    alerts = [
+        {
+            'id': 'alert_1',
+            'client_id': 'client_1',
+            'client_name': 'John Smith',
+            'title': 'Response to Divorce Petition',
+            'description': 'Submit formal response - URGENT',
+            'deadline_type': 'court_filing',
+            'due_date': (datetime.now() + timedelta(days=1)).isoformat(),
+            'days_until': 1,
+            'alert_type': 'urgent',
+            'alert_level': 'high',
+            'priority': 'high'
+        },
+        {
+            'id': 'alert_2',
+            'client_id': 'client_2',
+            'client_name': 'Jane Doe',
+            'title': 'Monthly Retainer Payment',
+            'description': 'Payment overdue',
+            'deadline_type': 'payment',
+            'due_date': (datetime.now() - timedelta(days=2)).isoformat(),
+            'days_until': -2,
+            'alert_type': 'overdue',
+            'alert_level': 'critical',
+            'priority': 'high'
+        }
+    ]
+    
+    return jsonify({
+        'success': True,
+        'alerts': alerts,
+        'summary': {
+            'total_alerts': len(alerts),
+            'critical': len([a for a in alerts if a['alert_level'] == 'critical']),
+            'high': len([a for a in alerts if a['alert_level'] == 'high']),
+            'medium': len([a for a in alerts if a['alert_level'] == 'medium'])
+        }
+    })
+
+def _create_mock_deadline(client_id, data):
+    """Mock deadline creation"""
+    deadline = {
+        'id': str(uuid.uuid4()),
+        'client_id': client_id,
+        'title': data['title'],
+        'description': data.get('description', ''),
+        'deadline_type': data['deadline_type'],
+        'due_date': data['due_date'],
+        'priority': data.get('priority', 'medium'),
+        'status': 'pending',
+        'created_at': datetime.now().isoformat(),
+        'alert_enabled': data.get('alert_enabled', True),
+        'alert_days_before': data.get('alert_days_before', 3)
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Deadline created successfully (mock)',
+        'deadline': deadline
+    })
+
+# ===== CLIENT PORTAL APIs =====
+
+@app.route('/api/client-portal/auth/login', methods=['POST'])
+def api_client_portal_login():
+    """Client portal login endpoint"""
+    try:
+        data = request.json
+        
+        if not data.get('client_id') or not data.get('access_code'):
+            return jsonify({
+                'success': False,
+                'error': 'Client ID and access code are required'
+            }), 400
+        
+        client_id = data['client_id'].strip()
+        access_code = data['access_code'].strip()
+        
+        if not DATABASE_AVAILABLE:
+            return _client_portal_mock_login(client_id, access_code)
+        
+        # Validate client access
+        client = Client.query.filter_by(id=client_id).first()
+        if not client or not client.portal_access_enabled:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid credentials or portal access not enabled'
+            }), 401
+        
+        # Verify access code (in production, this would be hashed)
+        if client.portal_access_code != access_code:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid credentials'
+            }), 401
+        
+        # Create client session
+        session['client_portal_user'] = client_id
+        session['client_portal_logged_in'] = True
+        session['client_portal_login_time'] = datetime.now().isoformat()
+        
+        logger.info(f"Client portal login: {client.first_name} {client.last_name}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Login successful',
+            'client': {
+                'id': client.id,
+                'name': f"{client.first_name} {client.last_name}",
+                'email': client.email,
+                'case_type': client.case_type,
+                'portal_access': True
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Client portal login error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Login failed. Please try again.'
+        }), 500
+
+@app.route('/api/client-portal/auth/logout', methods=['POST'])
+def api_client_portal_logout():
+    """Client portal logout endpoint"""
+    try:
+        # Clear client portal session
+        session.pop('client_portal_user', None)
+        session.pop('client_portal_logged_in', None)
+        session.pop('client_portal_login_time', None)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Client portal logout error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Logout failed'
+        }), 500
+
+@app.route('/api/client-portal/dashboard', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_dashboard():
+    """Get client portal dashboard data"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client_portal_dashboard(client_id)
+        
+        client = Client.query.get(client_id)
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Get case information
+        cases = Case.query.filter_by(client_id=client_id).all()
+        documents = Document.query.filter_by(client_id=client_id).count()
+        
+        # Recent activities
+        recent_activities = _get_recent_client_activities(client_id, limit=5)
+        
+        # Upcoming deadlines
+        upcoming_deadlines = _get_client_upcoming_deadlines(client_id, limit=3)
+        
+        dashboard_data = {
+            'client_info': {
+                'name': f"{client.first_name} {client.last_name}",
+                'email': client.email,
+                'phone': client.phone,
+                'case_type': client.case_type,
+                'attorney_name': 'Attorney Smith',  # Would be from relationships
+                'case_status': 'Active'
+            },
+            'case_summary': {
+                'total_cases': len(cases),
+                'active_cases': len([c for c in cases if c.status == CaseStatus.ACTIVE]),
+                'total_documents': documents,
+                'last_activity': recent_activities[0]['date'] if recent_activities else None
+            },
+            'recent_activities': recent_activities,
+            'upcoming_deadlines': upcoming_deadlines,
+            'quick_actions': [
+                {'title': 'View Documents', 'action': 'documents', 'icon': '📄'},
+                {'title': 'Message Attorney', 'action': 'messages', 'icon': '💬'},
+                {'title': 'Schedule Appointment', 'action': 'schedule', 'icon': '📅'},
+                {'title': 'View Billing', 'action': 'billing', 'icon': '💰'}
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'dashboard': dashboard_data
+        })
+        
+    except Exception as e:
+        logger.error(f"Client portal dashboard error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load dashboard'
+        }), 500
+
+# ===== CLIENT PORTAL HELPER FUNCTIONS =====
+
+def _client_portal_mock_login(client_id, access_code):
+    """Mock client portal login for development"""
+    # Simple mock validation
+    if access_code == 'demo123':
+        session['client_portal_user'] = client_id
+        session['client_portal_logged_in'] = True
+        session['client_portal_login_time'] = datetime.now().isoformat()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Login successful (demo mode)',
+            'client': {
+                'id': client_id,
+                'name': 'John Smith',
+                'email': 'john.smith@email.com',
+                'case_type': 'Family Law',
+                'portal_access': True
+            }
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid credentials'
+        }), 401
+
+def _get_mock_client_portal_dashboard(client_id):
+    """Mock dashboard data for development"""
+    dashboard_data = {
+        'client_info': {
+            'name': 'John Smith',
+            'email': 'john.smith@email.com',
+            'phone': '(555) 123-4567',
+            'case_type': 'Family Law - Divorce',
+            'attorney_name': 'Attorney Sarah Johnson',
+            'case_status': 'Active - Discovery Phase'
+        },
+        'case_summary': {
+            'total_cases': 1,
+            'active_cases': 1,
+            'total_documents': 12,
+            'last_activity': '2025-07-08T14:30:00Z'
+        },
+        'recent_activities': [
+            {
+                'id': '1',
+                'title': 'Document Review Completed',
+                'description': 'Attorney reviewed financial disclosure documents',
+                'date': '2025-07-08T14:30:00Z',
+                'type': 'document',
+                'status': 'completed'
+            },
+            {
+                'id': '2', 
+                'title': 'Phone Consultation',
+                'description': 'Discussed custody arrangement preferences',
+                'date': '2025-07-07T10:00:00Z',
+                'type': 'call',
+                'status': 'completed'
+            },
+            {
+                'id': '3',
+                'title': 'Court Filing Submitted',
+                'description': 'Response to divorce petition filed with court',
+                'date': '2025-07-06T16:45:00Z',
+                'type': 'court',
+                'status': 'completed'
+            }
+        ],
+        'upcoming_deadlines': [
+            {
+                'id': '1',
+                'title': 'Financial Disclosure Due',
+                'description': 'Submit completed financial forms',
+                'due_date': '2025-07-15T17:00:00Z',
+                'priority': 'high',
+                'days_until': 7
+            },
+            {
+                'id': '2',
+                'title': 'Mediation Session',
+                'description': 'Attend scheduled mediation meeting',
+                'due_date': '2025-07-20T10:00:00Z',
+                'priority': 'medium',
+                'days_until': 12
+            }
+        ],
+        'quick_actions': [
+            {'title': 'View Documents', 'action': 'documents', 'icon': '📄'},
+            {'title': 'Message Attorney', 'action': 'messages', 'icon': '💬'},
+            {'title': 'Schedule Appointment', 'action': 'schedule', 'icon': '📅'},
+            {'title': 'View Billing', 'action': 'billing', 'icon': '💰'}
+        ]
+    }
+    
+    return jsonify({
+        'success': True,
+        'dashboard': dashboard_data
+    })
+
+def _get_recent_client_activities(client_id, limit=5):
+    """Get recent activities for client portal"""
+    # Mock implementation
+    return [
+        {
+            'id': '1',
+            'title': 'Document Review Completed',
+            'description': 'Attorney reviewed financial disclosure documents',
+            'date': '2025-07-08T14:30:00Z',
+            'type': 'document',
+            'status': 'completed'
+        }
+    ]
+
+def _get_client_upcoming_deadlines(client_id, limit=3):
+    """Get upcoming deadlines for client portal"""
+    # Mock implementation
+    return [
+        {
+            'id': '1',
+            'title': 'Financial Disclosure Due',
+            'description': 'Submit completed financial forms',
+            'due_date': '2025-07-15T17:00:00Z',
+            'priority': 'high',
+            'days_until': 7
+        }
+    ]
 
 # ===== INITIALIZATION =====
 
