@@ -59,11 +59,20 @@ app.config.update({
     'GOOGLE_ANALYTICS_ID': os.environ.get('GOOGLE_ANALYTICS_ID'),
 })
 
+# Initialize Stripe if available
+try:
+    import stripe
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    STRIPE_AVAILABLE = bool(os.environ.get('STRIPE_SECRET_KEY'))
+    logger.info("Stripe initialized successfully")
+except ImportError:
+    logger.warning("Stripe not available - billing features disabled")
+    STRIPE_AVAILABLE = False
+
 # Service availability flags
 BAGEL_AI_AVAILABLE = bool(os.environ.get('BAGEL_RL_API_KEY'))
 SPANISH_AVAILABLE = True
 PRIVACY_AI_AVAILABLE = False
-STRIPE_AVAILABLE = bool(os.environ.get('STRIPE_SECRET_KEY'))
 
 logger.info(f"BAGEL_AI_AVAILABLE: {BAGEL_AI_AVAILABLE}")
 logger.info(f"SPANISH_AVAILABLE: {SPANISH_AVAILABLE}")
@@ -1876,40 +1885,76 @@ def api_get_invoices():
         }), 500
 
 def _get_mock_invoices():
-    """Fallback mock invoice data"""
-    invoices = [
-        {
-            'id': 'inv_001',
-            'invoice_number': 'INV-2025-001',
-            'client_name': 'John Smith',
-            'client_id': 'client_1',
-            'subject': 'Legal Services - Smith vs. Jones',
-            'subtotal': 1625.00,
-            'tax_amount': 130.00,
-            'total_amount': 1755.00,
-            'amount_paid': 0.00,
-            'status': 'sent',
-            'issue_date': '2025-07-08',
-            'due_date': '2025-08-07',
-            'payment_terms': 'Net 30'
-        },
-        {
-            'id': 'inv_002',
-            'invoice_number': 'INV-2025-002',
-            'client_name': 'ABC Corporation',
-            'client_id': 'client_2',
-            'subject': 'Contract Review Services',
-            'subtotal': 750.00,
-            'tax_amount': 60.00,
-            'total_amount': 810.00,
-            'amount_paid': 810.00,
-            'status': 'paid',
-            'issue_date': '2025-07-05',
-            'due_date': '2025-08-04',
-            'paid_date': '2025-07-15',
-            'payment_terms': 'Net 30'
-        }
+    """Enhanced mock invoice data with more realistic samples"""
+    from datetime import datetime, timedelta
+    import random
+    
+    clients = [
+        {'name': 'Acme Corporation', 'id': 'client_1'},
+        {'name': 'TechStart LLC', 'id': 'client_2'},
+        {'name': 'Global Industries', 'id': 'client_3'},
+        {'name': 'Smith & Associates', 'id': 'client_4'},
+        {'name': 'Future Dynamics', 'id': 'client_5'},
+        {'name': 'Metro Development', 'id': 'client_6'},
+        {'name': 'Sunrise Holdings', 'id': 'client_7'}
     ]
+    
+    statuses = ['draft', 'sent', 'paid', 'overdue']
+    services = [
+        'Legal Consultation Services',
+        'Contract Review and Analysis', 
+        'Corporate Legal Advisory',
+        'Litigation Support Services',
+        'Employment Law Consultation',
+        'Intellectual Property Review',
+        'Real Estate Transaction Support',
+        'Merger and Acquisition Advisory'
+    ]
+    
+    invoices = []
+    for i in range(15):
+        status = random.choice(statuses)
+        subtotal = round(random.uniform(750, 8500), 2)
+        tax_rate = 0.0875  # 8.75%
+        tax_amount = round(subtotal * tax_rate, 2)
+        total_amount = subtotal + tax_amount
+        
+        amount_paid = 0.00
+        paid_date = None
+        if status == 'paid':
+            amount_paid = total_amount
+            paid_date = (datetime.now().date() - timedelta(days=random.randint(1, 30))).isoformat()
+        elif status in ['sent', 'overdue'] and random.random() > 0.7:
+            amount_paid = round(total_amount * random.uniform(0.1, 0.5), 2)
+        
+        client = random.choice(clients)
+        issue_date = datetime.now().date() - timedelta(days=random.randint(5, 120))
+        due_date = issue_date + timedelta(days=30)
+        
+        invoice = {
+            'id': f'inv_{str(i+1).zfill(3)}',
+            'invoice_number': f'INV-2025-{str(i+1).zfill(3)}',
+            'client_name': client['name'],
+            'client_id': client['id'],
+            'subject': random.choice(services),
+            'subtotal': subtotal,
+            'tax_amount': tax_amount,
+            'total_amount': total_amount,
+            'amount_paid': amount_paid,
+            'status': status,
+            'issue_date': issue_date.isoformat(),
+            'due_date': due_date.isoformat(),
+            'payment_terms': 'Net 30',
+            'created_at': issue_date.isoformat()
+        }
+        
+        if paid_date:
+            invoice['paid_date'] = paid_date
+            
+        invoices.append(invoice)
+    
+    # Sort by issue date (newest first)
+    invoices.sort(key=lambda x: x['issue_date'], reverse=True)
     
     return jsonify({
         'success': True,
@@ -2292,41 +2337,85 @@ def api_billing_dashboard():
         }), 500
 
 def _get_mock_billing_dashboard():
-    """Fallback mock billing dashboard data"""
+    """Enhanced mock billing dashboard data with realistic samples"""
+    from datetime import datetime, timedelta
+    import random
+    
+    # Generate realistic invoice data
+    clients = ['Acme Corporation', 'TechStart LLC', 'Global Industries', 'Smith & Associates', 'Future Dynamics']
+    statuses = ['draft', 'sent', 'paid', 'overdue']
+    
+    recent_invoices = []
+    for i in range(8):
+        status = random.choice(statuses)
+        amount = round(random.uniform(1500, 8500), 2)
+        due_date = datetime.now().date() + timedelta(days=random.randint(-30, 45))
+        
+        recent_invoices.append({
+            'id': f'inv_sample_{i+1}',
+            'invoice_number': f'INV-2025-{str(i+1).zfill(3)}',
+            'client_name': random.choice(clients),
+            'amount': amount,
+            'status': status,
+            'due_date': due_date.isoformat(),
+            'issue_date': (due_date - timedelta(days=30)).isoformat(),
+            'payment_terms': 'Net 30'
+        })
+    
+    # Calculate metrics from sample data
+    total_outstanding = sum(inv['amount'] for inv in recent_invoices if inv['status'] in ['sent', 'overdue'])
+    total_paid_this_month = sum(inv['amount'] for inv in recent_invoices if inv['status'] == 'paid')
+    overdue_amount = sum(inv['amount'] for inv in recent_invoices if inv['status'] == 'overdue')
+    pending_invoices = len([inv for inv in recent_invoices if inv['status'] in ['draft', 'sent']])
+    overdue_invoices = len([inv for inv in recent_invoices if inv['status'] == 'overdue'])
+    
     dashboard = {
         'summary': {
-            'total_outstanding': 1755.00,
-            'total_paid_this_month': 2430.00,
-            'pending_time_entries': 3,
-            'overdue_invoices': 0,
-            'billable_hours_this_month': 24.5
+            'total_outstanding': round(total_outstanding, 2),
+            'total_paid_this_month': round(total_paid_this_month, 2),
+            'overdue_amount': round(overdue_amount, 2),
+            'pending_invoices': pending_invoices,
+            'overdue_invoices': overdue_invoices,
+            'avg_payment_time': 18.5,
+            'total_revenue_ytd': 145680.00,
+            'active_clients': 24,
+            'billable_hours_this_month': 156.5
         },
-        'recent_invoices': [
+        'recent_invoices': recent_invoices[:5],  # Show only 5 most recent
+        'all_invoices': recent_invoices,  # Keep all for full list
+        'upcoming_payments': [
             {
-                'id': 'inv_001',
-                'invoice_number': 'INV-2025-001',
-                'client_name': 'John Smith',
-                'amount': 1755.00,
-                'status': 'sent',
-                'due_date': '2025-08-07'
+                'client_name': 'Acme Corporation',
+                'amount': 4500.00,
+                'due_date': (datetime.now().date() + timedelta(days=5)).isoformat(),
+                'invoice_number': 'INV-2025-001'
             },
             {
-                'id': 'inv_002',
-                'invoice_number': 'INV-2025-002',
-                'client_name': 'ABC Corporation',
-                'amount': 810.00,
-                'status': 'paid',
-                'paid_date': '2025-07-15'
+                'client_name': 'TechStart LLC',
+                'amount': 2850.00,
+                'due_date': (datetime.now().date() + timedelta(days=12)).isoformat(),
+                'invoice_number': 'INV-2025-004'
             }
         ],
+        'stripe_connected': STRIPE_AVAILABLE,
+        'payment_methods': ['credit_card', 'ach', 'wire_transfer'],
+        'currency': 'USD',
         'pending_time_entries': [
             {
                 'id': '4',
-                'description': 'Contract drafting',
+                'description': 'Contract review and analysis',
+                'hours': 3.5,
+                'amount': 875.00,
+                'client_name': 'Acme Corporation',
+                'status': 'submitted'
+            },
+            {
+                'id': '5',
+                'description': 'Legal research and consultation',
                 'hours': 2.0,
                 'amount': 500.00,
-                'client_name': 'XYZ Corp',
-                'status': 'submitted'
+                'client_name': 'TechStart LLC',
+                'status': 'draft'
             }
         ]
     }
@@ -7966,6 +8055,250 @@ def _get_mock_available_slots(client_id, date_range):
             'location': 'LexAI Office - 123 Legal Street, Law City, LC 12345'
         }
     })
+
+# ===== STRIPE BILLING INTEGRATION =====
+
+@app.route('/api/billing/stripe-connect', methods=['POST'])
+@auth_required
+def stripe_connect_onboard():
+    """Create Stripe Connect account for law firm to accept client payments"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        firm_name = data.get('firm_name', f"{current_user.first_name} {current_user.last_name} Law")
+        
+        # Create Stripe Express account
+        account = stripe.Account.create(
+            type='express',
+            country='US',
+            email=current_user.email,
+            business_type='company',
+            company={
+                'name': firm_name,
+            },
+            metadata={
+                'lexai_user_id': str(current_user.id),
+                'firm_name': firm_name,
+                'integration_type': 'client_payments'
+            }
+        )
+        
+        # Create account link for onboarding
+        account_link = stripe.AccountLink.create(
+            account=account.id,
+            refresh_url=f"{request.host_url}billing?refresh=true",
+            return_url=f"{request.host_url}billing?success=true",
+            type='account_onboarding',
+        )
+        
+        return jsonify({
+            'success': True,
+            'onboarding_url': account_link.url,
+            'account_id': account.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Stripe Connect error: {e}")
+        return jsonify({'error': 'Failed to create payment account'}), 500
+
+@app.route('/api/billing/create-payment-link', methods=['POST'])
+@auth_required
+def create_payment_link():
+    """Create Stripe payment link for invoice"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        invoice_amount = data.get('amount')  # Amount in cents
+        invoice_number = data.get('invoice_number')
+        client_email = data.get('client_email')
+        stripe_account_id = data.get('stripe_account_id', 'acct_default_demo')
+        
+        if not all([invoice_amount, invoice_number]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Calculate platform fee (0.5% platform fee)
+        platform_fee = int(invoice_amount * 0.005)
+        
+        # Create payment intent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=invoice_amount,
+            currency='usd',
+            metadata={
+                'invoice_number': invoice_number,
+                'client_email': client_email or '',
+                'law_firm_user_id': str(current_user.id)
+            },
+            receipt_email=client_email
+        )
+        
+        return jsonify({
+            'success': True,
+            'payment_intent_id': payment_intent.id,
+            'client_secret': payment_intent.client_secret,
+            'amount': invoice_amount,
+            'platform_fee': platform_fee
+        })
+        
+    except Exception as e:
+        logger.error(f"Payment link creation error: {e}")
+        return jsonify({'error': 'Failed to create payment link'}), 500
+
+@app.route('/api/billing/refund', methods=['POST'])
+@auth_required
+def process_refund():
+    """Process a refund for a payment"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        payment_intent_id = data.get('payment_intent_id')
+        refund_amount = data.get('amount')  # Optional - full refund if not specified
+        reason = data.get('reason', 'requested_by_customer')
+        
+        if not payment_intent_id:
+            return jsonify({'error': 'Payment intent ID required'}), 400
+        
+        # Create refund
+        refund_data = {
+            'payment_intent': payment_intent_id,
+            'reason': reason,
+            'metadata': {
+                'refunded_by': str(current_user.id),
+                'refund_reason': reason
+            }
+        }
+        
+        if refund_amount:
+            refund_data['amount'] = refund_amount
+        
+        refund = stripe.Refund.create(**refund_data)
+        
+        return jsonify({
+            'success': True,
+            'refund_id': refund.id,
+            'amount': refund.amount,
+            'status': refund.status
+        })
+        
+    except Exception as e:
+        logger.error(f"Refund processing error: {e}")
+        return jsonify({'error': 'Failed to process refund'}), 500
+
+@app.route('/api/create-payment-intent', methods=['POST'])
+def create_payment_intent():
+    """Create payment intent for invoice payment"""
+    try:
+        if not STRIPE_AVAILABLE:
+            return jsonify({'error': 'Stripe not configured'}), 503
+        
+        data = request.get_json()
+        amount = data.get('amount')
+        currency = data.get('currency', 'usd')
+        invoice_id = data.get('invoice_id')
+        
+        if not amount:
+            return jsonify({'error': 'Amount is required'}), 400
+        
+        # Create payment intent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=int(amount * 100),  # Convert to cents
+            currency=currency,
+            metadata={
+                'invoice_id': invoice_id
+            }
+        )
+        
+        return jsonify({
+            'client_secret': payment_intent.client_secret,
+            'payment_intent_id': payment_intent.id
+        })
+        
+    except Exception as e:
+        logger.error(f"Payment intent creation error: {e}")
+        return jsonify({'error': 'Failed to create payment intent'}), 500
+
+@app.route('/api/billing/sample-invoice', methods=['POST'])
+@auth_required
+def create_sample_invoice():
+    """Create a sample invoice with realistic data"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # Generate sample invoice data
+        from datetime import datetime, timedelta
+        import random
+        
+        invoice_number = f"INV-{datetime.now().year}-{random.randint(100, 999)}"
+        
+        sample_invoice = {
+            'id': f"inv_{int(datetime.now().timestamp())}",
+            'invoice_number': invoice_number,
+            'client_name': 'Acme Corporation',
+            'client_email': 'billing@acmecorp.com',
+            'subject': 'Legal Services - Contract Review and Negotiation',
+            'issue_date': datetime.now().date().isoformat(),
+            'due_date': (datetime.now().date() + timedelta(days=30)).isoformat(),
+            'status': 'draft',
+            'subtotal': 2850.00,
+            'tax_rate': 0.0875,  # 8.75%
+            'tax_amount': 249.38,
+            'total_amount': 3099.38,
+            'amount_paid': 0.00,
+            'payment_terms': 'Net 30',
+            'line_items': [
+                {
+                    'description': 'Contract review and analysis',
+                    'quantity': 6.5,
+                    'unit': 'hours',
+                    'rate': 350.00,
+                    'amount': 2275.00
+                },
+                {
+                    'description': 'Client consultation meetings',
+                    'quantity': 2.0,
+                    'unit': 'hours',
+                    'rate': 350.00,
+                    'amount': 700.00
+                },
+                {
+                    'description': 'Document preparation and filing',
+                    'quantity': 1.5,
+                    'unit': 'hours',
+                    'rate': 250.00,
+                    'amount': 375.00
+                }
+            ],
+            'notes': 'Payment due within 30 days. Late payments subject to 1.5% monthly service charge.',
+            'created_at': datetime.now().isoformat()
+        }
+        
+        return jsonify({
+            'success': True,
+            'invoice': sample_invoice
+        })
+        
+    except Exception as e:
+        logger.error(f"Sample invoice creation error: {e}")
+        return jsonify({'error': 'Failed to create sample invoice'}), 500
 
 # ===== INITIALIZATION =====
 
