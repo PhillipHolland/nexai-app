@@ -580,11 +580,19 @@ def debug_stripe_status():
     except Exception as e:
         stripe_import_error = str(e)
     
+    # Debug environment variable
+    env_value = os.environ.get('STRIPE_SECRET_KEY')
+    env_bool = bool(env_value)
+    
     return jsonify({
         'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
         'STRIPE_MODULE_AVAILABLE': STRIPE_MODULE_AVAILABLE,
+        'env_value_exists': env_value is not None,
+        'env_value_length': len(env_value) if env_value else 0,
+        'env_bool_conversion': env_bool,
+        'manual_stripe_available_check': bool(os.environ.get('STRIPE_SECRET_KEY')),
         'STRIPE_SECRET_KEY_EXISTS': bool(os.environ.get('STRIPE_SECRET_KEY')),
-        'STRIPE_SECRET_KEY_VALUE': os.environ.get('STRIPE_SECRET_KEY', 'Not Set')[:10] + '...' if os.environ.get('STRIPE_SECRET_KEY') else 'Not Set',
+        'STRIPE_SECRET_KEY_VALUE': env_value[:10] + '...' if env_value else 'Not Set',
         'stripe_module_available': 'stripe' in globals(),
         'stripe_import_test_success': stripe_import_success,
         'stripe_import_error': stripe_import_error,
