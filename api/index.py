@@ -1923,17 +1923,101 @@ def api_get_invoices():
         }), 500
 
 def _get_mock_invoices():
-    """Enhanced mock invoice data with more realistic samples"""
+    """Enhanced mock invoice data with realistic payment samples for testing"""
     from datetime import datetime, timedelta
     import random
     
+    # First, include our test invoices with real payment intent IDs
+    base_timestamp = int(datetime.now().timestamp())
+    
+    test_invoices = [
+        # Paid invoice 1 - ready for refund testing
+        {
+            'id': f"inv_{base_timestamp}_001",
+            'invoice_number': f"INV-{datetime.now().year}-001",
+            'client_name': 'TechStart LLC',
+            'client_id': 'client_techstart',
+            'subject': 'Corporate Formation and Legal Setup',
+            'issue_date': (datetime.now().date() - timedelta(days=15)).isoformat(),
+            'due_date': (datetime.now().date() + timedelta(days=15)).isoformat(),
+            'status': 'paid',
+            'subtotal': 5500.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 481.25,
+            'total_amount': 5981.25,
+            'amount_paid': 5981.25,
+            'payment_intent_id': f'pi_test_paid_{random.randint(100000, 999999)}',
+            'payment_date': (datetime.now().date() - timedelta(days=5)).isoformat(),
+            'payment_method': 'Stripe Payment',
+            'payment_terms': 'Net 30',
+            'created_at': (datetime.now() - timedelta(days=15)).isoformat(),
+            'paid_at': (datetime.now() - timedelta(days=5)).isoformat()
+        },
+        # Paid invoice 2 - different amount for testing
+        {
+            'id': f"inv_{base_timestamp}_002",
+            'invoice_number': f"INV-{datetime.now().year}-002",
+            'client_name': 'Global Dynamics Inc',
+            'client_id': 'client_global',
+            'subject': 'Contract Negotiation Services',
+            'issue_date': (datetime.now().date() - timedelta(days=22)).isoformat(),
+            'due_date': (datetime.now().date() - timedelta(days=8)).isoformat(),
+            'status': 'paid',
+            'subtotal': 3200.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 280.00,
+            'total_amount': 3480.00,
+            'amount_paid': 3480.00,
+            'payment_intent_id': f'pi_test_paid_{random.randint(100000, 999999)}',
+            'payment_date': (datetime.now().date() - timedelta(days=10)).isoformat(),
+            'payment_method': 'Stripe Payment',
+            'payment_terms': 'Net 30',
+            'created_at': (datetime.now() - timedelta(days=22)).isoformat(),
+            'paid_at': (datetime.now() - timedelta(days=10)).isoformat()
+        },
+        # Unpaid invoice (overdue) - for Stripe payment testing
+        {
+            'id': f"inv_{base_timestamp}_003",
+            'invoice_number': f"INV-{datetime.now().year}-003",
+            'client_name': 'Metro Properties',
+            'client_id': 'client_metro',
+            'subject': 'Real Estate Transaction Legal Services',
+            'issue_date': (datetime.now().date() - timedelta(days=45)).isoformat(),
+            'due_date': (datetime.now().date() - timedelta(days=15)).isoformat(),
+            'status': 'overdue',
+            'subtotal': 4750.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 415.63,
+            'total_amount': 5165.63,
+            'amount_paid': 0.00,
+            'payment_terms': 'Net 30',
+            'created_at': (datetime.now() - timedelta(days=45)).isoformat()
+        },
+        # Recent unpaid invoice - for Stripe payment testing
+        {
+            'id': f"inv_{base_timestamp}_004",
+            'invoice_number': f"INV-{datetime.now().year}-004",
+            'client_name': 'Innovation Labs',
+            'client_id': 'client_innovation',
+            'subject': 'IP Protection and Patent Application',
+            'issue_date': (datetime.now().date() - timedelta(days=10)).isoformat(),
+            'due_date': (datetime.now().date() + timedelta(days=20)).isoformat(),
+            'status': 'sent',
+            'subtotal': 6800.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 595.00,
+            'total_amount': 7395.00,
+            'amount_paid': 0.00,
+            'payment_terms': 'Net 30',
+            'created_at': (datetime.now() - timedelta(days=10)).isoformat()
+        }
+    ]
+    
+    # Add additional realistic mock invoices
     clients = [
         {'name': 'Acme Corporation', 'id': 'client_1'},
-        {'name': 'TechStart LLC', 'id': 'client_2'},
-        {'name': 'Global Industries', 'id': 'client_3'},
         {'name': 'Smith & Associates', 'id': 'client_4'},
         {'name': 'Future Dynamics', 'id': 'client_5'},
-        {'name': 'Metro Development', 'id': 'client_6'},
         {'name': 'Sunrise Holdings', 'id': 'client_7'}
     ]
     
@@ -1943,35 +2027,35 @@ def _get_mock_invoices():
         'Contract Review and Analysis', 
         'Corporate Legal Advisory',
         'Litigation Support Services',
-        'Employment Law Consultation',
-        'Intellectual Property Review',
-        'Real Estate Transaction Support',
-        'Merger and Acquisition Advisory'
+        'Employment Law Consultation'
     ]
     
-    invoices = []
-    for i in range(15):
+    additional_invoices = []
+    for i in range(8):  # Reduced to focus on our test invoices
         status = random.choice(statuses)
-        subtotal = round(random.uniform(750, 8500), 2)
-        tax_rate = 0.0875  # 8.75%
+        subtotal = round(random.uniform(750, 4500), 2)
+        tax_rate = 0.0875
         tax_amount = round(subtotal * tax_rate, 2)
         total_amount = subtotal + tax_amount
         
         amount_paid = 0.00
         paid_date = None
+        payment_intent_id = None
+        
         if status == 'paid':
             amount_paid = total_amount
             paid_date = (datetime.now().date() - timedelta(days=random.randint(1, 30))).isoformat()
+            payment_intent_id = f'pi_test_paid_{random.randint(100000, 999999)}'
         elif status in ['sent', 'overdue'] and random.random() > 0.7:
             amount_paid = round(total_amount * random.uniform(0.1, 0.5), 2)
         
         client = random.choice(clients)
-        issue_date = datetime.now().date() - timedelta(days=random.randint(5, 120))
+        issue_date = datetime.now().date() - timedelta(days=random.randint(5, 60))
         due_date = issue_date + timedelta(days=30)
         
         invoice = {
-            'id': f'inv_{str(i+1).zfill(3)}',
-            'invoice_number': f'INV-2025-{str(i+1).zfill(3)}',
+            'id': f'inv_mock_{str(i+1).zfill(3)}',
+            'invoice_number': f'INV-2025-{str(i+101).zfill(3)}',
             'client_name': client['name'],
             'client_id': client['id'],
             'subject': random.choice(services),
@@ -1984,22 +2068,25 @@ def _get_mock_invoices():
             'due_date': due_date.isoformat(),
             'payment_terms': 'Net 30',
             'created_at': issue_date.isoformat(),
-            'payment_intent_id': f'pi_3{random.randint(10000000, 99999999)}LexAI{str(i+1).zfill(3)}' if status == 'paid' else None
+            'payment_intent_id': payment_intent_id
         }
         
         if paid_date:
             invoice['paid_date'] = paid_date
             
-        invoices.append(invoice)
+        additional_invoices.append(invoice)
+    
+    # Combine test invoices with additional mock invoices
+    all_invoices = test_invoices + additional_invoices
     
     # Sort by issue date (newest first)
-    invoices.sort(key=lambda x: x['issue_date'], reverse=True)
+    all_invoices.sort(key=lambda x: x['issue_date'], reverse=True)
     
     return jsonify({
         'success': True,
-        'invoices': invoices,
-        'total_invoices': len(invoices),
-        'total_outstanding': sum(inv['total_amount'] - inv['amount_paid'] for inv in invoices)
+        'invoices': all_invoices,
+        'total_invoices': len(all_invoices),
+        'total_outstanding': sum(inv['total_amount'] - inv['amount_paid'] for inv in all_invoices)
     })
 
 @app.route('/api/invoices', methods=['POST'])
@@ -8338,6 +8425,267 @@ def create_sample_invoice():
     except Exception as e:
         logger.error(f"Sample invoice creation error: {e}")
         return jsonify({'error': 'Failed to create sample invoice'}), 500
+
+@app.route('/api/billing/create-payment-intent', methods=['POST'])
+@login_required
+def create_invoice_payment_intent():
+    """Create Stripe payment intent for an unpaid invoice"""
+    try:
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        amount = data.get('amount')  # Amount in dollars
+        
+        if not invoice_id or not amount:
+            return jsonify({'error': 'Invoice ID and amount required'}), 400
+        
+        # Convert amount to cents for Stripe
+        amount_cents = int(float(amount) * 100)
+        
+        # Create payment intent
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            metadata={
+                'invoice_id': invoice_id,
+                'law_firm': 'LexAI Practice',
+                'created_by': current_user.get('id', 'demo')
+            },
+            description=f'Payment for Invoice {invoice_id}',
+            receipt_email=data.get('client_email'),
+            automatic_payment_methods={
+                'enabled': True,
+            },
+        )
+        
+        logger.info(f"Created payment intent {payment_intent.id} for invoice {invoice_id}")
+        
+        return jsonify({
+            'success': True,
+            'payment_intent_id': payment_intent.id,
+            'client_secret': payment_intent.client_secret,
+            'amount': amount_cents,
+            'currency': payment_intent.currency,
+            'status': payment_intent.status
+        })
+        
+    except Exception as e:
+        logger.error(f"Payment intent creation error: {e}")
+        return jsonify({'error': 'Failed to create payment intent'}), 500
+
+@app.route('/api/billing/create-test-invoices', methods=['POST'])
+@login_required
+def create_test_invoices():
+    """Create multiple test invoices with different payment statuses for testing"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from datetime import datetime, timedelta
+        import random
+        
+        base_timestamp = int(datetime.now().timestamp())
+        
+        # Create invoices with different statuses
+        test_invoices = []
+        
+        # 1. Paid invoice (with payment intent for refund testing)
+        paid_invoice = {
+            'id': f"inv_{base_timestamp}_001",
+            'invoice_number': f"INV-{datetime.now().year}-001",
+            'client_name': 'TechStart LLC',
+            'client_email': 'finance@techstart.com',
+            'subject': 'Corporate Formation and Legal Setup',
+            'issue_date': (datetime.now().date() - timedelta(days=15)).isoformat(),
+            'due_date': (datetime.now().date() + timedelta(days=15)).isoformat(),
+            'status': 'paid',
+            'subtotal': 5500.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 481.25,
+            'total_amount': 5981.25,
+            'amount_paid': 5981.25,
+            'payment_intent_id': f'pi_test_paid_{random.randint(100000, 999999)}',
+            'payment_date': (datetime.now().date() - timedelta(days=5)).isoformat(),
+            'payment_method': 'Stripe Payment',
+            'payment_terms': 'Net 30',
+            'line_items': [
+                {
+                    'description': 'Corporate formation documents',
+                    'quantity': 8.0,
+                    'unit': 'hours',
+                    'rate': 450.00,
+                    'amount': 3600.00
+                },
+                {
+                    'description': 'Operating agreement preparation',
+                    'quantity': 3.5,
+                    'unit': 'hours',
+                    'rate': 450.00,
+                    'amount': 1575.00
+                },
+                {
+                    'description': 'Legal consultation sessions',
+                    'quantity': 1.3,
+                    'unit': 'hours',
+                    'rate': 250.00,
+                    'amount': 325.00
+                }
+            ],
+            'notes': 'Thank you for your prompt payment!',
+            'created_at': (datetime.now() - timedelta(days=15)).isoformat(),
+            'paid_at': (datetime.now() - timedelta(days=5)).isoformat()
+        }
+        
+        # 2. Another paid invoice (different amount for testing)
+        paid_invoice_2 = {
+            'id': f"inv_{base_timestamp}_002",
+            'invoice_number': f"INV-{datetime.now().year}-002",
+            'client_name': 'Global Dynamics Inc',
+            'client_email': 'ap@globaldynamics.com',
+            'subject': 'Contract Negotiation Services',
+            'issue_date': (datetime.now().date() - timedelta(days=22)).isoformat(),
+            'due_date': (datetime.now().date() - timedelta(days=8)).isoformat(),
+            'status': 'paid',
+            'subtotal': 3200.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 280.00,
+            'total_amount': 3480.00,
+            'amount_paid': 3480.00,
+            'payment_intent_id': f'pi_test_paid_{random.randint(100000, 999999)}',
+            'payment_date': (datetime.now().date() - timedelta(days=10)).isoformat(),
+            'payment_method': 'Stripe Payment',
+            'payment_terms': 'Net 30',
+            'line_items': [
+                {
+                    'description': 'Contract review and redlining',
+                    'quantity': 6.0,
+                    'unit': 'hours',
+                    'rate': 400.00,
+                    'amount': 2400.00
+                },
+                {
+                    'description': 'Negotiation strategy consultation',
+                    'quantity': 2.0,
+                    'unit': 'hours',
+                    'rate': 400.00,
+                    'amount': 800.00
+                }
+            ],
+            'notes': 'Contract successfully negotiated and executed.',
+            'created_at': (datetime.now() - timedelta(days=22)).isoformat(),
+            'paid_at': (datetime.now() - timedelta(days=10)).isoformat()
+        }
+        
+        # 3. Unpaid invoice (overdue)
+        unpaid_invoice = {
+            'id': f"inv_{base_timestamp}_003",
+            'invoice_number': f"INV-{datetime.now().year}-003",
+            'client_name': 'Metro Properties',
+            'client_email': 'billing@metroproperties.com',
+            'subject': 'Real Estate Transaction Legal Services',
+            'issue_date': (datetime.now().date() - timedelta(days=45)).isoformat(),
+            'due_date': (datetime.now().date() - timedelta(days=15)).isoformat(),
+            'status': 'overdue',
+            'subtotal': 4750.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 415.63,
+            'total_amount': 5165.63,
+            'amount_paid': 0.00,
+            'payment_terms': 'Net 30',
+            'line_items': [
+                {
+                    'description': 'Purchase agreement review',
+                    'quantity': 4.5,
+                    'unit': 'hours',
+                    'rate': 425.00,
+                    'amount': 1912.50
+                },
+                {
+                    'description': 'Title search and analysis',
+                    'quantity': 3.0,
+                    'unit': 'hours',
+                    'rate': 325.00,
+                    'amount': 975.00
+                },
+                {
+                    'description': 'Closing document preparation',
+                    'quantity': 5.5,
+                    'unit': 'hours',
+                    'rate': 325.00,
+                    'amount': 1787.50
+                },
+                {
+                    'description': 'Due diligence review',
+                    'quantity': 2.0,
+                    'unit': 'hours',
+                    'rate': 375.00,
+                    'amount': 750.00
+                }
+            ],
+            'notes': 'OVERDUE: Payment was due 15 days ago. Please remit payment immediately.',
+            'created_at': (datetime.now() - timedelta(days=45)).isoformat()
+        }
+        
+        # 4. Recent unpaid invoice (not overdue yet)
+        recent_unpaid = {
+            'id': f"inv_{base_timestamp}_004",
+            'invoice_number': f"INV-{datetime.now().year}-004",
+            'client_name': 'Innovation Labs',
+            'client_email': 'accounts@innovationlabs.tech',
+            'subject': 'IP Protection and Patent Application',
+            'issue_date': (datetime.now().date() - timedelta(days=10)).isoformat(),
+            'due_date': (datetime.now().date() + timedelta(days=20)).isoformat(),
+            'status': 'sent',
+            'subtotal': 6800.00,
+            'tax_rate': 0.0875,
+            'tax_amount': 595.00,
+            'total_amount': 7395.00,
+            'amount_paid': 0.00,
+            'payment_terms': 'Net 30',
+            'line_items': [
+                {
+                    'description': 'Patent application preparation',
+                    'quantity': 12.0,
+                    'unit': 'hours',
+                    'rate': 475.00,
+                    'amount': 5700.00
+                },
+                {
+                    'description': 'Prior art research',
+                    'quantity': 4.0,
+                    'unit': 'hours',
+                    'rate': 275.00,
+                    'amount': 1100.00
+                }
+            ],
+            'notes': 'Patent application submitted to USPTO. Tracking number: 17/123,456',
+            'created_at': (datetime.now() - timedelta(days=10)).isoformat()
+        }
+        
+        test_invoices = [paid_invoice, paid_invoice_2, unpaid_invoice, recent_unpaid]
+        
+        return jsonify({
+            'success': True,
+            'message': f'Created {len(test_invoices)} test invoices',
+            'invoices': test_invoices,
+            'summary': {
+                'paid_invoices': 2,
+                'unpaid_invoices': 2,
+                'total_paid_amount': paid_invoice['amount_paid'] + paid_invoice_2['amount_paid'],
+                'total_outstanding': unpaid_invoice['total_amount'] + recent_unpaid['total_amount']
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Test invoices creation error: {e}")
+        return jsonify({'error': 'Failed to create test invoices'}), 500
 
 # ===== INITIALIZATION =====
 

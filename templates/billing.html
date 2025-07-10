@@ -344,6 +344,11 @@
                 <h3 class="action-title">Sample Invoice</h3>
                 <p class="action-description">Create sample invoice with demo data</p>
             </div>
+            <div class="action-card" onclick="createTestInvoices()">
+                <div class="action-icon">🧪</div>
+                <h3 class="action-title">Test Invoices</h3>
+                <p class="action-description">Create test invoices (paid/unpaid) for testing</p>
+            </div>
             <div class="action-card" onclick="setupStripeConnect()">
                 <div class="action-icon">💳</div>
                 <h3 class="action-title">Payment Setup</h3>
@@ -547,6 +552,9 @@ function renderInvoicesTable(invoices) {
                     <button class="btn btn-primary" onclick="sendInvoice('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                         📧 Send
                     </button>
+                    <button class="btn btn-secondary" onclick="createPaymentIntent('${invoice.id}', ${invoice.total_amount}, '${invoice.client_email || 'client@example.com'}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #4CAF50; color: white;">
+                        💳 Pay
+                    </button>
                     ` : ''}
                     ${invoice.status === 'paid' && invoice.amount_paid > 0 ? `
                     <button class="btn btn-secondary" onclick="processRefund('${invoice.id}', '${invoice.invoice_number}', ${invoice.amount_paid}, '${invoice.payment_intent_id || ''}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #fee2e2; color: #dc2626;">
@@ -595,6 +603,56 @@ async function createSampleInvoice() {
     } catch (error) {
         console.error('Error creating sample invoice:', error);
         alert('Error creating sample invoice');
+    }
+}
+
+async function createTestInvoices() {
+    try {
+        const response = await fetch('/api/billing/create-test-invoices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ Test invoices created successfully!\n\n📊 Summary:\n• ${data.summary.paid_invoices} paid invoices (ready for refund testing)\n• ${data.summary.unpaid_invoices} unpaid invoices (ready for payment testing)\n• Total paid: $${data.summary.total_paid_amount.toFixed(2)}\n• Total outstanding: $${data.summary.total_outstanding.toFixed(2)}\n\nRefresh the page to see the new invoices.`);
+            loadInvoices(); // Refresh the list
+        } else {
+            alert('Failed to create test invoices: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error creating test invoices:', error);
+        alert('Error creating test invoices');
+    }
+}
+
+async function createPaymentIntent(invoiceId, amount, clientEmail) {
+    try {
+        const response = await fetch('/api/billing/create-payment-intent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                invoice_id: invoiceId,
+                amount: amount,
+                client_email: clientEmail
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ Payment intent created successfully!\n\nPayment Intent ID: ${data.payment_intent_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${data.status}\n\nThis would normally redirect to Stripe Checkout.`);
+        } else {
+            alert('Failed to create payment intent: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error creating payment intent:', error);
+        alert('Error creating payment intent');
     }
 }
 
