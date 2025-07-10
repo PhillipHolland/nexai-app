@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - LexAI{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Admin Dashboard Styles */
+    .admin-container {
+        background: #F7EDDA;
+        min-height: calc(100vh - 4.5rem);
+        padding: 2rem 1rem;
+    }
+    
+    .admin-content {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .admin-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Quick Stats */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #2E4B3C;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-change {
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .stat-change.positive {
+        color: #059669;
+    }
+    
+    .stat-change.negative {
+        color: #dc2626;
+    }
+    
+    .stat-change.neutral {
+        color: #64748b;
+    }
+    
+    /* Admin Modules Grid */
+    .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .module-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .module-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .module-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-right: 1rem;
+        color: white;
+    }
+    
+    .module-info h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2E4B3C;
+        margin-bottom: 0.25rem;
+    }
+    
+    .module-info p {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+    
+    .module-description {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .module-features {
+        list-style: none;
+        margin-bottom: 1.5rem;
+    }
+    
+    .module-features li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+    
+    .module-features li::before {
+        content: "✓";
+        color: #059669;
+        font-weight: bold;
+        margin-right: 0.75rem;
+    }
+    
+    .module-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+        background: #f1f5f9;
+    }
+    
+    /* Recent Activity */
+    .recent-activity {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .activity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .activity-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2E4B3C;
+    }
+    
+    .activity-list {
+        list-style: none;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background-color 0.2s;
+    }
+    
+    .activity-item:hover {
+        background-color: #f8fafc;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .activity-icon.user {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .activity-icon.security {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    .activity-icon.system {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+    
+    .activity-icon.billing {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-description {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-meta {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .admin-container {
+            padding: 1rem;
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+        }
+        
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .modules-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .module-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-content">
+        <!-- Header -->
+        <div class="admin-header">
+            <h1 class="admin-title">🛡️ Admin Dashboard</h1>
+            <p class="admin-subtitle">
+                Welcome to the LexAI administration center. Manage your law firm's users, settings, 
+                billing, and monitor system activity from this central hub.
+            </p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number">12</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-change positive">↗ +2 this month</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🔒</div>
+                <div class="stat-number">98.5%</div>
+                <div class="stat-label">Security Score</div>
+                <div class="stat-change positive">↗ Excellent</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-number">$24,350</div>
+                <div class="stat-label">Monthly Revenue</div>
+                <div class="stat-change positive">↗ +12.5%</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-number">247</div>
+                <div class="stat-label">System Events</div>
+                <div class="stat-change neutral">→ Last 24h</div>
+            </div>
+        </div>
+
+        <!-- Admin Modules -->
+        <div class="modules-grid">
+            <!-- User Management -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">👥</div>
+                    <div class="module-info">
+                        <h3>User Management</h3>
+                        <p>Manage firm personnel</p>
+                    </div>
+                </div>
+                <div class="module-description">
+                    Comprehensive user management system for your law firm. Add, edit, and manage user accounts, 
+                    roles, permissions, and track user activity across the platform.
+                </div>
+                <ul class="module-features">
+                    <li>12 active users across all roles</li>
+                    <li>Role-based access control</li>
+                    <li>User activity tracking</li>
+                    <li>Permission management</li>
+                </ul>
+                <div class="module-actions">
+                    <a href="/admin/users" class="btn btn-primary">👥 Manage Users</a>
+                    <button class="btn btn-secondary">📊 View Reports</button>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">⚙️</div>
+                    <div class="module-info">
+                        <h3>System Settings</h3>
+                        <p>Configure system preferences</p>
+                    </div>
+                </div>
+                <div class="module-description">
+                    Configure your law firm's system settings including security policies, billing preferences, 
+                    integrations, and backup settings to optimize your workflow.
+                </div>
+                <ul class="module-features">
+                    <li>Firm information & branding</li>
+                    <li>Security & authentication settings</li>
+                    <li>Billing configuration</li>
+                    <li>Integration management</li>
+                </ul>
+                <div class="module-actions">
+                    <a href="/admin/settings" class="btn btn-primary">⚙️ Configure</a>
+                    <button class="btn btn-secondary">🔍 Run Diagnostics</button>
+                </div>
+            </div>
+
+            <!-- Subscription Management -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">💳</div>
+                    <div class="module-info">
+                        <h3>Subscription & Billing</h3>
+                        <p>Manage billing & subscriptions</p>
+                    </div>
+                </div>
+                <div class="module-description">
+                    Monitor subscription status, billing history, and revenue metrics. Manage payment processing 
+                    and track usage across all your firm's subscription plans.
+                </div>
+                <ul class="module-features">
+                    <li>43 active subscriptions</li>
+                    <li>$24,350 monthly revenue</li>
+                    <li>Billing history & invoices</li>
+                    <li>Usage tracking & analytics</li>
+                </ul>
+                <div class="module-actions">
+                    <a href="/admin/subscriptions" class="btn btn-primary">💳 View Billing</a>
+                    <button class="btn btn-secondary">📥 Export Data</button>
+                </div>
+            </div>
+
+            <!-- Audit & Compliance -->
+            <div class="module-card">
+                <div class="module-header">
+                    <div class="module-icon">📋</div>
+                    <div class="module-info">
+                        <h3>Audit & Compliance</h3>
+                        <p>Monitor system activity</p>
+                    </div>
+                </div>
+                <div class="module-description">
+                    Comprehensive audit logging and compliance tracking for your law firm. Monitor user actions, 
+                    security events, and maintain detailed logs for regulatory compliance.
+                </div>
+                <ul class="module-features">
+                    <li>247 events in last 24 hours</li>
+                    <li>Real-time security monitoring</li>
+                    <li>Compliance reporting</li>
+                    <li>Risk assessment tools</li>
+                </ul>
+                <div class="module-actions">
+                    <a href="/admin/audit-logs" class="btn btn-primary">📋 View Logs</a>
+                    <button class="btn btn-secondary">📄 Generate Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+            <div class="activity-header">
+                <h2 class="activity-title">🕒 Recent Admin Activity</h2>
+                <a href="/admin/audit-logs" class="btn btn-secondary">View All</a>
+            </div>
+            
+            <ul class="activity-list">
+                <li class="activity-item">
+                    <div class="activity-icon user">👤</div>
+                    <div class="activity-content">
+                        <div class="activity-description">New user Mike Brown added to Junior Associate role</div>
+                        <div class="activity-meta">2 hours ago by John Doe</div>
+                    </div>
+                </li>
+                
+                <li class="activity-item">
+                    <div class="activity-icon security">🔒</div>
+                    <div class="activity-content">
+                        <div class="activity-description">Security audit completed - All systems secure</div>
+                        <div class="activity-meta">4 hours ago by System</div>
+                    </div>
+                </li>
+                
+                <li class="activity-item">
+                    <div class="activity-icon billing">💰</div>
+                    <div class="activity-content">
+                        <div class="activity-description">Monthly billing report generated for July 2024</div>
+                        <div class="activity-meta">6 hours ago by Billing System</div>
+                    </div>
+                </li>
+                
+                <li class="activity-item">
+                    <div class="activity-icon system">⚙️</div>
+                    <div class="activity-content">
+                        <div class="activity-description">System backup completed successfully</div>
+                        <div class="activity-meta">8 hours ago by System</div>
+                    </div>
+                </li>
+                
+                <li class="activity-item">
+                    <div class="activity-icon user">👤</div>
+                    <div class="activity-content">
+                        <div class="activity-description">User permissions updated for 3 team members</div>
+                        <div class="activity-meta">12 hours ago by Jane Smith</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add any interactive functionality here
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects or click handlers if needed
+    console.log('Admin dashboard loaded successfully');
+    
+    // Track admin dashboard views
+    if (typeof gtag === 'function') {
+        gtag('event', 'page_view', {
+            page_title: 'Admin Dashboard',
+            page_location: window.location.href
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -635,6 +635,19 @@ def deadlines_page():
         logger.error(f"Deadlines page error: {e}")
         return f"Deadlines error: {e}", 500
 
+@app.route('/admin')
+def admin_dashboard():
+    """Admin dashboard - overview of all administrative functions"""
+    try:
+        return render_template('admin/dashboard.html',
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             page_title='Admin Dashboard',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Admin dashboard page error: {e}")
+        return f"Admin dashboard error: {e}", 500
+
 @app.route('/admin/users')
 def admin_users():
     """Admin user management page - manage firm's user accounts"""
