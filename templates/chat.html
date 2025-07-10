@@ -1074,7 +1074,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission
     chatForm.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Form submitted');
         const message = chatInput.value.trim();
+        console.log('Message:', message);
         if (message) {
             hideEmptyState();
             sendMessage(message);
@@ -1148,6 +1150,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function sendMessage(message) {
+        console.log('sendMessage called with:', message);
+        
         // Clear input
         chatInput.value = '';
         chatInput.style.height = 'auto';
@@ -1159,6 +1163,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Disable send button and show typing
         sendBtn.disabled = true;
         showTyping();
+        
+        console.log('About to make API call to /api/chat');
 
         try {
             // Prepare request data
@@ -1193,11 +1199,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify(requestData)
             });
 
+            console.log('API response status:', response.status);
+
             if (!response.ok) {
+                console.log('API response not ok:', response.status, response.statusText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
+            console.log('API response data:', data);
             
             hideTyping();
             
@@ -1206,6 +1216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 conversationHistory.push({role: 'assistant', content: data.response});
             } else if (data.error) {
                 addMessage(`Sorry, I encountered an error: ${data.error}`, false);
+            } else {
+                console.log('Unexpected response format:', data);
+                addMessage('Sorry, I received an unexpected response format.', false);
             }
 
         } catch (error) {
