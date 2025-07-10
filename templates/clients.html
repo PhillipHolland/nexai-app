@@ -124,15 +124,69 @@
             gap: 0.5rem;
             margin-top: 1rem;
         }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 0.625rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: white;
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .quick-action-btn:hover {
+            background: #f9fafb;
+            border-color: #2E4B3C;
+            color: #2E4B3C;
+            transform: translateY(-1px);
+        }
+
+        .quick-action-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .quick-action-btn.call:hover {
+            border-color: #16a34a;
+            color: #16a34a;
+        }
+
+        .quick-action-btn.email:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .quick-action-btn.notes:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
         
         .action-btn {
             flex: 1;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.75rem;
             border: 1px solid #d1d5db;
             border-radius: 0.375rem;
             background: white;
             color: #374151;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -144,6 +198,7 @@
             background: #f9fafb;
             border-color: #2E4B3C;
             color: #2E4B3C;
+            transform: translateY(-1px);
         }
         
         .action-btn.primary {
@@ -155,6 +210,71 @@
         .action-btn.primary:hover {
             background: #4a7c59;
             border-color: #4a7c59;
+        }
+
+        .client-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .client-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: #16a34a;
+        }
+
+        .status-indicator.inactive {
+            background: #dc2626;
+        }
+
+        .status-indicator.potential {
+            background: #f59e0b;
+        }
+
+        .billing-info {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .billing-amount {
+            color: #2E4B3C;
+            font-weight: 600;
+        }
+
+        .billing-overdue {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .last-contact {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-recent {
+            color: #16a34a;
+        }
+
+        .contact-overdue {
+            color: #f59e0b;
+        }
+
+        .contact-urgent {
+            color: #dc2626;
         }
         
         .empty-state {
@@ -264,10 +384,188 @@
             box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
         }
         
+        /* Mobile Swipe Actions */
+        .client-item {
+            position: relative;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .client-item.swiping {
+            transition: none;
+        }
+
+        .client-item.swiped {
+            transform: translateX(-120px);
+            transition: transform 0.3s ease;
+        }
+
+        .swipe-actions {
+            position: absolute;
+            top: 0;
+            right: -120px;
+            height: 100%;
+            width: 120px;
+            display: flex;
+            background: #f1f5f9;
+            transition: right 0.3s ease;
+        }
+
+        .client-item.swiped .swipe-actions {
+            right: 0;
+        }
+
+        .swipe-action {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #2E4B3C;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+        }
+
+        .swipe-action:first-child {
+            background: #16a34a;
+        }
+
+        .swipe-action:last-child {
+            background: #2563eb;
+        }
+
+        .swipe-action:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        .swipe-action svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Mobile Notes Modal */
+        .notes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .notes-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notes-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .notes-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-notes {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .close-notes:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .notes-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+
+        .notes-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
+
+        .notes-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .notes-btn.cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .notes-btn.cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .notes-btn.save {
+            background: #2E4B3C;
+            color: white;
+        }
+
+        .notes-btn.save:hover {
+            background: #4a7c59;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .clients-hero {
-                padding: 2rem 0;
+                padding: 1.5rem 0;
             }
             
             .clients-container {
@@ -276,22 +574,97 @@
             
             .clients-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .client-item {
+                padding: 1.25rem;
             }
             
             .client-details {
                 grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .quick-actions {
+                gap: 0.375rem;
+            }
+
+            .quick-action-btn {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.7rem;
+            }
+
+            .quick-action-btn svg {
+                width: 0.875rem;
+                height: 0.875rem;
             }
             
             .client-actions {
                 flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .action-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
             }
             
             .search-filter {
                 flex-direction: column;
+                gap: 0.75rem;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .client-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .client-status {
+                order: 1;
+            }
+
+            .billing-info {
+                order: 2;
+                align-self: flex-end;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .client-header {
+                margin-bottom: 0.75rem;
+            }
+
+            .client-avatar {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1rem;
+            }
+
+            .client-name {
+                font-size: 1rem;
+            }
+
+            .client-email {
+                font-size: 0.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -342,7 +715,12 @@
         {% if clients %}
             <div class="clients-grid" id="clientsGrid">
                 {% for client in clients %}
-                <div class="client-item" data-case-type="{{ client.case_type or '' }}" data-name="{{ client.name or '' }}">
+                <div class="client-item" data-case-type="{{ client.case_type or '' }}" data-name="{{ client.name or '' }}" data-client-id="{{ client.id }}">
+                    <!-- Last Contact Info -->
+                    <div class="last-contact contact-recent">
+                        📞 Last contact: 2 days ago
+                    </div>
+
                     <div class="client-header">
                         <div class="client-avatar">
                             {{ (client.name or 'U')[0].upper() }}
@@ -351,6 +729,39 @@
                             <div class="client-name">{{ client.name or 'Unnamed Client' }}</div>
                             <div class="client-email">{{ client.email or 'No email provided' }}</div>
                         </div>
+                    </div>
+
+                    <!-- Client Status & Billing -->
+                    <div class="client-meta">
+                        <div class="client-status">
+                            <div class="status-indicator"></div>
+                            <span>Active Client</span>
+                        </div>
+                        <div class="billing-info">
+                            Balance: <span class="billing-amount">$2,450</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <a href="tel:{{ client.phone or '' }}" class="quick-action-btn call" onclick="trackCall('{{ client.id }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Call
+                        </a>
+                        <a href="mailto:{{ client.email or '' }}" class="quick-action-btn email" onclick="trackEmail('{{ client.id }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Email
+                        </a>
+                        <button class="quick-action-btn notes" onclick="openNotes('{{ client.id }}', '{{ client.name }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Notes
+                        </button>
                     </div>
                     
                     <div class="client-details">
@@ -383,6 +794,22 @@
                         <a href="/client/{{ client.id }}" class="action-btn">📋 Details</a>
                         <a href="/documents?client_id={{ client.id }}" class="action-btn">📄 Documents</a>
                     </div>
+
+                    <!-- Mobile Swipe Actions -->
+                    <div class="swipe-actions">
+                        <a href="tel:{{ client.phone or '' }}" class="swipe-action" onclick="trackCall('{{ client.id }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Call
+                        </a>
+                        <a href="mailto:{{ client.email or '' }}" class="swipe-action" onclick="trackEmail('{{ client.id }}')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            Email
+                        </a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -402,6 +829,21 @@
 {% endblock %}
 
 {% block extra_js %}
+    <!-- Notes Modal -->
+    <div class="notes-modal" id="notesModal">
+        <div class="notes-content">
+            <div class="notes-header">
+                <h3 class="notes-title" id="notesTitle">Client Notes</h3>
+                <button class="close-notes" onclick="closeNotes()">&times;</button>
+            </div>
+            <textarea class="notes-input" id="notesInput" placeholder="Add notes about this client..."></textarea>
+            <div class="notes-actions">
+                <button class="notes-btn cancel" onclick="closeNotes()">Cancel</button>
+                <button class="notes-btn save" onclick="saveNotes()">Save Notes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Client search functionality
         document.getElementById('clientSearch').addEventListener('input', filterClients);
@@ -427,11 +869,171 @@
             });
         }
 
+        // Notes functionality
+        let currentClientId = null;
+        let currentClientName = null;
+
+        function openNotes(clientId, clientName) {
+            currentClientId = clientId;
+            currentClientName = clientName;
+            
+            document.getElementById('notesTitle').textContent = `Notes for ${clientName}`;
+            document.getElementById('notesInput').value = localStorage.getItem(`client_notes_${clientId}`) || '';
+            document.getElementById('notesModal').classList.add('active');
+            
+            // Focus on textarea
+            setTimeout(() => {
+                document.getElementById('notesInput').focus();
+            }, 100);
+        }
+
+        function closeNotes() {
+            document.getElementById('notesModal').classList.remove('active');
+            currentClientId = null;
+            currentClientName = null;
+        }
+
+        function saveNotes() {
+            if (!currentClientId) return;
+            
+            const notes = document.getElementById('notesInput').value;
+            localStorage.setItem(`client_notes_${currentClientId}`, notes);
+            
+            // Show confirmation
+            const saveBtn = document.querySelector('.notes-btn.save');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saved!';
+            saveBtn.style.background = '#16a34a';
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.background = '#2E4B3C';
+                closeNotes();
+            }, 1000);
+        }
+
+        // Contact tracking functions
+        function trackCall(clientId) {
+            const timestamp = new Date().toISOString();
+            localStorage.setItem(`last_call_${clientId}`, timestamp);
+            updateLastContactDisplay(clientId, 'call');
+        }
+
+        function trackEmail(clientId) {
+            const timestamp = new Date().toISOString();
+            localStorage.setItem(`last_email_${clientId}`, timestamp);
+            updateLastContactDisplay(clientId, 'email');
+        }
+
+        function updateLastContactDisplay(clientId, contactType) {
+            const clientCard = document.querySelector(`[data-client-id="${clientId}"]`);
+            if (!clientCard) return;
+            
+            const lastContactEl = clientCard.querySelector('.last-contact');
+            if (!lastContactEl) return;
+            
+            const icon = contactType === 'call' ? '📞' : '📧';
+            lastContactEl.innerHTML = `${icon} Last ${contactType}: Just now`;
+            lastContactEl.className = 'last-contact contact-recent';
+        }
+
+        // Mobile swipe functionality
+        let startX = 0;
+        let currentX = 0;
+        let swiping = false;
+
+        function initializeSwipeGestures() {
+            document.querySelectorAll('.client-item').forEach(item => {
+                // Touch events
+                item.addEventListener('touchstart', handleTouchStart, { passive: true });
+                item.addEventListener('touchmove', handleTouchMove, { passive: false });
+                item.addEventListener('touchend', handleTouchEnd, { passive: true });
+                
+                // Mouse events for desktop testing
+                item.addEventListener('mousedown', handleTouchStart);
+                item.addEventListener('mousemove', handleTouchMove);
+                item.addEventListener('mouseup', handleTouchEnd);
+                item.addEventListener('mouseleave', handleTouchEnd);
+            });
+        }
+
+        function handleTouchStart(e) {
+            if (e.target.closest('.quick-actions') || e.target.closest('.client-actions')) {
+                return; // Don't swipe if touching buttons
+            }
+            
+            startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            swiping = true;
+            this.classList.add('swiping');
+        }
+
+        function handleTouchMove(e) {
+            if (!swiping) return;
+            
+            e.preventDefault();
+            currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const deltaX = startX - currentX;
+            
+            // Only allow left swipe and limit distance
+            if (deltaX > 0 && deltaX <= 120) {
+                this.style.transform = `translateX(-${deltaX}px)`;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!swiping) return;
+            
+            swiping = false;
+            this.classList.remove('swiping');
+            
+            const deltaX = startX - currentX;
+            
+            // If swiped more than 60px, show swipe actions
+            if (deltaX > 60) {
+                this.classList.add('swiped');
+                this.style.transform = '';
+                
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    this.classList.remove('swiped');
+                }, 3000);
+            } else {
+                // Snap back
+                this.style.transform = '';
+            }
+        }
+
+        // Close swipe actions when tapping elsewhere
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.client-item')) {
+                document.querySelectorAll('.client-item.swiped').forEach(item => {
+                    item.classList.remove('swiped');
+                });
+            }
+        });
+
+        // Close notes modal when clicking outside
+        document.getElementById('notesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNotes();
+            }
+        });
+
+        // Close notes modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('notesModal').classList.contains('active')) {
+                closeNotes();
+            }
+        });
+
         // Add click handlers for client items
         document.querySelectorAll('.client-item').forEach(item => {
             item.addEventListener('click', function(e) {
-                // Don't trigger if clicking on action buttons
-                if (e.target.classList.contains('action-btn')) {
+                // Don't trigger if clicking on action buttons or quick actions
+                if (e.target.closest('.action-btn') || 
+                    e.target.closest('.quick-action-btn') || 
+                    e.target.closest('.swipe-action') ||
+                    this.classList.contains('swiped')) {
                     return;
                 }
                 
@@ -439,6 +1041,26 @@
                 const chatLink = this.querySelector('.action-btn.primary');
                 if (chatLink) {
                     window.location.href = chatLink.href;
+                }
+            });
+        });
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSwipeGestures();
+            
+            // Load saved notes indicators (optional visual enhancement)
+            document.querySelectorAll('.client-item').forEach(item => {
+                const clientId = item.dataset.clientId;
+                const hasNotes = localStorage.getItem(`client_notes_${clientId}`);
+                
+                if (hasNotes && hasNotes.trim()) {
+                    const notesBtn = item.querySelector('.quick-action-btn.notes');
+                    if (notesBtn) {
+                        notesBtn.style.background = '#fef3cd';
+                        notesBtn.style.borderColor = '#f59e0b';
+                        notesBtn.style.color = '#f59e0b';
+                    }
                 }
             });
         });
