@@ -180,7 +180,7 @@
                 
                 <!-- APPLE-STYLE NESTED NAVIGATION -->
                 <nav class="main-nav">
-                    <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                    <a href="{{ url_for('dashboard') }}" class="nav-item dashboard-btn">Dashboard</a>
                     
                     <div class="nav-item dropdown">
                         <a href="{{ url_for('cases_page') }}" class="nav-link">Cases</a>

@@ -17,7 +17,7 @@ a:focus {
 }
 
 /* Force main navigation links to use brand colors - but not dropdown menus or Dashboard button */
-.main-nav a:not(.dropdown-content a):not(.active), .main-nav a:not(.dropdown-content a):not(.active):link, .main-nav a:not(.dropdown-content a):not(.active):visited, .main-nav a:not(.dropdown-content a):not(.active):focus, .main-nav a:not(.dropdown-content a):not(.active):active,
+.main-nav a:not(.dropdown-content a):not(.dashboard-btn), .main-nav a:not(.dropdown-content a):not(.dashboard-btn):link, .main-nav a:not(.dropdown-content a):not(.dashboard-btn):visited, .main-nav a:not(.dropdown-content a):not(.dashboard-btn):focus, .main-nav a:not(.dropdown-content a):not(.dashboard-btn):active,
 .nav-links .nav-link, .nav-links .nav-link:link, .nav-links .nav-link:visited, .nav-links .nav-link:focus, .nav-links .nav-link:active {
     color: #F7EDDA !important;
     text-decoration: none !important;
@@ -300,6 +300,25 @@ body {
     background-color: #F0531C; /* bright-coral */
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard button styling - always orange like Enter Platform button */
+.main-nav .dashboard-btn {
+    background-color: #FFA74F !important; /* warm-orange */
+    color: #2E4B3C !important; /* dark-green */
+    padding: 0.5rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.main-nav .dashboard-btn:hover {
+    background-color: #F0531C !important; /* bright-coral */
+    color: #2E4B3C !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 
 .btn-secondary {
