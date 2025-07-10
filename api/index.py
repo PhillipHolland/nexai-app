@@ -393,7 +393,7 @@ def login_required(f):
                 logger.info("Auto-creating demo session for development")
                 session['user_id'] = 'demo'
                 session['user_email'] = 'demo@lexai.com'
-                session['user_role'] = 'attorney'
+                session['user_role'] = 'partner'
                 session['user_name'] = 'Demo User'
                 session['logged_in'] = True
             else:
@@ -2637,7 +2637,7 @@ def _login_mock_user(email, password):
     # Simple mock - any password works
     session['user_id'] = '1'
     session['user_email'] = email
-    session['user_role'] = 'attorney'
+    session['user_role'] = 'partner'
     session['user_name'] = 'Demo User'
     session['logged_in'] = True
     
