@@ -7331,6 +7331,48 @@ def _get_mock_message_details(message_id, client_id):
                 }
             ],
             'thread_id': 'thread_2'
+        },
+        'msg_3': {
+            'id': 'msg_3',
+            'subject': 'Re: Questions about custody schedule',
+            'content': 'Thank you for your questions about the proposed custody schedule. I understand your concerns about the weekday arrangements and we can definitely discuss modifications that work better for your schedule.\n\nI will review the alternative proposal you mentioned and get back to you with feedback by tomorrow. We want to make sure any arrangement prioritizes the children\'s best interests while being practical for both parents.\n\nWe can schedule a call this week to discuss the details further.',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'sender_email': 'sarah.johnson@lexai.com',
+            'timestamp': '2025-07-06T16:45:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'response',
+            'attachments': [],
+            'thread_id': 'thread_3'
+        },
+        'msg_4': {
+            'id': 'msg_4',
+            'subject': 'Questions about custody schedule',
+            'content': 'Hi Sarah,\n\nI have some concerns about the proposed custody schedule. The current arrangement has me picking up the kids every other weekend, but with my work schedule, weekday pickups would actually work better for me.\n\nCould we discuss modifying the schedule to include some weekday time instead of just weekends? I think this would be better for everyone involved.\n\nPlease let me know your thoughts.\n\nThanks,\nJohn',
+            'sender': 'client',
+            'sender_name': 'John Smith',
+            'sender_email': 'john.smith@email.com',
+            'timestamp': '2025-07-05T09:20:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'question',
+            'attachments': [],
+            'thread_id': 'thread_3'
+        },
+        'msg_5': {
+            'id': 'msg_5',
+            'subject': 'Welcome to Your Client Portal',
+            'content': 'Dear John,\n\nWelcome to your secure client portal! This platform will be our primary communication channel throughout your case.\n\nThrough this portal you can:\n- View case updates and documents\n- Send secure messages to our legal team\n- Track important deadlines\n- Access your billing information\n\nIf you have any questions about using the portal, please don\'t hesitate to reach out.\n\nBest regards,\nAttorney Sarah Johnson\nLexAI Legal Practice',
+            'sender': 'attorney',
+            'sender_name': 'Attorney Sarah Johnson',
+            'sender_email': 'sarah.johnson@lexai.com',
+            'timestamp': '2025-07-01T08:00:00Z',
+            'is_read': True,
+            'priority': 'normal',
+            'message_type': 'welcome',
+            'attachments': [],
+            'thread_id': 'thread_4'
         }
     }
     
