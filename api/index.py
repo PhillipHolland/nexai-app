@@ -7667,6 +7667,306 @@ def _get_mock_case_milestones(client_id):
         'milestones': milestones_data
     })
 
+# ===== CLIENT PORTAL APPOINTMENT SCHEDULING =====
+
+@app.route('/api/client-portal/appointments', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_appointments():
+    """Get client's appointments and available slots"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query appointment data
+            pass
+        
+        return _get_mock_client_appointments(client_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving client appointments: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve appointments'
+        }), 500
+
+@app.route('/api/client-portal/appointments/available-slots', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_available_slots():
+    """Get available appointment slots"""
+    try:
+        client_id = session.get('client_portal_user')
+        date_range = request.args.get('range', '7')  # Default to 7 days
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query attorney availability
+            pass
+        
+        return _get_mock_available_slots(client_id, date_range)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving available slots: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve available slots'
+        }), 500
+
+@app.route('/api/client-portal/appointments', methods=['POST'])
+@client_portal_auth_required
+def api_client_portal_schedule_appointment():
+    """Schedule a new appointment"""
+    try:
+        client_id = session.get('client_portal_user')
+        data = request.json
+        
+        if not data or not all(k in data for k in ['date', 'time', 'type']):
+            return jsonify({
+                'success': False,
+                'error': 'Date, time, and appointment type are required'
+            }), 400
+        
+        appointment_date = data.get('date')
+        appointment_time = data.get('time')
+        appointment_type = data.get('type')
+        notes = data.get('notes', '').strip()
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, save to database and send notifications
+            pass
+        
+        # Log the appointment request for audit trail
+        if DATABASE_AVAILABLE:
+            audit_log(
+                action='client_appointment_scheduled',
+                user_id=client_id,
+                details={
+                    'appointment_date': appointment_date,
+                    'appointment_time': appointment_time,
+                    'appointment_type': appointment_type,
+                    'notes': notes,
+                    'client_id': client_id
+                }
+            )
+        
+        # Mock successful response
+        appointment_id = f"appt_{int(datetime.now().timestamp())}"
+        return jsonify({
+            'success': True,
+            'appointment': {
+                'id': appointment_id,
+                'date': appointment_date,
+                'time': appointment_time,
+                'type': appointment_type,
+                'notes': notes,
+                'status': 'pending_confirmation',
+                'attorney': 'Attorney Sarah Johnson',
+                'location': 'LexAI Office - Conference Room A',
+                'created_at': datetime.now().isoformat()
+            }
+        })
+            
+    except Exception as e:
+        logger.error(f"Error scheduling appointment: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to schedule appointment'
+        }), 500
+
+@app.route('/api/client-portal/appointments/<appointment_id>/cancel', methods=['POST'])
+@client_portal_auth_required
+def api_client_portal_cancel_appointment(appointment_id):
+    """Cancel an appointment"""
+    try:
+        client_id = session.get('client_portal_user')
+        data = request.json
+        reason = data.get('reason', '') if data else ''
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, update appointment status in database
+            pass
+        
+        # Log the cancellation for audit trail
+        if DATABASE_AVAILABLE:
+            audit_log(
+                action='client_appointment_cancelled',
+                user_id=client_id,
+                details={
+                    'appointment_id': appointment_id,
+                    'cancellation_reason': reason,
+                    'client_id': client_id
+                }
+            )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Appointment cancelled successfully'
+        })
+            
+    except Exception as e:
+        logger.error(f"Error cancelling appointment {appointment_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to cancel appointment'
+        }), 500
+
+def _get_mock_client_appointments(client_id):
+    """Mock appointments data for development"""
+    appointments_data = {
+        'upcoming_appointments': [
+            {
+                'id': 'appt_1',
+                'title': 'Settlement Strategy Meeting',
+                'date': '2025-07-15T14:00:00Z',
+                'type': 'consultation',
+                'duration': 60,
+                'attorney': 'Attorney Sarah Johnson',
+                'location': 'LexAI Office - Conference Room A',
+                'status': 'confirmed',
+                'notes': 'Discuss settlement proposal and negotiation strategy',
+                'meeting_type': 'in_person',
+                'preparation_items': [
+                    'Review financial disclosure documents',
+                    'Prepare questions about settlement terms',
+                    'Bring any new documentation'
+                ]
+            },
+            {
+                'id': 'appt_2',
+                'title': 'Pre-Mediation Preparation',
+                'date': '2025-07-22T10:00:00Z',
+                'type': 'preparation',
+                'duration': 45,
+                'attorney': 'Attorney Sarah Johnson',
+                'location': 'Video Conference',
+                'status': 'confirmed',
+                'notes': 'Prepare for upcoming mediation session',
+                'meeting_type': 'video_call',
+                'preparation_items': [
+                    'Review custody proposal',
+                    'Prepare emotional preparation for mediation',
+                    'Discuss mediation strategy'
+                ]
+            }
+        ],
+        'past_appointments': [
+            {
+                'id': 'appt_3',
+                'title': 'Initial Case Strategy Session',
+                'date': '2025-07-01T14:00:00Z',
+                'type': 'consultation',
+                'duration': 90,
+                'attorney': 'Attorney Sarah Johnson',
+                'location': 'LexAI Office - Conference Room A',
+                'status': 'completed',
+                'notes': 'Discussed case overview and initial strategy',
+                'meeting_type': 'in_person',
+                'summary': 'Covered divorce timeline, asset division strategy, and custody considerations'
+            },
+            {
+                'id': 'appt_4',
+                'title': 'Document Review Session',
+                'date': '2025-06-28T16:00:00Z',
+                'type': 'document_review',
+                'duration': 60,
+                'attorney': 'Attorney Sarah Johnson',
+                'location': 'LexAI Office - Conference Room B',
+                'status': 'completed',
+                'notes': 'Reviewed financial documents and affidavits',
+                'meeting_type': 'in_person',
+                'summary': 'Reviewed all financial disclosure documents and prepared affidavits'
+            }
+        ],
+        'appointment_types': [
+            {
+                'id': 'consultation',
+                'name': 'Consultation',
+                'description': 'General legal consultation and case discussion',
+                'duration': 60,
+                'available_methods': ['in_person', 'video_call', 'phone_call']
+            },
+            {
+                'id': 'document_review',
+                'name': 'Document Review',
+                'description': 'Review and discuss legal documents',
+                'duration': 45,
+                'available_methods': ['in_person', 'video_call']
+            },
+            {
+                'id': 'preparation',
+                'name': 'Court/Mediation Prep',
+                'description': 'Preparation for court appearances or mediation',
+                'duration': 60,
+                'available_methods': ['in_person', 'video_call']
+            },
+            {
+                'id': 'strategy_session',
+                'name': 'Strategy Session',
+                'description': 'Case strategy planning and discussion',
+                'duration': 90,
+                'available_methods': ['in_person']
+            }
+        ]
+    }
+    
+    return jsonify({
+        'success': True,
+        'appointments': appointments_data
+    })
+
+def _get_mock_available_slots(client_id, date_range):
+    """Mock available appointment slots for development"""
+    from datetime import datetime, timedelta
+    
+    # Generate available slots for the next 14 days
+    available_slots = []
+    start_date = datetime.now().date()
+    
+    for i in range(14):
+        current_date = start_date + timedelta(days=i)
+        
+        # Skip weekends
+        if current_date.weekday() >= 5:
+            continue
+            
+        # Generate time slots (9 AM to 5 PM, excluding lunch 12-1 PM)
+        time_slots = []
+        
+        # Morning slots (9 AM - 12 PM)
+        for hour in range(9, 12):
+            time_slots.append(f"{hour:02d}:00")
+            time_slots.append(f"{hour:02d}:30")
+        
+        # Afternoon slots (1 PM - 5 PM)
+        for hour in range(13, 17):
+            time_slots.append(f"{hour:02d}:00")
+            time_slots.append(f"{hour:02d}:30")
+        
+        # Mock some slots as unavailable
+        if i == 1:  # Tomorrow - busy day
+            available_times = time_slots[::3]  # Every 3rd slot available
+        elif i == 2:  # Day after tomorrow - moderate availability
+            available_times = time_slots[::2]  # Every 2nd slot available
+        else:  # Other days - good availability
+            available_times = time_slots[:-2]  # All but last 2 slots
+        
+        for time_slot in available_times:
+            available_slots.append({
+                'date': current_date.isoformat(),
+                'time': time_slot,
+                'available': True,
+                'attorney': 'Attorney Sarah Johnson'
+            })
+    
+    return jsonify({
+        'success': True,
+        'available_slots': available_slots,
+        'attorney_info': {
+            'name': 'Attorney Sarah Johnson',
+            'timezone': 'America/New_York',
+            'office_hours': '9:00 AM - 5:00 PM, Monday - Friday',
+            'location': 'LexAI Office - 123 Legal Street, Law City, LC 12345'
+        }
+    })
+
 # ===== INITIALIZATION =====
 
 logger.info("✅ LexAI Clean Flask app initialized for serverless deployment")

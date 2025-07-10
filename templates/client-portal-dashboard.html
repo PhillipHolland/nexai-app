@@ -1120,6 +1120,310 @@
             color: #2563eb;
         }
 
+        /* Appointments */
+        .appointment-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        
+        .appointment-item:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+        
+        .appointment-item.upcoming {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .appointment-item.upcoming:hover {
+            background: #dbeafe;
+        }
+        
+        .appointment-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .appointment-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .appointment-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .appointment-details {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .appointment-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        .appointment-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .appointment-status.confirmed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .appointment-status.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        /* Appointments Modal */
+        .appointments-modal-content {
+            max-width: 1100px;
+        }
+        
+        .appointments-container {
+            display: flex;
+            height: 70vh;
+            overflow: hidden;
+        }
+        
+        .appointments-sidebar {
+            width: 35%;
+            border-right: 1px solid #e5e7eb;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .appointments-main {
+            width: 65%;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .appointment-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .appointment-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .appointment-card.upcoming {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+        
+        .appointment-card.past {
+            border-color: #d1d5db;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+        
+        .appointment-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .appointment-card-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .appointment-card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .appointment-card-details {
+            margin-bottom: 0.75rem;
+        }
+        
+        .appointment-card-notes {
+            font-size: 0.875rem;
+            color: #374151;
+            margin-bottom: 0.75rem;
+            font-style: italic;
+        }
+        
+        .appointment-card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-reschedule {
+            background-color: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-reschedule:hover {
+            background-color: #d97706;
+        }
+        
+        .btn-cancel-appointment {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-cancel-appointment:hover {
+            background-color: #b91c1c;
+        }
+        
+        /* Scheduling Form */
+        .scheduling-section {
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .scheduling-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .scheduling-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+        
+        .scheduling-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .scheduling-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+        
+        .scheduling-textarea {
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .available-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            text-align: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .time-slot:hover {
+            border-color: #2E4B3C;
+            background: #f0fdf4;
+        }
+        
+        .time-slot.selected {
+            border-color: #2E4B3C;
+            background: #2E4B3C;
+            color: white;
+        }
+        
+        .time-slot.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f3f4f6;
+        }
+        
+        .btn-schedule {
+            background-color: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+        
+        .btn-schedule:hover {
+            background-color: #1a3429;
+        }
+        
+        .btn-schedule:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Quick Actions */
         .quick-actions {
             display: grid;
@@ -1314,6 +1618,23 @@
                     </div>
                 </div>
 
+                <!-- Upcoming Appointments -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <span class="card-icon">📅</span>
+                        <h2 class="card-title">Upcoming Appointments</h2>
+                    </div>
+                    <div id="upcomingAppointments">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button onclick="viewAllAppointments()" class="action-btn" style="width: 100%; border: none; background: #f8fafc;">
+                            <span class="action-icon">🗓️</span>
+                            <span class="action-title">Manage Appointments</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -1393,6 +1714,64 @@
                     <div id="progressLoading" class="loading" style="display: none;">
                         <div class="loading-spinner"></div>
                         <p>Loading case timeline...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Modal -->
+    <div id="appointmentsModal" class="modal">
+        <div class="modal-content appointments-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Appointments</h2>
+                <button class="modal-close" onclick="closeAppointmentsModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="appointments-container">
+                    <div class="appointments-sidebar">
+                        <h3 style="margin-bottom: 1rem; color: #1f2937;">Your Appointments</h3>
+                        <div id="appointmentsList">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <div id="appointmentsLoading" class="loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <p>Loading appointments...</p>
+                        </div>
+                    </div>
+                    <div class="appointments-main">
+                        <div id="appointmentsMainContent">
+                            <!-- Default content -->
+                            <div class="scheduling-section">
+                                <div class="scheduling-header">📅 Schedule New Appointment</div>
+                                <div class="scheduling-form" id="schedulingForm">
+                                    <div>
+                                        <label class="form-label">Appointment Type</label>
+                                        <select class="scheduling-select" id="appointmentType">
+                                            <option value="">Select appointment type</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Preferred Date</label>
+                                        <input type="date" class="scheduling-input" id="appointmentDate">
+                                    </div>
+                                    <div class="form-group-full">
+                                        <label class="form-label">Available Times</label>
+                                        <div id="availableSlots" class="available-slots">
+                                            <!-- Populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                    <div class="form-group-full">
+                                        <label class="form-label">Notes (Optional)</label>
+                                        <textarea class="scheduling-input scheduling-textarea" id="appointmentNotes" 
+                                                  placeholder="Any specific topics you'd like to discuss..."></textarea>
+                                    </div>
+                                    <button type="button" class="btn-schedule" id="scheduleButton" onclick="scheduleAppointment()" disabled>
+                                        Schedule Appointment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1486,6 +1865,9 @@
             // Case Progress (load separately)
             loadCaseProgress();
 
+            // Upcoming Appointments (load separately)
+            loadUpcomingAppointments();
+
             // Quick Actions
             const quickActions = document.getElementById('quickActions');
             quickActions.innerHTML = dashboard.quick_actions.map(action => `
@@ -1533,7 +1915,7 @@
                     viewAllMessages();
                     break;
                 case 'schedule':
-                    alert('Appointment scheduling feature coming soon!');
+                    viewAllAppointments();
                     break;
                 case 'billing':
                     alert('Billing view feature coming soon!');
@@ -2153,11 +2535,276 @@
             document.getElementById('progressModal').style.display = 'none';
         }
 
+        // Appointment Management Functions
+        let selectedDate = '';
+        let selectedTime = '';
+        let availableSlots = [];
+
+        async function loadUpcomingAppointments() {
+            try {
+                const response = await fetch('/api/client-portal/appointments');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderUpcomingAppointments(data.appointments.upcoming_appointments.slice(0, 2));
+                } else {
+                    document.getElementById('upcomingAppointments').innerHTML = 
+                        '<p style="color: #6b7280; text-align: center; padding: 1rem;">No upcoming appointments</p>';
+                }
+            } catch (error) {
+                console.error('Error loading upcoming appointments:', error);
+                document.getElementById('upcomingAppointments').innerHTML = 
+                    '<p style="color: #dc2626; text-align: center; padding: 1rem;">Error loading appointments</p>';
+            }
+        }
+
+        function renderUpcomingAppointments(appointments) {
+            const upcomingAppointments = document.getElementById('upcomingAppointments');
+            
+            if (appointments.length === 0) {
+                upcomingAppointments.innerHTML = 
+                    '<p style="color: #6b7280; text-align: center; padding: 1rem;">No upcoming appointments</p>';
+                return;
+            }
+
+            upcomingAppointments.innerHTML = appointments.map(appt => `
+                <div class="appointment-item upcoming">
+                    <div class="appointment-icon">
+                        ${getAppointmentTypeIcon(appt.type)}
+                    </div>
+                    <div class="appointment-info">
+                        <div class="appointment-title">${appt.title}</div>
+                        <div class="appointment-details">${appt.attorney} • ${appt.duration} min</div>
+                        <div class="appointment-time">${formatDate(appt.date)} • ${appt.location}</div>
+                    </div>
+                    <div class="appointment-status ${appt.status}">${appt.status}</div>
+                </div>
+            `).join('');
+        }
+
+        async function viewAllAppointments() {
+            const modal = document.getElementById('appointmentsModal');
+            const loading = document.getElementById('appointmentsLoading');
+            const appointmentsList = document.getElementById('appointmentsList');
+            
+            // Show modal and loading state
+            modal.style.display = 'block';
+            loading.style.display = 'block';
+            appointmentsList.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/client-portal/appointments');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderAllAppointments(data.appointments);
+                    loadAppointmentTypes(data.appointments.appointment_types);
+                    setupDateHandler();
+                } else {
+                    appointmentsList.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading appointments</p>';
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                appointmentsList.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 2rem;">Error loading appointments</p>';
+            } finally {
+                loading.style.display = 'none';
+                appointmentsList.style.display = 'block';
+            }
+        }
+
+        function renderAllAppointments(appointments) {
+            const appointmentsList = document.getElementById('appointmentsList');
+            
+            const allAppointments = [
+                ...appointments.upcoming_appointments,
+                ...appointments.past_appointments
+            ];
+            
+            if (allAppointments.length === 0) {
+                appointmentsList.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 2rem;">No appointments found</p>';
+                return;
+            }
+
+            appointmentsList.innerHTML = allAppointments.map(appt => {
+                const isUpcoming = appointments.upcoming_appointments.includes(appt);
+                return `
+                    <div class="appointment-card ${isUpcoming ? 'upcoming' : 'past'}" onclick="selectAppointment('${appt.id}')">
+                        <div class="appointment-card-header">
+                            <div>
+                                <div class="appointment-card-title">${appt.title}</div>
+                                <div class="appointment-card-meta">
+                                    <span>${formatDate(appt.date)}</span>
+                                    <span>${appt.attorney}</span>
+                                    <span>${appt.location}</span>
+                                </div>
+                            </div>
+                            <div class="appointment-status ${appt.status}">${appt.status}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadAppointmentTypes(types) {
+            const appointmentType = document.getElementById('appointmentType');
+            appointmentType.innerHTML = '<option value="">Select appointment type</option>' +
+                types.map(type => 
+                    `<option value="${type.id}">${type.name} (${type.duration} min)</option>`
+                ).join('');
+        }
+
+        function setupDateHandler() {
+            const dateInput = document.getElementById('appointmentDate');
+            const typeSelect = document.getElementById('appointmentType');
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+            
+            dateInput.addEventListener('change', function() {
+                if (this.value && typeSelect.value) {
+                    loadAvailableSlots(this.value);
+                }
+            });
+            
+            typeSelect.addEventListener('change', function() {
+                if (this.value && dateInput.value) {
+                    loadAvailableSlots(dateInput.value);
+                }
+            });
+        }
+
+        async function loadAvailableSlots(date) {
+            const slotsContainer = document.getElementById('availableSlots');
+            slotsContainer.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 1rem;">Loading available times...</p>';
+            
+            try {
+                const response = await fetch('/api/client-portal/appointments/available-slots');
+                const data = await response.json();
+                
+                if (data.success) {
+                    availableSlots = data.available_slots.filter(slot => slot.date === date);
+                    renderAvailableSlots(availableSlots);
+                }
+            } catch (error) {
+                console.error('Error loading available slots:', error);
+                slotsContainer.innerHTML = '<p style="color: #dc2626; text-align: center; padding: 1rem;">Error loading available times</p>';
+            }
+        }
+
+        function renderAvailableSlots(slots) {
+            const slotsContainer = document.getElementById('availableSlots');
+            
+            if (slots.length === 0) {
+                slotsContainer.innerHTML = '<p style="color: #6b7280; text-align: center; padding: 1rem;">No available times for this date</p>';
+                return;
+            }
+            
+            slotsContainer.innerHTML = slots.map(slot => `
+                <div class="time-slot ${slot.available ? '' : 'unavailable'}" 
+                     onclick="${slot.available ? `selectTimeSlot('${slot.time}')` : ''}"
+                     data-time="${slot.time}">
+                    ${slot.time}
+                </div>
+            `).join('');
+        }
+
+        function selectTimeSlot(time) {
+            // Remove previous selection
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            
+            // Add selection to clicked slot
+            event.currentTarget.classList.add('selected');
+            selectedTime = time;
+            
+            // Enable schedule button
+            const scheduleButton = document.getElementById('scheduleButton');
+            scheduleButton.disabled = false;
+        }
+
+        async function scheduleAppointment() {
+            const appointmentType = document.getElementById('appointmentType').value;
+            const appointmentDate = document.getElementById('appointmentDate').value;
+            const appointmentNotes = document.getElementById('appointmentNotes').value;
+            
+            if (!appointmentType || !appointmentDate || !selectedTime) {
+                alert('Please select appointment type, date, and time');
+                return;
+            }
+            
+            const scheduleButton = document.getElementById('scheduleButton');
+            scheduleButton.disabled = true;
+            scheduleButton.textContent = 'Scheduling...';
+            
+            try {
+                const response = await fetch('/api/client-portal/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: appointmentType,
+                        date: appointmentDate,
+                        time: selectedTime,
+                        notes: appointmentNotes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Appointment scheduled successfully! You will receive a confirmation email shortly.');
+                    
+                    // Reset form
+                    document.getElementById('appointmentType').value = '';
+                    document.getElementById('appointmentDate').value = '';
+                    document.getElementById('appointmentNotes').value = '';
+                    document.getElementById('availableSlots').innerHTML = '';
+                    selectedTime = '';
+                    
+                    // Refresh appointments and dashboard
+                    viewAllAppointments();
+                    loadUpcomingAppointments();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to schedule appointment'));
+                }
+            } catch (error) {
+                console.error('Error scheduling appointment:', error);
+                alert('Error scheduling appointment. Please try again.');
+            } finally {
+                scheduleButton.disabled = false;
+                scheduleButton.textContent = 'Schedule Appointment';
+            }
+        }
+
+        function selectAppointment(appointmentId) {
+            // For now, just show appointment details
+            // In a full implementation, this would show detailed view with actions
+            console.log('Selected appointment:', appointmentId);
+        }
+
+        function getAppointmentTypeIcon(type) {
+            const icons = {
+                'consultation': '💬',
+                'document_review': '📄',
+                'preparation': '📋',
+                'strategy_session': '🎯'
+            };
+            return icons[type] || '📅';
+        }
+
+        function closeAppointmentsModal() {
+            document.getElementById('appointmentsModal').style.display = 'none';
+        }
+
         // Close modal when clicking outside of it
         window.onclick = function(event) {
             const documentsModal = document.getElementById('documentsModal');
             const messagesModal = document.getElementById('messagesModal');
             const progressModal = document.getElementById('progressModal');
+            const appointmentsModal = document.getElementById('appointmentsModal');
             
             if (event.target === documentsModal) {
                 closeDocumentsModal();
@@ -2169,6 +2816,10 @@
             
             if (event.target === progressModal) {
                 closeProgressModal();
+            }
+            
+            if (event.target === appointmentsModal) {
+                closeAppointmentsModal();
             }
         }
     </script>
