@@ -565,7 +565,6 @@ def spanish_interface():
         return f"Spanish interface error: {e}", 500
 
 @app.route('/billing')
-@login_required
 def billing_page():
     """Billing and payments page"""
     try:

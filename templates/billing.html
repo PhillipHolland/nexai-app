@@ -1351,3 +1351,301 @@ window.onclick = function(event) {
         }
     </style>
 {% endblock %}
+
+{% block content %}
+<div class="billing-container">
+    <!-- Header -->
+    <div class="billing-header">
+        <h1 class="billing-title">Billing & Invoices</h1>
+        <p class="billing-subtitle">Manage your practice's billing, invoices, and financial operations</p>
+    </div>
+
+    <div class="billing-main">
+        <!-- Dashboard Stats -->
+        <div class="billing-stats" id="billingStats">
+            <!-- Stats cards will be populated by JavaScript -->
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="billing-actions">
+            <div class="action-card" onclick="createNewInvoice()">
+                <div class="action-icon">📄</div>
+                <h3 class="action-title">Create Invoice</h3>
+                <p class="action-description">Generate a new invoice from time entries</p>
+            </div>
+            <div class="action-card" onclick="createSampleInvoice()">
+                <div class="action-icon">✨</div>
+                <h3 class="action-title">Sample Invoice</h3>
+                <p class="action-description">Create sample invoice with demo data</p>
+            </div>
+            <div class="action-card" onclick="setupStripeConnect()">
+                <div class="action-icon">💳</div>
+                <h3 class="action-title">Payment Setup</h3>
+                <p class="action-description">Configure Stripe for client payments</p>
+            </div>
+            <div class="action-card" onclick="exportReports()">
+                <div class="action-icon">📊</div>
+                <h3 class="action-title">Reports</h3>
+                <p class="action-description">Generate financial reports</p>
+            </div>
+        </div>
+
+        <!-- Recent Invoices Section -->
+        <div class="invoice-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Invoices</h2>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="refreshInvoices()">
+                        🔄 Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="createNewInvoice()">
+                        ➕ New Invoice
+                    </button>
+                </div>
+            </div>
+
+            <div id="invoicesLoading" style="text-align: center; padding: 2rem; display: none;">
+                <div style="font-size: 1.5rem; margin-bottom: 1rem;">⏳</div>
+                <p>Loading invoices...</p>
+            </div>
+
+            <table class="invoice-table" id="invoicesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <!-- Invoice rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <div id="noInvoices" style="text-align: center; padding: 3rem; color: #6b7280; display: none;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+                <h3>No invoices yet</h3>
+                <p>Create your first invoice to get started</p>
+                <button class="btn btn-primary" onclick="createNewInvoice()" style="margin-top: 1rem;">
+                    Create First Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load billing dashboard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadBillingDashboard();
+    loadInvoices();
+});
+
+async function loadBillingDashboard() {
+    try {
+        const response = await fetch('/api/billing/dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+            renderBillingStats(data.dashboard.summary);
+        } else {
+            console.error('Failed to load billing dashboard:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading billing dashboard:', error);
+    }
+}
+
+function renderBillingStats(summary) {
+    const statsContainer = document.getElementById('billingStats');
+    
+    statsContainer.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Outstanding</span>
+                <div class="stat-icon">💰</div>
+            </div>
+            <div class="stat-value">$${summary.total_outstanding.toFixed(2)}</div>
+            <div class="stat-change positive">
+                📈 ${summary.pending_invoices} pending invoices
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Paid This Month</span>
+                <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-value">$${summary.total_paid_this_month.toFixed(2)}</div>
+            <div class="stat-change positive">
+                📊 ${summary.billable_hours_this_month}h billed
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Overdue</span>
+                <div class="stat-icon">⚠️</div>
+            </div>
+            <div class="stat-value">$${(summary.overdue_amount || 0).toFixed(2)}</div>
+            <div class="stat-change ${summary.overdue_invoices > 0 ? 'negative' : 'positive'}">
+                ${summary.overdue_invoices > 0 ? '⚠️' : '✅'} ${summary.overdue_invoices} overdue
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Time Entries</span>
+                <div class="stat-icon">⏱️</div>
+            </div>
+            <div class="stat-value">${summary.pending_time_entries}</div>
+            <div class="stat-change">
+                📝 Ready to bill
+            </div>
+        </div>
+    `;
+}
+
+async function loadInvoices() {
+    const loadingEl = document.getElementById('invoicesLoading');
+    const tableEl = document.getElementById('invoicesTable');
+    const noInvoicesEl = document.getElementById('noInvoices');
+    
+    // Show loading
+    loadingEl.style.display = 'block';
+    tableEl.style.display = 'none';
+    noInvoicesEl.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/invoices');
+        const data = await response.json();
+        
+        if (data.success && data.invoices.length > 0) {
+            renderInvoicesTable(data.invoices);
+            tableEl.style.display = 'table';
+        } else {
+            noInvoicesEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading invoices:', error);
+        noInvoicesEl.style.display = 'block';
+    } finally {
+        loadingEl.style.display = 'none';
+    }
+}
+
+function renderInvoicesTable(invoices) {
+    const tbody = document.getElementById('invoicesTableBody');
+    
+    tbody.innerHTML = invoices.map(invoice => `
+        <tr>
+            <td><strong>${invoice.invoice_number}</strong></td>
+            <td>${invoice.client_name}</td>
+            <td>$${invoice.total_amount.toFixed(2)}</td>
+            <td><span class="status-badge status-${invoice.status}">${invoice.status}</span></td>
+            <td>${formatDate(invoice.due_date)}</td>
+            <td>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-secondary" onclick="viewInvoice('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                        👁️ View
+                    </button>
+                    ${invoice.status !== 'paid' ? `
+                    <button class="btn btn-primary" onclick="sendInvoice('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                        📧 Send
+                    </button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Utility functions
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+// Action handlers
+async function createNewInvoice() {
+    alert('Create new invoice functionality - coming soon!');
+}
+
+async function createSampleInvoice() {
+    try {
+        const response = await fetch('/api/billing/sample-invoice', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Sample invoice created: ${data.invoice.invoice_number}`);
+            loadInvoices(); // Refresh the list
+        } else {
+            alert('Failed to create sample invoice: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error creating sample invoice:', error);
+        alert('Error creating sample invoice');
+    }
+}
+
+async function setupStripeConnect() {
+    if (!{{ stripe_available|lower }}) {
+        alert('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/billing/stripe-connect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                firm_name: 'Your Law Firm'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.open(data.onboarding_url, '_blank');
+        } else {
+            alert('Failed to setup Stripe Connect: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error setting up Stripe Connect:', error);
+        alert('Error setting up payment processing');
+    }
+}
+
+function exportReports() {
+    alert('Export reports functionality - coming soon!');
+}
+
+function refreshInvoices() {
+    loadInvoices();
+}
+
+function viewInvoice(invoiceId) {
+    alert(`View invoice ${invoiceId} - functionality coming soon!`);
+}
+
+function sendInvoice(invoiceId) {
+    alert(`Send invoice ${invoiceId} - functionality coming soon!`);
+}
+</script>
+{% endblock %}
