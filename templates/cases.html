@@ -37,6 +37,53 @@
         margin: 0 auto 2rem;
     }
 
+    /* Dashboard card styling for action buttons */
+    .dashboard-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .dashboard-card-icon {
+        width: 3rem;
+        height: 3rem;
+        background-color: #2E4B3C;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .dashboard-card-icon svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        color: #F7EDDA;
+    }
+
+    .dashboard-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-card-desc {
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
     .new-case-btn {
         background: linear-gradient(135deg, #2E4B3C, #4a7c59);
         color: white;
@@ -351,11 +398,16 @@
         <div class="cases-header">
             <h1 class="cases-title">📁 Case Management</h1>
             <p class="cases-subtitle">Manage all your legal cases, track progress, and organize case documents</p>
-            <a href="/cases/new" class="new-case-btn">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                New Case
+            <a href="/cases/new" class="dashboard-card" style="display: inline-flex; align-items: center; gap: 0.5rem; max-width: 200px;">
+                <div class="dashboard-card-icon">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="dashboard-card-title">New Case</h3>
+                    <p class="dashboard-card-desc">Create a new legal case</p>
+                </div>
             </a>
         </div>
 

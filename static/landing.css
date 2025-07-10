@@ -978,7 +978,8 @@ body {
 .main-nav .nav-item > a[aria-current="page"],
 .main-nav a.nav-item.active,
 .main-nav a.nav-item:is(.active),
-.main-nav a[class*="active"] {
+.main-nav a[class*="active"],
+.main-nav a.nav-item[class*="active"] {
     background: linear-gradient(135deg, #2E4B3C, #4a7c59) !important;
     color: white !important;
     padding: 0.75rem 1.5rem !important;
@@ -996,7 +997,8 @@ body {
 .main-nav .nav-item > a[aria-current="page"]:hover,
 .main-nav a.nav-item.active:hover,
 .main-nav a.nav-item:is(.active):hover,
-.main-nav a[class*="active"]:hover {
+.main-nav a[class*="active"]:hover,
+.main-nav a.nav-item[class*="active"]:hover {
     background: linear-gradient(135deg, #2E4B3C, #4a7c59) !important;
     color: white !important;
     transform: translateY(-4px) !important;
