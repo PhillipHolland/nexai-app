@@ -4,62 +4,71 @@
 
 {% block extra_head %}
 <style>
-    /* Admin Dashboard Styles */
+    /* Admin Dashboard Styles - Matching Main Dashboard */
     .admin-container {
-        background: #F7EDDA;
-        min-height: calc(100vh - 4.5rem);
-        padding: 2rem 1rem;
+        background-color: #F7EDDA; /* light-cream background like main dashboard */
+        min-height: calc(100vh - 4rem); /* Account for navbar height */
+        padding: 0;
     }
     
     .admin-content {
-        max-width: 1400px;
+        max-width: 1280px;
         margin: 0 auto;
+        padding: 3rem 1rem;
     }
     
     .admin-header {
         text-align: center;
         margin-bottom: 3rem;
-        padding: 2rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
     
     .admin-title {
-        font-size: 2.5rem;
+        font-size: 3rem;
         font-weight: 700;
-        color: #2E4B3C;
-        margin-bottom: 0.5rem;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        line-height: 1.1;
     }
     
     .admin-subtitle {
-        color: #64748b;
-        font-size: 1.1rem;
-        max-width: 600px;
+        font-size: 1.25rem;
+        color: #6b7280;
+        max-width: 32rem;
         margin: 0 auto;
     }
     
-    /* Quick Stats */
+    /* Quick Stats - Matching Main Dashboard */
     .quick-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: 1fr;
         gap: 1.5rem;
         margin-bottom: 3rem;
     }
     
+    @media (min-width: 640px) {
+        .quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .quick-stats {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
     .stat-card {
-        background: white;
+        background-color: white;
+        border-radius: 0.75rem;
         padding: 2rem;
-        border-radius: 12px;
         text-align: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid #2E4B3C;
-        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
     }
     
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
     
     .stat-icon {
@@ -100,26 +109,41 @@
         color: #64748b;
     }
     
-    /* Admin Modules Grid */
+    /* Admin Modules Grid - Matching Main Dashboard */
     .modules-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: 1fr;
         gap: 2rem;
         margin-bottom: 3rem;
     }
     
+    @media (min-width: 768px) {
+        .modules-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .modules-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
     .module-card {
-        background: white;
-        border-radius: 12px;
+        background-color: white;
+        border-radius: 0.75rem;
         padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
     }
     
     .module-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
     }
     
     .module-header {
@@ -129,33 +153,34 @@
     }
     
     .module-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        width: 3rem;
+        height: 3rem;
+        background-color: #2E4B3C; /* dark-green matching main dashboard */
+        border-radius: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.8rem;
         margin-right: 1rem;
-        color: white;
+        margin-bottom: 0;
+        font-size: 1.5rem;
+        color: #F7EDDA; /* light-cream matching main dashboard */
     }
     
     .module-info h3 {
-        font-size: 1.3rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        color: #2E4B3C;
-        margin-bottom: 0.25rem;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
     }
     
     .module-info p {
-        color: #64748b;
+        color: #6b7280;
         font-size: 0.9rem;
     }
     
     .module-description {
-        color: #64748b;
-        line-height: 1.6;
+        color: #6b7280;
+        line-height: 1.5;
         margin-bottom: 1.5rem;
     }
     
@@ -218,12 +243,18 @@
         background: #f1f5f9;
     }
     
-    /* Recent Activity */
+    /* Recent Activity - Matching Main Dashboard */
     .recent-activity {
-        background: white;
-        border-radius: 12px;
+        background-color: white;
+        border-radius: 0.75rem;
         padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .recent-activity:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
     
     .activity-header {
@@ -236,7 +267,7 @@
     .activity-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: #2E4B3C;
+        color: #1f2937;
     }
     
     .activity-list {
