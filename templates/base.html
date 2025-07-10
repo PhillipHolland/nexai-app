@@ -46,7 +46,8 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
     
-    <!-- Override for dashboard button styling -->
+    <!-- Override for dashboard button styling - ONLY on non-admin pages -->
+    {% if not request.endpoint or not request.endpoint.startswith('admin_') %}
     <style>
         .main-nav a.nav-item.active {
             background: linear-gradient(135deg, #2E4B3C, #4a7c59) !important;
@@ -67,6 +68,7 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
         }
     </style>
+    {% endif %}
     
     <!-- Authentication and User Menu Styles -->
     <style>
