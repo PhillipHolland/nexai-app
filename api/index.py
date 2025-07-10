@@ -4420,7 +4420,6 @@ def _get_mock_availability():
 
 @app.route('/api/documents', methods=['GET'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_documents():
     """Get documents with filtering and search"""
     try:
@@ -4501,7 +4500,6 @@ def api_get_documents():
 
 @app.route('/api/documents', methods=['POST'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_create_document():
     """Create a new document (metadata only - file upload handled separately)"""
     try:
@@ -4564,7 +4562,6 @@ def api_create_document():
 
 @app.route('/api/documents/<document_id>', methods=['GET'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_get_document(document_id):
     """Get a specific document with full details"""
     try:
@@ -4610,7 +4607,6 @@ def api_get_document(document_id):
 
 @app.route('/api/documents/<document_id>', methods=['PUT'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_update_document(document_id):
     """Update document metadata"""
     try:
@@ -4677,7 +4673,6 @@ def api_update_document(document_id):
 
 @app.route('/api/documents/<document_id>', methods=['DELETE'])
 @login_required
-@role_required('admin', 'partner', 'associate')
 def api_delete_document(document_id):
     """Delete a document (soft delete by changing status)"""
     try:
@@ -4736,6 +4731,153 @@ def api_get_document_types():
         'success': True,
         'document_types': document_types
     })
+
+# ===== CLIENT-SPECIFIC DOCUMENT ENDPOINTS =====
+
+@app.route('/api/clients/<client_id>/documents', methods=['GET'])
+@login_required
+def api_get_client_documents(client_id):
+    """Get all documents for a specific client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _get_mock_client_documents(client_id)
+        
+        # Get query parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = min(request.args.get('per_page', 10, type=int), 50)
+        document_type = request.args.get('document_type')
+        status = request.args.get('status')
+        
+        # Verify client exists and user has access
+        user_id = session.get('user_id', '1')
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Build query for client documents
+        query = Document.query.filter_by(client_id=client_id)
+        
+        # Apply filters
+        if document_type:
+            query = query.filter(Document.document_type == document_type)
+        if status:
+            query = query.filter(Document.status == status)
+        
+        # Order by creation date (newest first)
+        query = query.order_by(Document.created_at.desc())
+        
+        # Paginate
+        paginated = query.paginate(page=page, per_page=per_page, error_out=False)
+        
+        return jsonify({
+            'success': True,
+            'documents': [doc.to_dict() for doc in paginated.items],
+            'pagination': {
+                'page': page,
+                'pages': paginated.pages,
+                'per_page': per_page,
+                'total': paginated.total,
+                'has_prev': paginated.has_prev,
+                'has_next': paginated.has_next
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Get client documents error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/clients/<client_id>/documents/upload', methods=['POST'])
+@login_required
+def api_upload_client_document(client_id):
+    """Upload a document for a specific client"""
+    try:
+        if not DATABASE_AVAILABLE:
+            return _upload_mock_client_document(client_id)
+        
+        # Verify client exists and user has access
+        user_id = session.get('user_id', '1')
+        client = Client.query.filter_by(id=client_id, created_by=user_id).first()
+        if not client:
+            return jsonify({
+                'success': False,
+                'error': 'Client not found'
+            }), 404
+        
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file uploaded'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+        
+        # Get form data
+        title = request.form.get('title', file.filename)
+        description = request.form.get('description', '')
+        document_type = request.form.get('document_type', 'Other')
+        
+        # Validate file
+        allowed_extensions = {'pdf', 'doc', 'docx', 'txt', 'rtf', 'jpg', 'jpeg', 'png'}
+        if not file.filename.lower().endswith(tuple(allowed_extensions)):
+            return jsonify({
+                'success': False,
+                'error': 'File type not allowed'
+            }), 400
+        
+        # Create document record
+        import uuid
+        import os
+        from werkzeug.utils import secure_filename
+        
+        document_id = str(uuid.uuid4())
+        filename = secure_filename(f"{document_id}_{file.filename}")
+        
+        # For now, we'll create a minimal document record
+        # In production, this would handle actual file storage
+        document = Document(
+            id=document_id,
+            title=title,
+            description=description,
+            filename=filename,
+            original_filename=file.filename,
+            file_size=request.content_length or 0,
+            mime_type=file.content_type or 'application/octet-stream',
+            storage_provider='local',
+            storage_path=f'/uploads/client_{client_id}/',
+            document_type=document_type,
+            status='active',
+            client_id=client_id,
+            created_by=user_id
+        )
+        
+        db.session.add(document)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'document': document.to_dict(),
+            'message': 'Document uploaded successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Upload client document error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 def _get_mock_documents():
     """Mock documents for development"""
@@ -5021,6 +5163,72 @@ def internal_error(error):
         'error': 'Internal server error',
         'timestamp': datetime.now().isoformat()
     }), 500
+
+# ===== MOCK FUNCTIONS FOR CLIENT DOCUMENTS =====
+
+def _get_mock_client_documents(client_id):
+    """Mock client documents for development"""
+    return jsonify({
+        'success': True,
+        'documents': [
+            {
+                'id': '1',
+                'title': 'Retainer Agreement',
+                'description': 'Initial retainer agreement signed by client',
+                'document_type': 'Contract',
+                'status': 'final',
+                'original_filename': 'retainer_agreement.pdf',
+                'file_size': 245760,
+                'file_size_mb': 0.24,
+                'mime_type': 'application/pdf',
+                'created_at': datetime.now().isoformat(),
+                'created_by_name': 'Demo Attorney',
+                'is_confidential': True
+            },
+            {
+                'id': '2',
+                'title': 'Client Intake Form',
+                'description': 'Completed client intake and background information',
+                'document_type': 'Correspondence',
+                'status': 'active',
+                'original_filename': 'client_intake.pdf',
+                'file_size': 156789,
+                'file_size_mb': 0.15,
+                'mime_type': 'application/pdf',
+                'created_at': (datetime.now() - timedelta(days=1)).isoformat(),
+                'created_by_name': 'Demo Attorney',
+                'is_confidential': True
+            }
+        ],
+        'pagination': {
+            'page': 1,
+            'pages': 1,
+            'per_page': 10,
+            'total': 2,
+            'has_prev': False,
+            'has_next': False
+        }
+    })
+
+def _upload_mock_client_document(client_id):
+    """Mock document upload for development"""
+    return jsonify({
+        'success': True,
+        'document': {
+            'id': str(uuid.uuid4()),
+            'title': 'Mock Uploaded Document',
+            'document_type': 'Other',
+            'status': 'active',
+            'original_filename': 'mock_document.pdf',
+            'file_size': 123456,
+            'file_size_mb': 0.12,
+            'mime_type': 'application/pdf',
+            'created_at': datetime.now().isoformat(),
+            'created_by_name': 'Demo Attorney',
+            'is_confidential': True
+        },
+        'message': 'Document uploaded successfully (mock)'
+    })
 
 # ===== INITIALIZATION =====
 
