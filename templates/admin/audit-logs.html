@@ -1,0 +1,577 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - LexAI Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Admin Audit Logs Page Styles */
+    .admin-container {
+        background: #F7EDDA;
+        min-height: calc(100vh - 4.5rem);
+        padding: 2rem 1rem;
+    }
+    
+    .admin-content {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin: 0;
+    }
+    
+    .admin-subtitle {
+        color: #64748b;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .admin-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+        background: #f1f5f9;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Filters */
+    .filters {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+    
+    .filter-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        font-size: 0.875rem;
+        min-width: 120px;
+    }
+    
+    .date-input {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+    
+    /* Audit Log Table */
+    .logs-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logs-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .logs-table th {
+        background: #2E4B3C;
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .logs-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.875rem;
+    }
+    
+    .logs-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .logs-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* Event Type Badges */
+    .event-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .event-login {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .event-logout {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .event-create {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+    
+    .event-update {
+        background: #f0f9ff;
+        color: #0284c7;
+    }
+    
+    .event-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    .event-access {
+        background: #f3e8ff;
+        color: #7c3aed;
+    }
+    
+    .event-security {
+        background: #fdf2f8;
+        color: #be185d;
+    }
+    
+    /* Risk Level Indicators */
+    .risk-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .risk-low {
+        color: #059669;
+    }
+    
+    .risk-medium {
+        color: #d97706;
+    }
+    
+    .risk-high {
+        color: #dc2626;
+    }
+    
+    .risk-critical {
+        color: #7c2d12;
+        font-weight: 700;
+    }
+    
+    /* Details Column */
+    .details-text {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .expand-details {
+        color: #2E4B3C;
+        cursor: pointer;
+        text-decoration: underline;
+        font-size: 0.75rem;
+    }
+    
+    .expand-details:hover {
+        color: #4a7c59;
+    }
+    
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        padding: 1rem;
+    }
+    
+    .pagination button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .pagination button:hover {
+        background: #f9fafb;
+        border-color: #2E4B3C;
+    }
+    
+    .pagination button.active {
+        background: #2E4B3C;
+        color: white;
+        border-color: #2E4B3C;
+    }
+    
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    @media (max-width: 768px) {
+        .admin-container {
+            padding: 1rem;
+        }
+        
+        .admin-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .admin-title {
+            font-size: 1.5rem;
+        }
+        
+        .filters {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .logs-table {
+            font-size: 0.75rem;
+        }
+        
+        .logs-table th,
+        .logs-table td {
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .details-text {
+            max-width: 150px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-content">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">📋 Audit Logs</h1>
+                <p class="admin-subtitle">Monitor system activity and security events for compliance</p>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-secondary" onclick="exportLogs()">
+                    📊 Export Logs
+                </button>
+                <button class="btn btn-primary" onclick="generateReport()">
+                    📄 Generate Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <label class="filter-label">Event Type</label>
+                <select class="filter-select" id="eventTypeFilter" onchange="applyFilters()">
+                    <option value="">All Events</option>
+                    <option value="login">Login</option>
+                    <option value="logout">Logout</option>
+                    <option value="create">Create</option>
+                    <option value="update">Update</option>
+                    <option value="delete">Delete</option>
+                    <option value="access">Access</option>
+                    <option value="security">Security</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Risk Level</label>
+                <select class="filter-select" id="riskFilter" onchange="applyFilters()">
+                    <option value="">All Levels</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">From Date</label>
+                <input type="date" class="date-input" id="fromDate" onchange="applyFilters()">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">To Date</label>
+                <input type="date" class="date-input" id="toDate" onchange="applyFilters()">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">User</label>
+                <select class="filter-select" id="userFilter" onchange="applyFilters()">
+                    <option value="">All Users</option>
+                    <option value="john.doe">John Doe</option>
+                    <option value="jane.smith">Jane Smith</option>
+                    <option value="bob.johnson">Bob Johnson</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Audit Logs Table -->
+        <div class="logs-container">
+            <table class="logs-table" id="auditTable">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event Type</th>
+                        <th>User</th>
+                        <th>Resource</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Risk Level</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-event="login" data-risk="low" data-user="john.doe">
+                        <td>2024-07-09 14:32:15</td>
+                        <td><span class="event-badge event-login">Login</span></td>
+                        <td>John Doe</td>
+                        <td>Dashboard</td>
+                        <td class="details-text">Successful login from Chrome browser</td>
+                        <td>192.168.1.105</td>
+                        <td><span class="risk-indicator risk-low">🟢 Low</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_1')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="create" data-risk="medium" data-user="jane.smith">
+                        <td>2024-07-09 14:28:42</td>
+                        <td><span class="event-badge event-create">Create</span></td>
+                        <td>Jane Smith</td>
+                        <td>Case #2024-067</td>
+                        <td class="details-text">Created new personal injury case for client Thompson vs. Metro Insurance</td>
+                        <td>192.168.1.112</td>
+                        <td><span class="risk-indicator risk-medium">🟡 Medium</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_2')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="access" data-risk="high" data-user="bob.johnson">
+                        <td>2024-07-09 14:15:33</td>
+                        <td><span class="event-badge event-access">Access</span></td>
+                        <td>Bob Johnson</td>
+                        <td>Admin Settings</td>
+                        <td class="details-text">Accessed administrative settings - attempted to modify user permissions</td>
+                        <td>192.168.1.089</td>
+                        <td><span class="risk-indicator risk-high">🔴 High</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_3')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="security" data-risk="critical" data-user="system">
+                        <td>2024-07-09 13:45:18</td>
+                        <td><span class="event-badge event-security">Security</span></td>
+                        <td>System</td>
+                        <td>Authentication</td>
+                        <td class="details-text">Multiple failed login attempts detected from IP 203.0.113.45</td>
+                        <td>203.0.113.45</td>
+                        <td><span class="risk-indicator risk-critical">🚨 Critical</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_4')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="update" data-risk="low" data-user="jane.smith">
+                        <td>2024-07-09 13:22:09</td>
+                        <td><span class="event-badge event-update">Update</span></td>
+                        <td>Jane Smith</td>
+                        <td>Client Profile</td>
+                        <td class="details-text">Updated contact information for client Sarah Mitchell</td>
+                        <td>192.168.1.112</td>
+                        <td><span class="risk-indicator risk-low">🟢 Low</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_5')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="delete" data-risk="high" data-user="john.doe">
+                        <td>2024-07-09 12:58:27</td>
+                        <td><span class="event-badge event-delete">Delete</span></td>
+                        <td>John Doe</td>
+                        <td>Document</td>
+                        <td class="details-text">Permanently deleted confidential document: contract_draft_v3.pdf</td>
+                        <td>192.168.1.105</td>
+                        <td><span class="risk-indicator risk-high">🔴 High</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_6')">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr data-event="logout" data-risk="low" data-user="bob.johnson">
+                        <td>2024-07-09 12:30:44</td>
+                        <td><span class="event-badge event-logout">Logout</span></td>
+                        <td>Bob Johnson</td>
+                        <td>Session</td>
+                        <td class="details-text">User logged out after 4 hours of activity</td>
+                        <td>192.168.1.089</td>
+                        <td><span class="risk-indicator risk-low">🟢 Low</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('log_7')">📄 View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <button onclick="previousPage()" id="prevBtn">« Previous</button>
+                <button class="active">1</button>
+                <button onclick="goToPage(2)">2</button>
+                <button onclick="goToPage(3)">3</button>
+                <button onclick="nextPage()" id="nextBtn">Next »</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function exportLogs() {
+    alert('Audit logs exported successfully!');
+}
+
+function generateReport() {
+    alert('Compliance report generated successfully!');
+}
+
+function viewDetails(logId) {
+    alert('Viewing details for log: ' + logId);
+}
+
+function applyFilters() {
+    const eventType = document.getElementById('eventTypeFilter').value;
+    const riskLevel = document.getElementById('riskFilter').value;
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const user = document.getElementById('userFilter').value;
+    
+    const rows = document.querySelectorAll('#auditTable tbody tr');
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        if (eventType && row.dataset.event !== eventType) {
+            show = false;
+        }
+        
+        if (riskLevel && row.dataset.risk !== riskLevel) {
+            show = false;
+        }
+        
+        if (user && row.dataset.user !== user) {
+            show = false;
+        }
+        
+        // Date filtering would require more complex logic in a real implementation
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function previousPage() {
+    // Pagination logic would go here
+    console.log('Previous page');
+}
+
+function nextPage() {
+    // Pagination logic would go here
+    console.log('Next page');
+}
+
+function goToPage(page) {
+    // Pagination logic would go here
+    console.log('Go to page:', page);
+}
+
+// Set default date range (last 7 days)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(today.getDate() - 7);
+    
+    document.getElementById('fromDate').value = weekAgo.toISOString().split('T')[0];
+    document.getElementById('toDate').value = today.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

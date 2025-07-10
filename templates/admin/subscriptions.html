@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Management - LexAI Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Admin Subscriptions Page Styles */
+    .admin-container {
+        background: #F7EDDA;
+        min-height: calc(100vh - 4.5rem);
+        padding: 2rem 1rem;
+    }
+    
+    .admin-content {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin: 0;
+    }
+    
+    .admin-subtitle {
+        color: #64748b;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .admin-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+        background: #f1f5f9;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-success {
+        background: #059669;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #047857;
+    }
+    
+    .btn-warning {
+        background: #d97706;
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: #b45309;
+    }
+    
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #b91c1c;
+    }
+    
+    /* Stats Dashboard */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #2E4B3C;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-change {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+    }
+    
+    .stat-change.positive {
+        color: #059669;
+    }
+    
+    .stat-change.negative {
+        color: #dc2626;
+    }
+    
+    /* Subscription Cards */
+    .subscription-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .subscription-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .subscription-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .subscription-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
+    
+    .subscription-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2E4B3C;
+    }
+    
+    .subscription-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2E4B3C;
+    }
+    
+    .price-period {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .subscription-features {
+        margin: 1.25rem 0;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        color: #374151;
+    }
+    
+    .feature-icon {
+        margin-right: 0.75rem;
+        color: #059669;
+        font-weight: bold;
+    }
+    
+    .usage-bar {
+        background: #f1f5f9;
+        border-radius: 10px;
+        height: 8px;
+        margin: 1rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .usage-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s;
+    }
+    
+    .usage-fill.low {
+        background: #059669;
+    }
+    
+    .usage-fill.medium {
+        background: #d97706;
+    }
+    
+    .usage-fill.high {
+        background: #dc2626;
+    }
+    
+    .usage-text {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+    
+    .subscription-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+    }
+    
+    /* Status Badges */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-trial {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .status-expired {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    .status-cancelled {
+        background: #f8fafc;
+        color: #475569;
+    }
+    
+    /* Billing History */
+    .billing-section {
+        margin-top: 2rem;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2E4B3C;
+        margin-bottom: 1.25rem;
+    }
+    
+    .billing-table {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .billing-table th {
+        background: #2E4B3C;
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .billing-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .billing-table tr:hover {
+        background: #f8fafc;
+    }
+    
+    .billing-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .payment-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .payment-paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .payment-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .payment-failed {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    @media (max-width: 768px) {
+        .admin-container {
+            padding: 1rem;
+        }
+        
+        .admin-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .admin-title {
+            font-size: 1.5rem;
+        }
+        
+        .subscription-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .billing-table {
+            font-size: 0.875rem;
+        }
+        
+        .billing-table th,
+        .billing-table td {
+            padding: 0.75rem 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-content">
+        <!-- Header -->
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">💳 Subscription Management</h1>
+                <p class="admin-subtitle">Manage billing, subscriptions, and payment processing</p>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-secondary" onclick="exportBilling()">
+                    📊 Export Billing
+                </button>
+                <button class="btn btn-primary" onclick="showAddSubscriptionForm()">
+                    ➕ Add Subscription
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">$24,350</div>
+                <div class="stat-label">Monthly Revenue</div>
+                <div class="stat-change positive">↗ +12.5% vs last month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">43</div>
+                <div class="stat-label">Active Subscriptions</div>
+                <div class="stat-change positive">↗ +3 this month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$565</div>
+                <div class="stat-label">Average Revenue Per User</div>
+                <div class="stat-change positive">↗ +8.2%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">4.2%</div>
+                <div class="stat-label">Churn Rate</div>
+                <div class="stat-change negative">↘ -1.3% improvement</div>
+            </div>
+        </div>
+
+        <!-- Subscription Plans -->
+        <div class="subscription-grid">
+            <div class="subscription-card">
+                <div class="subscription-header">
+                    <div>
+                        <div class="subscription-title">Professional Plan</div>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="subscription-price">
+                        $299<span class="price-period">/month</span>
+                    </div>
+                </div>
+                
+                <div class="subscription-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Up to 5 users
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Unlimited cases
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Document management
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Time tracking & billing
+                    </div>
+                </div>
+                
+                <div class="usage-bar">
+                    <div class="usage-fill low" style="width: 68%"></div>
+                </div>
+                <div class="usage-text">34 of 50 users used this month</div>
+                
+                <div class="subscription-actions">
+                    <button class="btn btn-sm btn-primary">Upgrade Plan</button>
+                    <button class="btn btn-sm btn-secondary">View Details</button>
+                </div>
+            </div>
+
+            <div class="subscription-card">
+                <div class="subscription-header">
+                    <div>
+                        <div class="subscription-title">Enterprise Plan</div>
+                        <span class="status-badge status-trial">Trial</span>
+                    </div>
+                    <div class="subscription-price">
+                        $599<span class="price-period">/month</span>
+                    </div>
+                </div>
+                
+                <div class="subscription-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Unlimited users
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Advanced analytics
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        API access
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Priority support
+                    </div>
+                </div>
+                
+                <div class="usage-bar">
+                    <div class="usage-fill medium" style="width: 23%"></div>
+                </div>
+                <div class="usage-text">7 days remaining in trial</div>
+                
+                <div class="subscription-actions">
+                    <button class="btn btn-sm btn-success">Activate Plan</button>
+                    <button class="btn btn-sm btn-secondary">Extend Trial</button>
+                </div>
+            </div>
+
+            <div class="subscription-card">
+                <div class="subscription-header">
+                    <div>
+                        <div class="subscription-title">AI Assistant Add-on</div>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="subscription-price">
+                        $99<span class="price-period">/month</span>
+                    </div>
+                </div>
+                
+                <div class="subscription-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        10,000 AI queries/month
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Document analysis
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Legal research
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        Contract review
+                    </div>
+                </div>
+                
+                <div class="usage-bar">
+                    <div class="usage-fill high" style="width: 87%"></div>
+                </div>
+                <div class="usage-text">8,734 of 10,000 queries used</div>
+                
+                <div class="subscription-actions">
+                    <button class="btn btn-sm btn-warning">Upgrade Limit</button>
+                    <button class="btn btn-sm btn-secondary">Usage Details</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing History -->
+        <div class="billing-section">
+            <h2 class="section-title">💰 Billing History</h2>
+            <table class="billing-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Date</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#INV-2024-0087</td>
+                        <td>July 1, 2024</td>
+                        <td>Professional Plan</td>
+                        <td>$299.00</td>
+                        <td><span class="payment-status payment-paid">Paid</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary">📄 View</button>
+                            <button class="btn btn-sm btn-secondary">📥 Download</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#INV-2024-0086</td>
+                        <td>June 1, 2024</td>
+                        <td>Professional Plan</td>
+                        <td>$299.00</td>
+                        <td><span class="payment-status payment-paid">Paid</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary">📄 View</button>
+                            <button class="btn btn-sm btn-secondary">📥 Download</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#INV-2024-0085</td>
+                        <td>May 1, 2024</td>
+                        <td>Professional Plan + AI Add-on</td>
+                        <td>$398.00</td>
+                        <td><span class="payment-status payment-paid">Paid</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary">📄 View</button>
+                            <button class="btn btn-sm btn-secondary">📥 Download</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#INV-2024-0084</td>
+                        <td>April 1, 2024</td>
+                        <td>Professional Plan</td>
+                        <td>$299.00</td>
+                        <td><span class="payment-status payment-pending">Pending</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-warning">🔄 Retry</button>
+                            <button class="btn btn-sm btn-secondary">📄 View</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#INV-2024-0083</td>
+                        <td>March 1, 2024</td>
+                        <td>Professional Plan</td>
+                        <td>$299.00</td>
+                        <td><span class="payment-status payment-failed">Failed</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-danger">❌ Resolve</button>
+                            <button class="btn btn-sm btn-secondary">📄 View</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function exportBilling() {
+    alert('Billing data exported successfully!');
+}
+
+function showAddSubscriptionForm() {
+    alert('Add subscription form would open here');
+}
+
+// Add event listeners to subscription actions
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.subscription-actions .btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.textContent.trim();
+            alert(`${action} action initiated!`);
+        });
+    });
+    
+    document.querySelectorAll('.billing-table .btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.textContent.trim();
+            alert(`${action} completed!`);
+        });
+    });
+});
+</script>
+{% endblock %}

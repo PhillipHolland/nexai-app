@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - LexAI Admin{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Admin Settings Page Styles */
+    .admin-container {
+        background: #F7EDDA;
+        min-height: calc(100vh - 4.5rem);
+        padding: 2rem 1rem;
+    }
+    
+    .admin-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .admin-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2E4B3C;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+    }
+    
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+    
+    .setting-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .setting-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .setting-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .setting-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
+    
+    .setting-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2E4B3C;
+    }
+    
+    .setting-description {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+    
+    .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: white;
+    }
+    
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-left: 10px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #2E4B3C;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .btn-secondary:hover {
+        background: #f1f5f9;
+    }
+    
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+    
+    .setting-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .status-online {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .status-offline {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    
+    .status-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+    
+    .info-box {
+        background: #f0f9ff;
+        border: 1px solid #0ea5e9;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: #0c4a6e;
+    }
+    
+    .warning-box {
+        background: #fef3c7;
+        border: 1px solid #d97706;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        color: #92400e;
+    }
+    
+    @media (max-width: 768px) {
+        .admin-container {
+            padding: 1rem;
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+        }
+        
+        .settings-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .setting-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1 class="admin-title">⚙️ System Settings</h1>
+            <p class="admin-subtitle">Configure your law firm's system preferences and security settings</p>
+        </div>
+
+        <div class="settings-grid">
+            <!-- Firm Information -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">🏢</div>
+                    <div class="setting-title">Firm Information</div>
+                </div>
+                <div class="setting-description">
+                    Configure your law firm's basic information and branding
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Firm Name</label>
+                    <input type="text" class="form-input" value="Demo Law Firm" placeholder="Your firm name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-input" value="123 Legal Street, Law City, LC 12345" placeholder="Full address">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" class="form-input" value="(555) 123-4567" placeholder="Main phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input type="text" class="form-input" value="https://demolawfirm.com" placeholder="Firm website">
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">🔒</div>
+                    <div class="setting-title">Security Settings</div>
+                </div>
+                <div class="setting-description">
+                    Manage authentication and security policies for your firm
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Two-Factor Authentication
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password Policy</label>
+                    <select class="form-select">
+                        <option value="standard">Standard (8+ characters)</option>
+                        <option value="strong" selected>Strong (12+ chars, mixed case, numbers, symbols)</option>
+                        <option value="enterprise">Enterprise (16+ chars, complex requirements)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Session Timeout (minutes)</label>
+                    <input type="number" class="form-input" value="30" min="5" max="480">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        IP Address Restrictions
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="info-box">
+                    <strong>Security Status:</strong> <span class="status-indicator status-online">🟢 Secure</span>
+                    <br>Last security audit: July 1, 2024
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-secondary">🔍 Security Audit</button>
+                    <button class="btn btn-primary">💾 Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Billing Configuration -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">💳</div>
+                    <div class="setting-title">Billing Configuration</div>
+                </div>
+                <div class="setting-description">
+                    Configure billing rates, tax settings, and payment preferences
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Default Hourly Rate</label>
+                    <input type="number" class="form-input" value="350" step="25">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Tax Rate (%)</label>
+                    <input type="number" class="form-input" value="8.5" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Invoice Terms</label>
+                    <select class="form-select">
+                        <option value="net15">Net 15 Days</option>
+                        <option value="net30" selected>Net 30 Days</option>
+                        <option value="net45">Net 45 Days</option>
+                        <option value="net60">Net 60 Days</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Auto-Generate Monthly Invoices
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-primary">💾 Save Billing Settings</button>
+                </div>
+            </div>
+
+            <!-- System Preferences -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">🖥️</div>
+                    <div class="setting-title">System Preferences</div>
+                </div>
+                <div class="setting-description">
+                    Configure system-wide preferences and UI settings
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Time Zone</label>
+                    <select class="form-select">
+                        <option value="EST">Eastern Standard Time</option>
+                        <option value="CST">Central Standard Time</option>
+                        <option value="MST">Mountain Standard Time</option>
+                        <option value="PST" selected>Pacific Standard Time</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date Format</label>
+                    <select class="form-select">
+                        <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Dark Mode
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Email Notifications
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-primary">💾 Save Preferences</button>
+                </div>
+            </div>
+
+            <!-- Integration Settings -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">🔗</div>
+                    <div class="setting-title">Integrations</div>
+                </div>
+                <div class="setting-description">
+                    Connect with third-party services and APIs
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Google Calendar Integration
+                        <span class="status-indicator status-online">🟢 Connected</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Stripe Payment Processing
+                        <span class="status-indicator status-online">🟢 Connected</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        DocuSign Integration
+                        <span class="status-indicator status-warning">🟡 Pending Setup</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Slack Notifications
+                        <span class="status-indicator status-offline">🔴 Disconnected</span>
+                    </label>
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-secondary">🔗 Manage Integrations</button>
+                </div>
+            </div>
+
+            <!-- Backup & Recovery -->
+            <div class="setting-card">
+                <div class="setting-header">
+                    <div class="setting-icon">💾</div>
+                    <div class="setting-title">Backup & Recovery</div>
+                </div>
+                <div class="setting-description">
+                    Configure data backup and disaster recovery settings
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        Automatic Daily Backups
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Backup Retention Period</label>
+                    <select class="form-select">
+                        <option value="30">30 Days</option>
+                        <option value="90" selected>90 Days</option>
+                        <option value="365">1 Year</option>
+                        <option value="unlimited">Unlimited</option>
+                    </select>
+                </div>
+                
+                <div class="info-box">
+                    <strong>Last Backup:</strong> July 9, 2024 at 2:00 AM<br>
+                    <strong>Status:</strong> <span class="status-indicator status-online">🟢 Successful</span>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Important:</strong> Regular backups are essential for data protection. 
+                    Consider implementing off-site backup storage for maximum security.
+                </div>
+                
+                <div class="setting-actions">
+                    <button class="btn btn-secondary">📥 Download Backup</button>
+                    <button class="btn btn-primary">🔄 Run Backup Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add event listeners to save buttons
+document.querySelectorAll('.btn-primary').forEach(button => {
+    button.addEventListener('click', function() {
+        const cardTitle = this.closest('.setting-card').querySelector('.setting-title').textContent;
+        alert(`${cardTitle} settings saved successfully!`);
+    });
+});
+
+// Add event listeners to toggle switches
+document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+        const label = this.closest('.form-group').querySelector('.form-label');
+        const setting = label.textContent.trim();
+        const status = this.checked ? 'enabled' : 'disabled';
+        console.log(`${setting} ${status}`);
+    });
+});
+</script>
+{% endblock %}

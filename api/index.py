@@ -639,41 +639,84 @@ def deadlines_page():
 def admin_users():
     """Admin user management page - manage firm's user accounts"""
     try:
-        # Return an awesome enterprise-grade user management interface
-        html_content = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>User Management - LexAI Admin</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    min-height: 100vh; padding: 20px;
-                }
-                .container { 
-                    max-width: 1400px; margin: 0 auto; 
-                    background: rgba(255, 255, 255, 0.95); 
-                    backdrop-filter: blur(10px);
-                    border-radius: 20px; padding: 40px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-                .title { font-size: 2.5rem; font-weight: 700; color: #1a202c; margin: 0; }
-                .subtitle { color: #64748b; font-size: 1.1rem; margin-top: 5px; }
-                
-                /* Action Buttons */
-                .actions { display: flex; gap: 15px; align-items: center; }
-                .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-                .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
-                .btn-secondary { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-                .btn-secondary:hover { background: #f1f5f9; }
-                .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+        # User management stats
+        stats = {
+            'total_users': 12,
+            'active_users': 11,
+            'partners': 4,
+            'admin_users': 3
+        }
+        
+        # Mock firm user accounts with enterprise-grade data
+        firm_users = [
+            {
+                'id': 'user_1',
+                'name': 'John Doe',
+                'email': 'john.doe@lawfirm.com',
+                'role': 'Managing Partner',
+                'status': 'Active',
+                'last_login': '2 hours ago',
+                'permissions': 'Full Access',
+                'cases': 24,
+                'initials': 'JD'
+            },
+            {
+                'id': 'user_2',
+                'name': 'Jane Smith',
+                'email': 'jane.smith@lawfirm.com',
+                'role': 'Senior Partner',
+                'status': 'Active',
+                'last_login': '1 hour ago',
+                'permissions': 'Full Access',
+                'cases': 18,
+                'initials': 'JS'
+            },
+            {
+                'id': 'user_3',
+                'name': 'Bob Johnson',
+                'email': 'bob.johnson@lawfirm.com',
+                'role': 'Senior Associate',
+                'status': 'Active',
+                'last_login': '3 hours ago',
+                'permissions': 'Limited Access',
+                'cases': 12,
+                'initials': 'BJ'
+            },
+            {
+                'id': 'user_4',
+                'name': 'Sarah Wilson',
+                'email': 'sarah.wilson@lawfirm.com',
+                'role': 'Associate',
+                'status': 'Active',
+                'last_login': '5 hours ago',
+                'permissions': 'Limited Access',
+                'cases': 8,
+                'initials': 'SW'
+            },
+            {
+                'id': 'user_5',
+                'name': 'Mike Brown',
+                'email': 'mike.brown@lawfirm.com',
+                'role': 'Junior Associate',
+                'status': 'Pending',
+                'last_login': 'Never',
+                'permissions': 'Basic Access',
+                'cases': 0,
+                'initials': 'MB'
+            }
+        ]
+        
+        return render_template('admin/users.html', 
+                             stats=stats,
+                             firm_users=firm_users,
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             page_title='User Management',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Admin users page error: {e}")
+        return f"Admin users error: {e}", 500
+
                 .btn-edit { background: #0ea5e9; color: white; }
                 .btn-edit:hover { background: #0284c7; }
                 .btn-delete { background: #ef4444; color: white; }
@@ -1265,465 +1308,11 @@ def admin_users():
 def admin_settings():
     """Admin settings page - enterprise-grade firm configuration"""
     try:
-        # Return an awesome enterprise-grade settings management interface
-        html_content = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>System Settings - LexAI Admin</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    min-height: 100vh; padding: 20px;
-                }
-                .container { 
-                    max-width: 1200px; margin: 0 auto; 
-                    background: rgba(255, 255, 255, 0.95); 
-                    backdrop-filter: blur(10px);
-                    border-radius: 20px; padding: 40px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                
-                .header { margin-bottom: 40px; text-align: center; }
-                .title { font-size: 2.5rem; font-weight: 700; color: #1a202c; margin-bottom: 10px; }
-                .subtitle { color: #64748b; font-size: 1.1rem; }
-                
-                .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
-                
-                .setting-card { 
-                    background: white; padding: 30px; border-radius: 16px; 
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-                    transition: transform 0.2s, box-shadow 0.2s;
-                }
-                .setting-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-                
-                .setting-header { display: flex; align-items: center; margin-bottom: 20px; }
-                .setting-icon { 
-                    width: 50px; height: 50px; border-radius: 12px; 
-                    background: linear-gradient(135deg, #667eea, #764ba2);
-                    display: flex; align-items: center; justify-content: center;
-                    font-size: 1.5rem; margin-right: 15px;
-                }
-                .setting-title { font-size: 1.3rem; font-weight: 600; color: #1a202c; }
-                .setting-description { color: #64748b; font-size: 0.9rem; margin-bottom: 25px; }
-                
-                .form-group { margin-bottom: 20px; }
-                .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.9rem; }
-                .form-input { 
-                    width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; 
-                    border-radius: 8px; font-size: 0.95rem; transition: all 0.2s;
-                }
-                .form-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-                .form-select { 
-                    width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; 
-                    border-radius: 8px; font-size: 0.95rem; background: white;
-                }
-                .form-textarea { 
-                    width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; 
-                    border-radius: 8px; font-size: 0.95rem; resize: vertical; min-height: 100px;
-                }
-                
-                .toggle-switch { 
-                    position: relative; display: inline-block; width: 60px; height: 34px;
-                    margin-left: 10px;
-                }
-                .toggle-switch input { opacity: 0; width: 0; height: 0; }
-                .slider { 
-                    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-                    background-color: #ccc; transition: .4s; border-radius: 34px;
-                }
-                .slider:before { 
-                    position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px;
-                    background-color: white; transition: .4s; border-radius: 50%;
-                }
-                input:checked + .slider { background-color: #667eea; }
-                input:checked + .slider:before { transform: translateX(26px); }
-                
-                .btn { 
-                    padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; 
-                    font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
-                }
-                .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
-                .btn-secondary { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-                .btn-secondary:hover { background: #f1f5f9; }
-                .btn-danger { background: #ef4444; color: white; }
-                .btn-danger:hover { background: #dc2626; }
-                
-                .setting-actions { 
-                    display: flex; gap: 10px; justify-content: flex-end; 
-                    margin-top: 25px; padding-top: 20px; border-top: 1px solid #e2e8f0;
-                }
-                
-                .status-indicator { 
-                    display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; 
-                    padding: 4px 12px; border-radius: 20px; font-weight: 500;
-                }
-                .status-online { background: #dcfce7; color: #166534; }
-                .status-offline { background: #fef2f2; color: #dc2626; }
-                .status-warning { background: #fef3c7; color: #d97706; }
-                
-                .info-box { 
-                    background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; 
-                    padding: 15px; margin: 15px 0; color: #0c4a6e;
-                }
-                .warning-box { 
-                    background: #fef3c7; border: 1px solid #d97706; border-radius: 8px; 
-                    padding: 15px; margin: 15px 0; color: #92400e;
-                }
-                
-                @media (max-width: 768px) {
-                    .container { padding: 20px; margin: 10px; }
-                    .title { font-size: 2rem; }
-                    .settings-grid { grid-template-columns: 1fr; }
-                    .setting-actions { flex-direction: column; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1 class="title">⚙️ System Settings</h1>
-                    <p class="subtitle">Configure your law firm's system preferences and security settings</p>
-                </div>
-
-                <div class="settings-grid">
-                    <!-- Firm Information -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">🏢</div>
-                            <div class="setting-title">Firm Information</div>
-                        </div>
-                        <div class="setting-description">
-                            Configure your law firm's basic information and branding
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Firm Name</label>
-                            <input type="text" class="form-input" value="Demo Law Firm" placeholder="Your firm name">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Address</label>
-                            <input type="text" class="form-input" value="123 Legal Street, Law City, LC 12345" placeholder="Full address">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Phone</label>
-                            <input type="text" class="form-input" value="(555) 123-4567" placeholder="Main phone number">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Website</label>
-                            <input type="text" class="form-input" value="https://demolawfirm.com" placeholder="Firm website">
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-primary">💾 Save Changes</button>
-                        </div>
-                    </div>
-
-                    <!-- Security Settings -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">🔒</div>
-                            <div class="setting-title">Security Settings</div>
-                        </div>
-                        <div class="setting-description">
-                            Manage authentication and security policies for your firm
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Two-Factor Authentication
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Password Policy</label>
-                            <select class="form-select">
-                                <option value="standard">Standard (8+ characters)</option>
-                                <option value="strong" selected>Strong (12+ chars, mixed case, numbers, symbols)</option>
-                                <option value="enterprise">Enterprise (16+ chars, complex requirements)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Session Timeout (minutes)</label>
-                            <input type="number" class="form-input" value="30" min="5" max="480">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                IP Address Restrictions
-                                <label class="toggle-switch">
-                                    <input type="checkbox">
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="info-box">
-                            <strong>Security Status:</strong> <span class="status-indicator status-online">🟢 Secure</span>
-                            <br>Last security audit: July 1, 2024
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-secondary">🔍 Security Audit</button>
-                            <button class="btn btn-primary">💾 Save Settings</button>
-                        </div>
-                    </div>
-
-                    <!-- Billing Configuration -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">💳</div>
-                            <div class="setting-title">Billing Configuration</div>
-                        </div>
-                        <div class="setting-description">
-                            Configure billing rates, tax settings, and payment preferences
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Default Hourly Rate</label>
-                            <input type="number" class="form-input" value="350" step="25">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Tax Rate (%)</label>
-                            <input type="number" class="form-input" value="8.5" step="0.1">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Invoice Terms</label>
-                            <select class="form-select">
-                                <option value="net15">Net 15 Days</option>
-                                <option value="net30" selected>Net 30 Days</option>
-                                <option value="net45">Net 45 Days</option>
-                                <option value="net60">Net 60 Days</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Auto-Generate Monthly Invoices
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-primary">💾 Save Billing Settings</button>
-                        </div>
-                    </div>
-
-                    <!-- System Preferences -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">🖥️</div>
-                            <div class="setting-title">System Preferences</div>
-                        </div>
-                        <div class="setting-description">
-                            Configure system-wide preferences and UI settings
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Time Zone</label>
-                            <select class="form-select">
-                                <option value="EST">Eastern Standard Time</option>
-                                <option value="CST">Central Standard Time</option>
-                                <option value="MST">Mountain Standard Time</option>
-                                <option value="PST" selected>Pacific Standard Time</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Date Format</label>
-                            <select class="form-select">
-                                <option value="MM/DD/YYYY" selected>MM/DD/YYYY</option>
-                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Dark Mode
-                                <label class="toggle-switch">
-                                    <input type="checkbox">
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Email Notifications
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-primary">💾 Save Preferences</button>
-                        </div>
-                    </div>
-
-                    <!-- Integration Settings -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">🔗</div>
-                            <div class="setting-title">Integrations</div>
-                        </div>
-                        <div class="setting-description">
-                            Connect with third-party services and APIs
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Google Calendar Integration
-                                <span class="status-indicator status-online">🟢 Connected</span>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Stripe Payment Processing
-                                <span class="status-indicator status-online">🟢 Connected</span>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                DocuSign Integration
-                                <span class="status-indicator status-warning">🟡 Pending Setup</span>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Slack Notifications
-                                <span class="status-indicator status-offline">🔴 Disconnected</span>
-                            </label>
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-secondary">🔗 Manage Integrations</button>
-                        </div>
-                    </div>
-
-                    <!-- Backup & Recovery -->
-                    <div class="setting-card">
-                        <div class="setting-header">
-                            <div class="setting-icon">💾</div>
-                            <div class="setting-title">Backup & Recovery</div>
-                        </div>
-                        <div class="setting-description">
-                            Configure data backup and disaster recovery settings
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">
-                                Automatic Daily Backups
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Backup Retention Period</label>
-                            <select class="form-select">
-                                <option value="30">30 Days</option>
-                                <option value="90" selected>90 Days</option>
-                                <option value="365">1 Year</option>
-                                <option value="unlimited">Unlimited</option>
-                            </select>
-                        </div>
-                        
-                        <div class="info-box">
-                            <strong>Last Backup:</strong> July 9, 2024 at 2:00 AM<br>
-                            <strong>Status:</strong> <span class="status-indicator status-online">🟢 Successful</span>
-                        </div>
-                        
-                        <div class="warning-box">
-                            <strong>⚠️ Important:</strong> Regular backups are essential for data protection. 
-                            Consider implementing off-site backup storage for maximum security.
-                        </div>
-                        
-                        <div class="setting-actions">
-                            <button class="btn btn-secondary">📥 Download Backup</button>
-                            <button class="btn btn-primary">🔄 Run Backup Now</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                function showNotification(message, type = 'success') {
-                    // Create notification element
-                    const notification = document.createElement('div');
-                    notification.style.cssText = `
-                        position: fixed; top: 20px; right: 20px; z-index: 1000;
-                        padding: 15px 25px; border-radius: 8px; color: white;
-                        background: ${type === 'success' ? '#059669' : '#dc2626'};
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-                        transform: translateX(100%); transition: all 0.3s;
-                    `;
-                    notification.textContent = message;
-                    
-                    document.body.appendChild(notification);
-                    
-                    // Animate in
-                    setTimeout(() => {
-                        notification.style.transform = 'translateX(0)';
-                    }, 100);
-                    
-                    // Remove after 3 seconds
-                    setTimeout(() => {
-                        notification.style.transform = 'translateX(100%)';
-                        setTimeout(() => {
-                            document.body.removeChild(notification);
-                        }, 300);
-                    }, 3000);
-                }
-                
-                // Add event listeners to save buttons
-                document.querySelectorAll('.btn-primary').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const cardTitle = this.closest('.setting-card').querySelector('.setting-title').textContent;
-                        showNotification(`${cardTitle} saved successfully!`);
-                    });
-                });
-                
-                // Add event listeners to toggle switches
-                document.querySelectorAll('.toggle-switch input').forEach(toggle => {
-                    toggle.addEventListener('change', function() {
-                        const label = this.closest('.form-group').querySelector('.form-label');
-                        const setting = label.textContent.trim();
-                        const status = this.checked ? 'enabled' : 'disabled';
-                        showNotification(`${setting} ${status}`);
-                    });
-                });
-            </script>
-        </body>
-        </html>
-        """
-        return html_content
+        return render_template('admin/settings.html',
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             page_title='System Settings',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin settings page error: {e}")
         return f"Admin settings error: {e}", 500
@@ -1732,514 +1321,24 @@ def admin_settings():
 def admin_subscriptions():
     """Admin subscriptions page - enterprise-grade billing management"""
     try:
-        # Return an awesome enterprise-grade subscription management interface
-        html_content = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Subscription Management - LexAI Admin</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { 
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    min-height: 100vh; padding: 20px;
-                }
-                .container { 
-                    max-width: 1400px; margin: 0 auto; 
-                    background: rgba(255, 255, 255, 0.95); 
-                    backdrop-filter: blur(10px);
-                    border-radius: 20px; padding: 40px;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                }
-                
-                .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-                .title { font-size: 2.5rem; font-weight: 700; color: #1a202c; margin: 0; }
-                .subtitle { color: #64748b; font-size: 1.1rem; margin-top: 5px; }
-                
-                .actions { display: flex; gap: 15px; align-items: center; }
-                .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-                .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
-                .btn-secondary { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-                .btn-secondary:hover { background: #f1f5f9; }
-                .btn-sm { padding: 8px 16px; font-size: 0.9rem; }
-                .btn-success { background: #059669; color: white; }
-                .btn-success:hover { background: #047857; }
-                .btn-warning { background: #d97706; color: white; }
-                .btn-warning:hover { background: #b45309; }
-                .btn-danger { background: #dc2626; color: white; }
-                .btn-danger:hover { background: #b91c1c; }
-                
-                /* Stats Dashboard */
-                .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px; }
-                .stat-card { 
-                    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
-                    padding: 25px; border-radius: 16px; text-align: center;
-                    border: 1px solid #e2e8f0; position: relative; overflow: hidden;
-                }
-                .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
-                .stat-number { font-size: 2.5rem; font-weight: 700; color: #1a202c; margin-bottom: 5px; }
-                .stat-label { color: #64748b; font-weight: 500; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
-                .stat-change { font-size: 0.8rem; margin-top: 8px; }
-                .stat-change.positive { color: #059669; }
-                .stat-change.negative { color: #dc2626; }
-                
-                /* Subscription Cards */
-                .subscription-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 40px; }
-                .subscription-card { 
-                    background: white; border-radius: 16px; padding: 30px; 
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
-                    transition: transform 0.2s, box-shadow 0.2s;
-                }
-                .subscription-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-                
-                .subscription-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-                .subscription-title { font-size: 1.3rem; font-weight: 600; color: #1a202c; }
-                .subscription-price { font-size: 1.8rem; font-weight: 700; color: #667eea; }
-                .price-period { font-size: 0.9rem; color: #64748b; font-weight: 500; }
-                
-                .subscription-features { margin: 20px 0; }
-                .feature-item { display: flex; align-items: center; margin-bottom: 10px; color: #374151; }
-                .feature-icon { margin-right: 10px; color: #059669; font-weight: bold; }
-                
-                .usage-bar { 
-                    background: #f1f5f9; border-radius: 10px; height: 8px; margin: 15px 0;
-                    position: relative; overflow: hidden;
-                }
-                .usage-fill { height: 100%; border-radius: 10px; transition: width 0.3s; }
-                .usage-fill.low { background: #059669; }
-                .usage-fill.medium { background: #d97706; }
-                .usage-fill.high { background: #dc2626; }
-                .usage-text { font-size: 0.85rem; color: #64748b; margin-top: 5px; }
-                
-                .subscription-actions { display: flex; gap: 10px; margin-top: 20px; }
-                
-                /* Status Badges */
-                .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
-                .status-active { background: #dcfce7; color: #166534; }
-                .status-trial { background: #fef3c7; color: #d97706; }
-                .status-expired { background: #fef2f2; color: #dc2626; }
-                .status-cancelled { background: #f8fafc; color: #475569; }
-                
-                /* Billing History */
-                .billing-section { margin-top: 40px; }
-                .section-title { font-size: 1.5rem; font-weight: 600; color: #1a202c; margin-bottom: 20px; }
-                
-                .billing-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-                .billing-table th { background: #f8fafc; padding: 16px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #e2e8f0; }
-                .billing-table td { padding: 16px; border-bottom: 1px solid #f1f5f9; }
-                .billing-table tr:hover { background: #f8fafc; }
-                .billing-table tr:last-child td { border-bottom: none; }
-                
-                .payment-status { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-                .payment-paid { background: #dcfce7; color: #166534; }
-                .payment-pending { background: #fef3c7; color: #d97706; }
-                .payment-failed { background: #fef2f2; color: #dc2626; }
-                
-                @media (max-width: 768px) {
-                    .container { padding: 20px; margin: 10px; }
-                    .title { font-size: 2rem; }
-                    .subscription-grid { grid-template-columns: 1fr; }
-                    .stats { grid-template-columns: repeat(2, 1fr); }
-                    .billing-table { font-size: 0.85rem; }
-                    .billing-table th, .billing-table td { padding: 12px 8px; }
-                }
-                
-                /* Modal Styles */
-                .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-                .modal-content { 
-                    background: white; margin: 5% auto; padding: 30px; width: 90%; max-width: 500px; 
-                    border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                }
-                .modal-header { border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 20px; }
-                .modal-title { font-size: 1.5rem; font-weight: 600; color: #1a202c; }
-                .close { float: right; font-size: 2rem; font-weight: bold; cursor: pointer; color: #9ca3af; }
-                .close:hover { color: #374151; }
-                
-                .form-group { margin-bottom: 20px; }
-                .form-label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
-                .form-input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; }
-                .form-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-                .form-select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; background: white; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <!-- Header -->
-                <div class="header">
-                    <div>
-                        <h1 class="title">💳 Subscription Management</h1>
-                        <p class="subtitle">Manage billing, subscriptions, and payment processing</p>
-                    </div>
-                    <div class="actions">
-                        <button class="btn btn-secondary" onclick="exportBilling()">
-                            📊 Export Billing
-                        </button>
-                        <button class="btn btn-primary" onclick="openAddSubscriptionModal()">
-                            ➕ Add Subscription
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Stats Dashboard -->
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-number">$24,350</div>
-                        <div class="stat-label">Monthly Revenue</div>
-                        <div class="stat-change positive">↗ +12.5% vs last month</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">43</div>
-                        <div class="stat-label">Active Subscriptions</div>
-                        <div class="stat-change positive">↗ +3 this month</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">$565</div>
-                        <div class="stat-label">Average Revenue Per User</div>
-                        <div class="stat-change positive">↗ +8.2%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">4.2%</div>
-                        <div class="stat-label">Churn Rate</div>
-                        <div class="stat-change negative">↘ -1.3% improvement</div>
-                    </div>
-                </div>
-
-                <!-- Subscription Plans -->
-                <div class="subscription-grid">
-                    <div class="subscription-card">
-                        <div class="subscription-header">
-                            <div>
-                                <div class="subscription-title">Professional Plan</div>
-                                <span class="status-badge status-active">Active</span>
-                            </div>
-                            <div class="subscription-price">
-                                $299<span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        
-                        <div class="subscription-features">
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Up to 5 users
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Unlimited cases
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Document management
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Time tracking & billing
-                            </div>
-                        </div>
-                        
-                        <div class="usage-bar">
-                            <div class="usage-fill low" style="width: 68%"></div>
-                        </div>
-                        <div class="usage-text">34 of 50 users used this month</div>
-                        
-                        <div class="subscription-actions">
-                            <button class="btn btn-sm btn-primary">Upgrade Plan</button>
-                            <button class="btn btn-sm btn-secondary">View Details</button>
-                        </div>
-                    </div>
-
-                    <div class="subscription-card">
-                        <div class="subscription-header">
-                            <div>
-                                <div class="subscription-title">Enterprise Plan</div>
-                                <span class="status-badge status-trial">Trial</span>
-                            </div>
-                            <div class="subscription-price">
-                                $599<span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        
-                        <div class="subscription-features">
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Unlimited users
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Advanced analytics
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                API access
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Priority support
-                            </div>
-                        </div>
-                        
-                        <div class="usage-bar">
-                            <div class="usage-fill medium" style="width: 23%"></div>
-                        </div>
-                        <div class="usage-text">7 days remaining in trial</div>
-                        
-                        <div class="subscription-actions">
-                            <button class="btn btn-sm btn-success">Activate Plan</button>
-                            <button class="btn btn-sm btn-secondary">Extend Trial</button>
-                        </div>
-                    </div>
-
-                    <div class="subscription-card">
-                        <div class="subscription-header">
-                            <div>
-                                <div class="subscription-title">AI Assistant Add-on</div>
-                                <span class="status-badge status-active">Active</span>
-                            </div>
-                            <div class="subscription-price">
-                                $99<span class="price-period">/month</span>
-                            </div>
-                        </div>
-                        
-                        <div class="subscription-features">
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                10,000 AI queries/month
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Document analysis
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Legal research
-                            </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">✓</span>
-                                Contract review
-                            </div>
-                        </div>
-                        
-                        <div class="usage-bar">
-                            <div class="usage-fill high" style="width: 87%"></div>
-                        </div>
-                        <div class="usage-text">8,734 of 10,000 queries used</div>
-                        
-                        <div class="subscription-actions">
-                            <button class="btn btn-sm btn-warning">Upgrade Limit</button>
-                            <button class="btn btn-sm btn-secondary">Usage Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Billing History -->
-                <div class="billing-section">
-                    <h2 class="section-title">💰 Billing History</h2>
-                    <table class="billing-table">
-                        <thead>
-                            <tr>
-                                <th>Invoice</th>
-                                <th>Date</th>
-                                <th>Plan</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>#INV-2024-0087</td>
-                                <td>July 1, 2024</td>
-                                <td>Professional Plan</td>
-                                <td>$299.00</td>
-                                <td><span class="payment-status payment-paid">Paid</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary">📄 View</button>
-                                    <button class="btn btn-sm btn-secondary">📥 Download</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#INV-2024-0086</td>
-                                <td>June 1, 2024</td>
-                                <td>Professional Plan</td>
-                                <td>$299.00</td>
-                                <td><span class="payment-status payment-paid">Paid</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary">📄 View</button>
-                                    <button class="btn btn-sm btn-secondary">📥 Download</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#INV-2024-0085</td>
-                                <td>May 1, 2024</td>
-                                <td>Professional Plan + AI Add-on</td>
-                                <td>$398.00</td>
-                                <td><span class="payment-status payment-paid">Paid</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-secondary">📄 View</button>
-                                    <button class="btn btn-sm btn-secondary">📥 Download</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#INV-2024-0084</td>
-                                <td>April 1, 2024</td>
-                                <td>Professional Plan</td>
-                                <td>$299.00</td>
-                                <td><span class="payment-status payment-pending">Pending</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-warning">🔄 Retry</button>
-                                    <button class="btn btn-sm btn-secondary">📄 View</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>#INV-2024-0083</td>
-                                <td>March 1, 2024</td>
-                                <td>Professional Plan</td>
-                                <td>$299.00</td>
-                                <td><span class="payment-status payment-failed">Failed</span></td>
-                                <td>
-                                    <button class="btn btn-sm btn-danger">❌ Resolve</button>
-                                    <button class="btn btn-sm btn-secondary">📄 View</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Add Subscription Modal -->
-            <div id="addSubscriptionModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Add New Subscription</h3>
-                        <span class="close" onclick="closeAddSubscriptionModal()">&times;</span>
-                    </div>
-                    <form>
-                        <div class="form-group">
-                            <label class="form-label">Subscription Plan</label>
-                            <select class="form-select">
-                                <option value="professional">Professional Plan - $299/month</option>
-                                <option value="enterprise">Enterprise Plan - $599/month</option>
-                                <option value="ai-addon">AI Assistant Add-on - $99/month</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Billing Cycle</label>
-                            <select class="form-select">
-                                <option value="monthly">Monthly</option>
-                                <option value="quarterly">Quarterly (5% discount)</option>
-                                <option value="yearly">Yearly (10% discount)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" class="form-input" value="2024-07-09">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Notes</label>
-                            <textarea class="form-input" placeholder="Additional notes or special terms..."></textarea>
-                        </div>
-                        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
-                            <button type="button" class="btn btn-secondary" onclick="closeAddSubscriptionModal()">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Create Subscription</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <script>
-                function openAddSubscriptionModal() {
-                    document.getElementById('addSubscriptionModal').style.display = 'block';
-                }
-                
-                function closeAddSubscriptionModal() {
-                    document.getElementById('addSubscriptionModal').style.display = 'none';
-                }
-                
-                function exportBilling() {
-                    showNotification('Billing data exported successfully!');
-                }
-                
-                function showNotification(message, type = 'success') {
-                    const notification = document.createElement('div');
-                    notification.style.cssText = `
-                        position: fixed; top: 20px; right: 20px; z-index: 1000;
-                        padding: 15px 25px; border-radius: 8px; color: white;
-                        background: ${type === 'success' ? '#059669' : '#dc2626'};
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-                        transform: translateX(100%); transition: all 0.3s;
-                    `;
-                    notification.textContent = message;
-                    
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.style.transform = 'translateX(0)';
-                    }, 100);
-                    
-                    setTimeout(() => {
-                        notification.style.transform = 'translateX(100%)';
-                        setTimeout(() => {
-                            document.body.removeChild(notification);
-                        }, 300);
-                    }, 3000);
-                }
-                
-                // Add event listeners
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Add click handlers for subscription actions
-                    document.querySelectorAll('.subscription-actions .btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const action = this.textContent.trim();
-                            showNotification(`${action} action initiated!`);
-                        });
-                    });
-                    
-                    // Add click handlers for billing actions
-                    document.querySelectorAll('.billing-table .btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const action = this.textContent.trim();
-                            showNotification(`${action} completed!`);
-                        });
-                    });
-                });
-                
-                // Close modal when clicking outside
-                window.onclick = function(event) {
-                    const modal = document.getElementById('addSubscriptionModal');
-                    if (event.target === modal) {
-                        closeAddSubscriptionModal();
-                    }
-                }
-            </script>
-        </body>
-        </html>
-        """
-        return html_content
+        return render_template('admin/subscriptions.html',
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             page_title='Subscription Management',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin subscriptions page error: {e}")
         return f"Admin subscriptions error: {e}", 500
 
 @app.route('/admin/audit-logs')
 def admin_audit_logs():
-    """Admin audit logs page"""
+    """Admin audit logs page - compliance tracking and monitoring"""
     try:
-        # Mock user data for audit logs page
-        user = {
-            'first_name': 'Audit',
-            'last_name': 'Logger',
-            'email': 'audit@lexai.com',
-            'phone': '(555) 123-4567',
-            'firm_name': 'Demo Law Firm',
-            'job_title': 'Security Administrator',
-            'role': 'Admin',
-            'bar_number': 'AUDIT',
-            'bio': 'Monitoring system activity and security events.'
-        }
-        return render_template('user_profile.html', user=user, page_title='Audit Logs')
+        return render_template('admin/audit-logs.html',
+                             user_role=session.get('user_role', 'admin'),
+                             user_name=session.get('user_name', 'Admin'),
+                             page_title='Audit Logs',
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Admin audit logs page error: {e}")
         return f"Admin audit logs error: {e}", 500
