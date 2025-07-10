@@ -564,6 +564,16 @@ def spanish_interface():
         logger.error(f"Spanish interface error: {e}")
         return f"Spanish interface error: {e}", 500
 
+@app.route('/api/debug/stripe-status')
+def debug_stripe_status():
+    """Debug endpoint to check Stripe configuration"""
+    return jsonify({
+        'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
+        'STRIPE_SECRET_KEY_EXISTS': bool(os.environ.get('STRIPE_SECRET_KEY')),
+        'STRIPE_SECRET_KEY_VALUE': os.environ.get('STRIPE_SECRET_KEY', 'Not Set')[:10] + '...' if os.environ.get('STRIPE_SECRET_KEY') else 'Not Set',
+        'stripe_module_available': 'stripe' in globals()
+    })
+
 @app.route('/billing')
 def billing_page():
     """Billing and payments page"""
