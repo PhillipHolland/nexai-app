@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - Client Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #F7EDDA;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .portal-header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #F7EDDA;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #F7EDDA;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #FFA74F;
+        }
+        
+        .nav-links a.active {
+            color: #FFA74F;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .billing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.125rem;
+        }
+        
+        /* Dashboard Stats */
+        .billing-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .stat-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: #2E4B3C;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F7EDDA;
+            font-size: 1.25rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-meta {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        /* Section Cards */
+        .section-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        /* Invoice Table */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .invoice-table th {
+            text-align: left;
+            padding: 1rem 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .invoice-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+        }
+        
+        .invoice-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-paid {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-sent {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        /* Payment History Table */
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .payment-table th {
+            text-align: left;
+            padding: 1rem 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .payment-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .payment-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .billing-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .invoice-table, .payment-table {
+                font-size: 0.875rem;
+            }
+            
+            .invoice-table th, .invoice-table td,
+            .payment-table th, .payment-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="portal-header">
+        <div class="header-content">
+            <div class="logo">
+                ⚖️ LexAI Client Portal
+            </div>
+            <div class="nav-links">
+                <a href="/client-portal/dashboard">Dashboard</a>
+                <a href="#" class="active">Billing</a>
+                <a href="#" onclick="alert('Messages feature coming soon!')">Messages</a>
+                <a href="#" onclick="alert('Documents feature coming soon!')">Documents</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="billing-container">
+        <div class="page-header">
+            <h1 class="page-title">Billing & Payments</h1>
+            <p class="page-subtitle">Manage your account, view invoices, and make payments securely</p>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="billing-stats" id="billingStats">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Recent Invoices</h2>
+                <button class="btn btn-secondary" onclick="refreshInvoices()">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <div id="invoicesLoading" class="loading" style="display: none;">
+                <div class="loading-spinner">⏳</div>
+                <p>Loading invoices...</p>
+            </div>
+            
+            <table class="invoice-table" id="invoicesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <!-- Invoice rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div id="noInvoices" class="loading" style="display: none;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+                <h3>No invoices yet</h3>
+                <p>You don't have any invoices at this time</p>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Payment History</h2>
+                <button class="btn btn-secondary" onclick="refreshPaymentHistory()">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <div id="paymentsLoading" class="loading" style="display: none;">
+                <div class="loading-spinner">⏳</div>
+                <p>Loading payment history...</p>
+            </div>
+            
+            <table class="payment-table" id="paymentsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Invoice #</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Transaction ID</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                    <!-- Payment rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div id="noPayments" class="loading" style="display: none;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">💳</div>
+                <h3>No payment history</h3>
+                <p>You haven't made any payments yet</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the billing dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBillingDashboard();
+            loadInvoices();
+            loadPaymentHistory();
+        });
+
+        async function loadBillingDashboard() {
+            try {
+                const response = await fetch('/api/client-portal/billing/dashboard');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderBillingStats(data.dashboard);
+                } else {
+                    console.error('Failed to load billing dashboard:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading billing dashboard:', error);
+            }
+        }
+
+        function renderBillingStats(dashboard) {
+            const statsContainer = document.getElementById('billingStats');
+            
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Account Balance</span>
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-value">$${dashboard.account_balance.toFixed(2)}</div>
+                    <div class="stat-meta">${dashboard.unpaid_invoices_count} unpaid invoice(s)</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Last Payment</span>
+                        <div class="stat-icon">✅</div>
+                    </div>
+                    <div class="stat-value">$${dashboard.last_payment.amount.toFixed(2)}</div>
+                    <div class="stat-meta">${formatDate(dashboard.last_payment.date)} via ${dashboard.last_payment.method}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Next Payment Due</span>
+                        <div class="stat-icon">📅</div>
+                    </div>
+                    <div class="stat-value">$${dashboard.next_payment_due.amount.toFixed(2)}</div>
+                    <div class="stat-meta">Due ${formatDate(dashboard.next_payment_due.due_date)}</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Year to Date</span>
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value">$${dashboard.year_to_date.total_paid.toFixed(2)}</div>
+                    <div class="stat-meta">Paid from $${dashboard.year_to_date.total_billed.toFixed(2)} billed</div>
+                </div>
+            `;
+        }
+
+        async function loadInvoices() {
+            const loadingEl = document.getElementById('invoicesLoading');
+            const tableEl = document.getElementById('invoicesTable');
+            const noInvoicesEl = document.getElementById('noInvoices');
+            
+            // Show loading
+            loadingEl.style.display = 'block';
+            tableEl.style.display = 'none';
+            noInvoicesEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/client-portal/billing/invoices');
+                const data = await response.json();
+                
+                if (data.success && data.invoices.length > 0) {
+                    renderInvoicesTable(data.invoices);
+                    tableEl.style.display = 'table';
+                } else {
+                    noInvoicesEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                noInvoicesEl.style.display = 'block';
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        function renderInvoicesTable(invoices) {
+            const tbody = document.getElementById('invoicesTableBody');
+            
+            tbody.innerHTML = invoices.map(invoice => `
+                <tr>
+                    <td><strong>${invoice.invoice_number}</strong></td>
+                    <td>${invoice.subject}</td>
+                    <td>$${invoice.total_amount.toFixed(2)}</td>
+                    <td><span class="status-badge status-${invoice.status}">${invoice.status}</span></td>
+                    <td>${formatDate(invoice.due_date)}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="viewInvoice('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                👁️ View
+                            </button>
+                            ${invoice.status !== 'paid' ? `
+                            <button class="btn btn-primary" onclick="payInvoice('${invoice.id}', ${Math.round(invoice.total_amount * 100)}, '${invoice.invoice_number}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                💳 Pay Now
+                            </button>
+                            ` : ''}
+                            ${invoice.status === 'paid' ? `
+                            <button class="btn btn-secondary" onclick="downloadReceipt('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                                📄 Receipt
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadPaymentHistory() {
+            const loadingEl = document.getElementById('paymentsLoading');
+            const tableEl = document.getElementById('paymentsTable');
+            const noPaymentsEl = document.getElementById('noPayments');
+            
+            // Show loading
+            loadingEl.style.display = 'block';
+            tableEl.style.display = 'none';
+            noPaymentsEl.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/client-portal/billing/payment-history');
+                const data = await response.json();
+                
+                if (data.success && data.payments.length > 0) {
+                    renderPaymentsTable(data.payments);
+                    tableEl.style.display = 'table';
+                } else {
+                    noPaymentsEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading payment history:', error);
+                noPaymentsEl.style.display = 'block';
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        function renderPaymentsTable(payments) {
+            const tbody = document.getElementById('paymentsTableBody');
+            
+            tbody.innerHTML = payments.map(payment => `
+                <tr>
+                    <td>${formatDate(payment.payment_date)}</td>
+                    <td><strong>${payment.invoice_number}</strong></td>
+                    <td>$${payment.amount.toFixed(2)}</td>
+                    <td>${payment.payment_method}</td>
+                    <td><span class="status-badge status-${payment.status}">${payment.status}</span></td>
+                    <td><code style="font-size: 0.75rem;">${payment.transaction_id}</code></td>
+                </tr>
+            `).join('');
+        }
+
+        // Action functions
+        async function payInvoice(invoiceId, amount, invoiceNumber) {
+            const confirmPay = confirm(`Pay $${(amount / 100).toFixed(2)} for ${invoiceNumber}?\\n\\nThis will redirect you to a secure payment page.`);
+            if (!confirmPay) return;
+            
+            try {
+                const response = await fetch('/api/client-portal/billing/pay-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        invoice_id: invoiceId,
+                        amount: amount
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.demo_mode) {
+                        alert(`✅ Demo Payment Processed!\\n\\nPayment Intent: ${data.payment_intent_id}\\nAmount: $${(data.amount / 100).toFixed(2)}\\n\\nIn production, you would be redirected to Stripe Checkout.`);
+                    } else {
+                        // Redirect to Stripe Checkout or handle real payment
+                        alert('Redirecting to secure payment page...');
+                    }
+                } else {
+                    alert('Failed to initiate payment: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error paying invoice:', error);
+                alert('Error processing payment');
+            }
+        }
+
+        function viewInvoice(invoiceId) {
+            alert(`View invoice ${invoiceId} details - feature coming soon!`);
+        }
+
+        function downloadReceipt(invoiceId) {
+            alert(`Download receipt for ${invoiceId} - feature coming soon!`);
+        }
+
+        function refreshInvoices() {
+            loadInvoices();
+        }
+
+        function refreshPaymentHistory() {
+            loadPaymentHistory();
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/client-portal/login';
+            }
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+    </script>
+</body>
+</html>

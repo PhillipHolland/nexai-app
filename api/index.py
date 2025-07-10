@@ -967,6 +967,20 @@ def client_portal_dashboard_page():
         logger.error(f"Client portal dashboard page error: {e}")
         return f"Client portal dashboard error: {e}", 500
 
+@app.route('/client-portal/billing')
+def client_billing_page():
+    """Client billing page"""
+    try:
+        # Check if authenticated to client portal
+        if not session.get('client_portal_logged_in'):
+            return redirect('/client-portal/login?redirect=billing')
+        
+        return render_template('client-billing.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Client billing page error: {e}")
+        return f"Client billing page error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')
@@ -8717,6 +8731,239 @@ def create_test_invoices():
     except Exception as e:
         logger.error(f"Test invoices creation error: {e}")
         return jsonify({'error': 'Failed to create test invoices'}), 500
+
+# ===== CLIENT PORTAL BILLING =====
+
+@app.route('/api/client-portal/billing/dashboard', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_billing_dashboard():
+    """Get client's billing dashboard data"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        # Mock client billing summary for development
+        summary = {
+            'account_balance': 2150.00,
+            'last_payment': {
+                'amount': 4500.00,
+                'date': '2025-06-15',
+                'method': 'Credit Card'
+            },
+            'next_payment_due': {
+                'amount': 2150.00,
+                'due_date': '2025-07-20',
+                'invoice_number': 'INV-2025-004'
+            },
+            'year_to_date': {
+                'total_billed': 18950.00,
+                'total_paid': 16800.00,
+                'outstanding': 2150.00
+            },
+            'payment_history_count': 8,
+            'unpaid_invoices_count': 1
+        }
+        
+        return jsonify({
+            'success': True,
+            'dashboard': summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading client billing dashboard: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load billing dashboard'
+        }), 500
+
+@app.route('/api/client-portal/billing/invoices', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_invoices():
+    """Get client's invoices"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        # Mock client invoices - filter invoices for this specific client
+        client_invoices = [
+            {
+                'id': 'inv_client_001',
+                'invoice_number': 'INV-2025-001',
+                'subject': 'Estate Planning Services',
+                'issue_date': '2025-06-01',
+                'due_date': '2025-07-01',
+                'status': 'paid',
+                'subtotal': 3500.00,
+                'tax_amount': 306.25,
+                'total_amount': 3806.25,
+                'amount_paid': 3806.25,
+                'paid_date': '2025-06-28',
+                'payment_method': 'Credit Card',
+                'line_items': [
+                    {
+                        'description': 'Will preparation and review',
+                        'quantity': 8.0,
+                        'unit': 'hours',
+                        'rate': 350.00,
+                        'amount': 2800.00
+                    },
+                    {
+                        'description': 'Trust document preparation',
+                        'quantity': 2.0,
+                        'unit': 'hours',
+                        'rate': 350.00,
+                        'amount': 700.00
+                    }
+                ]
+            },
+            {
+                'id': 'inv_client_002',
+                'invoice_number': 'INV-2025-004',
+                'subject': 'Contract Review and Legal Consultation',
+                'issue_date': '2025-06-20',
+                'due_date': '2025-07-20',
+                'status': 'sent',
+                'subtotal': 1950.00,
+                'tax_amount': 170.63,
+                'total_amount': 2120.63,
+                'amount_paid': 0.00,
+                'line_items': [
+                    {
+                        'description': 'Contract review and analysis',
+                        'quantity': 4.5,
+                        'unit': 'hours',
+                        'rate': 350.00,
+                        'amount': 1575.00
+                    },
+                    {
+                        'description': 'Legal consultation meeting',
+                        'quantity': 1.5,
+                        'unit': 'hours',
+                        'rate': 250.00,
+                        'amount': 375.00
+                    }
+                ]
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'invoices': client_invoices,
+            'total_invoices': len(client_invoices),
+            'outstanding_balance': sum(inv['total_amount'] - inv['amount_paid'] for inv in client_invoices)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading client invoices: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load invoices'
+        }), 500
+
+@app.route('/api/client-portal/billing/payment-history', methods=['GET'])
+@client_portal_auth_required
+def api_client_portal_payment_history():
+    """Get client's payment history"""
+    try:
+        client_id = session.get('client_portal_user')
+        
+        # Mock payment history
+        payments = [
+            {
+                'id': 'pay_001',
+                'invoice_number': 'INV-2025-001',
+                'amount': 3806.25,
+                'payment_date': '2025-06-28',
+                'payment_method': 'Credit Card (**** 4242)',
+                'status': 'completed',
+                'transaction_id': 'txn_3P2X4Y5Z6A7B8C9D'
+            },
+            {
+                'id': 'pay_002',
+                'invoice_number': 'INV-2024-012',
+                'amount': 4500.00,
+                'payment_date': '2025-05-15',
+                'payment_method': 'Bank Transfer',
+                'status': 'completed',
+                'transaction_id': 'txn_2N1M3O4P5Q6R7S8T'
+            },
+            {
+                'id': 'pay_003',
+                'invoice_number': 'INV-2024-008',
+                'amount': 2750.00,
+                'payment_date': '2025-04-20',
+                'payment_method': 'Credit Card (**** 4242)',
+                'status': 'completed',
+                'transaction_id': 'txn_1K2L3M4N5O6P7Q8R'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'payments': payments,
+            'total_payments': len(payments),
+            'total_amount_paid': sum(pay['amount'] for pay in payments)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading payment history: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load payment history'
+        }), 500
+
+@app.route('/api/client-portal/billing/pay-invoice', methods=['POST'])
+@client_portal_auth_required
+def api_client_portal_pay_invoice():
+    """Initiate payment for an invoice"""
+    try:
+        client_id = session.get('client_portal_user')
+        data = request.get_json()
+        
+        invoice_id = data.get('invoice_id')
+        if not invoice_id:
+            return jsonify({'error': 'Invoice ID required'}), 400
+        
+        if not STRIPE_MODULE_AVAILABLE:
+            # Return mock payment intent for demo mode
+            import random
+            mock_payment_intent_id = f'pi_client_demo_{random.randint(100000, 999999)}'
+            
+            return jsonify({
+                'success': True,
+                'payment_intent_id': mock_payment_intent_id,
+                'client_secret': f'{mock_payment_intent_id}_secret_demo',
+                'amount': data.get('amount', 215063),  # Amount in cents
+                'demo_mode': True,
+                'message': 'Demo payment intent created for client portal'
+            })
+        
+        # Create Stripe payment intent for real payments
+        amount = data.get('amount')  # Amount in cents
+        if not amount:
+            return jsonify({'error': 'Payment amount required'}), 400
+            
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount,
+            currency='usd',
+            metadata={
+                'client_id': client_id,
+                'invoice_id': invoice_id,
+                'source': 'client_portal'
+            }
+        )
+        
+        return jsonify({
+            'success': True,
+            'payment_intent_id': payment_intent.id,
+            'client_secret': payment_intent.client_secret,
+            'amount': payment_intent.amount
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating client payment intent: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create payment intent'
+        }), 500
 
 # ===== INITIALIZATION =====
 
