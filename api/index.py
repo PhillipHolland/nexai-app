@@ -1223,7 +1223,6 @@ def api_contract_analyze():
 
 @app.route('/api/chat', methods=['POST'])
 @login_required
-@role_required('admin', 'partner', 'associate', 'paralegal')
 def api_chat():
     """Chat with AI assistant"""
     try:
