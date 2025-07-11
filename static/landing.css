@@ -667,64 +667,134 @@ body {
 
 
 
-/* Integration Advantage Section - Professional Design */
+/* Integration Advantage Section - Premium UI Design */
 .integration-advantage {
-    background: white;
-    padding: 3rem 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 5rem 0;
     margin: 3rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.integration-advantage::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(46,75,60,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    pointer-events: none;
 }
 
 .integration-container {
-    max-width: 1200px !important;
+    max-width: 1400px !important;
     margin: 0 auto !important;
-    background: #F7EDDA !important;
-    border-radius: 0.75rem !important;
-    padding: 3rem 2rem !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-radius: 1.5rem !important;
+    padding: 4rem 3rem !important;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
     position: relative !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .integration-header {
     text-align: center;
-    margin-bottom: 4rem;
-    max-width: 800px;
+    margin-bottom: 5rem;
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
+    position: relative;
+}
+
+.integration-header::after {
+    content: '';
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, #2E4B3C, #FFA74F);
+    border-radius: 2px;
+    position: absolute;
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .integration-header h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #1f2937;
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #1e293b 0%, #2E4B3C 50%, #4a7c59 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 1.5rem;
+    letter-spacing: -0.025em;
 }
 
 .integration-header p {
-    font-size: 1.25rem;
-    color: #6b7280;
-    line-height: 1.6;
+    font-size: 1.375rem;
+    color: #64748b;
+    line-height: 1.7;
+    font-weight: 500;
 }
 
 .integration-comparison {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: 3rem;
-    align-items: start;
-    margin-bottom: 4rem;
+    gap: 4rem;
+    align-items: stretch;
+    margin-bottom: 5rem;
+    min-height: 500px;
 }
 
 .comparison-side {
     background: white;
-    border-radius: 1rem;
-    padding: 2.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 1.5rem;
+    padding: 3rem 2.5rem;
+    box-shadow: 
+        0 20px 40px -12px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.comparison-side::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    border-radius: 1.5rem 1.5rem 0 0;
+}
+
+.competitors::before {
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.lexai::before {
+    background: linear-gradient(90deg, #059669, #10b981);
+}
+
+.comparison-side:hover {
+    transform: translateY(-8px);
+    box-shadow: 
+        0 32px 64px -12px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .comparison-side h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 2.5rem;
     text-align: center;
+    letter-spacing: -0.025em;
 }
 
 .competitors h3 {
@@ -738,33 +808,51 @@ body {
 .cost-breakdown {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
+    flex-grow: 1;
 }
 
 .cost-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.cost-item:hover {
+    background: #f8fafc;
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-bottom: 1px solid transparent;
 }
 
 .cost-label {
-    color: #374151;
-    font-weight: 500;
+    color: #475569;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
 .cost-amount {
     color: #dc2626;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
 .total-line {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid #e5e7eb;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 3px solid #e2e8f0;
     text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #dc2626;
+    background: #fef2f2;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-top: auto;
 }
 
 .vs-divider {
@@ -773,53 +861,89 @@ body {
     justify-content: center;
     background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
     color: white;
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    font-weight: 800;
-    font-size: 1.25rem;
+    font-weight: 900;
+    font-size: 1.5rem;
     margin: auto;
-    box-shadow: 0 8px 20px rgba(46, 75, 60, 0.3);
+    box-shadow: 
+        0 20px 40px rgba(46, 75, 60, 0.3),
+        0 0 0 6px rgba(255, 255, 255, 1),
+        0 0 0 8px rgba(46, 75, 60, 0.1);
+    position: relative;
+    letter-spacing: 1px;
+}
+
+.vs-divider::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    pointer-events: none;
 }
 
 .integration-features {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
+    flex-grow: 1;
 }
 
 .feature-item {
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.feature-item:hover {
+    background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+    border-color: #bbf7d0;
+    transform: translateX(8px);
 }
 
 .feature-icon {
-    font-size: 2rem;
-    min-width: 3rem;
-    text-align: center;
+    font-size: 2.5rem;
+    min-width: 4rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-radius: 1rem;
+    border: 2px solid #bbf7d0;
 }
 
 .feature-content h4 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.025em;
 }
 
 .feature-content p {
-    color: #6b7280;
-    font-size: 0.875rem;
-    line-height: 1.4;
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 500;
 }
 
 .lexai-total {
     margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 2px solid #e5e7eb;
+    padding: 2rem;
+    border-top: 3px solid #e2e8f0;
     text-align: center;
+    background: #f0fdf4;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #059669;
-    font-size: 1.125rem;
 }
 
 .integration-result {
@@ -827,54 +951,124 @@ body {
 }
 
 .result-card {
-    background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+    background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 25%, #4a7c59 75%, #059669 100%);
     color: white;
-    padding: 3rem 2rem;
-    border-radius: 1rem;
-    max-width: 600px;
+    padding: 4rem 3rem;
+    border-radius: 1.5rem;
+    max-width: 800px;
     margin: 0 auto;
-    box-shadow: 0 8px 25px rgba(46, 75, 60, 0.3);
+    box-shadow: 
+        0 25px 50px rgba(46, 75, 60, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.result-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 50%, rgba(255, 167, 79, 0.1));
+    pointer-events: none;
 }
 
 .result-card h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    position: relative;
+    letter-spacing: -0.025em;
 }
 
 .result-card p {
-    font-size: 1.125rem;
-    line-height: 1.6;
+    font-size: 1.25rem;
+    line-height: 1.7;
     opacity: 0.95;
+    position: relative;
+    font-weight: 500;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    .integration-advantage {
+        padding: 3rem 0;
+    }
+    
     .integration-container {
         margin: 0 1rem !important;
-        padding: 2rem 1.5rem !important;
+        padding: 2.5rem 2rem !important;
+    }
+    
+    .integration-header {
+        margin-bottom: 3rem;
+    }
+    
+    .integration-header h2 {
+        font-size: 2.25rem;
+    }
+    
+    .integration-header p {
+        font-size: 1.125rem;
     }
     
     .integration-comparison {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 3rem;
+        margin-bottom: 3rem;
+        min-height: auto;
     }
     
     .vs-divider {
-        width: 60px;
-        height: 60px;
-        font-size: 1rem;
+        width: 80px;
+        height: 80px;
+        font-size: 1.25rem;
+        order: 1;
+    }
+    
+    .competitors {
+        order: 0;
+    }
+    
+    .lexai {
+        order: 2;
     }
     
     .comparison-side {
-        padding: 2rem 1.5rem;
+        padding: 2.5rem 2rem;
     }
     
-    .integration-header h2 {
+    .comparison-side h3 {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .feature-item {
+        padding: 1.25rem;
+    }
+    
+    .feature-item:hover {
+        transform: translateY(-4px);
+    }
+    
+    .feature-icon {
+        min-width: 3.5rem;
+        height: 3.5rem;
         font-size: 2rem;
     }
     
-    .integration-header p {
+    .result-card {
+        padding: 3rem 2rem;
+        margin: 0 1rem;
+    }
+    
+    .result-card h3 {
+        font-size: 1.75rem;
+    }
+    
+    .result-card p {
         font-size: 1.125rem;
     }
 }
