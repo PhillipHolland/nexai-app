@@ -936,9 +936,30 @@
             `;
         }
 
-        function logout() {
+        async function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '/client-portal/login';
+                try {
+                    const response = await fetch('/api/client-portal/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        window.location.href = '/client-portal/login';
+                    } else {
+                        console.error('Logout failed:', data.error);
+                        // Redirect anyway to ensure user gets logged out
+                        window.location.href = '/client-portal/login';
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    // Redirect anyway to ensure user gets logged out
+                    window.location.href = '/client-portal/login';
+                }
             }
         }
 

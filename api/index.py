@@ -2805,6 +2805,29 @@ def api_logout():
             'error': 'Logout failed'
         }), 500
 
+@app.route('/logout', methods=['GET'])
+def logout_redirect():
+    """GET logout route for compatibility - calls the API and redirects"""
+    try:
+        user_id = session.get('user_id')
+        
+        if user_id and DATABASE_AVAILABLE:
+            # Create audit log
+            audit_log('logout', 'user', user_id, user_id, {
+                'action': 'user_logout'
+            })
+        
+        # Clear session
+        session.clear()
+        
+        # Redirect to login page
+        return redirect('/login')
+        
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        # Redirect to login even if error occurs
+        return redirect('/login')
+
 @app.route('/api/auth/me', methods=['GET'])
 @login_required
 def api_current_user():
@@ -6832,6 +6855,23 @@ def api_client_portal_logout():
             'success': False,
             'error': 'Logout failed'
         }), 500
+
+@app.route('/client-portal/logout', methods=['GET'])
+def client_portal_logout_redirect():
+    """GET client portal logout route for compatibility"""
+    try:
+        # Clear client portal session
+        session.pop('client_portal_user', None)
+        session.pop('client_portal_logged_in', None)
+        session.pop('client_portal_login_time', None)
+        
+        # Redirect to client portal login page
+        return redirect('/client-portal/login')
+        
+    except Exception as e:
+        logger.error(f"Client portal logout error: {e}")
+        # Redirect to login even if error occurs
+        return redirect('/client-portal/login')
 
 @app.route('/api/client-portal/dashboard', methods=['GET'])
 @client_portal_auth_required
