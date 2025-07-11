@@ -245,6 +245,16 @@
             color: #F7EDDA;
         }
         
+        .btn-primary-light {
+            background-color: #FFA74F;
+            color: #2E4B3C;
+        }
+        
+        .btn-primary-light:hover {
+            background-color: #ff9d3d;
+            transform: translateY(-1px);
+        }
+        
         .btn-primary:hover {
             background-color: #09332C;
             transform: translateY(-1px);
@@ -638,10 +648,10 @@
                 </p>
                 
                 <div class="quick-links">
-                    <a href="/dashboard" class="quick-link">
-                        <div class="feature-icon">🏠</div>
-                        <h3 class="feature-title">Go to Dashboard</h3>
-                        <p class="feature-description">Access your main practice dashboard</p>
+                    <a href="/api/stripe/connect/onboard" class="quick-link">
+                        <div class="feature-icon">💳</div>
+                        <h3 class="feature-title">Set Up Payment Processing</h3>
+                        <p class="feature-description">Complete Stripe Connect setup to start collecting payments</p>
                     </a>
                     
                     <a href="/documents" class="quick-link">
@@ -664,9 +674,15 @@
                 </div>
                 
                 <div style="margin-top: 2rem;">
-                    <a href="/dashboard" class="btn btn-primary" style="display: inline-block; text-decoration: none;">
-                        Start Using LexAI →
+                    <a href="/api/stripe/connect/onboard" class="btn btn-primary-light" style="display: inline-block; text-decoration: none; color: #2E4B3C; font-weight: 600; margin-right: 1rem;">
+                        Complete Payment Setup →
                     </a>
+                    <a href="/dashboard" class="btn btn-secondary" style="display: inline-block; text-decoration: none;">
+                        Skip for Now
+                    </a>
+                    <p style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                        Set up Stripe Connect to start collecting client payments with our 4.8% total fee structure.
+                    </p>
                 </div>
             </div>
         </div>
