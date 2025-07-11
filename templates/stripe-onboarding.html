@@ -602,12 +602,55 @@
             }, 5000);
         }
         
-        // Pre-fill form if onboarding data exists
-        const onboardingData = localStorage.getItem('lexai_onboarding');
-        if (onboardingData) {
-            const data = JSON.parse(onboardingData);
-            if (data.firmName) {
-                document.getElementById('firm-name').value = data.firmName;
+        // Check for test mode in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const testMode = urlParams.get('test');
+        
+        if (testMode === 'demo') {
+            // Auto-fill with comprehensive test data
+            document.getElementById('firm-name').value = 'Acme Legal Associates LLC';
+            document.getElementById('business-type').value = 'company';
+            document.getElementById('tax-id').value = '12-3456789';
+            document.getElementById('business-phone').value = '(555) 123-4567';
+            document.getElementById('business-url').value = 'https://acmelegal.com';
+            
+            // Business Address
+            document.getElementById('address-line1').value = '123 Main Street';
+            document.getElementById('address-line2').value = 'Suite 200';
+            document.getElementById('city').value = 'Los Angeles';
+            document.getElementById('state').value = 'CA';
+            document.getElementById('postal-code').value = '90210';
+            
+            // Primary Contact
+            document.getElementById('first-name').value = 'John';
+            document.getElementById('last-name').value = 'Smith';
+            document.getElementById('user-email').value = 'john.smith@acmelegal.com';
+            document.getElementById('dob').value = '1980-05-15';
+            document.getElementById('ssn-last4').value = '1234';
+            document.getElementById('personal-phone').value = '(555) 987-6543';
+            
+            // Banking Information
+            document.getElementById('account-type').value = 'checking';
+            document.getElementById('routing-number').value = '021000021';
+            document.getElementById('account-number').value = '123456789';
+            
+            // Add visual indicator
+            document.querySelector('h1').innerHTML = '🧪 TEST MODE: Payment Setup';
+            document.querySelector('h1').style.color = '#d97706';
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.innerHTML = '🧪 <strong>Test Mode Active:</strong> All fields pre-filled with test data. Ready to submit!';
+            notification.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem; text-align: center;';
+            document.querySelector('.form-container').insertBefore(notification, document.querySelector('.form-container').firstChild);
+        } else {
+            // Pre-fill form if onboarding data exists
+            const onboardingData = localStorage.getItem('lexai_onboarding');
+            if (onboardingData) {
+                const data = JSON.parse(onboardingData);
+                if (data.firmName) {
+                    document.getElementById('firm-name').value = data.firmName;
+                }
             }
         }
         
