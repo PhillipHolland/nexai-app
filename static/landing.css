@@ -609,7 +609,7 @@ body {
 .btn-outline {
     width: 100%;
     background-color: #2E4B3C; /* dark-green */
-    color: #ffffff; /* white for better contrast */
+    color: #ffffff !important; /* white for better contrast */
     padding: 0.75rem;
     border-radius: 0.5rem;
     font-weight: 600;
@@ -621,18 +621,29 @@ body {
 
 .btn-outline:hover {
     background-color: #09332C; /* darkest-green */
+    color: #ffffff !important; /* ensure white on hover */
 }
 
 .btn-outline.featured {
     background-color: #FFA74F; /* warm-orange */
-    color: #ffffff; /* white for better contrast */
+    color: #ffffff !important; /* white for better contrast */
 }
 
 .btn-outline.featured:hover {
     background-color: #F0531C; /* bright-coral */
+    color: #ffffff !important; /* ensure white on hover */
 }
 
-/* Integration Advantage Section */
+/* Force button text to be white - override any conflicting styles */
+a.btn-outline, a.btn-outline:link, a.btn-outline:visited, a.btn-outline:focus, a.btn-outline:active {
+    color: #ffffff !important;
+}
+
+a.btn-outline.featured, a.btn-outline.featured:link, a.btn-outline.featured:visited, a.btn-outline.featured:focus, a.btn-outline.featured:active {
+    color: #ffffff !important;
+}
+
+/* Integration Advantage Section - FORCE CENTER ALIGNMENT */
 .integration-advantage {
     max-width: 900px !important;
     margin: 3rem auto !important;
@@ -641,6 +652,9 @@ body {
     padding: 3rem !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
     text-align: center !important;
+    display: block !important;
+    width: 100% !important;
+    position: relative !important;
 }
 
 .integration-advantage * {
@@ -671,6 +685,8 @@ body {
     margin: 2rem auto !important;
     justify-items: center !important;
     text-align: center !important;
+    width: 100% !important;
+    place-items: center !important;
 }
 
 .integration-card {
