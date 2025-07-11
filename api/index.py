@@ -9091,6 +9091,22 @@ def generate_payment_link():
         logger.error(f"Generate payment link error: {e}")
         return jsonify({'error': 'Failed to generate payment link'}), 500
 
+@app.route('/api/debug/stripe-status', methods=['GET'])
+def debug_stripe_status():
+    """Debug endpoint to check Stripe configuration"""
+    try:
+        stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        return jsonify({
+            'stripe_secret_key_exists': bool(stripe_secret_key),
+            'stripe_secret_key_prefix': stripe_secret_key[:7] + '...' if stripe_secret_key else None,
+            'STRIPE_MODULE_AVAILABLE': STRIPE_MODULE_AVAILABLE,
+            'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
+            'environment': os.environ.get('VERCEL_ENV', 'unknown'),
+            'all_env_keys': [k for k in os.environ.keys() if 'STRIPE' in k.upper()]
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/billing/email-payment-link', methods=['POST'])
 # @login_required  # Temporarily disabled for demo mode  
 def email_payment_link():
