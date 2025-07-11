@@ -2522,7 +2522,7 @@ def api_billing_dashboard():
             })
         
         # Calculate platform fee information
-        platform_fee_rate = 0.019  # 1.9%
+        platform_fee_rate = 0.009  # 0.9%
         platform_fee_amount = total_paid_this_month * platform_fee_rate
         net_earnings = total_paid_this_month - platform_fee_amount
         
@@ -2597,7 +2597,7 @@ def _get_mock_billing_dashboard():
     overdue_invoices = len([inv for inv in recent_invoices if inv['status'] == 'overdue'])
     
     # Calculate platform fee information for mock data
-    platform_fee_rate = 0.019  # 1.9%
+    platform_fee_rate = 0.009  # 0.9%
     platform_fee_amount = total_paid_this_month * platform_fee_rate
     net_earnings = total_paid_this_month - platform_fee_amount
     
@@ -2645,7 +2645,7 @@ def _get_mock_billing_dashboard():
         'stripe_connect_status': {
             'account_connected': True,
             'platform_fee_rate': 1.9,
-            'platform_fee_description': '1.9% platform fee on all transactions',
+            'platform_fee_description': '0.9% platform fee on all transactions',
             'onboarding_complete': True,
             'charges_enabled': True,
             'payouts_enabled': True
@@ -2656,7 +2656,7 @@ def _get_mock_billing_dashboard():
             'next_payout_date': '2025-07-14',
             'fee_breakdown': {
                 'stripe_processing': '2.9% + $0.30',
-                'platform_fee': '1.9%',
+                'platform_fee': '0.9%',
                 'total_cost': '4.8% + $0.30'
             }
         },
@@ -2750,9 +2750,9 @@ def api_connect_status():
             'fee_analytics': fee_analytics,
             'platform_info': {
                 'platform_name': 'LexAI Practice Partner',
-                'platform_fee_description': '1.9% platform fee on all successful transactions',
+                'platform_fee_description': '0.9% platform fee on all successful transactions',
                 'fee_structure': {
-                    'platform_fee': '1.9%',
+                    'platform_fee': '0.9%',
                     'stripe_processing': '2.9% + $0.30',
                     'total_cost_estimate': '4.8% + $0.30'
                 }
@@ -8507,7 +8507,7 @@ def stripe_connect_onboard():
                 'lexai_user_id': str(current_user.id),
                 'firm_name': firm_name,
                 'integration_type': 'client_payments',
-                'platform_fee_rate': '1.9%',
+                'platform_fee_rate': '0.9%',
                 'platform_name': 'LexAI Practice Partner'
             }
         )
@@ -8552,7 +8552,7 @@ def stripe_connect_status():
                 'charges_enabled': True,
                 'payouts_enabled': True,
                 'platform_fee_rate': 1.9,
-                'platform_fee_description': '1.9% platform fee on all transactions',
+                'platform_fee_description': '0.9% platform fee on all transactions',
                 'estimated_payout_time': '2 business days',
                 'next_payout_date': '2025-07-14',
                 'requirements': {
@@ -8563,7 +8563,7 @@ def stripe_connect_status():
             },
             'fee_breakdown': {
                 'stripe_processing': '2.9% + $0.30',
-                'platform_fee': '1.9%',
+                'platform_fee': '0.9%',
                 'total_fee_range': '4.8% + $0.30',
                 'example_calculation': {
                     'invoice_amount': 1000.00,
@@ -8660,7 +8660,7 @@ def stripe_connect_onboard_demo():
                         'lexai_user_id': 'demo_user',
                         'firm_name': firm_name,
                         'integration_type': 'client_payments',
-                        'platform_fee_rate': '1.9%',
+                        'platform_fee_rate': '0.9%',
                         'platform_name': 'LexAI Practice Partner'
                     }
                 }
@@ -8738,7 +8738,7 @@ def stripe_connect_onboard_demo():
                     'account_id': account.id,
                     'onboarding_url': account_link.url,
                     'metadata': account.metadata,
-                    'platform_fee_rate': '1.9%',
+                    'platform_fee_rate': '0.9%',
                     'demo_mode': False
                 })
                 
@@ -8768,12 +8768,12 @@ def stripe_connect_onboard_demo():
                 'lexai_user_id': 'demo_user',
                 'firm_name': firm_name,
                 'integration_type': 'client_payments',
-                'platform_fee_rate': '1.9%',
+                'platform_fee_rate': '0.9%',
                 'platform_name': 'LexAI Practice Partner',
                 'demo_mode': 'true',
                 'submission_timestamp': datetime.now().isoformat()
             },
-            'platform_fee_rate': '1.9%',
+            'platform_fee_rate': '0.9%',
             'demo_mode': True,
             'message': f'Demo Connect account created for {firm_name} with comprehensive business information. In production, this would create a real Stripe Express account with full KYC verification.'
         })
@@ -8811,7 +8811,7 @@ def create_payment_link():
         if not all([invoice_amount, invoice_number]):
             return jsonify({'error': 'Missing required fields'}), 400
         
-        # Calculate platform fee (1.9% platform fee)
+        # Calculate platform fee (0.9% platform fee)
         platform_fee = int(invoice_amount * 0.019)
         
         # Create payment intent
@@ -9081,7 +9081,7 @@ def generate_payment_link():
         if not all([invoice_id, amount, invoice_number]):
             return jsonify({'error': 'Missing required fields'}), 400
         
-        # Calculate platform fee (1.9%)
+        # Calculate platform fee (0.9%)
         platform_fee = int(amount * 0.019)
         
         # Try runtime Stripe import first
@@ -9113,7 +9113,7 @@ def generate_payment_link():
                     'payment_method_types[]': 'card',
                     'line_items[0][price_data][currency]': 'usd',
                     'line_items[0][price_data][product_data][name]': f'Legal Services - {invoice_number}',
-                    'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
+                    'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 0.9%)',
                     'line_items[0][price_data][unit_amount]': str(amount),
                     'line_items[0][quantity]': '1',
                     'mode': 'payment',
@@ -9123,10 +9123,10 @@ def generate_payment_link():
                     'metadata[invoice_number]': invoice_number,
                     'metadata[source]': 'law_firm_dashboard',
                     'metadata[platform_fee]': str(platform_fee),
-                    'metadata[platform_fee_rate]': '1.9%',
+                    'metadata[platform_fee_rate]': '0.9%',
                     'billing_address_collection': 'required',
                     # TODO: Add Stripe Connect account when law firm has connected account
-                    # 'application_fee_amount': str(platform_fee),  # This is the 1.9% platform fee
+                    # 'application_fee_amount': str(platform_fee),  # This is the 0.9% platform fee
                 }
                 
                 # Add customer email if provided and not default
@@ -9173,7 +9173,7 @@ def generate_payment_link():
                             'currency': 'usd',
                             'product_data': {
                                 'name': f'Legal Services - {invoice_number}',
-                                'description': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
+                                'description': f'Payment for legal services invoice {invoice_number} (Platform fee: 0.9%)',
                             },
                             'unit_amount': amount,
                         },
@@ -9186,11 +9186,11 @@ def generate_payment_link():
                         'invoice_id': invoice_id,
                         'invoice_number': invoice_number,
                         'platform_fee': str(platform_fee),
-                        'platform_fee_rate': '1.9%',
+                        'platform_fee_rate': '0.9%',
                         'generated_by': 'law_firm_dashboard'
                     },
                     customer_email=client_email if client_email != 'client@example.com' else None,
-                    application_fee_amount=platform_fee,  # This is the 1.9% platform fee
+                    application_fee_amount=platform_fee,  # This is the 0.9% platform fee
                 )
                 
                 logger.info(f"Created Stripe checkout session {checkout_session.id} via Python module for invoice {invoice_number}")
@@ -9680,7 +9680,7 @@ def api_client_portal_pay_invoice():
         if not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key:
             logger.info(f"Using Stripe HTTP API for invoice {invoice_id}, amount {amount}")
             
-            # Calculate platform fee (1.9%)
+            # Calculate platform fee (0.9%)
             platform_fee = int(amount * 0.019)
             
             # Create Stripe Checkout Session via HTTP API with Connect account
@@ -9690,7 +9690,7 @@ def api_client_portal_pay_invoice():
                 'payment_method_types[]': 'card',
                 'line_items[0][price_data][currency]': 'usd',
                 'line_items[0][price_data][product_data][name]': f'Legal Services - {invoice_number}',
-                'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
+                'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 0.9%)',
                 'line_items[0][price_data][unit_amount]': str(amount),
                 'line_items[0][quantity]': '1',
                 'mode': 'payment',
