@@ -9003,46 +9003,56 @@ def api_client_portal_pay_invoice():
             return jsonify({'error': 'Invoice ID required'}), 400
         
         if not STRIPE_MODULE_AVAILABLE:
-            # Return mock payment intent for demo mode
-            import random
-            mock_payment_intent_id = f'pi_client_demo_{random.randint(100000, 999999)}'
-            
             return jsonify({
-                'success': True,
-                'payment_intent_id': mock_payment_intent_id,
-                'client_secret': f'{mock_payment_intent_id}_secret_demo',
-                'amount': data.get('amount', 215063),  # Amount in cents
-                'demo_mode': True,
-                'message': 'Demo payment intent created for client portal'
-            })
+                'success': False,
+                'error': 'Stripe payments not configured on server'
+            }), 503
         
-        # Create Stripe payment intent for real payments
+        # Get invoice details for payment
         amount = data.get('amount')  # Amount in cents
+        invoice_number = data.get('invoice_number', f'Invoice {invoice_id}')
+        
         if not amount:
             return jsonify({'error': 'Payment amount required'}), 400
-            
-        payment_intent = stripe.PaymentIntent.create(
-            amount=amount,
-            currency='usd',
+        
+        # Create Stripe Checkout Session for real payments
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'Legal Services - {invoice_number}',
+                        'description': f'Payment for legal services invoice {invoice_number}',
+                    },
+                    'unit_amount': amount,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{request.host_url}client-portal/billing?payment=cancelled",
             metadata={
                 'client_id': client_id,
                 'invoice_id': invoice_id,
                 'source': 'client_portal'
-            }
+            },
+            customer_email=data.get('client_email'),
+            billing_address_collection='required',
         )
         
         return jsonify({
             'success': True,
-            'payment_intent_id': payment_intent.id,
-            'client_secret': payment_intent.client_secret,
-            'amount': payment_intent.amount
+            'checkout_url': checkout_session.url,
+            'session_id': checkout_session.id,
+            'amount': amount
         })
         
     except Exception as e:
-        logger.error(f"Error creating client payment intent: {str(e)}")
+        logger.error(f"Error creating Stripe checkout session: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Failed to create payment intent'
+            'error': 'Failed to initiate payment'
         }), 500
 
 # ===== ADMIN MESSAGING SYSTEM =====

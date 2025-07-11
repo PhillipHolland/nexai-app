@@ -511,6 +511,17 @@
             loadBillingDashboard();
             loadInvoices();
             loadPaymentHistory();
+            
+            // Check for payment status in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentStatus = urlParams.get('payment');
+            const sessionId = urlParams.get('session_id');
+            
+            if (paymentStatus === 'success' && sessionId) {
+                showPaymentSuccess(sessionId);
+            } else if (paymentStatus === 'cancelled') {
+                showPaymentCancelled();
+            }
         });
 
         async function loadBillingDashboard() {
@@ -674,7 +685,7 @@
 
         // Action functions
         async function payInvoice(invoiceId, amount, invoiceNumber) {
-            const confirmPay = confirm(`Pay $${(amount / 100).toFixed(2)} for ${invoiceNumber}?\\n\\nThis will redirect you to a secure payment page.`);
+            const confirmPay = confirm(`Pay $${(amount / 100).toFixed(2)} for ${invoiceNumber}?\\n\\nYou will be redirected to Stripe to complete payment.`);
             if (!confirmPay) return;
             
             try {
@@ -685,21 +696,19 @@
                     },
                     body: JSON.stringify({
                         invoice_id: invoiceId,
-                        amount: amount
+                        invoice_number: invoiceNumber,
+                        amount: amount,
+                        client_email: 'client@example.com' // TODO: Get from user session
                     })
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    if (data.demo_mode) {
-                        alert(`✅ Demo Payment Processed!\\n\\nPayment Intent: ${data.payment_intent_id}\\nAmount: $${(data.amount / 100).toFixed(2)}\\n\\nIn production, you would be redirected to Stripe Checkout.`);
-                    } else {
-                        // Redirect to Stripe Checkout or handle real payment
-                        alert('Redirecting to secure payment page...');
-                    }
+                if (data.success && data.checkout_url) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = data.checkout_url;
                 } else {
-                    alert('Failed to initiate payment: ' + data.error);
+                    alert('Failed to initiate payment: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Error paying invoice:', error);
@@ -748,6 +757,34 @@
                     window.location.href = '/client-portal/login';
                 }
             }
+        }
+
+        // Payment status handlers
+        function showPaymentSuccess(sessionId) {
+            // Show success message and refresh data
+            alert(`✅ Payment Successful!\\n\\nYour payment has been processed successfully.\\nTransaction ID: ${sessionId}\\n\\nRefreshing your billing information...`);
+            
+            // Remove payment params from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('payment');
+            url.searchParams.delete('session_id');
+            window.history.replaceState({}, document.title, url);
+            
+            // Refresh billing data
+            setTimeout(() => {
+                loadBillingDashboard();
+                loadInvoices();
+                loadPaymentHistory();
+            }, 1000);
+        }
+        
+        function showPaymentCancelled() {
+            alert('❌ Payment Cancelled\\n\\nYour payment was cancelled. No charges were made.');
+            
+            // Remove payment params from URL
+            const url = new URL(window.location);
+            url.searchParams.delete('payment');
+            window.history.replaceState({}, document.title, url);
         }
 
         // Utility functions
