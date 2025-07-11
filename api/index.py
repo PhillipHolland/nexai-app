@@ -8991,7 +8991,8 @@ def generate_payment_link():
                     'metadata[platform_fee]': str(platform_fee),
                     'metadata[platform_fee_rate]': '1.9%',
                     'billing_address_collection': 'required',
-                    'application_fee_amount': str(platform_fee),  # This is the 1.9% platform fee
+                    # TODO: Add Stripe Connect account when law firm has connected account
+                    # 'application_fee_amount': str(platform_fee),  # This is the 1.9% platform fee
                 }
                 
                 # Add customer email if provided and not default
