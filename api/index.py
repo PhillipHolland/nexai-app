@@ -8601,27 +8601,128 @@ def stripe_connect_onboard_demo():
     # Handle POST requests (actual onboarding)
     try:
         data = request.get_json() or {}
+        
+        # Extract form data
         firm_name = data.get('firm_name', 'Demo Law Firm')
         user_email = data.get('user_email', 'demo@lawfirm.com')
+        business_type = data.get('business_type', 'company')
+        tax_id = data.get('tax_id', '')
+        business_phone = data.get('business_phone', '')
+        business_url = data.get('business_url', '')
+        
+        # Address information
+        address_line1 = data.get('address_line1', '')
+        address_line2 = data.get('address_line2', '')
+        city = data.get('city', '')
+        state = data.get('state', '')
+        postal_code = data.get('postal_code', '')
+        
+        # Individual information
+        first_name = data.get('first_name', '')
+        last_name = data.get('last_name', '')
+        dob = data.get('dob', '')
+        ssn_last4 = data.get('ssn_last4', '')
+        personal_phone = data.get('personal_phone', '')
+        
+        # Banking information
+        account_type = data.get('account_type', 'checking')
+        routing_number = data.get('routing_number', '')
+        account_number = data.get('account_number', '')
         
         if STRIPE_MODULE_AVAILABLE:
-            # Real Stripe Connect account creation
+            # Real Stripe Connect account creation with full information
             try:
-                account = stripe.Account.create(
-                    type='express',
-                    country='US',
-                    email=user_email,
-                    business_type='company',
-                    company={'name': firm_name},
-                    metadata={
+                # Parse date of birth
+                dob_parts = dob.split('-') if dob else ['1990', '01', '01']
+                dob_year = int(dob_parts[0]) if len(dob_parts) > 0 else 1990
+                dob_month = int(dob_parts[1]) if len(dob_parts) > 1 else 1
+                dob_day = int(dob_parts[2]) if len(dob_parts) > 2 else 1
+                
+                # Create address object
+                address = {
+                    'line1': address_line1,
+                    'city': city,
+                    'state': state,
+                    'postal_code': postal_code,
+                    'country': 'US'
+                }
+                if address_line2:
+                    address['line2'] = address_line2
+                
+                # Create account with comprehensive information
+                account_data = {
+                    'type': 'express',
+                    'country': 'US',
+                    'email': user_email,
+                    'business_type': business_type,
+                    'metadata': {
                         'lexai_user_id': 'demo_user',
                         'firm_name': firm_name,
                         'integration_type': 'client_payments',
                         'platform_fee_rate': '1.9%',
-                        'platform_name': 'LexAI Practice Partner',
-                        'demo_mode': 'true'
+                        'platform_name': 'LexAI Practice Partner'
                     }
-                )
+                }
+                
+                # Add business information based on type
+                if business_type == 'company':
+                    account_data['company'] = {
+                        'name': firm_name,
+                        'phone': business_phone,
+                        'tax_id': tax_id,
+                        'address': address
+                    }
+                    if business_url:
+                        account_data['company']['url'] = business_url
+                else:
+                    account_data['individual'] = {
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'email': user_email,
+                        'phone': personal_phone,
+                        'ssn_last_4': ssn_last4,
+                        'dob': {
+                            'day': dob_day,
+                            'month': dob_month,
+                            'year': dob_year
+                        },
+                        'address': address
+                    }
+                
+                # Add capabilities for payments
+                account_data['capabilities'] = {
+                    'card_payments': {'requested': True},
+                    'transfers': {'requested': True}
+                }
+                
+                # Add business profile
+                account_data['business_profile'] = {
+                    'name': firm_name,
+                    'product_description': 'Legal services and consultation',
+                    'mcc': '8111'  # MCC code for legal services
+                }
+                if business_url:
+                    account_data['business_profile']['url'] = business_url
+                
+                account = stripe.Account.create(**account_data)
+                
+                # Add external bank account
+                if routing_number and account_number:
+                    try:
+                        stripe.Account.create_external_account(
+                            account.id,
+                            external_account={
+                                'object': 'bank_account',
+                                'country': 'US',
+                                'currency': 'usd',
+                                'account_holder_type': 'company' if business_type == 'company' else 'individual',
+                                'routing_number': routing_number,
+                                'account_number': account_number
+                            }
+                        )
+                    except Exception as bank_error:
+                        logger.warning(f"Bank account creation failed: {bank_error}")
+                        # Continue without bank account - can be added later
                 
                 # Create account link for onboarding
                 account_link = stripe.AccountLink.create(
@@ -8645,7 +8746,7 @@ def stripe_connect_onboard_demo():
                 # Fall back to mock response
                 pass
         
-        # Mock response for demo/testing
+        # Mock response for demo/testing with comprehensive data
         mock_account_id = f"acct_demo_{int(datetime.now().timestamp())}"
         mock_onboarding_url = f"https://connect.stripe.com/express/oauth/authorize?client_id=demo&state={mock_account_id}"
         
@@ -8653,17 +8754,27 @@ def stripe_connect_onboard_demo():
             'success': True,
             'account_id': mock_account_id,
             'onboarding_url': mock_onboarding_url,
+            'business_info': {
+                'firm_name': firm_name,
+                'business_type': business_type,
+                'tax_id': tax_id[:2] + '***' + tax_id[-2:] if tax_id else 'Not provided',  # Partially masked
+                'address': f"{city}, {state} {postal_code}" if city and state else 'Not provided',
+                'contact_name': f"{first_name} {last_name}" if first_name and last_name else 'Not provided',
+                'email': user_email,
+                'bank_account': 'Routing ***' + routing_number[-4:] if routing_number else 'Not provided'
+            },
             'metadata': {
                 'lexai_user_id': 'demo_user',
                 'firm_name': firm_name,
                 'integration_type': 'client_payments',
                 'platform_fee_rate': '1.9%',
                 'platform_name': 'LexAI Practice Partner',
-                'demo_mode': 'true'
+                'demo_mode': 'true',
+                'submission_timestamp': datetime.now().isoformat()
             },
             'platform_fee_rate': '1.9%',
             'demo_mode': True,
-            'message': 'Demo Connect account created with 1.9% platform fee disclosure'
+            'message': f'Demo Connect account created for {firm_name} with comprehensive business information. In production, this would create a real Stripe Express account with full KYC verification.'
         })
         
     except Exception as e:
