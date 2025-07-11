@@ -44,6 +44,12 @@
             color: #F7EDDA;
         }
         
+        .logo img {
+            height: 2.5rem;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
         .nav-links {
             display: flex;
             gap: 2rem;
@@ -109,11 +115,15 @@
         }
         
         .page-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
         }
         
         .page-title {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: #1f2937;
             margin-bottom: 0.5rem;
@@ -121,7 +131,7 @@
         
         .page-subtitle {
             color: #6b7280;
-            font-size: 1.125rem;
+            font-size: 1rem;
         }
         
         /* Dashboard Stats */
@@ -129,7 +139,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
         
         .stat-card {
@@ -359,6 +369,10 @@
                 order: 3;
             }
             
+            .page-header {
+                padding: 1.5rem;
+            }
+            
             .page-title {
                 font-size: 1.5rem;
             }
@@ -389,7 +403,7 @@
     <div class="portal-header">
         <div class="header-content">
             <div class="logo">
-                ⚖️ LexAI Client Portal
+                <img src="/static/lexAI.png" alt="LexAI Practice Partner">
             </div>
             <div class="nav-links">
                 <a href="/client-portal/dashboard">Dashboard</a>
