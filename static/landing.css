@@ -11,6 +11,19 @@ a, a:link, a:visited, a:focus, a:active {
     text-decoration: none;
 }
 
+/* EXCEPTION: Button links should use their own colors, not inherit */
+a.btn-primary, a.btn-primary:link, a.btn-primary:visited, a.btn-primary:focus, a.btn-primary:active,
+a.btn-secondary, a.btn-secondary:link, a.btn-secondary:visited, a.btn-secondary:focus, a.btn-secondary:active,
+a.btn-outline, a.btn-outline:link, a.btn-outline:visited, a.btn-outline:focus, a.btn-outline:active {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+a.btn-outline.featured, a.btn-outline.featured:link, a.btn-outline.featured:visited, a.btn-outline.featured:focus, a.btn-outline.featured:active {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
 /* Override browser default focus styles */
 a:focus {
     outline: none;
