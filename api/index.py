@@ -981,6 +981,34 @@ def client_billing_page():
         logger.error(f"Client billing page error: {e}")
         return f"Client billing page error: {e}", 500
 
+@app.route('/client-portal/messages')
+def client_messages_page():
+    """Client messages page"""
+    try:
+        # Check if authenticated to client portal
+        if not session.get('client_portal_logged_in'):
+            return redirect('/client-portal/login?redirect=messages')
+        
+        return render_template('client-messages.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Client messages page error: {e}")
+        return f"Client messages page error: {e}", 500
+
+@app.route('/client-portal/documents')
+def client_documents_page():
+    """Client documents page"""
+    try:
+        # Check if authenticated to client portal
+        if not session.get('client_portal_logged_in'):
+            return redirect('/client-portal/login?redirect=documents')
+        
+        return render_template('client-documents.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Client documents page error: {e}")
+        return f"Client documents page error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents - Client Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #F7EDDA;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .portal-header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #F7EDDA;
+        }
+        
+        .logo img {
+            height: 2.5rem;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .nav-links a {
+            color: #F7EDDA;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+        }
+        
+        .nav-links a:hover {
+            color: #FFA74F;
+            background-color: rgba(255, 167, 79, 0.1);
+        }
+        
+        .nav-links a.active {
+            color: #FFA74F;
+            font-weight: 600;
+            background-color: rgba(255, 167, 79, 0.2);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .client-name {
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background-color: #FFA74F;
+            color: #2E4B3C;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logout-btn:hover {
+            background-color: #ff9d3d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Main Content */
+        .documents-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        .page-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+        
+        /* Document Filters */
+        .document-filters {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .filters-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: white;
+        }
+        
+        .filter-search {
+            flex: 2;
+            min-width: 250px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            placeholder-color: #9ca3af;
+        }
+        
+        /* Document Grid */
+        .documents-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .view-btn {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .view-btn.active {
+            background: #2E4B3C;
+            color: white;
+            border-color: #2E4B3C;
+        }
+        
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .documents-list {
+            display: none;
+        }
+        
+        .documents-list.active {
+            display: block;
+        }
+        
+        .documents-grid.active {
+            display: grid;
+        }
+        
+        /* Document Card */
+        .document-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: white;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #2E4B3C;
+        }
+        
+        .document-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .document-icon.pdf {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .document-icon.doc {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .document-icon.other {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .document-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .document-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        /* Document List View */
+        .document-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .document-table th {
+            text-align: left;
+            padding: 1rem 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+            font-size: 0.875rem;
+        }
+        
+        .document-table td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: top;
+            font-size: 0.875rem;
+        }
+        
+        .document-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .document-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .document-type-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .type-contract {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .type-legal-brief {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .type-court-filing {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .type-correspondence {
+            background-color: #ecfdf5;
+            color: #059669;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-draft {
+            background-color: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .status-review {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-approved {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-final {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        /* Loading and Empty States */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+                order: 2;
+            }
+            
+            .nav-links a {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.875rem;
+            }
+            
+            .header-actions {
+                order: 3;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .filters-row {
+                flex-direction: column;
+            }
+            
+            .filter-group,
+            .filter-search {
+                flex: none;
+                min-width: 100%;
+            }
+            
+            .documents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .document-table {
+                font-size: 0.75rem;
+            }
+            
+            .document-table th,
+            .document-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="portal-header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+            </div>
+            <div class="nav-links">
+                <a href="/client-portal/dashboard">Dashboard</a>
+                <a href="/client-portal/billing">Billing</a>
+                <a href="/client-portal/messages">Messages</a>
+                <a href="/client-portal/documents" class="active">Documents</a>
+            </div>
+            <div class="header-actions">
+                <span class="client-name">John Smith</span>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="documents-container">
+        <div class="page-header">
+            <h1 class="page-title">Documents</h1>
+            <p class="page-subtitle">Access and manage your case documents securely</p>
+        </div>
+
+        <!-- Document Filters -->
+        <div class="document-filters">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label" for="statusFilter">Status</label>
+                    <select id="statusFilter" class="filter-select" onchange="applyFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="review">Under Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="final">Final</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label" for="typeFilter">Document Type</label>
+                    <select id="typeFilter" class="filter-select" onchange="applyFilters()">
+                        <option value="">All Types</option>
+                        <option value="contract">Contract</option>
+                        <option value="legal_brief">Legal Brief</option>
+                        <option value="court_filing">Court Filing</option>
+                        <option value="correspondence">Correspondence</option>
+                    </select>
+                </div>
+                
+                <div class="filter-search">
+                    <label class="filter-label" for="searchInput">Search Documents</label>
+                    <input type="text" id="searchInput" class="search-input" 
+                           placeholder="Search by name or content..." 
+                           oninput="applyFilters()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Section -->
+        <div class="documents-section">
+            <div class="section-header">
+                <h2 class="section-title">Your Documents</h2>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="toggleView('grid')" id="gridViewBtn">
+                        📋 Grid
+                    </button>
+                    <button class="view-btn" onclick="toggleView('list')" id="listViewBtn">
+                        📄 List
+                    </button>
+                </div>
+            </div>
+            
+            <div id="documentsLoading" class="loading">
+                <div class="loading-spinner">⏳</div>
+                <p>Loading documents...</p>
+            </div>
+            
+            <!-- Grid View -->
+            <div id="documentsGrid" class="documents-grid active" style="display: none;">
+                <!-- Document cards will be populated by JavaScript -->
+            </div>
+            
+            <!-- List View -->
+            <div id="documentsList" class="documents-list" style="display: none;">
+                <table class="document-table">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Updated</th>
+                            <th>Size</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentsTableBody">
+                        <!-- Document rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noDocuments" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📂</div>
+                <h3>No documents available</h3>
+                <p>Your legal team will share documents with you as they become available</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDocuments = [];
+        let filteredDocuments = [];
+        let currentView = 'grid';
+
+        // Initialize the documents system
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDocuments();
+        });
+
+        async function loadDocuments() {
+            try {
+                const response = await fetch('/api/client-portal/documents');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allDocuments = data.documents;
+                    filteredDocuments = [...allDocuments];
+                    renderDocuments();
+                } else {
+                    showError('Failed to load documents');
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                showError('Error loading documents');
+            } finally {
+                document.getElementById('documentsLoading').style.display = 'none';
+            }
+        }
+
+        function renderDocuments() {
+            const gridEl = document.getElementById('documentsGrid');
+            const listEl = document.getElementById('documentsList');
+            const noDocsEl = document.getElementById('noDocuments');
+            
+            if (filteredDocuments.length === 0) {
+                gridEl.style.display = 'none';
+                listEl.style.display = 'none';
+                noDocsEl.style.display = 'flex';
+                return;
+            }
+            
+            noDocsEl.style.display = 'none';
+            
+            if (currentView === 'grid') {
+                renderGridView();
+                gridEl.style.display = 'grid';
+                listEl.style.display = 'none';
+            } else {
+                renderListView();
+                gridEl.style.display = 'none';
+                listEl.style.display = 'block';
+            }
+        }
+
+        function renderGridView() {
+            const gridEl = document.getElementById('documentsGrid');
+            
+            gridEl.innerHTML = filteredDocuments.map(doc => `
+                <div class="document-card" onclick="viewDocument('${doc.id}')">
+                    <div class="document-icon ${getDocumentTypeClass(doc.document_type)}">
+                        ${getDocumentIcon(doc.document_type)}
+                    </div>
+                    <div class="document-title">${doc.filename}</div>
+                    <div class="document-meta">
+                        <span>Type: ${formatDocumentType(doc.document_type)}</span>
+                        <span>Status: ${doc.status}</span>
+                        <span>Updated: ${formatDate(doc.updated_at)}</span>
+                        <span>Size: ${formatFileSize(doc.size || 0)}</span>
+                    </div>
+                    <div class="document-actions">
+                        <button class="btn btn-primary" onclick="downloadDocument('${doc.id}', event)">
+                            📥 Download
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewDocument('${doc.id}', event)">
+                            👁️ View
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderListView() {
+            const tbody = document.getElementById('documentsTableBody');
+            
+            tbody.innerHTML = filteredDocuments.map(doc => `
+                <tr onclick="viewDocument('${doc.id}')">
+                    <td>
+                        <div class="document-name">${doc.filename}</div>
+                        <div style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem;">
+                            ${doc.description || 'No description'}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="document-type-badge type-${doc.document_type.replace('_', '-')}">
+                            ${formatDocumentType(doc.document_type)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${doc.status}">
+                            ${doc.status}
+                        </span>
+                    </td>
+                    <td>${formatDate(doc.updated_at)}</td>
+                    <td>${formatFileSize(doc.size || 0)}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" onclick="downloadDocument('${doc.id}', event)">
+                                📥
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewDocument('${doc.id}', event)">
+                                👁️
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleView(view) {
+            currentView = view;
+            
+            // Update button states
+            document.getElementById('gridViewBtn').classList.toggle('active', view === 'grid');
+            document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
+            
+            renderDocuments();
+        }
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredDocuments = allDocuments.filter(doc => {
+                const matchesStatus = !statusFilter || doc.status === statusFilter;
+                const matchesType = !typeFilter || doc.document_type === typeFilter;
+                const matchesSearch = !searchInput || 
+                    doc.filename.toLowerCase().includes(searchInput) ||
+                    (doc.description && doc.description.toLowerCase().includes(searchInput));
+                
+                return matchesStatus && matchesType && matchesSearch;
+            });
+            
+            renderDocuments();
+        }
+
+        async function downloadDocument(docId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            try {
+                const response = await fetch(`/api/client-portal/documents/${docId}/download`);
+                
+                if (response.ok) {
+                    // Create a temporary link to trigger download
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = getDocumentName(docId);
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    const errorData = await response.json();
+                    alert('Download failed: ' + (errorData.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error downloading document:', error);
+                alert('Error downloading document');
+            }
+        }
+
+        async function viewDocument(docId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            
+            try {
+                const response = await fetch(`/api/client-portal/documents/${docId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showDocumentDetails(data.document);
+                } else {
+                    alert('Failed to load document details: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error viewing document:', error);
+                alert('Error viewing document');
+            }
+        }
+
+        function showDocumentDetails(document) {
+            alert(`Document Details:\n\nName: ${document.filename}\nType: ${formatDocumentType(document.document_type)}\nStatus: ${document.status}\nSize: ${formatFileSize(document.size || 0)}\nUpdated: ${formatDate(document.updated_at)}\nDescription: ${document.description || 'No description'}\n\nNote: Full document viewer coming soon!`);
+        }
+
+        // Utility Functions
+        function getDocumentIcon(type) {
+            const icons = {
+                'contract': '📋',
+                'legal_brief': '📄',
+                'court_filing': '⚖️',
+                'correspondence': '✉️'
+            };
+            return icons[type] || '📄';
+        }
+
+        function getDocumentTypeClass(type) {
+            if (type.includes('pdf')) return 'pdf';
+            if (type.includes('doc') || type.includes('docx')) return 'doc';
+            return 'other';
+        }
+
+        function formatDocumentType(type) {
+            const formats = {
+                'contract': 'Contract',
+                'legal_brief': 'Legal Brief',
+                'court_filing': 'Court Filing',
+                'correspondence': 'Correspondence'
+            };
+            return formats[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getDocumentName(docId) {
+            const doc = allDocuments.find(d => d.id === docId);
+            return doc ? doc.filename : 'document';
+        }
+
+        function showError(message) {
+            document.getElementById('documentsGrid').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button class="btn btn-primary" onclick="loadDocuments()" style="margin-top: 1rem;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/client-portal/login';
+            }
+        }
+    </script>
+</body>
+</html>
