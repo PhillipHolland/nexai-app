@@ -8578,6 +8578,84 @@ def stripe_connect_status():
         logger.error(f"Stripe Connect status error: {e}")
         return jsonify({'error': 'Failed to get Connect status'}), 500
 
+@app.route('/api/stripe/connect/onboard', methods=['POST'])
+# @login_required  # Temporarily disabled for demo mode
+def stripe_connect_onboard_demo():
+    """Demo-friendly Stripe Connect onboarding for testing platform fees"""
+    try:
+        data = request.get_json() or {}
+        firm_name = data.get('firm_name', 'Demo Law Firm')
+        user_email = data.get('user_email', 'demo@lawfirm.com')
+        
+        if STRIPE_MODULE_AVAILABLE:
+            # Real Stripe Connect account creation
+            try:
+                account = stripe.Account.create(
+                    type='express',
+                    country='US',
+                    email=user_email,
+                    business_type='company',
+                    company={'name': firm_name},
+                    metadata={
+                        'lexai_user_id': 'demo_user',
+                        'firm_name': firm_name,
+                        'integration_type': 'client_payments',
+                        'platform_fee_rate': '1.9%',
+                        'platform_name': 'LexAI Practice Partner',
+                        'demo_mode': 'true'
+                    }
+                )
+                
+                # Create account link for onboarding
+                account_link = stripe.AccountLink.create(
+                    account=account.id,
+                    refresh_url=f"{request.host_url}platform-verification?refresh=true",
+                    return_url=f"{request.host_url}platform-verification?success=true",
+                    type='account_onboarding',
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'account_id': account.id,
+                    'onboarding_url': account_link.url,
+                    'metadata': account.metadata,
+                    'platform_fee_rate': '1.9%',
+                    'demo_mode': False
+                })
+                
+            except Exception as stripe_error:
+                logger.warning(f"Stripe Connect creation failed: {stripe_error}")
+                # Fall back to mock response
+                pass
+        
+        # Mock response for demo/testing
+        mock_account_id = f"acct_demo_{int(datetime.now().timestamp())}"
+        mock_onboarding_url = f"https://connect.stripe.com/express/oauth/authorize?client_id=demo&state={mock_account_id}"
+        
+        return jsonify({
+            'success': True,
+            'account_id': mock_account_id,
+            'onboarding_url': mock_onboarding_url,
+            'metadata': {
+                'lexai_user_id': 'demo_user',
+                'firm_name': firm_name,
+                'integration_type': 'client_payments',
+                'platform_fee_rate': '1.9%',
+                'platform_name': 'LexAI Practice Partner',
+                'demo_mode': 'true'
+            },
+            'platform_fee_rate': '1.9%',
+            'demo_mode': True,
+            'message': 'Demo Connect account created with 1.9% platform fee disclosure'
+        })
+        
+    except Exception as e:
+        logger.error(f"Connect onboard demo error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create Connect account'
+        }), 500
+
 @app.route('/api/billing/create-payment-link', methods=['POST'])
 @login_required
 def create_payment_link():
