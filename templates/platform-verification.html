@@ -530,21 +530,30 @@
             resultDiv.innerHTML = '<div class="loading">🔄 Testing all platform fee endpoints...</div>';
             
             const endpoints = [
-                '/api/billing/dashboard',
-                '/api/billing/connect-status',
-                '/api/stripe/connect/onboard',
-                '/api/client-portal/billing/dashboard'
+                { url: '/api/billing/dashboard', method: 'GET' },
+                { url: '/api/billing/connect-status', method: 'GET' },
+                { url: '/api/stripe/connect/onboard', method: 'POST', body: { firm_name: 'Test Law Firm', user_email: 'test@example.com' } },
+                { url: '/api/client-portal/billing/dashboard', method: 'GET' }
             ];
             
             let results = [];
             
             for (const endpoint of endpoints) {
                 try {
-                    const response = await fetch(endpoint);
+                    const options = {
+                        method: endpoint.method,
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+                    
+                    if (endpoint.body) {
+                        options.body = JSON.stringify(endpoint.body);
+                    }
+                    
+                    const response = await fetch(endpoint.url, options);
                     const data = await response.json();
-                    results.push(`✅ ${endpoint}: ${data.success ? 'PASS' : 'FAIL'}`);
+                    results.push(`✅ ${endpoint.url}: ${data.success ? 'PASS' : 'FAIL'}`);
                 } catch (error) {
-                    results.push(`❌ ${endpoint}: ERROR`);
+                    results.push(`❌ ${endpoint.url}: ERROR`);
                 }
             }
             
