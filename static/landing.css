@@ -677,7 +677,8 @@ body {
 .integration-container {
     max-width: 1200px !important;
     margin: 0 auto !important;
-    background: #F7EDDA !important;
+    background: red !important;
+    border: 5px solid blue !important;
     border-radius: 0.75rem !important;
     padding: 3rem 2rem !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
