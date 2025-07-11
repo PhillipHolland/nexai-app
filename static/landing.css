@@ -12,15 +12,33 @@ a, a:link, a:visited, a:focus, a:active {
 }
 
 /* EXCEPTION: Button links should use their own colors, not inherit */
-a.btn-primary, a.btn-primary:link, a.btn-primary:visited, a.btn-primary:focus, a.btn-primary:active,
-a.btn-secondary, a.btn-secondary:link, a.btn-secondary:visited, a.btn-secondary:focus, a.btn-secondary:active,
+/* Hero Start Free Trial - dark text on orange */
+a.btn-primary, a.btn-primary:link, a.btn-primary:visited, a.btn-primary:focus, a.btn-primary:active {
+    color: #2E4B3C !important;
+    text-decoration: none !important;
+}
+
+/* Hero See Features - light text */
+a.btn-secondary, a.btn-secondary:link, a.btn-secondary:visited, a.btn-secondary:focus, a.btn-secondary:active {
+    color: #F7EDDA !important;
+    text-decoration: none !important;
+}
+
+/* Pricing buttons - white text on dark backgrounds */
 a.btn-outline, a.btn-outline:link, a.btn-outline:visited, a.btn-outline:focus, a.btn-outline:active {
     color: #ffffff !important;
     text-decoration: none !important;
 }
 
+/* Small Firm featured button - dark text on orange */
 a.btn-outline.featured, a.btn-outline.featured:link, a.btn-outline.featured:visited, a.btn-outline.featured:focus, a.btn-outline.featured:active {
-    color: #ffffff !important;
+    color: #2E4B3C !important;
+    text-decoration: none !important;
+}
+
+/* Enter Platform navigation button - dark text */
+a.nav-enter-platform, a.nav-enter-platform:link, a.nav-enter-platform:visited, a.nav-enter-platform:focus, a.nav-enter-platform:active {
+    color: #2E4B3C !important;
     text-decoration: none !important;
 }
 
@@ -647,27 +665,6 @@ body {
     color: #ffffff !important; /* ensure white on hover */
 }
 
-/* Force button text to be white - override any conflicting styles */
-a.btn-outline, a.btn-outline:link, a.btn-outline:visited, a.btn-outline:focus, a.btn-outline:active {
-    color: #ffffff !important;
-}
-
-a.btn-outline.featured, a.btn-outline.featured:link, a.btn-outline.featured:visited, a.btn-outline.featured:focus, a.btn-outline.featured:active {
-    color: #ffffff !important;
-}
-
-/* Extra specific targeting for Small Firm button */
-.pricing-card.featured .btn-outline.featured,
-.pricing-card.featured a.btn-outline.featured {
-    color: #ffffff !important;
-    text-decoration: none !important;
-}
-
-.pricing-card.featured .btn-outline.featured:hover,
-.pricing-card.featured a.btn-outline.featured:hover {
-    color: #ffffff !important;
-    text-decoration: none !important;
-}
 
 /* Integration Advantage Section - ENHANCED UI */
 .integration-advantage {
