@@ -442,6 +442,10 @@
                     Complete Stripe Setup →
                 </button>
                 
+                <button type="button" class="btn btn-secondary" onclick="testBasicSubmission()" style="margin-bottom: 1rem;">
+                    Test Basic Submission (Debug)
+                </button>
+                
                 <a href="/dashboard" class="btn btn-secondary">
                     Skip for Now
                 </a>
@@ -538,14 +542,20 @@
                     body: JSON.stringify(formData)
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('API Response:', data);  // Debug logging
                 
                 if (data.success) {
                     // Save onboarding data
                     localStorage.setItem('stripe_onboarding', JSON.stringify({
                         account_id: data.account_id,
-                        firm_name: firmName,
-                        user_email: userEmail,
+                        firm_name: formData.firm_name,
+                        user_email: formData.user_email,
+                        business_info: data.business_info || {},
                         platform_fee_rate: data.platform_fee_rate,
                         timestamp: new Date().toISOString()
                     }));
@@ -567,7 +577,17 @@
                 console.error('Onboarding error:', error);
                 document.querySelector('.form-container').style.display = 'block';
                 document.getElementById('loading').style.display = 'none';
-                showError('Setup failed. Please try again or contact support.');
+                
+                // Try to get more specific error information
+                let errorMessage = 'Setup failed. Please try again or contact support.';
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Network error. Please check your connection and try again.';
+                } else if (error.message) {
+                    errorMessage = `Setup error: ${error.message}`;
+                }
+                
+                showError(errorMessage);
             }
         });
         
@@ -588,6 +608,50 @@
             const data = JSON.parse(onboardingData);
             if (data.firmName) {
                 document.getElementById('firm-name').value = data.firmName;
+            }
+        }
+        
+        // Test function for debugging
+        window.testBasicSubmission = async function() {
+            console.log('Testing basic submission...');
+            document.querySelector('.form-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const testData = {
+                    firm_name: 'Test Law Firm',
+                    user_email: 'test@example.com',
+                    business_type: 'company'
+                };
+                
+                console.log('Sending test data:', testData);
+                
+                const response = await fetch('/api/stripe/connect/onboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    alert('Test successful! Check console for details.');
+                } else {
+                    alert(`Test failed: ${data.error}`);
+                }
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                alert(`Test error: ${error.message}`);
+            } finally {
+                document.querySelector('.form-container').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
             }
         }
     </script>

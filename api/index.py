@@ -8601,6 +8601,7 @@ def stripe_connect_onboard_demo():
     # Handle POST requests (actual onboarding)
     try:
         data = request.get_json() or {}
+        logger.info(f"Received onboarding data with keys: {list(data.keys())}")
         
         # Extract form data
         firm_name = data.get('firm_name', 'Demo Law Firm')
@@ -8779,9 +8780,14 @@ def stripe_connect_onboard_demo():
         
     except Exception as e:
         logger.error(f"Connect onboard demo error: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        
         return jsonify({
             'success': False,
-            'error': 'Failed to create Connect account'
+            'error': f'Failed to create Connect account: {str(e)}',
+            'error_type': type(e).__name__,
+            'debug_mode': True
         }), 500
 
 @app.route('/api/billing/create-payment-link', methods=['POST'])
