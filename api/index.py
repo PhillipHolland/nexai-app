@@ -8960,8 +8960,13 @@ def generate_payment_link():
             logger.warning("Stripe module not available at runtime for payment link generation")
             stripe_available = False
         
-        # Use HTTP-based Stripe API if module not available but credentials exist
+        # Debug logging
         stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        logger.info(f"Payment link debug - stripe_available: {stripe_available}, STRIPE_MODULE_AVAILABLE: {STRIPE_MODULE_AVAILABLE}, stripe_secret_key exists: {bool(stripe_secret_key)}")
+        logger.info(f"Condition check - not stripe_available: {not stripe_available}, not STRIPE_MODULE_AVAILABLE: {not STRIPE_MODULE_AVAILABLE}, stripe_secret_key: {bool(stripe_secret_key)}")
+        logger.info(f"Final condition result: {not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key}")
+        
+        # Use HTTP-based Stripe API if module not available but credentials exist
         if not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key:
             logger.info(f"Using Stripe HTTP API for payment link generation, invoice {invoice_id}, amount {amount}")
             try:
