@@ -669,7 +669,8 @@ body {
 
 /* Integration Advantage Section - Professional Design */
 .integration-advantage {
-    background: white;
+    background: yellow !important;
+    border: 10px solid purple !important;
     padding: 3rem 0;
     margin: 3rem 0;
 }
