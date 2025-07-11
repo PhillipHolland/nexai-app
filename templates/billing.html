@@ -636,11 +636,11 @@ function renderInvoicesTable(invoices) {
                         👁️ View
                     </button>
                     ${invoice.status !== 'paid' ? `
-                    <button class="btn btn-primary" onclick="sendInvoice('${invoice.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
-                        📧 Send
+                    <button class="btn btn-primary" onclick="generatePaymentLink('${invoice.id}', ${invoice.total_amount}, '${invoice.invoice_number}', '${invoice.client_email || 'client@example.com'}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+                        🔗 Generate Link
                     </button>
-                    <button class="btn btn-secondary" onclick="createPaymentIntent('${invoice.id}', ${invoice.total_amount}, '${invoice.client_email || 'client@example.com'}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #4CAF50; color: white;">
-                        💳 Pay
+                    <button class="btn btn-secondary" onclick="emailPaymentLink('${invoice.id}', '${invoice.invoice_number}', '${invoice.client_email || 'client@example.com'}')" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background-color: #2563eb; color: white;">
+                        📧 Email Client
                     </button>
                     ` : ''}
                     ${invoice.status === 'paid' && invoice.amount_paid > 0 ? `
@@ -716,15 +716,16 @@ async function createTestInvoices() {
     }
 }
 
-async function createPaymentIntent(invoiceId, amount, clientEmail) {
+async function generatePaymentLink(invoiceId, amount, invoiceNumber, clientEmail) {
     try {
-        const response = await fetch('/api/billing/create-payment-intent', {
+        const response = await fetch('/api/billing/generate-payment-link', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 invoice_id: invoiceId,
+                invoice_number: invoiceNumber,
                 amount: amount,
                 client_email: clientEmail
             })
@@ -733,15 +734,105 @@ async function createPaymentIntent(invoiceId, amount, clientEmail) {
         const data = await response.json();
         
         if (data.success) {
-            const demoText = data.demo_mode ? ' (DEMO MODE)' : '';
-            const statusText = data.demo_mode ? `${data.status} - ${data.message}` : data.status;
-            alert(`✅ Payment intent created successfully!${demoText}\n\nPayment Intent ID: ${data.payment_intent_id}\nAmount: $${(data.amount / 100).toFixed(2)}\nStatus: ${statusText}\n\n${data.demo_mode ? 'Demo mode - Stripe module unavailable.' : 'This would normally redirect to Stripe Checkout.'}`);
+            // Create a modal-style popup with copy functionality
+            const platformFee = Math.round(amount * 0.019);
+            const netAmount = amount - platformFee;
+            
+            const popup = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; align-items: center; justify-content: center;" onclick="this.remove()">
+                    <div style="background: white; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 90%;" onclick="event.stopPropagation()">
+                        <h3 style="margin: 0 0 1rem 0; color: #1f2937;">🔗 Payment Link Generated</h3>
+                        
+                        <div style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                            <strong>Invoice:</strong> ${invoiceNumber}<br>
+                            <strong>Amount:</strong> $${(amount / 100).toFixed(2)}<br>
+                            <strong>Platform Fee (1.9%):</strong> $${(platformFee / 100).toFixed(2)}<br>
+                            <strong>Your Net:</strong> $${(netAmount / 100).toFixed(2)}
+                        </div>
+                        
+                        <div style="margin: 1rem 0;">
+                            <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Payment Link:</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="text" value="${data.payment_url}" readonly 
+                                       style="flex: 1; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-family: monospace; font-size: 0.875rem;"
+                                       id="paymentLinkInput">
+                                <button onclick="copyPaymentLink()" 
+                                        style="padding: 0.5rem 1rem; background: #2563eb; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                                    📋 Copy
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                            <button onclick="window.open('${data.payment_url}', '_blank')" 
+                                    style="flex: 1; padding: 0.75rem; background: #059669; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                                🔗 Open Link
+                            </button>
+                            <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
+                                    style="flex: 1; padding: 0.75rem; background: #6b7280; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', popup);
         } else {
-            alert('Failed to create payment intent: ' + data.error);
+            alert('Failed to generate payment link: ' + data.error);
         }
     } catch (error) {
-        console.error('Error creating payment intent:', error);
-        alert('Error creating payment intent');
+        console.error('Error generating payment link:', error);
+        alert('Error generating payment link');
+    }
+}
+
+async function emailPaymentLink(invoiceId, invoiceNumber, clientEmail) {
+    try {
+        const response = await fetch('/api/billing/email-payment-link', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                invoice_id: invoiceId,
+                invoice_number: invoiceNumber,
+                client_email: clientEmail
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`✅ Payment link emailed successfully!\n\nSent to: ${clientEmail}\nInvoice: ${invoiceNumber}\n\n${data.demo_mode ? 'Demo mode - Email simulation only.' : 'Email sent with Stripe payment link.'}`);
+        } else {
+            alert('Failed to email payment link: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error emailing payment link:', error);
+        alert('Error emailing payment link');
+    }
+}
+
+function copyPaymentLink() {
+    const input = document.getElementById('paymentLinkInput');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        // Change button text temporarily
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✅ Copied!';
+        button.style.background = '#059669';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#2563eb';
+        }, 2000);
+    } catch (err) {
+        alert('Unable to copy to clipboard. Please copy manually.');
     }
 }
 

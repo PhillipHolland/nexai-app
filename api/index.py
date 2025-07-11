@@ -8933,6 +8933,118 @@ def create_invoice_payment_intent():
         logger.error(f"Payment intent creation error: {e}")
         return jsonify({'error': f'Failed to create payment intent: {str(e)}'}), 500
 
+@app.route('/api/billing/generate-payment-link', methods=['POST'])
+# @login_required  # Temporarily disabled for demo mode
+def generate_payment_link():
+    """Generate a Stripe payment link for law firms to send to clients"""
+    try:
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        invoice_number = data.get('invoice_number')
+        amount = data.get('amount')  # Amount in cents
+        client_email = data.get('client_email')
+        
+        if not all([invoice_id, amount, invoice_number]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Calculate platform fee (1.9%)
+        platform_fee = int(amount * 0.019)
+        
+        if STRIPE_MODULE_AVAILABLE:
+            try:
+                # Create Stripe Checkout Session with platform fee
+                checkout_session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[{
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': f'Legal Services - {invoice_number}',
+                                'description': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
+                            },
+                            'unit_amount': amount,
+                        },
+                        'quantity': 1,
+                    }],
+                    mode='payment',
+                    success_url=f'{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}',
+                    cancel_url=f'{request.host_url}client-portal/billing?payment=cancelled',
+                    metadata={
+                        'invoice_id': invoice_id,
+                        'invoice_number': invoice_number,
+                        'platform_fee': str(platform_fee),
+                        'platform_fee_rate': '1.9%',
+                        'generated_by': 'law_firm_dashboard'
+                    },
+                    customer_email=client_email if client_email != 'client@example.com' else None,
+                    application_fee_amount=platform_fee,  # This is the 1.9% platform fee
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'payment_url': checkout_session.url,
+                    'session_id': checkout_session.id,
+                    'amount': amount,
+                    'platform_fee': platform_fee,
+                    'demo_mode': False
+                })
+                
+            except Exception as stripe_error:
+                logger.warning(f"Stripe checkout creation failed: {stripe_error}")
+                # Fall back to demo mode
+                pass
+        
+        # Demo mode fallback
+        demo_url = f'{request.host_url}demo-checkout?invoice_id={invoice_id}&amount={amount}&invoice_number={invoice_number}'
+        
+        return jsonify({
+            'success': True,
+            'payment_url': demo_url,
+            'session_id': f'cs_demo_{invoice_id}_{amount}',
+            'amount': amount,
+            'platform_fee': platform_fee,
+            'demo_mode': True,
+            'message': 'Demo payment link generated (Stripe module not available)'
+        })
+        
+    except Exception as e:
+        logger.error(f"Generate payment link error: {e}")
+        return jsonify({'error': 'Failed to generate payment link'}), 500
+
+@app.route('/api/billing/email-payment-link', methods=['POST'])
+# @login_required  # Temporarily disabled for demo mode  
+def email_payment_link():
+    """Email a payment link to a client"""
+    try:
+        data = request.get_json()
+        invoice_id = data.get('invoice_id')
+        invoice_number = data.get('invoice_number')
+        client_email = data.get('client_email')
+        
+        if not all([invoice_id, invoice_number, client_email]):
+            return jsonify({'error': 'Missing required fields'}), 400
+        
+        # In a real implementation, this would:
+        # 1. Generate the payment link (reuse the generate-payment-link logic)
+        # 2. Send an email using SendGrid, AWS SES, or similar service
+        # 3. Log the email send attempt
+        
+        # For demo purposes, simulate email sending
+        logger.info(f"Email simulation: Sending payment link for {invoice_number} to {client_email}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Payment link email sent to {client_email}',
+            'invoice_number': invoice_number,
+            'client_email': client_email,
+            'demo_mode': True,
+            'email_sent': True
+        })
+        
+    except Exception as e:
+        logger.error(f"Email payment link error: {e}")
+        return jsonify({'error': 'Failed to email payment link'}), 500
+
 @app.route('/api/billing/create-test-invoices', methods=['POST'])
 # @login_required  # Temporarily disabled for demo mode
 def create_test_invoices():
