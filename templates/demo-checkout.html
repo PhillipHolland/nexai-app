@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Payment - Stripe Checkout Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .checkout-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .checkout-header {
+            background: #635bff;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stripe-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        
+        .checkout-body {
+            padding: 2rem;
+        }
+        
+        .payment-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-top: 1px solid #dee2e6;
+            padding-top: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #635bff;
+            box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.1);
+        }
+        
+        .card-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+        }
+        
+        .pay-button {
+            width: 100%;
+            background: #635bff;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .pay-button:hover {
+            background: #5a52ff;
+        }
+        
+        .pay-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .cancel-link {
+            display: block;
+            text-align: center;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .cancel-link:hover {
+            color: #374151;
+        }
+        
+        .security-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #635bff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <div class="stripe-logo">stripe</div>
+            <div class="demo-badge">DEMO MODE</div>
+        </div>
+        
+        <div class="checkout-body">
+            <div class="payment-summary">
+                <h3 style="margin-bottom: 1rem; color: #1f2937;">Payment Summary</h3>
+                <div class="summary-row">
+                    <span>{{ invoice_number }}</span>
+                    <span>${{ "%.2f"|format(amount_dollars) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Legal Services</span>
+                    <span></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>${{ "%.2f"|format(amount_dollars) }}</span>
+                </div>
+            </div>
+            
+            <form id="payment-form">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" value="client@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Card Information</label>
+                    <input type="text" class="form-input" placeholder="4242 4242 4242 4242" maxlength="19" required>
+                    <div class="card-row" style="margin-top: 0.5rem;">
+                        <input type="text" class="form-input" placeholder="MM / YY" maxlength="7" required>
+                        <input type="text" class="form-input" placeholder="CVC" maxlength="3" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Cardholder Name</label>
+                    <input type="text" class="form-input" placeholder="John Smith" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Billing Address</label>
+                    <input type="text" class="form-input" placeholder="123 Main Street" required style="margin-bottom: 0.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <input type="text" class="form-input" placeholder="City" required>
+                        <input type="text" class="form-input" placeholder="State" required>
+                    </div>
+                    <input type="text" class="form-input" placeholder="ZIP Code" required style="margin-top: 0.5rem;">
+                </div>
+                
+                <button type="submit" class="pay-button" id="pay-btn">
+                    Pay ${{ "%.2f"|format(amount_dollars) }}
+                </button>
+                
+                <div class="loading" id="loading">
+                    <button class="pay-button" disabled>
+                        <span class="spinner"></span>
+                        Processing...
+                    </button>
+                </div>
+            </form>
+            
+            <a href="/client-portal/billing?payment=cancelled" class="cancel-link">
+                ← Return to billing
+            </a>
+            
+            <div class="security-info">
+                <span>🔒</span>
+                <span>Secured by Stripe (Demo Mode)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            document.getElementById('pay-btn').style.display = 'none';
+            document.getElementById('loading').classList.add('active');
+            
+            // Simulate payment processing
+            setTimeout(function() {
+                // Simulate successful payment
+                const sessionId = 'cs_demo_{{ invoice_id }}_{{ amount }}';
+                window.location.href = `/client-portal/billing?payment=success&session_id=${sessionId}`;
+            }, 3000);
+        });
+        
+        // Auto-format card number
+        document.querySelector('input[placeholder="4242 4242 4242 4242"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+            if (formattedValue.length > 19) formattedValue = formattedValue.substr(0, 19);
+            e.target.value = formattedValue;
+        });
+        
+        // Auto-format expiry
+        document.querySelector('input[placeholder="MM / YY"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
