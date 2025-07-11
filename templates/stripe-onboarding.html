@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Setup - LexAI Practice Partner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: linear-gradient(135deg, #F7EDDA 0%, #E6F3FF 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            margin-bottom: 2rem;
+        }
+        
+        .logo img {
+            height: 3rem;
+            width: auto;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.125rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+        
+        .fee-highlight {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .fee-highlight h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2E4B3C;
+            box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: #FFA74F;
+            color: #2E4B3C;
+        }
+        
+        .btn-primary:hover {
+            background-color: #ff9d3d;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            color: #374151;
+            border-color: #9ca3af;
+        }
+        
+        .btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #2E4B3C;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .benefits {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .benefits h3 {
+            color: #16a34a;
+            margin-bottom: 1rem;
+        }
+        
+        .benefits ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefits li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .benefits li:before {
+            content: "✓ ";
+            color: #16a34a;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .back-link a {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        
+        .back-link a:hover {
+            color: #374151;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="/static/lexAI.png" alt="LexAI">
+            </div>
+            <h1>Payment Setup</h1>
+            <p class="subtitle">Complete your Stripe Connect setup to start collecting client payments</p>
+            
+            <div class="fee-highlight">
+                <h3>📊 Transparent Pricing</h3>
+                <p>Only 4.8% total when you get paid (includes Stripe's 2.9% + our 1.9%)</p>
+            </div>
+        </div>
+        
+        <div class="benefits">
+            <h3>🚀 What You Get:</h3>
+            <ul>
+                <li>Instant payment collection from clients</li>
+                <li>Automated invoicing and payment tracking</li>
+                <li>Professional client payment portal</li>
+                <li>Real-time payment notifications</li>
+                <li>Transparent fee structure with no monthly costs</li>
+            </ul>
+        </div>
+        
+        <div class="form-container">
+            <form id="onboard-form">
+                <div class="error-message" id="error-message"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">Firm/Practice Name *</label>
+                    <input type="text" class="form-input" id="firm-name" placeholder="Smith & Associates Law Firm" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Contact Email *</label>
+                    <input type="email" class="form-input" id="user-email" placeholder="partner@lawfirm.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Business Phone</label>
+                    <input type="tel" class="form-input" id="business-phone" placeholder="(555) 123-4567">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    Continue to Stripe Setup →
+                </button>
+                
+                <a href="/dashboard" class="btn btn-secondary">
+                    Skip for Now
+                </a>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Setting up your payment processing...</p>
+        </div>
+        
+        <div class="back-link">
+            <a href="/onboarding">← Back to Onboarding</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('onboard-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const firmName = document.getElementById('firm-name').value.trim();
+            const userEmail = document.getElementById('user-email').value.trim();
+            const businessPhone = document.getElementById('business-phone').value.trim();
+            
+            if (!firmName || !userEmail) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+            
+            // Show loading state
+            document.querySelector('.form-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/stripe/connect/onboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        firm_name: firmName,
+                        user_email: userEmail,
+                        business_phone: businessPhone
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Save onboarding data
+                    localStorage.setItem('stripe_onboarding', JSON.stringify({
+                        account_id: data.account_id,
+                        firm_name: firmName,
+                        user_email: userEmail,
+                        platform_fee_rate: data.platform_fee_rate,
+                        timestamp: new Date().toISOString()
+                    }));
+                    
+                    // Redirect to Stripe onboarding
+                    if (data.demo_mode) {
+                        // For demo mode, show success and redirect to verification
+                        alert(`Demo mode: Stripe Connect account created!\\n\\nAccount ID: ${data.account_id}\\nPlatform Fee: ${data.platform_fee_rate}\\n\\nIn production, you would be redirected to Stripe's onboarding flow.`);
+                        window.location.href = '/platform-verification?demo=true';
+                    } else {
+                        // Redirect to real Stripe onboarding
+                        window.location.href = data.onboarding_url;
+                    }
+                } else {
+                    throw new Error(data.error || 'Setup failed');
+                }
+                
+            } catch (error) {
+                console.error('Onboarding error:', error);
+                document.querySelector('.form-container').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+                showError('Setup failed. Please try again or contact support.');
+            }
+        });
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Pre-fill form if onboarding data exists
+        const onboardingData = localStorage.getItem('lexai_onboarding');
+        if (onboardingData) {
+            const data = JSON.parse(onboardingData);
+            if (data.firmName) {
+                document.getElementById('firm-name').value = data.firmName;
+            }
+        }
+    </script>
+</body>
+</html>

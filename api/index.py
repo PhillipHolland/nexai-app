@@ -8578,6 +8578,17 @@ def stripe_connect_status():
         logger.error(f"Stripe Connect status error: {e}")
         return jsonify({'error': 'Failed to get Connect status'}), 500
 
+@app.route('/stripe-onboarding')
+def stripe_onboarding_form():
+    """Stripe Connect onboarding form page"""
+    try:
+        return render_template('stripe-onboarding.html',
+                             google_analytics_id=app.config.get('GOOGLE_ANALYTICS_ID'),
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Stripe onboarding form error: {e}")
+        return f"LexAI Practice Partner - Error loading page: {e}", 500
+
 @app.route('/api/stripe/connect/onboard', methods=['POST'])
 # @login_required  # Temporarily disabled for demo mode
 def stripe_connect_onboard_demo():
