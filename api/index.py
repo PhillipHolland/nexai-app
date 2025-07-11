@@ -568,39 +568,6 @@ def spanish_interface():
         logger.error(f"Spanish interface error: {e}")
         return f"Spanish interface error: {e}", 500
 
-@app.route('/api/debug/stripe-status')
-def debug_stripe_status():
-    """Debug endpoint to check Stripe configuration"""
-    # Test Stripe import
-    stripe_import_error = None
-    stripe_import_success = False
-    try:
-        import stripe as stripe_test
-        stripe_import_success = True
-    except Exception as e:
-        stripe_import_error = str(e)
-    
-    # Debug environment variable
-    env_value = os.environ.get('STRIPE_SECRET_KEY')
-    env_bool = bool(env_value)
-    
-    return jsonify({
-        'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
-        'STRIPE_MODULE_AVAILABLE': STRIPE_MODULE_AVAILABLE,
-        'env_value_exists': env_value is not None,
-        'env_value_length': len(env_value) if env_value else 0,
-        'env_bool_conversion': env_bool,
-        'manual_stripe_available_check': bool(os.environ.get('STRIPE_SECRET_KEY')),
-        'STRIPE_SECRET_KEY_EXISTS': bool(os.environ.get('STRIPE_SECRET_KEY')),
-        'STRIPE_SECRET_KEY_VALUE': env_value[:10] + '...' if env_value else 'Not Set',
-        'stripe_module_available': 'stripe' in globals(),
-        'stripe_import_test_success': stripe_import_success,
-        'stripe_import_error': stripe_import_error,
-        'requirements_check': {
-            'stripe_in_requirements': True  # We know it's there
-        }
-    })
-
 @app.route('/billing')
 def billing_page():
     """Billing and payments page"""
@@ -9091,22 +9058,6 @@ def generate_payment_link():
     except Exception as e:
         logger.error(f"Generate payment link error: {e}")
         return jsonify({'error': 'Failed to generate payment link'}), 500
-
-@app.route('/api/debug/stripe-status', methods=['GET'])
-def debug_stripe_status():
-    """Debug endpoint to check Stripe configuration"""
-    try:
-        stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
-        return jsonify({
-            'stripe_secret_key_exists': bool(stripe_secret_key),
-            'stripe_secret_key_prefix': stripe_secret_key[:7] + '...' if stripe_secret_key else None,
-            'STRIPE_MODULE_AVAILABLE': STRIPE_MODULE_AVAILABLE,
-            'STRIPE_AVAILABLE': STRIPE_AVAILABLE,
-            'environment': os.environ.get('VERCEL_ENV', 'unknown'),
-            'all_env_keys': [k for k in os.environ.keys() if 'STRIPE' in k.upper()]
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/billing/email-payment-link', methods=['POST'])
 # @login_required  # Temporarily disabled for demo mode  
