@@ -669,8 +669,7 @@ body {
 
 /* Integration Advantage Section - Professional Design */
 .integration-advantage {
-    background: yellow !important;
-    border: 10px solid purple !important;
+    background: white;
     padding: 3rem 0;
     margin: 3rem 0;
 }
@@ -678,8 +677,7 @@ body {
 .integration-container {
     max-width: 1200px !important;
     margin: 0 auto !important;
-    background: red !important;
-    border: 5px solid blue !important;
+    background: #F7EDDA !important;
     border-radius: 0.75rem !important;
     padding: 3rem 2rem !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
