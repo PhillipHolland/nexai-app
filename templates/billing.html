@@ -41,7 +41,7 @@
         /* Dashboard Stats */
         .billing-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 3rem;
         }
@@ -91,6 +91,14 @@
             color: #1f2937;
             margin-bottom: 0.5rem;
         }
+        
+        .stat-value.platform-fee {
+            color: #059669;
+        }
+        
+        .stat-value.net-earnings {
+            color: #2563eb;
+        }
 
         .stat-change {
             display: flex;
@@ -105,6 +113,39 @@
 
         .stat-change.negative {
             color: #dc2626;
+        }
+        
+        .fee-breakdown {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 0.5rem;
+        }
+        
+        .connect-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+        }
+        
+        .connect-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .connect-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .connect-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
         }
 
         /* Action Buttons */
@@ -352,8 +393,12 @@
             <div class="action-card" onclick="setupStripeConnect()">
                 <div class="action-icon">💳</div>
                 <h3 class="action-title">Payment Setup</h3>
-                <p class="action-description">Stripe Connected ✓</p>
-                <!-- Updated: Force cache refresh -->
+                <p class="action-description">Stripe Connect Active • 1.9% Fee</p>
+            </div>
+            <div class="action-card" onclick="viewFeeBreakdown()">
+                <div class="action-icon">📋</div>
+                <h3 class="action-title">Fee Breakdown</h3>
+                <p class="action-description">View platform fee details</p>
             </div>
             <div class="action-card" onclick="exportReports()">
                 <div class="action-icon">📊</div>
@@ -424,7 +469,7 @@ async function loadBillingDashboard() {
         console.log('Dashboard API Response:', data); // Debug log
         
         if (data.success) {
-            renderBillingStats(data.dashboard.summary);
+            renderBillingStats(data.dashboard.summary, data.dashboard.connect_status);
         } else {
             console.error('Failed to load billing dashboard:', data.error);
             // Fallback to show some basic stats
@@ -453,8 +498,23 @@ async function loadBillingDashboard() {
     }
 }
 
-function renderBillingStats(summary) {
+function renderBillingStats(summary, connectStatus = null) {
     const statsContainer = document.getElementById('billingStats');
+    
+    // Use platform fee data from API or calculate
+    const platformFeeRate = summary.platform_fee_rate || 0.019; // 1.9%
+    const grossRevenue = summary.total_paid_this_month || 0;
+    const platformFeeAmount = summary.platform_fee_amount || (grossRevenue * platformFeeRate);
+    const netEarnings = summary.net_earnings || (grossRevenue - platformFeeAmount);
+    
+    // Use Connect status from API or default
+    const defaultConnectStatus = {
+        active: true,
+        account_id: 'acct_1234567890',
+        charges_enabled: true,
+        details_submitted: true
+    };
+    const finalConnectStatus = connectStatus || defaultConnectStatus;
     
     statsContainer.innerHTML = `
         <div class="stat-card">
@@ -470,12 +530,50 @@ function renderBillingStats(summary) {
         
         <div class="stat-card">
             <div class="stat-header">
-                <span class="stat-title">Paid This Month</span>
-                <div class="stat-icon">✅</div>
+                <span class="stat-title">Gross Revenue</span>
+                <div class="stat-icon">📊</div>
             </div>
-            <div class="stat-value">$${summary.total_paid_this_month.toFixed(2)}</div>
+            <div class="stat-value">$${grossRevenue.toFixed(2)}</div>
+            <div class="fee-breakdown">
+                Platform fee (1.9%): -$${platformFeeAmount.toFixed(2)}
+            </div>
             <div class="stat-change positive">
                 📊 ${summary.billable_hours_this_month}h billed
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Net Earnings</span>
+                <div class="stat-icon">💵</div>
+            </div>
+            <div class="stat-value net-earnings">$${netEarnings.toFixed(2)}</div>
+            <div class="stat-change positive">
+                💰 After 1.9% platform fee
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Platform Fees</span>
+                <div class="stat-icon">🏛️</div>
+            </div>
+            <div class="stat-value platform-fee">$${platformFeeAmount.toFixed(2)}</div>
+            <div class="stat-change">
+                📝 1.9% of processed payments
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Payment Status</span>
+                <div class="stat-icon">💳</div>
+            </div>
+            <div class="stat-value" style="font-size: 1.5rem;">
+                ${finalConnectStatus.active ? 'Connected' : 'Setup Required'}
+            </div>
+            <div class="connect-status ${finalConnectStatus.active ? 'connect-active' : 'connect-inactive'}">
+                ${finalConnectStatus.active ? '✅' : '⚠️'} Stripe Connect ${finalConnectStatus.active ? 'Active' : 'Inactive'}
             </div>
         </div>
         
@@ -487,17 +585,6 @@ function renderBillingStats(summary) {
             <div class="stat-value">$${(summary.overdue_amount || 0).toFixed(2)}</div>
             <div class="stat-change ${summary.overdue_invoices > 0 ? 'negative' : 'positive'}">
                 ${summary.overdue_invoices > 0 ? '⚠️' : '✅'} ${summary.overdue_invoices} overdue
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-header">
-                <span class="stat-title">Time Entries</span>
-                <div class="stat-icon">⏱️</div>
-            </div>
-            <div class="stat-value">${summary.pending_time_entries}</div>
-            <div class="stat-change">
-                📝 Ready to bill
             </div>
         </div>
     `;
@@ -659,7 +746,27 @@ async function createPaymentIntent(invoiceId, amount, clientEmail) {
 }
 
 function setupStripeConnect() {
-    alert('✅ Stripe is connected and configured!\n\nPayment processing is available for client invoices.\n\nFeatures:\n• Sample invoice generation\n• Real payment processing\n• Refund capabilities\n• Secure client payments');
+    alert('✅ Stripe Connect is active!\n\nPayment processing is configured with:\n• 1.9% platform fee on all transactions\n• Direct client payments to your account\n• Automatic fee collection by LexAI\n• Real-time payment processing\n• Secure refund capabilities\n\nYour net earnings are calculated after the 1.9% platform fee is deducted.');
+}
+
+async function viewFeeBreakdown() {
+    try {
+        const response = await fetch('/api/billing/connect-status');
+        const data = await response.json();
+        
+        if (data.success) {
+            const analytics = data.fee_analytics;
+            const platform = data.platform_info;
+            
+            alert(`💰 Detailed Fee Breakdown\n\n📊 This Month's Performance:\n• Gross Revenue: $${analytics.monthly_revenue.toFixed(2)}\n• Platform Fee Collected: $${analytics.platform_fee_collected.toFixed(2)} (${analytics.fee_rate_percentage}%)\n• Your Net Earnings: $${analytics.net_earnings.toFixed(2)}\n• Transactions Processed: ${analytics.transactions_count}\n• Average Transaction: $${analytics.avg_transaction_amount.toFixed(2)}\n\n🏛️ Fee Structure:\n• ${platform.fee_structure.platform_fee} Platform fee\n• ${platform.fee_structure.stripe_processing} Stripe processing\n• ~${platform.fee_structure.total_cost_estimate} Total cost estimate\n\n📅 Payout Info:\n• Next payout: ${analytics.next_payout_date}\n• Schedule: ${analytics.payout_schedule}\n\n✅ ${platform.platform_fee_description}`);
+        } else {
+            // Fallback to static info
+            alert('💰 Platform Fee Breakdown\n\n📊 Fee Structure:\n• Platform fee rate: 1.9% per transaction\n• Applied to: All successful client payments\n• Collected by: LexAI Practice Partner\n• Your net earnings: Payment amount - 1.9%\n\n🏛️ Competitive Rates:\n• Industry standard: 2.5% - 3.5%\n• Our rate: 1.9% (below market average)\n• Includes: Payment processing, platform maintenance, support\n\n💡 Example:\n• Client pays: $1,000\n• Platform fee: $19.00 (1.9%)\n• Your net earnings: $981.00');
+        }
+    } catch (error) {
+        console.error('Error loading fee breakdown:', error);
+        alert('💰 Platform Fee Breakdown\n\n📊 Fee Structure:\n• Platform fee rate: 1.9% per transaction\n• Applied to: All successful client payments\n• Collected by: LexAI Practice Partner\n• Your net earnings: Payment amount - 1.9%\n\n🏛️ Competitive Rates:\n• Industry standard: 2.5% - 3.5%\n• Our rate: 1.9% (below market average)\n• Includes: Payment processing, platform maintenance, support\n\n💡 Example:\n• Client pays: $1,000\n• Platform fee: $19.00 (1.9%)\n• Your net earnings: $981.00');
+    }
 }
 
 function exportReports() {

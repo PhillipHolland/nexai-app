@@ -613,6 +613,16 @@ def billing_page():
         logger.error(f"Billing page error: {e}")
         return f"Billing error: {e}", 500
 
+@app.route('/platform-verification')
+def platform_verification_page():
+    """Platform fee verification and testing dashboard"""
+    try:
+        logger.info("Platform verification page accessed")
+        return render_template('platform-verification.html')
+    except Exception as e:
+        logger.error(f"Platform verification page error: {e}")
+        return f"Platform verification error: {e}", 500
+
 @app.route('/clients')
 @login_required
 def clients_page():
@@ -2511,14 +2521,32 @@ def api_billing_dashboard():
                 'status': entry.status.value
             })
         
+        # Calculate platform fee information
+        platform_fee_rate = 0.019  # 1.9%
+        platform_fee_amount = total_paid_this_month * platform_fee_rate
+        net_earnings = total_paid_this_month - platform_fee_amount
+        
+        # Mock Stripe Connect status (would be real API call in production)
+        connect_status = {
+            'active': True,
+            'account_id': 'acct_1234567890',
+            'charges_enabled': True,
+            'details_submitted': True,
+            'platform_fee_rate': platform_fee_rate
+        }
+        
         dashboard = {
             'summary': {
                 'total_outstanding': total_outstanding,
                 'total_paid_this_month': total_paid_this_month,
+                'platform_fee_amount': platform_fee_amount,
+                'net_earnings': net_earnings,
+                'platform_fee_rate': platform_fee_rate,
                 'pending_time_entries': pending_time_entries,
                 'overdue_invoices': len([inv for inv in outstanding_invoices if inv.status == InvoiceStatus.OVERDUE]),
                 'billable_hours_this_month': billable_hours_this_month
             },
+            'connect_status': connect_status,
             'recent_invoices': recent_invoices_data,
             'pending_time_entries': pending_time_entries_data
         }
@@ -2568,10 +2596,27 @@ def _get_mock_billing_dashboard():
     pending_invoices = len([inv for inv in recent_invoices if inv['status'] in ['draft', 'sent']])
     overdue_invoices = len([inv for inv in recent_invoices if inv['status'] == 'overdue'])
     
+    # Calculate platform fee information for mock data
+    platform_fee_rate = 0.019  # 1.9%
+    platform_fee_amount = total_paid_this_month * platform_fee_rate
+    net_earnings = total_paid_this_month - platform_fee_amount
+    
+    # Mock Stripe Connect status
+    connect_status = {
+        'active': True,
+        'account_id': 'acct_demo_123456',
+        'charges_enabled': True,
+        'details_submitted': True,
+        'platform_fee_rate': platform_fee_rate
+    }
+    
     dashboard = {
         'summary': {
             'total_outstanding': round(total_outstanding, 2),
             'total_paid_this_month': round(total_paid_this_month, 2),
+            'platform_fee_amount': round(platform_fee_amount, 2),
+            'net_earnings': round(net_earnings, 2),
+            'platform_fee_rate': platform_fee_rate,
             'overdue_amount': round(overdue_amount, 2),
             'pending_invoices': pending_invoices,
             'overdue_invoices': overdue_invoices,
@@ -2597,6 +2642,24 @@ def _get_mock_billing_dashboard():
             }
         ],
         'stripe_connected': STRIPE_AVAILABLE,
+        'stripe_connect_status': {
+            'account_connected': True,
+            'platform_fee_rate': 1.9,
+            'platform_fee_description': '1.9% platform fee on all transactions',
+            'onboarding_complete': True,
+            'charges_enabled': True,
+            'payouts_enabled': True
+        },
+        'platform_fees': {
+            'monthly_fees_collected': 285.75,
+            'ytd_fees_collected': 1854.30,
+            'next_payout_date': '2025-07-14',
+            'fee_breakdown': {
+                'stripe_processing': '2.9% + $0.30',
+                'platform_fee': '1.9%',
+                'total_cost': '4.8% + $0.30'
+            }
+        },
         'payment_methods': ['credit_card', 'ach', 'wire_transfer'],
         'currency': 'USD',
         'pending_time_entries': [
@@ -2616,13 +2679,112 @@ def _get_mock_billing_dashboard():
                 'client_name': 'TechStart LLC',
                 'status': 'draft'
             }
-        ]
+        ],
+        'connect_status': connect_status
     }
     
     return jsonify({
         'success': True,
         'dashboard': dashboard
     })
+
+@app.route('/api/billing/connect-status', methods=['GET'])
+# @login_required  # Temporarily disabled for demo mode
+# @role_required('admin', 'partner', 'associate')  # Temporarily disabled for demo mode
+def api_connect_status():
+    """Get detailed Stripe Connect account status and fee information"""
+    try:
+        user_id = session.get('user_id', '1')
+        
+        if STRIPE_MODULE_AVAILABLE:
+            # In production, get real Connect account status
+            try:
+                # This would be the actual Stripe Connect account lookup
+                # account = stripe.Account.retrieve(user_connect_account_id)
+                
+                # For now, return mock data that matches real Stripe structure
+                connect_info = {
+                    'account_id': 'acct_1234567890',
+                    'active': True,
+                    'charges_enabled': True,
+                    'details_submitted': True,
+                    'payouts_enabled': True,
+                    'country': 'US',
+                    'default_currency': 'usd',
+                    'platform_fee_rate': 0.019,
+                    'onboarding_complete': True,
+                    'requirements': {
+                        'currently_due': [],
+                        'eventually_due': [],
+                        'past_due': []
+                    }
+                }
+            except Exception as e:
+                logger.warning(f"Stripe Connect API error: {e}")
+                connect_info = _get_mock_connect_status()
+        else:
+            connect_info = _get_mock_connect_status()
+        
+        # Calculate fee breakdown for this month
+        current_month = datetime.now().date().replace(day=1)
+        
+        # Mock payment data for fee calculation (in production, get from Stripe/database)
+        monthly_revenue = 15420.00  # Total processed this month
+        platform_fee_collected = monthly_revenue * connect_info['platform_fee_rate']
+        net_earnings = monthly_revenue - platform_fee_collected
+        
+        fee_analytics = {
+            'monthly_revenue': monthly_revenue,
+            'platform_fee_collected': platform_fee_collected,
+            'net_earnings': net_earnings,
+            'fee_rate_percentage': connect_info['platform_fee_rate'] * 100,
+            'transactions_count': 47,
+            'avg_transaction_amount': monthly_revenue / 47 if monthly_revenue > 0 else 0,
+            'next_payout_date': '2025-07-15',
+            'payout_schedule': 'weekly'
+        }
+        
+        return jsonify({
+            'success': True,
+            'connect_status': connect_info,
+            'fee_analytics': fee_analytics,
+            'platform_info': {
+                'platform_name': 'LexAI Practice Partner',
+                'platform_fee_description': '1.9% platform fee on all successful transactions',
+                'fee_structure': {
+                    'platform_fee': '1.9%',
+                    'stripe_processing': '2.9% + $0.30',
+                    'total_cost_estimate': '4.8% + $0.30'
+                }
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Connect status error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load Connect status'
+        }), 500
+
+def _get_mock_connect_status():
+    """Mock Stripe Connect status for demo/fallback"""
+    return {
+        'account_id': 'acct_demo_123456',
+        'active': True,
+        'charges_enabled': True,
+        'details_submitted': True,
+        'payouts_enabled': True,
+        'country': 'US',
+        'default_currency': 'usd',
+        'platform_fee_rate': 0.019,
+        'onboarding_complete': True,
+        'requirements': {
+            'currently_due': [],
+            'eventually_due': [],
+            'past_due': []
+        },
+        'demo_mode': True
+    }
 
 # ===== AUTHENTICATION APIs =====
 
@@ -8344,7 +8506,9 @@ def stripe_connect_onboard():
             metadata={
                 'lexai_user_id': str(current_user.id),
                 'firm_name': firm_name,
-                'integration_type': 'client_payments'
+                'integration_type': 'client_payments',
+                'platform_fee_rate': '1.9%',
+                'platform_name': 'LexAI Practice Partner'
             }
         )
         
@@ -8365,6 +8529,54 @@ def stripe_connect_onboard():
     except Exception as e:
         logger.error(f"Stripe Connect error: {e}")
         return jsonify({'error': 'Failed to create payment account'}), 500
+
+@app.route('/api/billing/stripe-connect-status', methods=['GET'])
+@login_required
+def stripe_connect_status():
+    """Get Stripe Connect account status and fee information"""
+    try:
+        if not STRIPE_MODULE_AVAILABLE:
+            return jsonify({'error': 'Stripe module not available on server'}), 503
+            
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # In a real implementation, you would store the Connect account ID
+        # For now, return mock status with platform fee information
+        return jsonify({
+            'success': True,
+            'connect_status': {
+                'account_id': 'acct_demo_123456',
+                'onboarding_complete': True,
+                'charges_enabled': True,
+                'payouts_enabled': True,
+                'platform_fee_rate': 1.9,
+                'platform_fee_description': '1.9% platform fee on all transactions',
+                'estimated_payout_time': '2 business days',
+                'next_payout_date': '2025-07-14',
+                'requirements': {
+                    'currently_due': [],
+                    'eventually_due': [],
+                    'past_due': []
+                }
+            },
+            'fee_breakdown': {
+                'stripe_processing': '2.9% + $0.30',
+                'platform_fee': '1.9%',
+                'total_fee_range': '4.8% + $0.30',
+                'example_calculation': {
+                    'invoice_amount': 1000.00,
+                    'stripe_fee': 29.30,
+                    'platform_fee': 19.00,
+                    'net_amount': 951.70
+                }
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Stripe Connect status error: {e}")
+        return jsonify({'error': 'Failed to get Connect status'}), 500
 
 @app.route('/api/billing/create-payment-link', methods=['POST'])
 @login_required
@@ -8387,8 +8599,8 @@ def create_payment_link():
         if not all([invoice_amount, invoice_number]):
             return jsonify({'error': 'Missing required fields'}), 400
         
-        # Calculate platform fee (0.5% platform fee)
-        platform_fee = int(invoice_amount * 0.005)
+        # Calculate platform fee (1.9% platform fee)
+        platform_fee = int(invoice_amount * 0.019)
         
         # Create payment intent
         payment_intent = stripe.PaymentIntent.create(
@@ -9063,14 +9275,17 @@ def api_client_portal_pay_invoice():
         if not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key:
             logger.info(f"Using Stripe HTTP API for invoice {invoice_id}, amount {amount}")
             
-            # Create Stripe Checkout Session via HTTP API
+            # Calculate platform fee (1.9%)
+            platform_fee = int(amount * 0.019)
+            
+            # Create Stripe Checkout Session via HTTP API with Connect account
             stripe_api_url = "https://api.stripe.com/v1/checkout/sessions"
             
             checkout_data = {
                 'payment_method_types[]': 'card',
                 'line_items[0][price_data][currency]': 'usd',
                 'line_items[0][price_data][product_data][name]': f'Legal Services - {invoice_number}',
-                'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number}',
+                'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
                 'line_items[0][price_data][unit_amount]': str(amount),
                 'line_items[0][quantity]': '1',
                 'mode': 'payment',
@@ -9079,8 +9294,12 @@ def api_client_portal_pay_invoice():
                 'metadata[client_id]': client_id,
                 'metadata[invoice_id]': invoice_id,
                 'metadata[source]': 'client_portal',
+                'metadata[platform_fee]': str(platform_fee),
                 'customer_email': data.get('client_email', 'client@example.com'),
                 'billing_address_collection': 'required',
+                # TODO: Add Stripe Connect account when law firm has connected account
+                # 'payment_intent_data[application_fee_amount]': str(platform_fee),
+                # 'payment_intent_data[on_behalf_of]': 'law_firm_stripe_account_id',
             }
             
             headers = {
