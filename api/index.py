@@ -417,17 +417,10 @@ def login_required(f):
                         'error': 'Authentication required'
                     }), 401
                 else:
-                    return redirect('/')
+                    return redirect('/login')
             
-            # DEVELOPMENT: Auto-create demo session for development
-            if not DATABASE_AVAILABLE:
-                logger.info("Auto-creating demo session for development")
-                session['user_id'] = 'demo'
-                session['user_email'] = 'demo@lexai.com'
-                session['user_role'] = 'partner'
-                session['user_name'] = 'Demo User'
-                session['logged_in'] = True
-            else:
+            # Redirect to login - no auto-demo sessions
+            if True:  # Always require proper authentication
                 if request.is_json:
                     return jsonify({
                         'success': False,
@@ -878,6 +871,27 @@ def login_page():
         logger.error(f"Login page error: {e}")
         return f"Login error: {e}", 500
 
+@app.route('/demo-login')
+def demo_login():
+    """Demo login route for development"""
+    try:
+        # Clear any recent logout flag
+        session.pop('recent_logout', None)
+        
+        # Create demo session
+        session['user_id'] = 'demo'
+        session['user_email'] = 'demo@lexai.com'
+        session['user_role'] = 'partner'
+        session['user_name'] = 'Demo User'
+        session['logged_in'] = True
+        session.permanent = True
+        
+        logger.info("Demo login successful")
+        return redirect('/dashboard')
+    except Exception as e:
+        logger.error(f"Demo login error: {e}")
+        return f"Demo login error: {e}", 500
+
 @app.route('/register')
 @app.route('/auth/register')
 def register_page():
@@ -995,32 +1009,33 @@ def client_portal_dashboard_page():
         logger.error(f"Client portal dashboard page error: {e}")
         return f"Client portal dashboard error: {e}", 500
 
-@app.route('/client-portal/auto-login')
-def client_portal_auto_login():
-    """Auto-login for demo purposes"""
+@app.route('/client-portal/demo-login')
+def client_portal_demo_login():
+    """Demo login for client portal"""
     try:
+        # Clear any recent logout flags
+        session.pop('recent_logout', None)
+        
         # Set demo client session
         session['client_portal_logged_in'] = True
         session['client_portal_user'] = 'client_demo_001'
         session['client_portal_login_time'] = datetime.now().isoformat()
+        session.permanent = True
         
         logger.info("Demo client portal login successful")
         
-        return redirect('/client-portal/billing')
+        return redirect('/client-portal/dashboard')
     except Exception as e:
-        logger.error(f"Auto-login error: {e}")
-        return f"Auto-login error: {e}", 500
+        logger.error(f"Client portal demo login error: {e}")
+        return f"Client portal demo login error: {e}", 500
 
 @app.route('/client-portal/billing')
 def client_billing_page():
     """Client billing page"""
     try:
-        # Auto-login for demo if not authenticated
+        # Check authentication - redirect to login if not authenticated
         if not session.get('client_portal_logged_in'):
-            session['client_portal_logged_in'] = True
-            session['client_portal_user'] = 'client_demo_001'
-            session['client_portal_login_time'] = datetime.now().isoformat()
-            logger.info("Auto-authenticated client portal user for demo")
+            return redirect('/client-portal/login')
         
         return render_template('client-billing.html',
                              cache_buster=str(uuid.uuid4())[:8])
