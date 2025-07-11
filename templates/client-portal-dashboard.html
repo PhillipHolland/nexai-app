@@ -1987,10 +1987,36 @@
                 await fetch('/api/client-portal/auth/logout', {
                     method: 'POST'
                 });
+                
+                // Clear all client portal data
+                clearAllClientPortalData();
+                
                 window.location.href = '/client-portal/login';
             } catch (error) {
                 console.error('Logout error:', error);
+                
+                // Still clear data even if logout API fails
+                clearAllClientPortalData();
+                
                 window.location.href = '/client-portal/login';
+            }
+        }
+
+        // Function to clear all client portal stored data
+        function clearAllClientPortalData() {
+            // Clear localStorage items
+            localStorage.clear();
+            
+            // Clear sessionStorage completely
+            sessionStorage.clear();
+            
+            // Force browser to not cache anything
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
             }
         }
 

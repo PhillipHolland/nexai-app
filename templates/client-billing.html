@@ -505,6 +505,9 @@
         </div>
     </div>
 
+    <!-- Client Portal Auth Script -->
+    <script src="/static/client-portal-auth.js"></script>
+    
     <script>
         // Initialize the billing dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -732,32 +735,7 @@
             loadPaymentHistory();
         }
 
-        async function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    const response = await fetch('/api/client-portal/auth/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        window.location.href = '/client-portal/login';
-                    } else {
-                        console.error('Logout failed:', data.error);
-                        // Redirect anyway to ensure user gets logged out
-                        window.location.href = '/client-portal/login';
-                    }
-                } catch (error) {
-                    console.error('Logout error:', error);
-                    // Redirect anyway to ensure user gets logged out
-                    window.location.href = '/client-portal/login';
-                }
-            }
-        }
+        // Logout function is now provided by client-portal-auth.js
 
         // Payment status handlers
         function showPaymentSuccess(sessionId) {

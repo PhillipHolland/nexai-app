@@ -564,7 +564,7 @@
             }
         }
 
-        // Logout functionality
+        // Comprehensive logout functionality
         window.handleLogout = async function() {
             try {
                 // Call logout API
@@ -577,18 +577,50 @@
 
                 const data = await response.json();
                 
-                // Clear local storage
-                localStorage.removeItem('lexai_auth');
+                // Comprehensive cleanup of all stored data
+                clearAllStoredData();
                 
                 // Redirect to login
                 window.location.href = data.redirect || '/auth/login';
             } catch (error) {
                 console.error('Logout error:', error);
-                // Still clear local storage and redirect
-                localStorage.removeItem('lexai_auth');
+                // Still clear all stored data and redirect
+                clearAllStoredData();
                 window.location.href = '/auth/login';
             }
         };
+
+        // Function to clear all stored authentication and user data
+        function clearAllStoredData() {
+            // Clear localStorage items
+            localStorage.removeItem('lexai_auth');
+            localStorage.removeItem('lexai_onboarding');
+            localStorage.removeItem('stripe_onboarding');
+            localStorage.removeItem('lexai_timer_state');
+            localStorage.removeItem('lexai_time_entries');
+            
+            // Clear any client-specific localStorage items
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('client_notes_') || 
+                    key.startsWith('last_call_') || 
+                    key.startsWith('last_email_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // Clear sessionStorage completely
+            sessionStorage.clear();
+            
+            // Force browser to not cache anything
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
+            }
+        }
 
         // Check authentication status
         function checkAuthStatus() {

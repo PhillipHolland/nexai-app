@@ -37,6 +37,12 @@ except ImportError as e:
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
+# Configure secure session settings
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS attacks
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour session timeout
+
 # Initialize database if available
 if DATABASE_AVAILABLE:
     try:
@@ -2923,12 +2929,16 @@ def api_login():
         user.last_login = datetime.now(timezone.utc)
         db.session.commit()
         
-        # Create session
+        # Clear any existing session to prevent session fixation
+        session.clear()
+        
+        # Create new session with user data
         session['user_id'] = user.id
         session['user_email'] = user.email
         session['user_role'] = user.role.value
         session['user_name'] = f"{user.first_name} {user.last_name}"
         session['logged_in'] = True
+        session.permanent = True  # Enable session timeout
         
         # Create audit log
         audit_log('login', 'user', user.id, user.id, {
@@ -2961,26 +2971,39 @@ def api_login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def api_logout():
-    """User logout endpoint"""
+    """User logout endpoint with comprehensive session cleanup"""
     try:
         user_id = session.get('user_id')
         
         if user_id and DATABASE_AVAILABLE:
             # Create audit log
             audit_log('logout', 'user', user_id, user_id, {
-                'action': 'user_logout'
+                'action': 'user_logout',
+                'ip_address': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent', 'Unknown')
             })
         
-        # Clear session
+        # Clear ALL session data
         session.clear()
         
-        return jsonify({
+        # Create response with cache control headers
+        response = jsonify({
             'success': True,
-            'message': 'Logged out successfully'
+            'message': 'Logged out successfully',
+            'redirect': '/auth/login'
         })
+        
+        # Add security headers to prevent caching
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
         
     except Exception as e:
         logger.error(f"Logout error: {e}")
+        # Even if logout fails, clear session for security
+        session.clear()
         return jsonify({
             'success': False,
             'error': 'Logout failed'
@@ -2988,26 +3011,36 @@ def api_logout():
 
 @app.route('/logout', methods=['GET'])
 def logout_redirect():
-    """GET logout route for compatibility - calls the API and redirects"""
+    """GET logout route for compatibility with comprehensive cleanup"""
     try:
         user_id = session.get('user_id')
         
         if user_id and DATABASE_AVAILABLE:
             # Create audit log
             audit_log('logout', 'user', user_id, user_id, {
-                'action': 'user_logout'
+                'action': 'user_logout',
+                'ip_address': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent', 'Unknown')
             })
         
-        # Clear session
+        # Clear ALL session data
         session.clear()
         
-        # Redirect to login page
-        return redirect('/login')
+        # Create response with security headers
+        response = redirect('/auth/login')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
         
     except Exception as e:
         logger.error(f"Logout error: {e}")
-        # Redirect to login even if error occurs
-        return redirect('/login')
+        # Even if logout fails, clear session and redirect
+        session.clear()
+        response = redirect('/auth/login')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
 
 @app.route('/api/auth/me', methods=['GET'])
 @login_required
@@ -6990,10 +7023,14 @@ def api_client_portal_login():
                 'error': 'Invalid credentials'
             }), 401
         
-        # Create client session
+        # Clear any existing session to prevent session fixation
+        session.clear()
+        
+        # Create new client session
         session['client_portal_user'] = client_id
         session['client_portal_logged_in'] = True
         session['client_portal_login_time'] = datetime.now().isoformat()
+        session.permanent = True  # Enable session timeout
         
         logger.info(f"Client portal login: {client.first_name} {client.last_name}")
         
@@ -7018,20 +7055,43 @@ def api_client_portal_login():
 
 @app.route('/api/client-portal/auth/logout', methods=['POST'])
 def api_client_portal_logout():
-    """Client portal logout endpoint"""
+    """Client portal logout endpoint with comprehensive cleanup"""
     try:
-        # Clear client portal session
+        client_id = session.get('client_portal_user', {}).get('id')
+        
+        if client_id and DATABASE_AVAILABLE:
+            # Create audit log for client logout
+            audit_log('logout', 'client', client_id, client_id, {
+                'action': 'client_portal_logout',
+                'ip_address': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent', 'Unknown')
+            })
+        
+        # Clear ALL client portal session data
         session.pop('client_portal_user', None)
         session.pop('client_portal_logged_in', None)
         session.pop('client_portal_login_time', None)
         
-        return jsonify({
+        # Create response with security headers
+        response = jsonify({
             'success': True,
-            'message': 'Logged out successfully'
+            'message': 'Logged out successfully',
+            'redirect': '/client-portal/login'
         })
+        
+        # Add security headers to prevent caching
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
         
     except Exception as e:
         logger.error(f"Client portal logout error: {e}")
+        # Even if logout fails, clear session for security
+        session.pop('client_portal_user', None)
+        session.pop('client_portal_logged_in', None)
+        session.pop('client_portal_login_time', None)
         return jsonify({
             'success': False,
             'error': 'Logout failed'
@@ -7039,20 +7099,40 @@ def api_client_portal_logout():
 
 @app.route('/client-portal/logout', methods=['GET'])
 def client_portal_logout_redirect():
-    """GET client portal logout route for compatibility"""
+    """GET client portal logout route with comprehensive cleanup"""
     try:
-        # Clear client portal session
+        client_id = session.get('client_portal_user', {}).get('id')
+        
+        if client_id and DATABASE_AVAILABLE:
+            # Create audit log for client logout
+            audit_log('logout', 'client', client_id, client_id, {
+                'action': 'client_portal_logout',
+                'ip_address': request.remote_addr,
+                'user_agent': request.headers.get('User-Agent', 'Unknown')
+            })
+        
+        # Clear ALL client portal session data
         session.pop('client_portal_user', None)
         session.pop('client_portal_logged_in', None)
         session.pop('client_portal_login_time', None)
         
-        # Redirect to client portal login page
-        return redirect('/client-portal/login')
+        # Create response with security headers
+        response = redirect('/client-portal/login')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
         
     except Exception as e:
         logger.error(f"Client portal logout error: {e}")
-        # Redirect to login even if error occurs
-        return redirect('/client-portal/login')
+        # Even if logout fails, clear session and redirect
+        session.pop('client_portal_user', None)
+        session.pop('client_portal_logged_in', None)
+        session.pop('client_portal_login_time', None)
+        response = redirect('/client-portal/login')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
 
 @app.route('/demo-checkout', methods=['GET'])
 def demo_checkout_page():
