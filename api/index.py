@@ -499,6 +499,28 @@ def landing_law_firms():
         logger.error(f"Law firm landing page error: {e}")
         return f"LexAI Practice Partner - Error loading page: {e}", 500
 
+@app.route('/pricing')
+def pricing_page():
+    """Pricing page"""
+    try:
+        return render_template('pricing.html',
+                             google_analytics_id=app.config.get('GOOGLE_ANALYTICS_ID'),
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Pricing page error: {e}")
+        return f"LexAI Practice Partner - Error loading page: {e}", 500
+
+@app.route('/case-studies')
+def case_studies_page():
+    """Case studies page"""
+    try:
+        return render_template('case-studies.html',
+                             google_analytics_id=app.config.get('GOOGLE_ANALYTICS_ID'),
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Case studies page error: {e}")
+        return f"LexAI Practice Partner - Error loading page: {e}", 500
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
