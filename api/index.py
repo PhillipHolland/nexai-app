@@ -9057,14 +9057,67 @@ def api_client_portal_pay_invoice():
         except ImportError:
             logger.warning("Stripe module not available at runtime")
             stripe_available = False
+        
+        # Use real Stripe API via HTTP if module not available but credentials exist
+        stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        if not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key:
+            logger.info(f"Using Stripe HTTP API for invoice {invoice_id}, amount {amount}")
             
-        # If Stripe is not available, create a demo checkout for testing
-        if not stripe_available and not STRIPE_MODULE_AVAILABLE:            
+            # Create Stripe Checkout Session via HTTP API
+            stripe_api_url = "https://api.stripe.com/v1/checkout/sessions"
+            
+            checkout_data = {
+                'payment_method_types[]': 'card',
+                'line_items[0][price_data][currency]': 'usd',
+                'line_items[0][price_data][product_data][name]': f'Legal Services - {invoice_number}',
+                'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number}',
+                'line_items[0][price_data][unit_amount]': str(amount),
+                'line_items[0][quantity]': '1',
+                'mode': 'payment',
+                'success_url': f"{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
+                'cancel_url': f"{request.host_url}client-portal/billing?payment=cancelled",
+                'metadata[client_id]': client_id,
+                'metadata[invoice_id]': invoice_id,
+                'metadata[source]': 'client_portal',
+                'customer_email': data.get('client_email', 'client@example.com'),
+                'billing_address_collection': 'required',
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {stripe_secret_key}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            
+            import urllib.parse
+            encoded_data = urllib.parse.urlencode(checkout_data)
+            
+            # Make request to Stripe API
+            response = requests.post(stripe_api_url, data=encoded_data, headers=headers)
+            
+            if response.status_code == 200:
+                checkout_session = response.json()
+                return jsonify({
+                    'success': True,
+                    'checkout_url': checkout_session['url'],
+                    'session_id': checkout_session['id'],
+                    'amount': amount
+                })
+            else:
+                logger.error(f"Stripe API error: {response.status_code} - {response.text}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Stripe API error: {response.status_code}'
+                }), 500
+                
+        # If Stripe module is available, use it
+        if stripe_available:
+            stripe_client = runtime_stripe
+        elif STRIPE_MODULE_AVAILABLE:
+            stripe_client = stripe
+        else:
+            # Fallback to demo if no Stripe available
             logger.info(f"Creating demo checkout for invoice {invoice_id}, amount {amount}")
-            
-            # Create demo checkout URL that goes to our demo page
             demo_checkout_url = f"{request.host_url}demo-checkout?invoice_id={invoice_id}&amount={amount}&invoice_number={invoice_number}"
-            
             return jsonify({
                 'success': True,
                 'checkout_url': demo_checkout_url,
@@ -9074,9 +9127,7 @@ def api_client_portal_pay_invoice():
                 'message': 'Demo mode: This simulates Stripe Checkout flow'
             })
         
-        # Create Stripe Checkout Session for real payments
-        # Use runtime_stripe if available, fallback to global stripe
-        stripe_client = runtime_stripe if 'runtime_stripe' in locals() else stripe
+        # Create Stripe Checkout Session for real payments using Python module
         checkout_session = stripe_client.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
