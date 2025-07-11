@@ -11,35 +11,30 @@ a, a:link, a:visited, a:focus, a:active {
     text-decoration: none;
 }
 
-/* EXCEPTION: Button links should use their own colors, not inherit */
-/* Hero Start Free Trial - dark text on orange */
-a.btn-primary, a.btn-primary:link, a.btn-primary:visited, a.btn-primary:focus, a.btn-primary:active {
-    color: #2E4B3C !important;
-    text-decoration: none !important;
+/* Button Text Colors - Override browser defaults */
+a.btn-primary {
+    color: #2E4B3C;
+    text-decoration: none;
 }
 
-/* Hero See Features - dark text on light background */
-a.btn-secondary, a.btn-secondary:link, a.btn-secondary:visited, a.btn-secondary:focus, a.btn-secondary:active {
-    color: #2E4B3C !important;
-    text-decoration: none !important;
+a.btn-secondary {
+    color: #2E4B3C;
+    text-decoration: none;
 }
 
-/* Pricing buttons - white text on dark backgrounds */
-a.btn-outline, a.btn-outline:link, a.btn-outline:visited, a.btn-outline:focus, a.btn-outline:active {
-    color: #ffffff !important;
-    text-decoration: none !important;
+a.btn-outline {
+    color: #ffffff;
+    text-decoration: none;
 }
 
-/* Small Firm featured button - dark text on orange */
-a.btn-outline.featured, a.btn-outline.featured:link, a.btn-outline.featured:visited, a.btn-outline.featured:focus, a.btn-outline.featured:active {
-    color: #2E4B3C !important;
-    text-decoration: none !important;
+a.btn-outline.featured {
+    color: #2E4B3C;
+    text-decoration: none;
 }
 
-/* Enter Platform navigation button - dark text */
-a.nav-enter-platform, a.nav-enter-platform:link, a.nav-enter-platform:visited, a.nav-enter-platform:focus, a.nav-enter-platform:active {
-    color: #2E4B3C !important;
-    text-decoration: none !important;
+a.nav-enter-platform {
+    color: #2E4B3C;
+    text-decoration: none;
 }
 
 /* Override browser default focus styles */
@@ -675,13 +670,13 @@ body {
 }
 
 .integration-container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    background: #F7EDDA !important;
-    border-radius: 0.75rem !important;
-    padding: 3rem 2.5rem !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-    position: relative !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #F7EDDA;
+    border-radius: 0.75rem;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .integration-header {
@@ -863,8 +858,8 @@ body {
     }
     
     .integration-container {
-        margin: 0 1rem !important;
-        padding: 2rem 1.5rem !important;
+        margin: 0 1rem;
+        padding: 2rem 1.5rem;
     }
     
     .integration-header {
