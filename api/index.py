@@ -9002,11 +9002,21 @@ def api_client_portal_pay_invoice():
         if not invoice_id:
             return jsonify({'error': 'Invoice ID required'}), 400
         
-        if not STRIPE_MODULE_AVAILABLE:
-            return jsonify({
-                'success': False,
-                'error': 'Stripe payments not configured on server'
-            }), 503
+        # Try to import Stripe at runtime in case it's available now
+        try:
+            import stripe as runtime_stripe
+            runtime_stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+            logger.info("Runtime Stripe import successful")
+        except ImportError:
+            if not STRIPE_MODULE_AVAILABLE:
+                return jsonify({
+                    'success': False,
+                    'error': 'Stripe payment processing is temporarily unavailable. Please try again later or contact support.',
+                    'debug_info': {
+                        'stripe_key_configured': bool(os.environ.get('STRIPE_SECRET_KEY')),
+                        'stripe_module_available': STRIPE_MODULE_AVAILABLE
+                    }
+                }), 503
         
         # Get invoice details for payment
         amount = data.get('amount')  # Amount in cents
@@ -9016,7 +9026,9 @@ def api_client_portal_pay_invoice():
             return jsonify({'error': 'Payment amount required'}), 400
         
         # Create Stripe Checkout Session for real payments
-        checkout_session = stripe.checkout.Session.create(
+        # Use runtime_stripe if available, fallback to global stripe
+        stripe_client = runtime_stripe if 'runtime_stripe' in locals() else stripe
+        checkout_session = stripe_client.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
