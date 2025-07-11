@@ -632,6 +632,105 @@ body {
     background-color: #F0531C; /* bright-coral */
 }
 
+/* Integration Advantage Section */
+.integration-advantage {
+    max-width: 900px !important;
+    margin: 3rem auto !important;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+    border-radius: 1.5rem !important;
+    padding: 3rem !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    text-align: center !important;
+}
+
+.integration-advantage * {
+    text-align: center !important;
+}
+
+.integration-advantage h3 {
+    font-size: 2rem !important;
+    margin-bottom: 1rem !important;
+    color: #1e293b !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+}
+
+.integration-advantage p {
+    color: #475569 !important;
+    font-size: 1.1rem !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
+    line-height: 1.6 !important;
+    text-align: center !important;
+}
+
+.integration-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 2rem !important;
+    margin: 2rem auto !important;
+    justify-items: center !important;
+    text-align: center !important;
+}
+
+.integration-card {
+    padding: 2rem !important;
+    border-radius: 1rem !important;
+    text-align: center !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    width: 100% !important;
+    color: white !important;
+}
+
+.integration-card * {
+    text-align: center !important;
+}
+
+.integration-card .icon {
+    font-size: 2.5rem !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+}
+
+.integration-card .title {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    text-align: center !important;
+}
+
+.integration-card .description {
+    font-size: 0.9rem !important;
+    opacity: 0.9 !important;
+    text-align: center !important;
+}
+
+.integration-footer {
+    text-align: center !important;
+    margin-top: 3rem !important;
+    padding: 2rem !important;
+    background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%) !important;
+    border-radius: 1rem !important;
+    color: white !important;
+}
+
+.integration-footer * {
+    text-align: center !important;
+}
+
+.integration-footer .main-text {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.5rem !important;
+    text-align: center !important;
+}
+
+.integration-footer .sub-text {
+    font-size: 1.1rem !important;
+    opacity: 0.9 !important;
+    text-align: center !important;
+}
+
 /* CTA Section */
 .cta {
     padding: 5rem 0;
