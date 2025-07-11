@@ -9041,6 +9041,13 @@ def api_client_portal_pay_invoice():
         if not invoice_id:
             return jsonify({'error': 'Invoice ID required'}), 400
         
+        # Get invoice details for payment
+        amount = data.get('amount')  # Amount in cents
+        invoice_number = data.get('invoice_number', f'Invoice {invoice_id}')
+        
+        if not amount:
+            return jsonify({'error': 'Payment amount required'}), 400
+        
         # Try to import Stripe at runtime in case it's available now
         try:
             import stripe as runtime_stripe
@@ -9053,7 +9060,7 @@ def api_client_portal_pay_invoice():
             
         # If Stripe is not available, create a demo checkout for testing
         if not stripe_available and not STRIPE_MODULE_AVAILABLE:            
-            logger.info(f"Creating demo checkout for invoice {invoice_id}")
+            logger.info(f"Creating demo checkout for invoice {invoice_id}, amount {amount}")
             
             # Create demo checkout URL that goes to our demo page
             demo_checkout_url = f"{request.host_url}demo-checkout?invoice_id={invoice_id}&amount={amount}&invoice_number={invoice_number}"
@@ -9066,13 +9073,6 @@ def api_client_portal_pay_invoice():
                 'demo_mode': True,
                 'message': 'Demo mode: This simulates Stripe Checkout flow'
             })
-        
-        # Get invoice details for payment
-        amount = data.get('amount')  # Amount in cents
-        invoice_number = data.get('invoice_number', f'Invoice {invoice_id}')
-        
-        if not amount:
-            return jsonify({'error': 'Payment amount required'}), 400
         
         # Create Stripe Checkout Session for real payments
         # Use runtime_stripe if available, fallback to global stripe
