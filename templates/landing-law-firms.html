@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stop Overpaying: 4.8% Total vs Your Current Costs - LexAI Practice Partner</title>
+    <meta name="description" content="You're already paying 2.9% + $2,600/month. Our 4.8% total replaces everything and saves thousands. Complete law practice management with transparent pricing.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #F7EDDA;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: #F7EDDA;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #FFA74F;
+        }
+        
+        .cta-btn {
+            background: #FFA74F;
+            color: #2E4B3C;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-btn:hover {
+            background: #ff9d3d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 167, 79, 0.3);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+            color: white;
+            padding: 6rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+        
+        .hero-features {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .hero-feature {
+            text-align: center;
+            max-width: 200px;
+        }
+        
+        .hero-feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .hero-feature h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .hero-feature p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .hero-cta {
+            margin-top: 3rem;
+        }
+        
+        .hero-cta .cta-btn {
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+            margin: 0 1rem 1rem 0;
+        }
+        
+        .secondary-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+        
+        .secondary-btn:hover {
+            background: white;
+            color: #2E4B3C;
+        }
+        
+        /* Value Proposition */
+        .value-prop {
+            padding: 6rem 0;
+            background: #F7EDDA;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #6b7280;
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .value-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+        
+        .value-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .value-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .value-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+        
+        .value-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .value-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        /* Pricing Section */
+        .pricing {
+            padding: 6rem 0;
+            background: white;
+        }
+        
+        .pricing-comparison {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f8fafc;
+            border-radius: 1rem;
+            padding: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pricing-vs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        
+        .pricing-column h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .pricing-old {
+            opacity: 0.7;
+        }
+        
+        .pricing-new {
+            background: linear-gradient(135deg, #2E4B3C, #4a7c59);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+        }
+        
+        .pricing-new h4 {
+            color: white;
+            border-bottom-color: rgba(255,255,255,0.3);
+        }
+        
+        .pricing-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .pricing-new .pricing-item {
+            border-bottom-color: rgba(255,255,255,0.2);
+        }
+        
+        .pricing-highlight {
+            background: #059669;
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .pricing-highlight h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .pricing-example {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 6rem 0;
+            background: #F7EDDA;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        
+        .feature p {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+        
+        /* CTA Section */
+        .final-cta {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .final-cta h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .final-cta p {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .hero-features {
+                gap: 2rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .pricing-vs {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/static/lexAI.png" alt="LexAI" style="height: 2rem;">
+                Practice Partner
+            </div>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/pricing">Pricing</a>
+                <a href="/case-studies">Success Stories</a>
+                <a href="/login">Login</a>
+            </nav>
+            <a href="/onboarding" class="cta-btn">Get Started Free</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Stop Overpaying for Fragmented Tools<br>Upgrade to 4.8% Total</h1>
+            <p class="hero-subtitle">You're already paying fees and monthly costs. We're a small upgrade that replaces everything and saves you thousands.</p>
+            
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">🏛️</span>
+                    <h3>Complete Platform</h3>
+                    <p>Practice management, client portal, billing, payments - all included</p>
+                </div>
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">💰</span>
+                    <h3>Small Upgrade, Big Savings</h3>
+                    <p>4.8% total vs. your current 2.9% + $2,600/month costs</p>
+                </div>
+                <div class="hero-feature">
+                    <span class="hero-feature-icon">⚡</span>
+                    <h3>Instant Setup</h3>
+                    <p>Start collecting payments today. Full onboarding in minutes</p>
+                </div>
+            </div>
+            
+            <div class="hero-cta">
+                <a href="/onboarding" class="cta-btn">Start Free Today</a>
+                <a href="#pricing" class="secondary-btn">See Pricing</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reality Check Section -->
+    <section class="value-prop" style="background: #1f2937; color: white;">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">The Reality: You're Already Paying More</h2>
+            <p class="section-subtitle" style="color: #d1d5db;">Law firms report spending $2,600+/month on practice management tools PLUS 2.9% processing fees. Our 4.8% total replaces everything.</p>
+            
+            <div style="background: rgba(255,255,255,0.1); padding: 3rem; border-radius: 1rem; margin: 3rem 0; text-align: center;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: #FFA74F;">Industry Reality Check</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #FFA74F;">94%</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">of law firms pay monthly software fees</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #FFA74F;">$2,600+</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">average monthly tech stack cost</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #FFA74F;">2.9%</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">standard processing fees you pay now</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #FFA74F;">+1.9%</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">our small upgrade eliminates $2,600/month</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Value Proposition -->
+    <section class="value-prop">
+        <div class="container">
+            <h2 class="section-title">Why Smart Firms Make The Switch</h2>
+            <p class="section-subtitle">Transform your practice with transparent pricing that actually saves money while delivering more value.</p>
+            
+            <div class="value-grid">
+                <div class="value-card">
+                    <span class="value-icon">📊</span>
+                    <h3>Replace Your Existing Fees</h3>
+                    <p>You're already paying 3-4% processing fees plus monthly software costs. Our 4.8% total replaces everything and saves you thousands.</p>
+                </div>
+                
+                <div class="value-card">
+                    <span class="value-icon">🚀</span>
+                    <h3>Instant Client Experience</h3>
+                    <p>Professional client portal, secure document sharing, online payments. Impress clients from day one.</p>
+                </div>
+                
+                <div class="value-card">
+                    <span class="value-icon">⏰</span>
+                    <h3>Save 10+ Hours/Week</h3>
+                    <p>Automated invoicing, payment collection, client communication. Focus on legal work, not admin tasks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <h2 class="section-title">Smart Upgrade: 4.8% Total vs. What You Pay Now</h2>
+            <p class="section-subtitle">Stop overpaying for fragmented tools. See how much you'll save with our transparent, all-inclusive solution.</p>
+            
+            <div class="pricing-comparison">
+                <div class="pricing-vs">
+                    <div class="pricing-column pricing-old">
+                        <h4>❌ What You're Already Paying</h4>
+                        <div class="pricing-item">
+                            <span>Practice management software</span>
+                            <span>$100-300/month</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Current payment processor</span>
+                            <span>2.9% + $0.30</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Client portal setup</span>
+                            <span>$2,000-5,000</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Admin staff time</span>
+                            <span>$2,000+/month</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Integration costs</span>
+                            <span>$500-2,000</span>
+                        </div>
+                        <div class="pricing-item" style="font-weight: bold; color: #dc2626;">
+                            <span>Total You Pay Now</span>
+                            <span>$2,600+ monthly + 2.9%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pricing-column pricing-new">
+                        <h4>✅ LexAI: Small Upgrade, Huge Savings</h4>
+                        <div class="pricing-item">
+                            <span>Complete practice management</span>
+                            <span>$0/month</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Enhanced payment processing</span>
+                            <span>4.8% total (only +1.9%)</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Professional client portal</span>
+                            <span>$0 setup</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Automated admin tasks</span>
+                            <span>$0/month</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>All integrations included</span>
+                            <span>$0</span>
+                        </div>
+                        <div class="pricing-item" style="font-weight: bold;">
+                            <span>Total You Pay With LexAI</span>
+                            <span>$0 monthly + 4.8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pricing-highlight">
+                    <h3>💡 Real Example: $50,000 Monthly Collections</h3>
+                    <div class="pricing-example">
+                        <strong>What You Pay Now:</strong> $4,050/month ($2,600 fixed + $1,450 processing)<br>
+                        <strong>LexAI Total Cost:</strong> $2,400/month (4.8% only)<br>
+                        <strong>Monthly Savings:</strong> $1,650+ (40% less!)<br>
+                        <strong>Annual Savings:</strong> $19,800+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Everything You Need Included</h2>
+            <p class="section-subtitle">Complete law practice management platform with no hidden fees</p>
+            
+            <div class="features-grid">
+                <div class="feature">
+                    <span class="feature-icon">💳</span>
+                    <h4>Payment Processing</h4>
+                    <p>Accept credit cards, ACH, and online payments. Automatic invoicing and follow-up.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">👥</span>
+                    <h4>Client Portal</h4>
+                    <p>Secure client dashboard for documents, billing, case updates, and communication.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">📄</span>
+                    <h4>Case Management</h4>
+                    <p>Organize cases, track deadlines, manage documents, and collaborate with your team.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">⏰</span>
+                    <h4>Time Tracking</h4>
+                    <p>Built-in time tracking with automatic invoice generation and billing rates.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">📊</span>
+                    <h4>Financial Reports</h4>
+                    <p>Revenue tracking, expense management, and financial analytics for your practice.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">🔒</span>
+                    <h4>Bank-Level Security</h4>
+                    <p>SOC 2 compliant, encrypted data, secure client communications, and audit trails.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">📱</span>
+                    <h4>Mobile Access</h4>
+                    <p>Full mobile experience for you and your clients. Work from anywhere, anytime.</p>
+                </div>
+                
+                <div class="feature">
+                    <span class="feature-icon">🔗</span>
+                    <h4>Integrations</h4>
+                    <p>Connect with QuickBooks, calendar apps, email systems, and other legal tools.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Stop Overpaying. Start Saving Today.</h2>
+            <p>You're already paying more than 4.8% when you add up monthly fees + processing costs. Make the smart switch and save thousands monthly.</p>
+            
+            <div class="cta-buttons">
+                <a href="/onboarding" class="cta-btn">Start Free Today</a>
+                <a href="/pricing" class="secondary-btn">View Detailed Pricing</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
