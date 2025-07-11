@@ -8950,9 +8950,20 @@ def generate_payment_link():
         # Calculate platform fee (1.9%)
         platform_fee = int(amount * 0.019)
         
-        # Try HTTP-based Stripe API first (works without Python module)
+        # Try runtime Stripe import first
+        try:
+            import stripe as runtime_stripe
+            runtime_stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+            logger.info("Runtime Stripe import successful for payment link generation")
+            stripe_available = True
+        except ImportError:
+            logger.warning("Stripe module not available at runtime for payment link generation")
+            stripe_available = False
+        
+        # Use HTTP-based Stripe API if module not available but credentials exist
         stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
-        if stripe_secret_key:
+        if not stripe_available and not STRIPE_MODULE_AVAILABLE and stripe_secret_key:
+            logger.info(f"Using Stripe HTTP API for payment link generation, invoice {invoice_id}, amount {amount}")
             try:
                 import requests
                 
@@ -9005,11 +9016,11 @@ def generate_payment_link():
             except Exception as http_error:
                 logger.warning(f"HTTP Stripe API failed: {http_error}")
         
-        # Try Python Stripe module as fallback
-        if STRIPE_MODULE_AVAILABLE:
+        # Try Python Stripe module as fallback (if runtime import worked)
+        elif stripe_available:
             try:
-                # Create Stripe Checkout Session with platform fee
-                checkout_session = stripe.checkout.Session.create(
+                # Create Stripe Checkout Session with platform fee using runtime imported module
+                checkout_session = runtime_stripe.checkout.Session.create(
                     payment_method_types=['card'],
                     line_items=[{
                         'price_data': {
@@ -9035,6 +9046,8 @@ def generate_payment_link():
                     customer_email=client_email if client_email != 'client@example.com' else None,
                     application_fee_amount=platform_fee,  # This is the 1.9% platform fee
                 )
+                
+                logger.info(f"Created Stripe checkout session {checkout_session.id} via Python module for invoice {invoice_number}")
                 
                 return jsonify({
                     'success': True,
