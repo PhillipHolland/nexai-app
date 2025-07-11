@@ -8967,12 +8967,8 @@ def generate_payment_link():
             try:
                 import requests
                 
-                # Create Stripe Checkout Session via HTTP API
-                stripe_url = 'https://api.stripe.com/v1/checkout/sessions'
-                headers = {
-                    'Authorization': f'Bearer {stripe_secret_key}',
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                # Create Stripe Checkout Session via HTTP API (same as working client billing)
+                stripe_api_url = "https://api.stripe.com/v1/checkout/sessions"
                 
                 checkout_data = {
                     'payment_method_types[]': 'card',
@@ -8982,13 +8978,14 @@ def generate_payment_link():
                     'line_items[0][price_data][unit_amount]': str(amount),
                     'line_items[0][quantity]': '1',
                     'mode': 'payment',
-                    'success_url': f'{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}',
-                    'cancel_url': f'{request.host_url}client-portal/billing?payment=cancelled',
+                    'success_url': f"{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
+                    'cancel_url': f"{request.host_url}client-portal/billing?payment=cancelled",
                     'metadata[invoice_id]': invoice_id,
                     'metadata[invoice_number]': invoice_number,
+                    'metadata[source]': 'law_firm_dashboard',
                     'metadata[platform_fee]': str(platform_fee),
                     'metadata[platform_fee_rate]': '1.9%',
-                    'metadata[generated_by]': 'law_firm_dashboard',
+                    'billing_address_collection': 'required',
                     'application_fee_amount': str(platform_fee),  # This is the 1.9% platform fee
                 }
                 
@@ -8996,22 +8993,31 @@ def generate_payment_link():
                 if client_email and client_email != 'client@example.com':
                     checkout_data['customer_email'] = client_email
                 
-                response = requests.post(stripe_url, headers=headers, data=checkout_data, timeout=10)
+                headers = {
+                    'Authorization': f'Bearer {stripe_secret_key}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+                
+                import urllib.parse
+                encoded_data = urllib.parse.urlencode(checkout_data)
+                
+                # Make request to Stripe API (same as working client billing)
+                response = requests.post(stripe_api_url, data=encoded_data, headers=headers)
                 
                 if response.status_code == 200:
-                    session_data = response.json()
-                    logger.info(f"Created Stripe checkout session {session_data['id']} for invoice {invoice_number}")
+                    checkout_session = response.json()
+                    logger.info(f"Created Stripe checkout session {checkout_session['id']} for law firm invoice {invoice_number}")
                     
                     return jsonify({
                         'success': True,
-                        'payment_url': session_data['url'],
-                        'session_id': session_data['id'],
+                        'payment_url': checkout_session['url'],
+                        'session_id': checkout_session['id'],
                         'amount': amount,
                         'platform_fee': platform_fee,
                         'demo_mode': False
                     })
                 else:
-                    logger.warning(f"Stripe HTTP API error: {response.status_code} - {response.text}")
+                    logger.error(f"Stripe API error for law firm payment link: {response.status_code} - {response.text}")
                     
             except Exception as http_error:
                 logger.warning(f"HTTP Stripe API failed: {http_error}")
