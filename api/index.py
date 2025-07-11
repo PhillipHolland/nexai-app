@@ -8950,6 +8950,62 @@ def generate_payment_link():
         # Calculate platform fee (1.9%)
         platform_fee = int(amount * 0.019)
         
+        # Try HTTP-based Stripe API first (works without Python module)
+        stripe_secret_key = os.environ.get('STRIPE_SECRET_KEY')
+        if stripe_secret_key:
+            try:
+                import requests
+                
+                # Create Stripe Checkout Session via HTTP API
+                stripe_url = 'https://api.stripe.com/v1/checkout/sessions'
+                headers = {
+                    'Authorization': f'Bearer {stripe_secret_key}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+                
+                checkout_data = {
+                    'payment_method_types[]': 'card',
+                    'line_items[0][price_data][currency]': 'usd',
+                    'line_items[0][price_data][product_data][name]': f'Legal Services - {invoice_number}',
+                    'line_items[0][price_data][product_data][description]': f'Payment for legal services invoice {invoice_number} (Platform fee: 1.9%)',
+                    'line_items[0][price_data][unit_amount]': str(amount),
+                    'line_items[0][quantity]': '1',
+                    'mode': 'payment',
+                    'success_url': f'{request.host_url}client-portal/billing?payment=success&session_id={{CHECKOUT_SESSION_ID}}',
+                    'cancel_url': f'{request.host_url}client-portal/billing?payment=cancelled',
+                    'metadata[invoice_id]': invoice_id,
+                    'metadata[invoice_number]': invoice_number,
+                    'metadata[platform_fee]': str(platform_fee),
+                    'metadata[platform_fee_rate]': '1.9%',
+                    'metadata[generated_by]': 'law_firm_dashboard',
+                    'application_fee_amount': str(platform_fee),  # This is the 1.9% platform fee
+                }
+                
+                # Add customer email if provided and not default
+                if client_email and client_email != 'client@example.com':
+                    checkout_data['customer_email'] = client_email
+                
+                response = requests.post(stripe_url, headers=headers, data=checkout_data, timeout=10)
+                
+                if response.status_code == 200:
+                    session_data = response.json()
+                    logger.info(f"Created Stripe checkout session {session_data['id']} for invoice {invoice_number}")
+                    
+                    return jsonify({
+                        'success': True,
+                        'payment_url': session_data['url'],
+                        'session_id': session_data['id'],
+                        'amount': amount,
+                        'platform_fee': platform_fee,
+                        'demo_mode': False
+                    })
+                else:
+                    logger.warning(f"Stripe HTTP API error: {response.status_code} - {response.text}")
+                    
+            except Exception as http_error:
+                logger.warning(f"HTTP Stripe API failed: {http_error}")
+        
+        # Try Python Stripe module as fallback
         if STRIPE_MODULE_AVAILABLE:
             try:
                 # Create Stripe Checkout Session with platform fee
@@ -8990,7 +9046,7 @@ def generate_payment_link():
                 })
                 
             except Exception as stripe_error:
-                logger.warning(f"Stripe checkout creation failed: {stripe_error}")
+                logger.warning(f"Stripe Python module failed: {stripe_error}")
                 # Fall back to demo mode
                 pass
         
