@@ -625,7 +625,7 @@ body {
 
 .btn-outline.featured {
     background-color: #FFA74F; /* warm-orange */
-    color: #2E4B3C; /* dark-green */
+    color: #ffffff; /* white for better contrast */
 }
 
 .btn-outline.featured:hover {
