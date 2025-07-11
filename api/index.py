@@ -8589,10 +8589,16 @@ def stripe_onboarding_form():
         logger.error(f"Stripe onboarding form error: {e}")
         return f"LexAI Practice Partner - Error loading page: {e}", 500
 
-@app.route('/api/stripe/connect/onboard', methods=['POST'])
+@app.route('/api/stripe/connect/onboard', methods=['GET', 'POST'])
 # @login_required  # Temporarily disabled for demo mode
 def stripe_connect_onboard_demo():
     """Demo-friendly Stripe Connect onboarding for testing platform fees"""
+    
+    # Handle GET requests by redirecting to onboarding form
+    if request.method == 'GET':
+        return redirect('/stripe-onboarding')
+    
+    # Handle POST requests (actual onboarding)
     try:
         data = request.get_json() or {}
         firm_name = data.get('firm_name', 'Demo Law Firm')
