@@ -32,6 +32,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 2rem;
         }
         
         .logo {
@@ -47,6 +48,8 @@
             display: flex;
             gap: 2rem;
             align-items: center;
+            flex: 1;
+            justify-content: center;
         }
         
         .nav-links a {
@@ -54,15 +57,48 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
         }
         
         .nav-links a:hover {
             color: #FFA74F;
+            background-color: rgba(255, 167, 79, 0.1);
         }
         
         .nav-links a.active {
             color: #FFA74F;
             font-weight: 600;
+            background-color: rgba(255, 167, 79, 0.2);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .client-name {
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background-color: #FFA74F;
+            color: #2E4B3C;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logout-btn:hover {
+            background-color: #ff9d3d;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         }
         
         /* Main Content */
@@ -304,10 +340,23 @@
             .header-content {
                 flex-direction: column;
                 gap: 1rem;
+                text-align: center;
             }
             
             .nav-links {
                 gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+                order: 2;
+            }
+            
+            .nav-links a {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.875rem;
+            }
+            
+            .header-actions {
+                order: 3;
             }
             
             .page-title {
@@ -344,10 +393,13 @@
             </div>
             <div class="nav-links">
                 <a href="/client-portal/dashboard">Dashboard</a>
-                <a href="#" class="active">Billing</a>
+                <a href="/client-portal/billing" class="active">Billing</a>
                 <a href="#" onclick="alert('Messages feature coming soon!')">Messages</a>
                 <a href="#" onclick="alert('Documents feature coming soon!')">Documents</a>
-                <a href="#" onclick="logout()">Logout</a>
+            </div>
+            <div class="header-actions">
+                <span class="client-name">John Smith</span>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
             </div>
         </div>
     </div>
