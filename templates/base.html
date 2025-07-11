@@ -167,13 +167,9 @@
     <header class="base-navbar">
         <div class="base-nav-container">
             <div class="base-nav-content">
-                <!-- Logo -->
+                <!-- Logo - Always goes to homepage -->
                 <div>
-                    {% if session.logged_in %}
-                        <a href="{{ url_for('dashboard') }}">
-                    {% else %}
-                        <a href="{{ url_for('landing_page') }}">
-                    {% endif %}
+                    <a href="{{ url_for('landing_page') }}">
                         <img src="/static/lexAI.png" alt="LexAI" style="height: 3rem; width: auto;">
                     </a>
                 </div>
@@ -599,6 +595,9 @@
             localStorage.removeItem('lexai_timer_state');
             localStorage.removeItem('lexai_time_entries');
             
+            // Set logout flag to prevent auto-login
+            localStorage.setItem('lexai_logout_flag', Date.now().toString());
+            
             // Clear any client-specific localStorage items
             const keys = Object.keys(localStorage);
             keys.forEach(key => {
@@ -626,6 +625,19 @@
         function checkAuthStatus() {
             const authData = localStorage.getItem('lexai_auth');
             const currentPath = window.location.pathname;
+            const logoutFlag = localStorage.getItem('lexai_logout_flag');
+            
+            // If user just logged out, don't auto-create demo session
+            if (logoutFlag) {
+                const logoutTime = parseInt(logoutFlag);
+                const now = Date.now();
+                // Prevent auto-login for 5 seconds after logout
+                if (now - logoutTime < 5000) {
+                    return false;
+                }
+                // Remove old logout flag
+                localStorage.removeItem('lexai_logout_flag');
+            }
             
             // DEVELOPMENT MODE: Skip authentication check for now
             // TODO: Re-enable authentication checks in production
@@ -636,8 +648,8 @@
             }
             */
             
-            // If no auth data, create demo session for development
-            if (!authData) {
+            // If no auth data and we're not on landing/login pages, create demo session for development
+            if (!authData && !currentPath.includes('/auth/') && currentPath !== '/') {
                 const demoAuth = {
                     user: {
                         first_name: 'Demo',

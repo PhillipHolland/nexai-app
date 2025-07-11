@@ -407,6 +407,18 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get('logged_in'):
+            # Check if user recently logged out
+            recent_logout = session.get('recent_logout')
+            if recent_logout:
+                # Don't auto-create demo session if user just logged out
+                if request.is_json:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Authentication required'
+                    }), 401
+                else:
+                    return redirect('/')
+            
             # DEVELOPMENT: Auto-create demo session for development
             if not DATABASE_AVAILABLE:
                 logger.info("Auto-creating demo session for development")
@@ -2983,8 +2995,9 @@ def api_logout():
                 'user_agent': request.headers.get('User-Agent', 'Unknown')
             })
         
-        # Clear ALL session data
+        # Clear ALL session data and set logout flag
         session.clear()
+        session['recent_logout'] = True
         
         # Create response with cache control headers
         response = jsonify({
@@ -3004,6 +3017,7 @@ def api_logout():
         logger.error(f"Logout error: {e}")
         # Even if logout fails, clear session for security
         session.clear()
+        session['recent_logout'] = True
         return jsonify({
             'success': False,
             'error': 'Logout failed'
@@ -3023,11 +3037,12 @@ def logout_redirect():
                 'user_agent': request.headers.get('User-Agent', 'Unknown')
             })
         
-        # Clear ALL session data
+        # Clear ALL session data and set logout flag
         session.clear()
+        session['recent_logout'] = True
         
         # Create response with security headers
-        response = redirect('/auth/login')
+        response = redirect('/')
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -3038,7 +3053,8 @@ def logout_redirect():
         logger.error(f"Logout error: {e}")
         # Even if logout fails, clear session and redirect
         session.clear()
-        response = redirect('/auth/login')
+        session['recent_logout'] = True
+        response = redirect('/')
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         return response
 
