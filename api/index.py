@@ -1009,6 +1009,18 @@ def client_documents_page():
         logger.error(f"Client documents page error: {e}")
         return f"Client documents page error: {e}", 500
 
+@app.route('/admin-messages')
+@login_required
+@role_required('admin', 'partner', 'associate')
+def admin_messages_page():
+    """Admin messaging dashboard page"""
+    try:
+        return render_template('admin-messages.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Admin messages page error: {e}")
+        return f"Admin messages page error: {e}", 500
+
 # ===== API ROUTES =====
 
 @app.route('/api/health')
@@ -8992,6 +9004,427 @@ def api_client_portal_pay_invoice():
             'success': False,
             'error': 'Failed to create payment intent'
         }), 500
+
+# ===== ADMIN MESSAGING SYSTEM =====
+
+@app.route('/api/admin/messages', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_admin_messages():
+    """Get all client messages for admin/lawyer dashboard"""
+    try:
+        user_id = session.get('user_id', '1')
+        
+        # Get filter parameters
+        client_filter = request.args.get('client_id')
+        status_filter = request.args.get('status', 'all')  # all, unread, read
+        assigned_filter = request.args.get('assigned_to')
+        
+        if DATABASE_AVAILABLE:
+            # In a real implementation, this would query Message model with joins
+            # SELECT messages.*, clients.name as client_name, users.name as assigned_to_name
+            # FROM messages JOIN clients ON messages.client_id = clients.id
+            # LEFT JOIN users ON messages.assigned_to = users.id
+            # WHERE [filters] ORDER BY messages.created_at DESC
+            pass
+        
+        return _get_mock_admin_messages(client_filter, status_filter, assigned_filter)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving admin messages: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve messages'
+        }), 500
+
+@app.route('/api/admin/messages/<message_id>', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_admin_message_details(message_id):
+    """Get detailed information about a specific message"""
+    try:
+        user_id = session.get('user_id', '1')
+        
+        if DATABASE_AVAILABLE:
+            # Query database for specific message with full thread
+            pass
+        
+        return _get_mock_admin_message_details(message_id)
+            
+    except Exception as e:
+        logger.error(f"Error retrieving admin message details {message_id}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve message details'
+        }), 500
+
+@app.route('/api/admin/messages/<message_id>/reply', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_admin_reply_message():
+    """Reply to a client message"""
+    try:
+        user_id = session.get('user_id', '1')
+        data = request.get_json()
+        
+        if not data or not data.get('content'):
+            return jsonify({
+                'success': False,
+                'error': 'Reply content is required'
+            }), 400
+        
+        reply_content = data.get('content')
+        message_id = data.get('message_id')
+        
+        if DATABASE_AVAILABLE:
+            # Create new message record as reply
+            # message = Message(
+            #     content=reply_content,
+            #     sender_type='attorney',
+            #     sender_id=user_id,
+            #     client_id=original_message.client_id,
+            #     thread_id=original_message.thread_id or original_message.id,
+            #     in_reply_to=message_id
+            # )
+            # db.session.add(message)
+            # db.session.commit()
+            
+            # Send notification to client
+            pass
+        
+        # Mock successful reply
+        import random
+        reply_id = f'msg_reply_{random.randint(100000, 999999)}'
+        
+        logger.info(f"Admin user {user_id} replied to message {message_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Reply sent successfully',
+            'reply_id': reply_id,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error sending admin reply: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to send reply'
+        }), 500
+
+@app.route('/api/admin/messages/<message_id>/assign', methods=['POST'])
+@login_required
+@role_required('admin', 'partner')
+def api_admin_assign_message(message_id):
+    """Assign a message to a specific attorney/staff member"""
+    try:
+        user_id = session.get('user_id', '1')
+        data = request.get_json()
+        
+        assigned_to = data.get('assigned_to')
+        if not assigned_to:
+            return jsonify({
+                'success': False,
+                'error': 'Assigned user ID is required'
+            }), 400
+        
+        if DATABASE_AVAILABLE:
+            # Update message assignment
+            # message = Message.query.get(message_id)
+            # message.assigned_to = assigned_to
+            # message.assigned_by = user_id
+            # message.assigned_at = datetime.now()
+            # db.session.commit()
+            
+            # Send notification to assigned user
+            pass
+        
+        logger.info(f"Message {message_id} assigned to user {assigned_to} by {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Message assigned successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error assigning message: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to assign message'
+        }), 500
+
+@app.route('/api/admin/messages/<message_id>/status', methods=['POST'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_admin_update_message_status(message_id):
+    """Update message status (read/unread/archived)"""
+    try:
+        user_id = session.get('user_id', '1')
+        data = request.get_json()
+        
+        status = data.get('status')  # read, unread, archived
+        if status not in ['read', 'unread', 'archived']:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid status'
+            }), 400
+        
+        if DATABASE_AVAILABLE:
+            # Update message status
+            pass
+        
+        return jsonify({
+            'success': True,
+            'message': f'Message marked as {status}'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error updating message status: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to update message status'
+        }), 500
+
+@app.route('/api/admin/messages/stats', methods=['GET'])
+@login_required
+@role_required('admin', 'partner', 'associate')
+def api_admin_message_stats():
+    """Get message statistics for dashboard"""
+    try:
+        user_id = session.get('user_id', '1')
+        
+        if DATABASE_AVAILABLE:
+            # Query message statistics
+            pass
+        
+        # Mock statistics
+        stats = {
+            'total_messages': 47,
+            'unread_messages': 8,
+            'assigned_to_me': 12,
+            'urgent_messages': 3,
+            'messages_today': 5,
+            'avg_response_time': '2.4 hours',
+            'clients_with_messages': 15
+        }
+        
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+        
+    except Exception as e:
+        logger.error(f"Error retrieving message stats: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve message statistics'
+        }), 500
+
+def _get_mock_admin_messages(client_filter=None, status_filter='all', assigned_filter=None):
+    """Mock admin messages for development"""
+    
+    # Enhanced mock messages with realistic legal scenarios
+    all_messages = [
+        {
+            'id': 'msg_admin_001',
+            'subject': 'Urgent: Discovery Deadline Approaching',
+            'content': 'Hi Sarah, I just received notice that the discovery deadline for my case has been moved up to next Friday. I have several documents that I think might be relevant but I\'m not sure which ones you need. Can we schedule a call this week to go through them?',
+            'client_id': 'client_001',
+            'client_name': 'John Smith',
+            'client_email': 'john.smith@email.com',
+            'sender': 'client',
+            'sender_name': 'John Smith',
+            'timestamp': (datetime.now() - timedelta(hours=2)).isoformat(),
+            'is_read': False,
+            'status': 'unread',
+            'priority': 'urgent',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'case_id': 'case_001',
+            'case_title': 'Smith v. ABC Corporation',
+            'thread_count': 1,
+            'last_reply': None
+        },
+        {
+            'id': 'msg_admin_002', 
+            'subject': 'Question about Settlement Offer',
+            'content': 'Dear Attorney Johnson, I received the settlement offer you forwarded to me. The amount seems reasonable, but I have some concerns about the confidentiality clause. Could you explain what this means for me in the long term? Also, do we have any room to negotiate the terms?',
+            'client_id': 'client_002',
+            'client_name': 'Maria Garcia',
+            'client_email': 'maria.garcia@email.com',
+            'sender': 'client',
+            'sender_name': 'Maria Garcia', 
+            'timestamp': (datetime.now() - timedelta(hours=5)).isoformat(),
+            'is_read': True,
+            'status': 'read',
+            'priority': 'high',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'case_id': 'case_002',
+            'case_title': 'Garcia Personal Injury Claim',
+            'thread_count': 3,
+            'last_reply': (datetime.now() - timedelta(hours=3)).isoformat()
+        },
+        {
+            'id': 'msg_admin_003',
+            'subject': 'Documents for Contract Review',
+            'content': 'Hi there, I\'ve uploaded the latest version of the contract to the portal. The client made some additional changes to sections 4 and 7. Please review and let me know if these modifications create any legal issues we need to address.',
+            'client_id': 'client_003',
+            'client_name': 'TechStart LLC',
+            'client_email': 'legal@techstart.com',
+            'sender': 'client',
+            'sender_name': 'David Chen (TechStart LLC)',
+            'timestamp': (datetime.now() - timedelta(hours=8)).isoformat(),
+            'is_read': False,
+            'status': 'unread',
+            'priority': 'normal',
+            'assigned_to': 'user_mike',
+            'assigned_to_name': 'Michael Rodriguez',
+            'case_id': 'case_003',
+            'case_title': 'TechStart Contract Review',
+            'thread_count': 5,
+            'last_reply': (datetime.now() - timedelta(days=1)).isoformat()
+        },
+        {
+            'id': 'msg_admin_004',
+            'subject': 'Court Date Confirmation',
+            'content': 'Attorney Johnson, I received the court notice for next Thursday at 9 AM. I wanted to confirm that you\'ll be able to attend. Also, should I prepare any additional documentation or just bring what we discussed in our last meeting?',
+            'client_id': 'client_004',
+            'client_name': 'Robert Williams',
+            'client_email': 'rwilliams@email.com',
+            'sender': 'client',
+            'sender_name': 'Robert Williams',
+            'timestamp': (datetime.now() - timedelta(hours=12)).isoformat(),
+            'is_read': True,
+            'status': 'read',
+            'priority': 'high',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'case_id': 'case_004',
+            'case_title': 'Williams Divorce Proceedings',
+            'thread_count': 2,
+            'last_reply': (datetime.now() - timedelta(hours=10)).isoformat()
+        },
+        {
+            'id': 'msg_admin_005',
+            'subject': 'Thank you for your help',
+            'content': 'I wanted to thank you for all your hard work on my case. The outcome was better than I expected. I\'ve recommended your services to my colleague who may need legal assistance with their business. Is there a good time for them to call your office?',
+            'client_id': 'client_005',
+            'client_name': 'Lisa Thompson',
+            'client_email': 'lisa.thompson@email.com',
+            'sender': 'client',
+            'sender_name': 'Lisa Thompson',
+            'timestamp': (datetime.now() - timedelta(days=1)).isoformat(),
+            'is_read': False,
+            'status': 'unread',
+            'priority': 'normal',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'case_id': 'case_005',
+            'case_title': 'Thompson Employment Dispute',
+            'thread_count': 8,
+            'last_reply': (datetime.now() - timedelta(days=2)).isoformat()
+        }
+    ]
+    
+    # Apply filters
+    filtered_messages = all_messages
+    
+    if client_filter:
+        filtered_messages = [msg for msg in filtered_messages if msg['client_id'] == client_filter]
+    
+    if status_filter != 'all':
+        filtered_messages = [msg for msg in filtered_messages if msg['status'] == status_filter]
+    
+    if assigned_filter:
+        filtered_messages = [msg for msg in filtered_messages if msg['assigned_to'] == assigned_filter]
+    
+    return jsonify({
+        'success': True,
+        'messages': filtered_messages,
+        'total_count': len(all_messages),
+        'filtered_count': len(filtered_messages),
+        'unread_count': len([msg for msg in all_messages if not msg['is_read']])
+    })
+
+def _get_mock_admin_message_details(message_id):
+    """Mock admin message details with full thread"""
+    
+    mock_threads = {
+        'msg_admin_001': {
+            'id': 'msg_admin_001',
+            'subject': 'Urgent: Discovery Deadline Approaching',
+            'client_id': 'client_001',
+            'client_name': 'John Smith',
+            'client_email': 'john.smith@email.com',
+            'case_id': 'case_001',
+            'case_title': 'Smith v. ABC Corporation',
+            'priority': 'urgent',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'created_at': (datetime.now() - timedelta(hours=2)).isoformat(),
+            'thread': [
+                {
+                    'id': 'msg_admin_001',
+                    'content': 'Hi Sarah, I just received notice that the discovery deadline for my case has been moved up to next Friday. I have several documents that I think might be relevant but I\'m not sure which ones you need. Can we schedule a call this week to go through them?',
+                    'sender': 'client',
+                    'sender_name': 'John Smith',
+                    'timestamp': (datetime.now() - timedelta(hours=2)).isoformat(),
+                    'is_read': False
+                }
+            ]
+        },
+        'msg_admin_002': {
+            'id': 'msg_admin_002',
+            'subject': 'Question about Settlement Offer',
+            'client_id': 'client_002',
+            'client_name': 'Maria Garcia',
+            'client_email': 'maria.garcia@email.com',
+            'case_id': 'case_002',
+            'case_title': 'Garcia Personal Injury Claim',
+            'priority': 'high',
+            'assigned_to': 'user_sarah',
+            'assigned_to_name': 'Sarah Johnson',
+            'created_at': (datetime.now() - timedelta(hours=5)).isoformat(),
+            'thread': [
+                {
+                    'id': 'msg_admin_002',
+                    'content': 'Dear Attorney Johnson, I received the settlement offer you forwarded to me. The amount seems reasonable, but I have some concerns about the confidentiality clause. Could you explain what this means for me in the long term?',
+                    'sender': 'client',
+                    'sender_name': 'Maria Garcia',
+                    'timestamp': (datetime.now() - timedelta(hours=5)).isoformat(),
+                    'is_read': True
+                },
+                {
+                    'id': 'msg_reply_002_001',
+                    'content': 'Hi Maria, I\'ll review the confidentiality clause in detail and explain the implications. Let me schedule a call with you tomorrow to discuss this thoroughly.',
+                    'sender': 'attorney',
+                    'sender_name': 'Sarah Johnson',
+                    'timestamp': (datetime.now() - timedelta(hours=3)).isoformat(),
+                    'is_read': True
+                },
+                {
+                    'id': 'msg_reply_002_002',
+                    'content': 'Thank you Sarah. I\'m available tomorrow afternoon after 2 PM.',
+                    'sender': 'client',
+                    'sender_name': 'Maria Garcia',
+                    'timestamp': (datetime.now() - timedelta(hours=2)).isoformat(),
+                    'is_read': True
+                }
+            ]
+        }
+    }
+    
+    if message_id in mock_threads:
+        return jsonify({
+            'success': True,
+            'message': mock_threads[message_id]
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Message not found'
+        }), 404
 
 # ===== INITIALIZATION =====
 
