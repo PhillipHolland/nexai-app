@@ -495,9 +495,9 @@
             <div id="upload-tab" class="tab-content active">
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📄</div>
-                    <div class="upload-text">Drop your contract here or click to browse</div>
-                    <div class="upload-subtext">Supports PDF, DOC, DOCX, TXT files up to 10MB</div>
-                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt" multiple>
+                    <div class="upload-text">Drop your contract(s) here or click to browse</div>
+                    <div class="upload-subtext">Supports PDF, DOC, DOCX, TXT, and image files up to 10MB each. Select multiple files for batch processing.</div>
+                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.tiff,.bmp" multiple>
                 </div>
                 <div id="fileList" style="margin-top: 1rem;"></div>
             </div>
@@ -807,8 +807,12 @@ This Agreement shall commence on [START DATE] and continue until...">
                 }
             }
             
-            // Display real AI results
-            displayResults(results);
+            // Handle both single and batch results
+            if (results.batch_processing) {
+                displayBatchResults(results);
+            } else {
+                displayResults(results);
+            }
 
             loadingSpinner.style.display = 'none';
             resultsSection.classList.add('active');
@@ -868,6 +872,86 @@ This Agreement shall commence on [START DATE] and continue until...">
                 'Ensure compliance with applicable state laws'
             ]
         };
+    }
+
+    function displayBatchResults(batchData) {
+        // Handle batch processing results
+        const resultsContainer = document.getElementById('resultsSection');
+        const summary = batchData.summary;
+        
+        // Create batch summary header
+        const batchSummaryHtml = `
+            <div class="result-card" style="border-left: 4px solid #3b82f6;">
+                <div class="result-header">
+                    <h3 class="result-title">📊 Batch Processing Summary</h3>
+                    <span class="result-score ${summary.success_rate >= 80 ? 'score-excellent' : summary.success_rate >= 60 ? 'score-good' : 'score-fair'}">
+                        ${Math.round(summary.success_rate)}% Success
+                    </span>
+                </div>
+                <div class="result-content">
+                    <p><strong>Total Files:</strong> ${summary.total_files}</p>
+                    <p><strong>Successful Analyses:</strong> ${summary.successful_analyses}</p>
+                    <p><strong>Failed Analyses:</strong> ${summary.failed_analyses}</p>
+                    <p><strong>Analysis Type:</strong> ${summary.analysis_type}</p>
+                    <p><strong>Processing Time:</strong> ${new Date(summary.processing_time).toLocaleString()}</p>
+                </div>
+            </div>
+        `;
+        
+        // Create individual file results
+        const fileResultsHtml = batchData.results.map((result, index) => {
+            if (result.status === 'success') {
+                const analysis = result.analysis;
+                return `
+                    <div class="result-card" style="border-left: 4px solid #10b981;">
+                        <div class="result-header">
+                            <h3 class="result-title">📄 ${result.filename}</h3>
+                            <span class="result-score score-good">Success</span>
+                        </div>
+                        <div class="result-content">
+                            <p><strong>File Size:</strong> ${(result.file_metadata.file_size / 1024).toFixed(1)} KB</p>
+                            <p><strong>Text Length:</strong> ${result.text_length} characters</p>
+                            <p><strong>Overall Score:</strong> ${analysis.overall_score || 'N/A'}</p>
+                            <p><strong>Summary:</strong> ${analysis.executive_summary || analysis.summary || 'Analysis completed'}</p>
+                            
+                            <h4 style="margin-top: 1rem; color: #2E4B3C;">Key Risks Identified:</h4>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                ${analysis.risks ? analysis.risks.slice(0, 3).map(risk => 
+                                    `<li><strong>${risk.type}:</strong> ${risk.description}</li>`
+                                ).join('') : '<li>No significant risks identified</li>'}
+                            </ul>
+                            
+                            ${result.citation_analysis && result.citation_analysis.citations.length > 0 ? `
+                                <h4 style="margin-top: 1rem; color: #2E4B3C;">Legal Citations Found:</h4>
+                                <p>${result.citation_analysis.citations.length} citations detected</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="result-card" style="border-left: 4px solid #ef4444;">
+                        <div class="result-header">
+                            <h3 class="result-title">❌ ${result.filename}</h3>
+                            <span class="result-score score-poor">Failed</span>
+                        </div>
+                        <div class="result-content">
+                            <p><strong>Error:</strong> ${result.error}</p>
+                            <p><strong>File Size:</strong> ${(result.file_metadata.file_size / 1024).toFixed(1)} KB</p>
+                            <p><strong>File Type:</strong> ${result.file_metadata.file_type}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+        
+        // Update the results section
+        resultsContainer.innerHTML = batchSummaryHtml + fileResultsHtml;
+        
+        // Update page title elements
+        document.getElementById('executiveSummary').innerHTML = `<p>Batch processing completed for ${summary.total_files} files with ${summary.success_rate.toFixed(1)}% success rate.</p>`;
+        document.getElementById('overallScore').textContent = `${Math.round(summary.success_rate)}%`;
+        document.getElementById('overallScore').className = `result-score ${summary.success_rate >= 80 ? 'score-excellent' : summary.success_rate >= 60 ? 'score-good' : 'score-fair'}`;
     }
 
     function displayResults(results) {

@@ -9,6 +9,7 @@ import json
 import logging
 import uuid
 import requests
+import re
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session, redirect
@@ -90,35 +91,249 @@ logger.info(f"STRIPE_AVAILABLE: {STRIPE_AVAILABLE}")
 
 # ===== DOCUMENT PROCESSING AND AI ANALYSIS HELPER FUNCTIONS =====
 
-def _extract_text_from_file(file_content, filename, file_type):
-    """Extract text from various file formats"""
+def _preprocess_document_content(text, filename):
+    """Enhance document quality through preprocessing"""
+    try:
+        if not text or not text.strip():
+            return text
+            
+        # Clean up common OCR artifacts and formatting issues
+        processed_text = text
+        
+        # Remove excessive whitespace and normalize line breaks
+        processed_text = re.sub(r'\n\s*\n\s*\n+', '\n\n', processed_text)  # Multiple line breaks to double
+        processed_text = re.sub(r'[ \t]+', ' ', processed_text)  # Multiple spaces to single
+        processed_text = re.sub(r' +\n', '\n', processed_text)  # Trailing spaces before newlines
+        
+        # Fix common OCR character recognition errors
+        ocr_fixes = {
+            r'\b0(?=\d)': '0',  # Leading zeros in numbers
+            r'\bl(?=[A-Z])': 'I',  # Lowercase l that should be uppercase I
+            r'(?<=[a-z])1(?=[a-z])': 'l',  # Number 1 that should be lowercase l
+            r'rn(?=[a-z])': 'm',  # rn combination that should be m
+            r'(?<=\w)cl(?=\w)': 'd',  # cl that should be d
+            r'(?<=\w)fi(?=\w)': 'fi',  # fi ligature normalization
+        }
+        
+        for pattern, replacement in ocr_fixes.items():
+            processed_text = re.sub(pattern, replacement, processed_text)
+        
+        # Normalize legal document structure
+        # Fix section numbering
+        processed_text = re.sub(r'(?<=\n)(\d+)\.(?=\s+[A-Z])', r'\1.', processed_text)
+        
+        # Normalize legal citations format
+        processed_text = re.sub(r'(\d+)\s+([A-Z][a-z]*\.?)\s+(\d+)', r'\1 \2 \3', processed_text)
+        
+        # Fix common legal abbreviations
+        legal_abbrev_fixes = {
+            r'\bU\.S\.C\b': 'U.S.C.',
+            r'\bC\.F\.R\b': 'C.F.R.',
+            r'\bFed\.\s*Reg\b': 'Fed. Reg.',
+            r'\bF\.2d\b': 'F.2d',
+            r'\bF\.3d\b': 'F.3d',
+            r'\bF\.Supp\b': 'F.Supp',
+        }
+        
+        for pattern, replacement in legal_abbrev_fixes.items():
+            processed_text = re.sub(pattern, replacement, processed_text, flags=re.IGNORECASE)
+        
+        # Remove footer/header artifacts common in legal documents
+        lines = processed_text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            # Skip likely header/footer lines
+            if (len(line) < 5 or 
+                re.match(r'^\d+$', line) or  # Page numbers only
+                re.match(r'^Page \d+', line, re.IGNORECASE) or
+                line.lower().startswith('confidential') and len(line) < 50):
+                continue
+            cleaned_lines.append(line)
+        
+        processed_text = '\n'.join(cleaned_lines)
+        
+        # Final cleanup
+        processed_text = processed_text.strip()
+        
+        # Quality metrics
+        original_length = len(text)
+        processed_length = len(processed_text)
+        improvement_ratio = processed_length / original_length if original_length > 0 else 1
+        
+        logger.info(f"Document preprocessing for {filename}: {original_length} -> {processed_length} chars (ratio: {improvement_ratio:.2f})")
+        
+        return processed_text
+        
+    except Exception as e:
+        logger.error(f"Document preprocessing failed for {filename}: {e}")
+        return text  # Return original text if preprocessing fails
+
+def _detect_and_validate_document_format(file_content, filename, declared_file_type):
+    """Detect actual file format and validate against declared type"""
     try:
         # Get file extension
         file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
         
-        # Handle different file types
-        if file_type == 'text/plain' or file_ext in ['txt']:
+        # Magic number detection for common file types
+        magic_signatures = {
+            'pdf': [b'%PDF'],
+            'docx': [b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08'],  # ZIP-based formats
+            'doc': [b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'],  # OLE compound document
+            'txt': [],  # No magic number for plain text
+            'jpg': [b'\xff\xd8\xff'],
+            'jpeg': [b'\xff\xd8\xff'],
+            'png': [b'\x89\x50\x4e\x47\x0d\x0a\x1a\x0a'],
+            'tiff': [b'\x49\x49\x2a\x00', b'\x4d\x4d\x00\x2a'],
+            'bmp': [b'\x42\x4d'],
+            'gif': [b'\x47\x49\x46\x38'],
+        }
+        
+        # Detect actual format based on file header
+        detected_format = None
+        for format_name, signatures in magic_signatures.items():
+            for signature in signatures:
+                if file_content.startswith(signature):
+                    detected_format = format_name
+                    break
+            if detected_format:
+                break
+        
+        # If no magic number detected, try to infer from content
+        if not detected_format:
+            try:
+                # Try to decode as text
+                text_content = file_content.decode('utf-8', errors='ignore')
+                if len(text_content.strip()) > 0 and all(ord(c) < 128 or c.isprintable() for c in text_content[:1000]):
+                    detected_format = 'txt'
+            except:
+                pass
+        
+        # Validate against declared type
+        type_mappings = {
+            'application/pdf': 'pdf',
+            'application/msword': 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+            'text/plain': 'txt',
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/tiff': 'tiff',
+            'image/bmp': 'bmp',
+            'image/gif': 'gif',
+        }
+        
+        expected_format = type_mappings.get(declared_file_type, file_ext)
+        
+        # Validation results
+        validation_result = {
+            'filename': filename,
+            'declared_type': declared_file_type,
+            'file_extension': file_ext,
+            'detected_format': detected_format,
+            'expected_format': expected_format,
+            'is_valid': detected_format == expected_format if detected_format else True,
+            'file_size': len(file_content),
+            'validation_warnings': []
+        }
+        
+        # Add warnings for mismatches
+        if detected_format and detected_format != expected_format:
+            validation_result['validation_warnings'].append(
+                f"File format mismatch: detected {detected_format}, expected {expected_format}"
+            )
+        
+        if detected_format and detected_format != file_ext:
+            validation_result['validation_warnings'].append(
+                f"Extension mismatch: file is {detected_format} but has .{file_ext} extension"
+            )
+        
+        # File size validation
+        max_sizes = {
+            'pdf': 50 * 1024 * 1024,    # 50MB for PDFs
+            'docx': 25 * 1024 * 1024,   # 25MB for Word docs
+            'doc': 25 * 1024 * 1024,    # 25MB for Word docs
+            'txt': 10 * 1024 * 1024,    # 10MB for text
+            'jpg': 20 * 1024 * 1024,    # 20MB for images
+            'jpeg': 20 * 1024 * 1024,   # 20MB for images
+            'png': 20 * 1024 * 1024,    # 20MB for images
+            'tiff': 50 * 1024 * 1024,   # 50MB for TIFF (can be large)
+            'bmp': 50 * 1024 * 1024,    # 50MB for BMP
+        }
+        
+        format_to_check = detected_format or expected_format
+        max_size = max_sizes.get(format_to_check, 10 * 1024 * 1024)  # Default 10MB
+        
+        if len(file_content) > max_size:
+            validation_result['validation_warnings'].append(
+                f"File size ({len(file_content)/1024/1024:.1f}MB) exceeds recommended limit ({max_size/1024/1024:.1f}MB)"
+            )
+        
+        # Content validation for specific formats
+        if detected_format == 'pdf':
+            if not (b'%PDF-1.' in file_content[:20]):
+                validation_result['validation_warnings'].append("PDF version header not found")
+        
+        logger.info(f"Format validation for {filename}: {validation_result}")
+        return validation_result
+        
+    except Exception as e:
+        logger.error(f"Format detection failed for {filename}: {e}")
+        return {
+            'filename': filename,
+            'declared_type': declared_file_type,
+            'file_extension': file_ext,
+            'detected_format': None,
+            'expected_format': None,
+            'is_valid': False,
+            'file_size': len(file_content),
+            'validation_warnings': [f"Format detection error: {str(e)}"]
+        }
+
+def _extract_text_from_file(file_content, filename, file_type):
+    """Extract text from various file formats with preprocessing and validation"""
+    try:
+        # Validate and detect document format
+        format_validation = _detect_and_validate_document_format(file_content, filename, file_type)
+        
+        # Log validation warnings
+        if format_validation['validation_warnings']:
+            for warning in format_validation['validation_warnings']:
+                logger.warning(f"File validation warning for {filename}: {warning}")
+        
+        # Use detected format if available, otherwise fall back to declared type
+        actual_format = format_validation['detected_format'] or format_validation['expected_format']
+        file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+        
+        # Handle different file types based on detected format
+        if actual_format == 'txt' or (file_type == 'text/plain' or file_ext in ['txt']):
             # Plain text file
             try:
-                return file_content.decode('utf-8')
+                raw_text = file_content.decode('utf-8')
             except UnicodeDecodeError:
                 try:
-                    return file_content.decode('latin-1')
+                    raw_text = file_content.decode('latin-1')
                 except:
-                    return file_content.decode('utf-8', errors='ignore')
+                    raw_text = file_content.decode('utf-8', errors='ignore')
+            
+            # Apply preprocessing
+            processed_text = _preprocess_document_content(raw_text, filename)
+            return processed_text + f"\n\n[VALIDATION: {format_validation}]"
         
-        elif file_type == 'application/pdf' or file_ext == 'pdf':
-            # PDF file - would require PyPDF2 or similar library
-            # For now, return placeholder text
-            return _extract_pdf_text_placeholder(file_content, filename)
+        elif actual_format == 'pdf' or (file_type == 'application/pdf' or file_ext == 'pdf'):
+            # PDF file - use real PDF processing with pdfplumber/PyPDF2
+            extracted_text = _extract_pdf_text_real(file_content, filename)
+            return extracted_text + f"\n\n[VALIDATION: {format_validation}]"
         
-        elif file_type in ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] or file_ext in ['doc', 'docx']:
+        elif actual_format in ['doc', 'docx'] or (file_type in ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] or file_ext in ['doc', 'docx']):
             # Word document - would require python-docx library
-            return _extract_word_text_placeholder(file_content, filename)
+            extracted_text = _extract_word_text_placeholder(file_content, filename)
+            return extracted_text + f"\n\n[VALIDATION: {format_validation}]"
         
-        elif file_type.startswith('image/') or file_ext in ['jpg', 'jpeg', 'png', 'tiff', 'bmp']:
-            # Image file - would require OCR
-            return _extract_image_text_placeholder(file_content, filename)
+        elif actual_format in ['jpg', 'jpeg', 'png', 'tiff', 'bmp', 'gif'] or (file_type.startswith('image/') or file_ext in ['jpg', 'jpeg', 'png', 'tiff', 'bmp']):
+            # Image file - use real OCR processing with Tesseract
+            extracted_text = _extract_image_text_real(file_content, filename)
+            return extracted_text + f"\n\n[VALIDATION: {format_validation}]"
         
         else:
             # Try to decode as text for unknown types
@@ -131,28 +346,142 @@ def _extract_text_from_file(file_content, filename, file_type):
         logger.error(f"Error extracting text from {filename}: {e}")
         return f"[Error extracting text from {filename}: {str(e)}]"
 
+def _extract_pdf_text_real(file_content, filename):
+    """Extract text from PDF using PyPDF2 and pdfplumber with fallback"""
+    try:
+        # Try pdfplumber first (better for tables and layout)
+        try:
+            import pdfplumber
+            import io
+            
+            text_content = []
+            metadata = {}
+            
+            with pdfplumber.open(io.BytesIO(file_content)) as pdf:
+                # Extract metadata
+                if pdf.metadata:
+                    metadata.update({
+                        'title': pdf.metadata.get('Title', ''),
+                        'author': pdf.metadata.get('Author', ''),
+                        'creator': pdf.metadata.get('Creator', ''),
+                        'creation_date': str(pdf.metadata.get('CreationDate', '')),
+                        'pages': len(pdf.pages)
+                    })
+                
+                # Extract text from each page
+                for page_num, page in enumerate(pdf.pages, 1):
+                    try:
+                        page_text = page.extract_text()
+                        if page_text and page_text.strip():
+                            text_content.append(f"[Page {page_num}]\n{page_text.strip()}")
+                            
+                        # Extract tables if present
+                        tables = page.extract_tables()
+                        if tables:
+                            for table_num, table in enumerate(tables, 1):
+                                table_text = f"\n[Table {table_num} on Page {page_num}]\n"
+                                for row in table:
+                                    if row:
+                                        table_text += " | ".join([cell or "" for cell in row]) + "\n"
+                                text_content.append(table_text)
+                                
+                    except Exception as e:
+                        logger.warning(f"Error extracting page {page_num} from {filename}: {e}")
+                        text_content.append(f"[Page {page_num} - extraction error]")
+            
+            extracted_text = "\n\n".join(text_content)
+            if extracted_text.strip():
+                metadata_text = ""
+                if metadata:
+                    metadata_text = f"[PDF Metadata: {filename}]\n"
+                    for key, value in metadata.items():
+                        if value:
+                            metadata_text += f"{key.title()}: {value}\n"
+                    metadata_text += "\n"
+                
+                # Apply preprocessing to extracted text
+                processed_text = _preprocess_document_content(extracted_text, filename)
+                return metadata_text + processed_text
+                
+        except ImportError:
+            logger.info("pdfplumber not available, trying PyPDF2")
+        except Exception as e:
+            logger.warning(f"pdfplumber failed for {filename}: {e}, trying PyPDF2")
+        
+        # Fallback to PyPDF2
+        try:
+            import PyPDF2
+            import io
+            
+            text_content = []
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+            
+            # Extract metadata
+            metadata = {}
+            if pdf_reader.metadata:
+                metadata.update({
+                    'title': pdf_reader.metadata.get('/Title', ''),
+                    'author': pdf_reader.metadata.get('/Author', ''),
+                    'creator': pdf_reader.metadata.get('/Creator', ''),
+                    'creation_date': str(pdf_reader.metadata.get('/CreationDate', '')),
+                    'pages': len(pdf_reader.pages)
+                })
+            
+            # Extract text from each page
+            for page_num, page in enumerate(pdf_reader.pages, 1):
+                try:
+                    page_text = page.extract_text()
+                    if page_text and page_text.strip():
+                        text_content.append(f"[Page {page_num}]\n{page_text.strip()}")
+                except Exception as e:
+                    logger.warning(f"Error extracting page {page_num} with PyPDF2: {e}")
+                    text_content.append(f"[Page {page_num} - extraction error]")
+            
+            extracted_text = "\n\n".join(text_content)
+            if extracted_text.strip():
+                metadata_text = ""
+                if metadata:
+                    metadata_text = f"[PDF Metadata: {filename}]\n"
+                    for key, value in metadata.items():
+                        if value:
+                            metadata_text += f"{key.title()}: {value}\n"
+                    metadata_text += "\n"
+                
+                # Apply preprocessing to extracted text
+                processed_text = _preprocess_document_content(extracted_text, filename)
+                return metadata_text + processed_text
+                
+        except ImportError:
+            logger.warning("PyPDF2 not available")
+        except Exception as e:
+            logger.error(f"PyPDF2 failed for {filename}: {e}")
+        
+        # Final fallback - return informative message
+        return _extract_pdf_text_placeholder(file_content, filename)
+        
+    except Exception as e:
+        logger.error(f"PDF extraction completely failed for {filename}: {e}")
+        return f"[PDF ERROR: {filename}]\nFailed to extract text from PDF: {str(e)}\nFile size: {len(file_content)} bytes"
+
 def _extract_pdf_text_placeholder(file_content, filename):
-    """Placeholder for PDF text extraction - would use PyPDF2 or pdfplumber in production"""
-    # In production, this would use libraries like:
-    # import PyPDF2 or import pdfplumber
-    # Here we return a placeholder indicating PDF processing capability
-    
-    logger.info(f"PDF processing requested for {filename} ({len(file_content)} bytes)")
+    """Fallback placeholder for PDF text extraction when libraries unavailable"""
+    logger.info(f"PDF processing requested for {filename} ({len(file_content)} bytes) - using placeholder")
     
     return f"""[PDF DOCUMENT: {filename}]
     
-This is a placeholder for PDF text extraction. In a production environment, this would:
-1. Use PyPDF2, pdfplumber, or similar library to extract text
-2. Preserve formatting and structure where possible
-3. Handle encrypted PDFs with appropriate credentials
-4. Extract metadata (author, creation date, etc.)
-5. Identify tables, images, and other embedded content
+PDF processing libraries not available. Install dependencies for full PDF support:
+pip install pdfplumber PyPDF2
 
 File size: {len(file_content)} bytes
-Processing status: Ready for AI analysis
+Pages: Estimated {max(1, len(file_content) // 3000)} pages
+Processing status: Placeholder mode - ready for AI analysis
 
-To enable full PDF processing, install required dependencies:
-pip install PyPDF2 pdfplumber
+This PDF would be processed with:
+1. Text extraction from all pages
+2. Table detection and extraction
+3. Metadata extraction (title, author, creation date)
+4. Page-by-page content organization
+5. Error handling for corrupted or encrypted PDFs
 
 [End PDF placeholder]"""
 
@@ -177,6 +506,104 @@ To enable full Word processing, install required dependencies:
 pip install python-docx
 
 [End Word placeholder]"""
+
+def _extract_image_text_real(file_content, filename):
+    """Extract text from images using Tesseract OCR with preprocessing"""
+    try:
+        # Try pytesseract with PIL for image preprocessing
+        try:
+            import pytesseract
+            from PIL import Image, ImageEnhance, ImageFilter
+            import io
+            
+            # Load image from bytes
+            image = Image.open(io.BytesIO(file_content))
+            original_format = image.format
+            
+            # Convert to RGB if necessary
+            if image.mode not in ('RGB', 'L'):
+                image = image.convert('RGB')
+            
+            # Image preprocessing for better OCR results
+            enhanced_images = []
+            
+            # Original image
+            enhanced_images.append(("original", image))
+            
+            # Convert to grayscale
+            gray_image = image.convert('L')
+            enhanced_images.append(("grayscale", gray_image))
+            
+            # Enhance contrast
+            enhancer = ImageEnhance.Contrast(gray_image)
+            contrast_image = enhancer.enhance(2.0)
+            enhanced_images.append(("high_contrast", contrast_image))
+            
+            # Sharpen image
+            sharp_image = gray_image.filter(ImageFilter.SHARPEN)
+            enhanced_images.append(("sharpened", sharp_image))
+            
+            # Try OCR with different preprocessing approaches
+            best_result = ""
+            best_confidence = 0
+            results_summary = []
+            
+            for name, processed_image in enhanced_images:
+                try:
+                    # Basic OCR
+                    text = pytesseract.image_to_string(processed_image, lang='eng')
+                    
+                    # Get confidence data
+                    try:
+                        data = pytesseract.image_to_data(processed_image, output_type=pytesseract.Output.DICT)
+                        confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
+                        avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+                    except:
+                        avg_confidence = 50  # Default confidence
+                    
+                    if text.strip() and avg_confidence > best_confidence:
+                        best_result = text.strip()
+                        best_confidence = avg_confidence
+                    
+                    results_summary.append(f"{name}: {len(text.strip())} chars, {avg_confidence:.1f}% confidence")
+                    
+                except Exception as e:
+                    logger.warning(f"OCR failed for {name} preprocessing: {e}")
+                    results_summary.append(f"{name}: failed ({str(e)})")
+            
+            if best_result:
+                # Get image metadata
+                metadata = {
+                    'filename': filename,
+                    'format': original_format,
+                    'size': image.size,
+                    'mode': image.mode,
+                    'file_size': len(file_content)
+                }
+                
+                metadata_text = f"[IMAGE METADATA: {filename}]\n"
+                metadata_text += f"Format: {metadata['format']}\n"
+                metadata_text += f"Dimensions: {metadata['size'][0]}x{metadata['size'][1]}\n"
+                metadata_text += f"Color Mode: {metadata['mode']}\n"
+                metadata_text += f"File Size: {metadata['file_size']} bytes\n"
+                metadata_text += f"OCR Confidence: {best_confidence:.1f}%\n"
+                metadata_text += f"Processing Summary: {', '.join(results_summary)}\n\n"
+                
+                # Apply preprocessing to OCR text
+                processed_text = _preprocess_document_content(best_result, filename)
+                return metadata_text + f"[OCR TEXT EXTRACTION]\n{processed_text}"
+            
+        except ImportError:
+            logger.info("pytesseract/PIL not available, trying alternative OCR")
+        except Exception as e:
+            logger.warning(f"pytesseract failed for {filename}: {e}")
+        
+        # Fallback to placeholder if OCR libraries unavailable
+        return _extract_image_text_placeholder(file_content, filename)
+        
+    except Exception as e:
+        logger.error(f"Image OCR completely failed for {filename}: {e}")
+        return f"[IMAGE ERROR: {filename}]\nFailed to extract text from image: {str(e)}\nFile size: {len(file_content)} bytes"
 
 def _extract_image_text_placeholder(file_content, filename):
     """Placeholder for OCR text extraction from images"""
@@ -1639,9 +2066,18 @@ def api_contract_analysis():
             source_type = request.form.get('source', 'file')
             contract_text = request.form.get('text', '')
             
-            # Check for uploaded file
-            if 'file' in request.files:
-                uploaded_file = request.files['file']
+            # Check for uploaded files (handle multiple files)
+            files = request.files.getlist('file') if 'file' in request.files else []
+            if not files:
+                files = [request.files['file']] if 'file' in request.files and request.files['file'].filename else []
+            
+            if files and any(f.filename for f in files):
+                # Handle multiple files for batch processing
+                if len(files) > 1:
+                    return _process_batch_files(files, analysis_type, source_type)
+                
+                # Single file processing
+                uploaded_file = files[0]
                 if uploaded_file.filename:
                     # Process uploaded file
                     file_content = uploaded_file.read()
@@ -1926,25 +2362,208 @@ def _perform_contract_analysis(contract_text, analysis_type, user_id):
     
     return analysis
 
-def _analyze_contract_with_xai(contract_text, analysis_type, xai_api_key):
-    """Perform real AI contract analysis using XAI API"""
+def _process_batch_files(files, analysis_type, source_type):
+    """Process multiple files in batch for contract analysis"""
     try:
-        # Create specialized prompt based on analysis type
-        if analysis_type == 'risk-analysis':
-            system_prompt = "You are a legal risk assessment expert specializing in contract analysis. Focus on identifying potential risks, liabilities, and problematic clauses."
-            analysis_focus = "risk assessment and liability analysis"
-        elif analysis_type == 'compliance':
-            system_prompt = "You are a legal compliance expert. Focus on regulatory compliance, standard legal requirements, and industry best practices."
-            analysis_focus = "compliance verification and regulatory analysis"
-        elif analysis_type == 'key-terms':
-            system_prompt = "You are a contract terms expert. Focus on identifying key terms, important clauses, and critical provisions."
-            analysis_focus = "key terms and clause analysis"
-        else:  # comprehensive
-            system_prompt = "You are a comprehensive contract analysis expert. Provide thorough analysis covering all aspects of the contract."
-            analysis_focus = "comprehensive contract analysis"
+        user_id = session.get('user_id')
+        batch_results = []
+        total_files = len(files)
+        successful_analyses = 0
+        failed_analyses = 0
+        
+        # Process each file
+        for i, uploaded_file in enumerate(files):
+            if not uploaded_file.filename:
+                continue
+                
+            try:
+                # Extract file content and metadata
+                file_content = uploaded_file.read()
+                file_type = uploaded_file.content_type or 'application/octet-stream'
+                
+                # Extract text from file
+                extracted_text = _extract_text_from_file(file_content, uploaded_file.filename, file_type)
+                
+                if not extracted_text.strip():
+                    batch_results.append({
+                        'filename': uploaded_file.filename,
+                        'status': 'failed',
+                        'error': 'No text could be extracted from file',
+                        'file_metadata': {
+                            'filename': uploaded_file.filename,
+                            'file_type': file_type,
+                            'file_size': len(file_content)
+                        }
+                    })
+                    failed_analyses += 1
+                    continue
+                
+                # Perform AI analysis
+                analysis_result = _perform_contract_analysis(extracted_text, analysis_type, user_id)
+                
+                # Add file metadata to result
+                file_metadata = {
+                    'filename': uploaded_file.filename,
+                    'file_type': file_type,
+                    'file_size': len(file_content),
+                    'extraction_method': 'automated',
+                    'processing_order': i + 1,
+                    'total_files': total_files
+                }
+                
+                # Add citation analysis for substantial documents
+                citation_analysis = None
+                if len(extracted_text) > 500:
+                    citation_analysis = _validate_legal_citations(extracted_text)
+                
+                batch_results.append({
+                    'filename': uploaded_file.filename,
+                    'status': 'success',
+                    'analysis': analysis_result,
+                    'file_metadata': file_metadata,
+                    'citation_analysis': citation_analysis,
+                    'text_length': len(extracted_text)
+                })
+                
+                successful_analyses += 1
+                
+            except Exception as e:
+                logger.error(f"Error processing file {uploaded_file.filename}: {e}")
+                batch_results.append({
+                    'filename': uploaded_file.filename,
+                    'status': 'failed',
+                    'error': str(e),
+                    'file_metadata': {
+                        'filename': uploaded_file.filename,
+                        'file_type': getattr(uploaded_file, 'content_type', 'unknown'),
+                        'file_size': len(file_content) if 'file_content' in locals() else 0
+                    }
+                })
+                failed_analyses += 1
+        
+        # Create comprehensive batch summary
+        batch_summary = {
+            'total_files': total_files,
+            'successful_analyses': successful_analyses,
+            'failed_analyses': failed_analyses,
+            'success_rate': (successful_analyses / total_files * 100) if total_files > 0 else 0,
+            'analysis_type': analysis_type,
+            'processing_time': datetime.now().isoformat()
+        }
+        
+        # Create audit log for batch operation
+        audit_log('create', 'batch_contract_analysis', None, user_id, {
+            'analysis_type': analysis_type,
+            'source_type': source_type,
+            'total_files': total_files,
+            'successful_analyses': successful_analyses,
+            'failed_analyses': failed_analyses,
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'batch_processing': True,
+            'summary': batch_summary,
+            'results': batch_results
+        })
+        
+    except Exception as e:
+        logger.error(f"Batch processing error: {e}")
+        return jsonify({
+            'success': False,
+            'batch_processing': True,
+            'error': f'Batch processing failed: {str(e)}'
+        }), 500
+
+def _get_optimized_contract_prompt(contract_text, analysis_type):
+    """Generate optimized prompts based on document type and analysis focus"""
+    
+    # Detect document type characteristics
+    doc_indicators = {
+        'employment': ['employment', 'employee', 'employer', 'termination', 'benefits', 'salary', 'at-will'],
+        'nda': ['confidential', 'non-disclosure', 'proprietary', 'trade secret', 'confidentiality'],
+        'service': ['services', 'deliverables', 'statement of work', 'sow', 'consulting'],
+        'lease': ['lease', 'rent', 'premises', 'landlord', 'tenant', 'property'],
+        'purchase': ['purchase', 'sale', 'goods', 'warranty', 'delivery', 'payment terms'],
+        'loan': ['loan', 'credit', 'interest', 'repayment', 'default', 'collateral'],
+        'partnership': ['partnership', 'joint venture', 'profit sharing', 'capital contribution']
+    }
+    
+    # Detect document type
+    doc_type = 'general'
+    text_lower = contract_text.lower()
+    max_matches = 0
+    
+    for doc_category, keywords in doc_indicators.items():
+        matches = sum(1 for keyword in keywords if keyword in text_lower)
+        if matches > max_matches:
+            max_matches = matches
+            doc_type = doc_category
+    
+    # Create specialized prompts based on document type and analysis type
+    base_prompts = {
+        'employment': {
+            'system': "You are an employment law specialist with expertise in labor regulations, wage and hour laws, and employment contract analysis.",
+            'specific_focus': "employment law compliance, wage and hour regulations, discrimination issues, and termination procedures"
+        },
+        'nda': {
+            'system': "You are an intellectual property and confidentiality expert specializing in trade secret protection and information security.",
+            'specific_focus': "trade secret protection, scope of confidentiality, duration and enforceability of non-disclosure terms"
+        },
+        'service': {
+            'system': "You are a commercial contracts expert specializing in service agreements and professional services contracts.",
+            'specific_focus': "service delivery terms, performance standards, acceptance criteria, and liability limitations"
+        },
+        'lease': {
+            'system': "You are a real estate law expert specializing in commercial and residential lease agreements.",
+            'specific_focus': "lease terms, property conditions, tenant rights and obligations, and landlord remedies"
+        },
+        'purchase': {
+            'system': "You are a commercial transactions expert specializing in purchase and sale agreements.",
+            'specific_focus': "delivery terms, payment conditions, warranty provisions, and risk of loss allocation"
+        },
+        'loan': {
+            'system': "You are a banking and finance law expert specializing in loan agreements and credit facilities.",
+            'specific_focus': "loan terms, interest calculations, default provisions, and collateral requirements"
+        },
+        'general': {
+            'system': "You are a comprehensive contract analysis expert with broad expertise across all areas of commercial law.",
+            'specific_focus': "contract interpretation, enforceability, and commercial reasonableness"
+        }
+    }
+    
+    doc_prompt = base_prompts.get(doc_type, base_prompts['general'])
+    
+    # Enhance system prompt based on analysis type
+    analysis_enhancements = {
+        'risk-analysis': f"{doc_prompt['system']} Focus intensively on identifying potential risks, liabilities, and problematic clauses that could expose parties to legal or financial harm. Pay special attention to {doc_prompt['specific_focus']}.",
+        'compliance': f"{doc_prompt['system']} Focus on regulatory compliance, statutory requirements, and industry-specific legal standards. Ensure {doc_prompt['specific_focus']} meets current legal requirements.",
+        'clause-extraction': f"{doc_prompt['system']} Focus on identifying, categorizing, and analyzing all significant contract clauses. Pay particular attention to {doc_prompt['specific_focus']}.",
+        'comprehensive': f"{doc_prompt['system']} Provide thorough analysis covering legal, business, and practical aspects. Include detailed examination of {doc_prompt['specific_focus']}."
+    }
+    
+    system_prompt = analysis_enhancements.get(analysis_type, analysis_enhancements['comprehensive'])
+    
+    return {
+        'system_prompt': system_prompt,
+        'document_type': doc_type,
+        'analysis_focus': doc_prompt['specific_focus']
+    }
+
+def _analyze_contract_with_xai(contract_text, analysis_type, xai_api_key):
+    """Perform real AI contract analysis using XAI API with optimized prompts"""
+    try:
+        # Get optimized prompt based on document type and analysis
+        prompt_config = _get_optimized_contract_prompt(contract_text, analysis_type)
+        system_prompt = prompt_config['system_prompt']
+        doc_type = prompt_config['document_type']
+        analysis_focus = prompt_config['analysis_focus']
         
         contract_prompt = f"""
-        Perform {analysis_focus} on the following contract:
+        DOCUMENT TYPE DETECTED: {doc_type.upper()}
+        
+        Perform specialized {analysis_focus} on the following {doc_type} contract:
 
         CONTRACT TEXT:
         {contract_text[:12000]}
@@ -2093,7 +2712,20 @@ def _research_legal_topics_with_xai(query, filters, xai_api_key):
         practice_area = filters.get('practice_area', 'All Practice Areas')
         date_range = filters.get('date_range', 'All Dates')
         
-        system_prompt = """You are a legal research expert with comprehensive knowledge of case law, statutes, regulations, and legal precedents. Provide thorough, accurate legal research responses with proper citations and analysis."""
+        # Optimize system prompt based on practice area
+        practice_area_prompts = {
+            'contracts': "You are a contract law specialist with deep expertise in contract interpretation, formation, performance, and breach remedies. Focus on relevant contract law precedents and UCC provisions.",
+            'employment': "You are an employment law expert specializing in labor relations, wage and hour laws, discrimination, and wrongful termination. Focus on EEOC guidelines and federal employment statutes.",
+            'corporate': "You are a corporate law specialist with expertise in business formations, mergers and acquisitions, securities law, and corporate governance.",
+            'litigation': "You are a civil litigation expert with comprehensive knowledge of procedural rules, evidence law, and trial practice across state and federal courts.",
+            'intellectual-property': "You are an intellectual property law specialist focusing on patents, trademarks, copyrights, and trade secrets, including recent developments in technology law.",
+            'real-estate': "You are a real estate law expert specializing in property transactions, landlord-tenant law, zoning, and real estate development.",
+            'family': "You are a family law specialist with expertise in divorce, child custody, support obligations, and domestic relations law.",
+            'criminal': "You are a criminal law expert with comprehensive knowledge of substantive criminal law, criminal procedure, and constitutional protections."
+        }
+        
+        system_prompt = practice_area_prompts.get(practice_area.lower().replace(' ', '-'), 
+            "You are a comprehensive legal research expert with broad knowledge across all areas of law. Provide thorough, accurate legal research responses with proper citations and analysis.")
         
         research_prompt = f"""
         Conduct comprehensive legal research for the following query:
