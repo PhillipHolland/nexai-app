@@ -1,0 +1,757 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .security-main {
+            background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
+            min-height: calc(100vh - 4rem);
+            padding: 2rem 1rem;
+        }
+
+        .security-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .security-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .security-title {
+            color: #2E4B3C;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .security-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .security-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            color: #2E4B3C;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-enabled {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-disabled {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .section-content {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .setup-steps {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .setup-steps.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            background: #2E4B3C;
+            color: #F7EDDA;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-title {
+            color: #2E4B3C;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .qr-container {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .manual-code {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            text-align: center;
+            color: #2E4B3C;
+            margin: 0.5rem 0;
+            word-break: break-all;
+        }
+
+        .backup-codes {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .backup-codes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .backup-code {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            text-align: center;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #2E4B3C;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #2E4B3C;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #FFA74F;
+            box-shadow: 0 0 0 3px rgba(255, 167, 79, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #2E4B3C;
+            color: #F7EDDA;
+        }
+
+        .btn-primary:hover {
+            background: #1d2d23;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            color: #374151;
+            border-color: #9ca3af;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .alert-warning {
+            background: #fffbeb;
+            border: 1px solid #fed7aa;
+            color: #92400e;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .security-main {
+                padding: 1rem;
+            }
+
+            .security-container {
+                padding: 0;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .backup-codes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<main class="security-main">
+    <div class="security-container">
+        <!-- Header -->
+        <div class="security-header">
+            <h1 class="security-title">🔐 Two-Factor Authentication</h1>
+            <p class="security-subtitle">
+                Add an extra layer of security to your account with two-factor authentication. 
+                Use an authenticator app like Google Authenticator or Authy to generate verification codes.
+            </p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- 2FA Status Section -->
+        <div class="security-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    📱 Authenticator App
+                </h2>
+                <span id="statusBadge" class="status-badge status-disabled">Disabled</span>
+            </div>
+            
+            <div class="section-content">
+                <div id="disabledContent">
+                    <p>Two-factor authentication is currently disabled. Enable it to protect your account with an additional security layer.</p>
+                    <button class="btn btn-primary" onclick="startSetup()" id="enableBtn">
+                        🔒 Enable Two-Factor Authentication
+                    </button>
+                </div>
+
+                <div id="enabledContent" class="hidden">
+                    <p>Two-factor authentication is enabled and protecting your account. You'll need to enter a code from your authenticator app when signing in.</p>
+                    <button class="btn btn-danger" onclick="showDisableForm()" id="disableBtn">
+                        🔓 Disable Two-Factor Authentication
+                    </button>
+                </div>
+            </div>
+
+            <!-- Setup Steps -->
+            <div id="setupSteps" class="setup-steps">
+                <!-- Step 1: Download App -->
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Download an Authenticator App</div>
+                    <p>Install one of these apps on your mobile device:</p>
+                    <ul style="margin: 0.5rem 0 0 1rem;">
+                        <li><strong>Google Authenticator</strong> (iOS/Android)</li>
+                        <li><strong>Authy</strong> (iOS/Android/Desktop)</li>
+                        <li><strong>Microsoft Authenticator</strong> (iOS/Android)</li>
+                    </ul>
+                </div>
+
+                <!-- Step 2: Scan QR Code -->
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Scan QR Code or Enter Manual Key</div>
+                    <p>Use your authenticator app to scan this QR code:</p>
+                    
+                    <div class="qr-container">
+                        <div id="qrCode" class="qr-placeholder">
+                            QR Code will appear here
+                        </div>
+                        <p style="margin: 0.5rem 0; font-size: 0.875rem; color: #6b7280;">
+                            Can't scan? Enter this key manually:
+                        </p>
+                        <div id="manualKey" class="manual-code">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Save Backup Codes -->
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Save Your Backup Codes</div>
+                    <p>Save these backup codes in a secure location. You can use them to access your account if you lose your phone:</p>
+                    
+                    <div class="backup-codes">
+                        <div class="alert alert-warning">
+                            <strong>Important:</strong> Each backup code can only be used once. Store them securely!
+                        </div>
+                        <div id="backupCodes" class="backup-codes-grid">
+                            <!-- Backup codes will be populated here -->
+                        </div>
+                        <button class="btn btn-secondary" onclick="downloadBackupCodes()" style="margin-top: 1rem;">
+                            📄 Download Backup Codes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Verify -->
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Verify Setup</div>
+                    <p>Enter the 6-digit code from your authenticator app to complete setup:</p>
+                    
+                    <form id="verifyForm">
+                        <div class="form-group">
+                            <label class="form-label">Verification Code</label>
+                            <input type="text" class="form-input" id="verificationCode" placeholder="123456" maxlength="6" autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="verifyBtn">
+                            <span class="loading-spinner" id="verifySpinner"></span>
+                            ✅ Verify and Enable 2FA
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelSetup()" style="margin-left: 1rem;">
+                            Cancel
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Disable Form -->
+            <div id="disableForm" class="setup-steps">
+                <div class="step">
+                    <div class="step-number">⚠️</div>
+                    <div class="step-title">Disable Two-Factor Authentication</div>
+                    <p>Enter your password to disable two-factor authentication:</p>
+                    
+                    <form id="disableFormElement">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-input" id="disablePassword" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger" id="confirmDisableBtn">
+                            <span class="loading-spinner" id="disableSpinner"></span>
+                            🔓 Disable Two-Factor Authentication
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelDisable()" style="margin-left: 1rem;">
+                            Cancel
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let setupData = null;
+    let is2FAEnabled = false;
+
+    // Check current 2FA status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        check2FAStatus();
+    });
+
+    function check2FAStatus() {
+        // Check localStorage for demo mode
+        const authData = JSON.parse(localStorage.getItem('lexai_auth') || '{}');
+        is2FAEnabled = authData.twoFactorEnabled || false;
+        
+        updateUI();
+    }
+
+    function updateUI() {
+        const statusBadge = document.getElementById('statusBadge');
+        const disabledContent = document.getElementById('disabledContent');
+        const enabledContent = document.getElementById('enabledContent');
+        
+        if (is2FAEnabled) {
+            statusBadge.textContent = 'Enabled';
+            statusBadge.className = 'status-badge status-enabled';
+            disabledContent.classList.add('hidden');
+            enabledContent.classList.remove('hidden');
+        } else {
+            statusBadge.textContent = 'Disabled';
+            statusBadge.className = 'status-badge status-disabled';
+            disabledContent.classList.remove('hidden');
+            enabledContent.classList.add('hidden');
+        }
+    }
+
+    async function startSetup() {
+        try {
+            showAlert('Setting up two-factor authentication...', 'warning');
+            
+            const response = await fetch('/api/auth/setup-2fa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                setupData = result;
+                showSetupSteps();
+                populateSetupData();
+                showAlert('2FA setup initiated. Follow the steps below to complete setup.', 'success');
+            } else {
+                showAlert(result.error || 'Failed to start 2FA setup', 'error');
+            }
+        } catch (error) {
+            console.error('Setup error:', error);
+            showAlert('Failed to start 2FA setup. Please try again.', 'error');
+        }
+    }
+
+    function showSetupSteps() {
+        document.getElementById('setupSteps').classList.add('active');
+        document.getElementById('enableBtn').style.display = 'none';
+    }
+
+    function populateSetupData() {
+        if (!setupData) return;
+        
+        // Populate manual key
+        document.getElementById('manualKey').textContent = setupData.manual_entry_key;
+        
+        // Create simple QR code placeholder (in production, use qrcode.js library)
+        const qrContainer = document.getElementById('qrCode');
+        qrContainer.innerHTML = `
+            <div style="
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                font-size: 0.75rem;
+                color: #6b7280;
+                line-height: 1.4;
+            ">
+                📱 QR Code for:<br>
+                <strong style="color: #2E4B3C;">LexAI Practice Partner</strong><br>
+                <br>
+                <em>In production, this would be<br>a scannable QR code</em><br>
+                <br>
+                For demo: Use the manual key below
+            </div>
+        `;
+        
+        // Populate backup codes
+        const backupCodesContainer = document.getElementById('backupCodes');
+        backupCodesContainer.innerHTML = '';
+        
+        setupData.backup_codes.forEach(code => {
+            const codeElement = document.createElement('div');
+            codeElement.className = 'backup-code';
+            codeElement.textContent = code;
+            backupCodesContainer.appendChild(codeElement);
+        });
+    }
+
+    document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const code = document.getElementById('verificationCode').value.trim();
+        
+        if (!code || code.length !== 6) {
+            showAlert('Please enter a 6-digit verification code', 'error');
+            return;
+        }
+        
+        const button = document.getElementById('verifyBtn');
+        const spinner = document.getElementById('verifySpinner');
+        
+        button.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        try {
+            const response = await fetch('/api/auth/verify-2fa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update localStorage for demo
+                const authData = JSON.parse(localStorage.getItem('lexai_auth') || '{}');
+                authData.twoFactorEnabled = true;
+                localStorage.setItem('lexai_auth', JSON.stringify(authData));
+                
+                is2FAEnabled = true;
+                hideSetupSteps();
+                updateUI();
+                showAlert('Two-factor authentication enabled successfully! Your account is now more secure.', 'success');
+            } else {
+                showAlert(result.error || 'Verification failed', 'error');
+            }
+        } catch (error) {
+            console.error('Verification error:', error);
+            showAlert('Verification failed. Please try again.', 'error');
+        } finally {
+            button.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+
+    function cancelSetup() {
+        hideSetupSteps();
+        document.getElementById('enableBtn').style.display = 'inline-flex';
+        showAlert('2FA setup cancelled', 'warning');
+    }
+
+    function hideSetupSteps() {
+        document.getElementById('setupSteps').classList.remove('active');
+        document.getElementById('verificationCode').value = '';
+    }
+
+    function showDisableForm() {
+        document.getElementById('disableForm').classList.add('active');
+        document.getElementById('disableBtn').style.display = 'none';
+    }
+
+    document.getElementById('disableFormElement').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const password = document.getElementById('disablePassword').value;
+        
+        if (!password) {
+            showAlert('Please enter your password', 'error');
+            return;
+        }
+        
+        const button = document.getElementById('confirmDisableBtn');
+        const spinner = document.getElementById('disableSpinner');
+        
+        button.disabled = true;
+        spinner.style.display = 'inline-block';
+        
+        try {
+            const response = await fetch('/api/auth/disable-2fa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // Update localStorage for demo
+                const authData = JSON.parse(localStorage.getItem('lexai_auth') || '{}');
+                authData.twoFactorEnabled = false;
+                localStorage.setItem('lexai_auth', JSON.stringify(authData));
+                
+                is2FAEnabled = false;
+                hideDisableForm();
+                updateUI();
+                showAlert('Two-factor authentication disabled successfully', 'success');
+            } else {
+                showAlert(result.error || 'Failed to disable 2FA', 'error');
+            }
+        } catch (error) {
+            console.error('Disable error:', error);
+            showAlert('Failed to disable 2FA. Please try again.', 'error');
+        } finally {
+            button.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+
+    function cancelDisable() {
+        hideDisableForm();
+        document.getElementById('disableBtn').style.display = 'inline-flex';
+        document.getElementById('disablePassword').value = '';
+    }
+
+    function hideDisableForm() {
+        document.getElementById('disableForm').classList.remove('active');
+    }
+
+    function downloadBackupCodes() {
+        if (!setupData || !setupData.backup_codes) {
+            showAlert('No backup codes available', 'error');
+            return;
+        }
+        
+        const content = `LexAI Practice Partner - Two-Factor Authentication Backup Codes
+Generated: ${new Date().toLocaleDateString()}
+
+IMPORTANT: Save these codes in a secure location. Each code can only be used once.
+
+${setupData.backup_codes.map((code, index) => `${index + 1}. ${code}`).join('\n')}
+
+Store these codes securely and separately from your device.
+`;
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lexai-2fa-backup-codes.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showAlert('Backup codes downloaded successfully', 'success');
+    }
+
+    function showAlert(message, type) {
+        const container = document.getElementById('alertContainer');
+        const alertClass = type === 'error' ? 'alert-error' : 
+                          type === 'warning' ? 'alert-warning' : 'alert-success';
+        
+        container.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 5000);
+    }
+
+    // Only allow numeric input for verification code
+    document.getElementById('verificationCode').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+</script>
+{% endblock %}

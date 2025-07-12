@@ -296,6 +296,13 @@
                                 </svg>
                                 Account Settings
                             </a>
+                            <a href="/security/2fa" class="base-dropdown-item">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 1l3 3h4a2 2 0 012 2v8a2 2 0 01-2 2h-4l-3 3-3-3H5a2 2 0 01-2-2V6a2 2 0 012-2h4l3-3z"/>
+                                    <path d="M9 12l2 2 4-4"/>
+                                </svg>
+                                Two-Factor Auth
+                            </a>
                             <a href="#" class="base-dropdown-item">
                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -687,6 +694,219 @@
         document.addEventListener('click', function() {
             const dropdown = document.querySelector('.base-user-dropdown');
             dropdown.style.display = 'none';
+        });
+
+        // ====== SESSION TIMEOUT WARNING SYSTEM ======
+        let sessionTimeoutWarning = null;
+        let sessionTimeoutInterval = null;
+        let lastActivityTime = Date.now();
+        const SESSION_TIMEOUT = 3600000; // 1 hour in milliseconds
+        const WARNING_TIME = 300000; // 5 minutes before timeout
+
+        // Track user activity
+        function updateActivity() {
+            lastActivityTime = Date.now();
+            
+            // If warning is showing and user is active, hide it
+            if (sessionTimeoutWarning) {
+                hideSessionWarning();
+            }
+        }
+
+        // Add activity listeners
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+            document.addEventListener(event, updateActivity, true);
+        });
+
+        // Check session timeout periodically
+        function checkSessionTimeout() {
+            const timeSinceActivity = Date.now() - lastActivityTime;
+            const timeUntilTimeout = SESSION_TIMEOUT - timeSinceActivity;
+            
+            // Show warning if 5 minutes left
+            if (timeUntilTimeout <= WARNING_TIME && timeUntilTimeout > 0 && !sessionTimeoutWarning) {
+                showSessionWarning(Math.floor(timeUntilTimeout / 60000)); // minutes left
+            }
+            
+            // Force logout if session expired
+            if (timeUntilTimeout <= 0) {
+                forceLogout();
+            }
+        }
+
+        // Show session timeout warning
+        function showSessionWarning(minutesLeft) {
+            if (sessionTimeoutWarning) return; // Already showing
+            
+            // Create warning modal
+            sessionTimeoutWarning = document.createElement('div');
+            sessionTimeoutWarning.id = 'sessionTimeoutWarning';
+            sessionTimeoutWarning.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <div style="
+                        background: white;
+                        border-radius: 0.75rem;
+                        padding: 2rem;
+                        max-width: 400px;
+                        width: 90%;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                        text-align: center;
+                    ">
+                        <div style="
+                            width: 4rem;
+                            height: 4rem;
+                            background: #FFA74F;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 1rem;
+                            font-size: 1.5rem;
+                        ">⚠️</div>
+                        <h3 style="
+                            color: #2E4B3C;
+                            font-size: 1.25rem;
+                            font-weight: 600;
+                            margin: 0 0 0.5rem 0;
+                        ">Session Timeout Warning</h3>
+                        <p style="
+                            color: #6b7280;
+                            margin: 0 0 1.5rem 0;
+                            line-height: 1.5;
+                        ">Your session will expire in <strong id="timeoutCountdown">${minutesLeft}</strong> minute(s) due to inactivity. You'll be automatically logged out to protect your data.</p>
+                        <div style="
+                            display: flex;
+                            gap: 0.75rem;
+                            justify-content: center;
+                        ">
+                            <button onclick="extendSession()" style="
+                                background: #2E4B3C;
+                                color: #F7EDDA;
+                                border: none;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">Stay Logged In</button>
+                            <button onclick="logoutNow()" style="
+                                background: transparent;
+                                color: #6b7280;
+                                border: 1px solid #d1d5db;
+                                padding: 0.75rem 1.5rem;
+                                border-radius: 0.5rem;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            ">Logout Now</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(sessionTimeoutWarning);
+            
+            // Update countdown every second
+            const countdownElement = document.getElementById('timeoutCountdown');
+            const countdownInterval = setInterval(() => {
+                const timeSinceActivity = Date.now() - lastActivityTime;
+                const timeUntilTimeout = SESSION_TIMEOUT - timeSinceActivity;
+                const minutesLeft = Math.floor(timeUntilTimeout / 60000);
+                
+                if (minutesLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    forceLogout();
+                } else {
+                    countdownElement.textContent = minutesLeft;
+                }
+            }, 1000);
+            
+            // Store interval to clear later
+            sessionTimeoutWarning.countdownInterval = countdownInterval;
+        }
+
+        // Hide session warning
+        function hideSessionWarning() {
+            if (sessionTimeoutWarning) {
+                if (sessionTimeoutWarning.countdownInterval) {
+                    clearInterval(sessionTimeoutWarning.countdownInterval);
+                }
+                sessionTimeoutWarning.remove();
+                sessionTimeoutWarning = null;
+            }
+        }
+
+        // Extend session (user clicked "Stay Logged In")
+        window.extendSession = function() {
+            updateActivity(); // Reset activity timer
+            hideSessionWarning();
+            
+            // Optional: Make API call to extend server session
+            fetch('/api/auth/extend-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).catch(error => {
+                console.log('Session extension failed:', error);
+                // Continue anyway - client-side timeout still reset
+            });
+        };
+
+        // Logout immediately (user clicked "Logout Now")
+        window.logoutNow = function() {
+            hideSessionWarning();
+            logoutUser();
+        };
+
+        // Force logout due to timeout
+        function forceLogout() {
+            hideSessionWarning();
+            clearAllStoredData();
+            
+            // Show timeout message
+            alert('Your session has expired due to inactivity. You will be redirected to the login page.');
+            
+            // Redirect to login with timeout parameter
+            window.location.href = '/login?reason=timeout';
+        }
+
+        // Start session monitoring (only if user is logged in)
+        function startSessionMonitoring() {
+            const authData = localStorage.getItem('lexai_auth');
+            if (authData && !sessionTimeoutInterval) {
+                sessionTimeoutInterval = setInterval(checkSessionTimeout, 30000); // Check every 30 seconds
+            }
+        }
+
+        // Stop session monitoring
+        function stopSessionMonitoring() {
+            if (sessionTimeoutInterval) {
+                clearInterval(sessionTimeoutInterval);
+                sessionTimeoutInterval = null;
+            }
+            hideSessionWarning();
+        }
+
+        // Initialize session monitoring on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            startSessionMonitoring();
+        });
+
+        // Stop monitoring when page unloads
+        window.addEventListener('beforeunload', function() {
+            stopSessionMonitoring();
         });
     </script>
     

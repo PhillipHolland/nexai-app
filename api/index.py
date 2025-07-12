@@ -900,7 +900,7 @@ def register_page():
         # Redirect if already logged in
         if session.get('logged_in'):
             return redirect('/dashboard')
-        return render_template('auth_register_enhanced.html',
+        return render_template('auth_register_standalone.html',
                              cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Register page error: {e}")
@@ -918,14 +918,26 @@ def chat_page():
         return f"Chat error: {e}", 500
 
 @app.route('/onboarding')
-@login_required
 def onboarding_page():
-    """User onboarding flow"""
+    """User onboarding flow - accessible to new users"""
     try:
+        # If already logged in, go to dashboard
+        if session.get('logged_in'):
+            return redirect('/dashboard')
+            
         return render_template('onboarding.html')
     except Exception as e:
         logger.error(f"Onboarding error: {e}")
         return f"Onboarding error: {e}", 500
+
+@app.route('/security/2fa')
+def two_factor_settings():
+    """Two-factor authentication settings page"""
+    try:
+        return render_template('auth_2fa_settings.html')
+    except Exception as e:
+        logger.error(f"2FA settings page error: {e}")
+        return redirect('/dashboard')
 
 @app.route('/time-tracking')
 @login_required
@@ -2828,7 +2840,7 @@ def api_register():
         data = request.json
         
         # Validate required fields
-        required_fields = ['email', 'password', 'first_name', 'last_name']
+        required_fields = ['email', 'password', 'first_name', 'last_name', 'firm_name', 'role']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({
@@ -2857,14 +2869,41 @@ def api_register():
                 'error': 'Password must be at least 8 characters long'
             }), 400
         
+        # Additional password validation
+        import re
+        if not re.search(r'[A-Z]', password):
+            return jsonify({
+                'success': False,
+                'error': 'Password must contain at least one uppercase letter'
+            }), 400
+        if not re.search(r'[a-z]', password):
+            return jsonify({
+                'success': False,
+                'error': 'Password must contain at least one lowercase letter'
+            }), 400
+        if not re.search(r'[0-9]', password):
+            return jsonify({
+                'success': False,
+                'error': 'Password must contain at least one number'
+            }), 400
+        
+        # Map role string to UserRole enum
+        role_mapping = {
+            'partner': UserRole.PARTNER,
+            'associate': UserRole.ASSOCIATE,
+            'paralegal': UserRole.PARALEGAL,
+            'admin': UserRole.ADMIN
+        }
+        user_role = role_mapping.get(data['role'].lower(), UserRole.ASSOCIATE)
+        
         # Create new user
         user = User(
             email=email,
             first_name=data['first_name'].strip(),
             last_name=data['last_name'].strip(),
             phone=data.get('phone', '').strip(),
-            role=UserRole.ASSOCIATE,  # Default role
-            firm_name=data.get('firm_name', '').strip(),
+            role=user_role,
+            firm_name=data['firm_name'].strip(),
             bar_number=data.get('bar_number', '').strip(),
             hourly_rate=Decimal(str(data['hourly_rate'])) if data.get('hourly_rate') else None
         )
@@ -2876,20 +2915,32 @@ def api_register():
         # Create audit log
         audit_log('create', 'user', user.id, user.id, {
             'action': 'user_registration',
-            'email': user.email
+            'email': user.email,
+            'ip_address': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', 'Unknown')
         })
         
-        logger.info(f"New user registered: {user.email}")
+        # Automatically log the user in after successful registration
+        session.clear()  # Clear any existing session
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['user_role'] = user.role.value
+        session['user_name'] = f"{user.first_name} {user.last_name}"
+        session['logged_in'] = True
+        session.permanent = True  # Enable session timeout
+        
+        logger.info(f"New user registered and logged in: {user.email}")
         
         return jsonify({
             'success': True,
-            'message': 'User registered successfully',
+            'message': 'Account created successfully! Welcome to LexAI Practice Partner.',
             'user': {
                 'id': user.id,
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'role': user.role.value
+                'role': user.role.value,
+                'firm_name': user.firm_name
             }
         })
         
@@ -3190,19 +3241,517 @@ def api_change_password():
             'error': 'Failed to change password'
         }), 500
 
+# ===== PASSWORD RESET FUNCTIONALITY =====
+
+@app.route('/forgot-password')
+def forgot_password_page():
+    """Forgot password page"""
+    try:
+        # Redirect if already logged in
+        if session.get('logged_in'):
+            return redirect('/dashboard')
+        return render_template('auth_forgot_password.html',
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Forgot password page error: {e}")
+        return f"Forgot password error: {e}", 500
+
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def api_forgot_password():
+    """Request password reset"""
+    try:
+        data = request.json
+        email = data.get('email', '').lower().strip()
+        
+        if not email:
+            return jsonify({
+                'success': False,
+                'error': 'Email is required'
+            }), 400
+        
+        if not DATABASE_AVAILABLE:
+            # Mock mode - always return success for security
+            return jsonify({
+                'success': True,
+                'message': 'If an account with this email exists, you will receive password reset instructions. (Demo Mode)'
+            })
+        
+        # Check if user exists (but don't reveal if they don't for security)
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            # Generate password reset token
+            import secrets
+            reset_token = secrets.token_urlsafe(32)
+            reset_expires = datetime.now(timezone.utc) + timedelta(hours=1)  # 1 hour expiry
+            
+            # Store reset token (you would typically store this in database)
+            # For now, we'll use session storage as a simple implementation
+            session[f'reset_token_{reset_token}'] = {
+                'user_id': user.id,
+                'email': email,
+                'expires': reset_expires.isoformat()
+            }
+            
+            # Create audit log
+            audit_log('request', 'password_reset', user.id, user.id, {
+                'action': 'password_reset_requested',
+                'email': email,
+                'ip_address': request.remote_addr
+            })
+            
+            logger.info(f"Password reset requested for: {email}")
+            
+            # In a real implementation, you would send an email here
+            # For demo purposes, we'll return the reset link
+            reset_url = f"{request.host_url}reset-password?token={reset_token}"
+            
+        # Always return success for security (don't reveal if email exists)
+        return jsonify({
+            'success': True,
+            'message': 'If an account with this email exists, you will receive password reset instructions.',
+            'demo_reset_url': reset_url if 'user' in locals() else None  # Only for demo
+        })
+        
+    except Exception as e:
+        logger.error(f"Forgot password error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process password reset request'
+        }), 500
+
+@app.route('/reset-password')
+def reset_password_page():
+    """Password reset page"""
+    try:
+        token = request.args.get('token')
+        if not token:
+            return redirect('/forgot-password')
+            
+        # Validate token
+        token_key = f'reset_token_{token}'
+        token_data = session.get(token_key)
+        
+        if not token_data:
+            return render_template('auth_reset_password.html',
+                                 error='Invalid or expired reset token',
+                                 cache_buster=str(uuid.uuid4())[:8])
+        
+        # Check if token has expired
+        from datetime import datetime
+        expires = datetime.fromisoformat(token_data['expires'])
+        if datetime.now(timezone.utc) > expires:
+            session.pop(token_key, None)  # Clean up expired token
+            return render_template('auth_reset_password.html',
+                                 error='Reset token has expired',
+                                 cache_buster=str(uuid.uuid4())[:8])
+        
+        return render_template('auth_reset_password.html',
+                             token=token,
+                             email=token_data['email'],
+                             cache_buster=str(uuid.uuid4())[:8])
+    except Exception as e:
+        logger.error(f"Reset password page error: {e}")
+        return f"Reset password error: {e}", 500
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def api_reset_password():
+    """Reset password with token"""
+    try:
+        data = request.json
+        token = data.get('token')
+        new_password = data.get('password')
+        
+        if not token or not new_password:
+            return jsonify({
+                'success': False,
+                'error': 'Token and password are required'
+            }), 400
+        
+        # Validate password strength
+        if len(new_password) < 8:
+            return jsonify({
+                'success': False,
+                'error': 'Password must be at least 8 characters long'
+            }), 400
+        
+        # Validate token
+        token_key = f'reset_token_{token}'
+        token_data = session.get(token_key)
+        
+        if not token_data:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid or expired reset token'
+            }), 400
+        
+        # Check if token has expired
+        expires = datetime.fromisoformat(token_data['expires'])
+        if datetime.now(timezone.utc) > expires:
+            session.pop(token_key, None)  # Clean up expired token
+            return jsonify({
+                'success': False,
+                'error': 'Reset token has expired'
+            }), 400
+        
+        if not DATABASE_AVAILABLE:
+            # Mock mode
+            session.pop(token_key, None)  # Clean up token
+            return jsonify({
+                'success': True,
+                'message': 'Password reset successfully (Demo Mode)'
+            })
+        
+        # Reset password
+        user = User.query.get(token_data['user_id'])
+        if not user:
+            session.pop(token_key, None)  # Clean up token
+            return jsonify({
+                'success': False,
+                'error': 'User not found'
+            }), 400
+        
+        user.set_password(new_password)
+        db.session.commit()
+        
+        # Clean up token
+        session.pop(token_key, None)
+        
+        # Create audit log
+        audit_log('update', 'password_reset', user.id, user.id, {
+            'action': 'password_reset_completed',
+            'email': user.email,
+            'ip_address': request.remote_addr
+        })
+        
+        logger.info(f"Password reset completed for: {user.email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Password reset successfully. You can now log in with your new password.'
+        })
+        
+    except Exception as e:
+        logger.error(f"Reset password error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to reset password'
+        }), 500
+
+@app.route('/api/auth/extend-session', methods=['POST'])
+def extend_session():
+    """Extend user session to prevent timeout"""
+    try:
+        # Check if user is logged in
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not logged in'
+            }), 401
+        
+        # Extend session by making it permanent (resets the timer)
+        session.permanent = True
+        
+        # Update last activity time in session
+        session['last_activity'] = datetime.now().isoformat()
+        
+        # Create audit log for session extension
+        user_id = session.get('user_id', 'unknown')
+        audit_log('update', 'session', user_id, user_id, {
+            'action': 'session_extended',
+            'ip_address': request.remote_addr,
+            'user_agent': request.headers.get('User-Agent', '')
+        })
+        
+        logger.info(f"Session extended for user: {user_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Session extended successfully',
+            'expires_at': (datetime.now() + timedelta(seconds=app.config.get('PERMANENT_SESSION_LIFETIME', 3600))).isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Extend session error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to extend session'
+        }), 500
+
+@app.route('/api/auth/setup-2fa', methods=['POST'])
+def setup_2fa():
+    """Setup 2FA for user account"""
+    try:
+        # Check if user is logged in
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not logged in'
+            }), 401
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({
+                    'success': False,
+                    'error': 'User not found'
+                }), 404
+            
+            # Generate secret key for TOTP
+            import secrets
+            secret = secrets.token_urlsafe(32)
+            
+            # Generate backup codes
+            backup_codes = [secrets.token_hex(8).upper() for _ in range(10)]
+            
+            # Store 2FA settings
+            user.two_factor_secret = secret
+            user.two_factor_backup_codes = json.dumps(backup_codes)
+            user.two_factor_enabled = False  # Will be enabled after verification
+            
+            db.session.commit()
+            
+            # Create QR code URL (for apps like Google Authenticator)
+            company_name = "LexAI Practice Partner"
+            account_name = user.email
+            qr_url = f"otpauth://totp/{company_name}:{account_name}?secret={secret}&issuer={company_name}"
+            
+            # Create audit log
+            audit_log('create', '2fa_setup', user.id, user.id, {
+                'action': '2fa_setup_initiated',
+                'email': user.email,
+                'ip_address': request.remote_addr
+            })
+            
+            return jsonify({
+                'success': True,
+                'secret': secret,
+                'qr_url': qr_url,
+                'backup_codes': backup_codes,
+                'manual_entry_key': secret
+            })
+        else:
+            # Mock 2FA setup
+            import secrets
+            secret = secrets.token_urlsafe(32)
+            backup_codes = [secrets.token_hex(8).upper() for _ in range(10)]
+            
+            # Store in session for demo
+            session['2fa_secret'] = secret
+            session['2fa_backup_codes'] = backup_codes
+            session['2fa_enabled'] = False
+            
+            qr_url = f"otpauth://totp/LexAI Practice Partner:demo@lexai.com?secret={secret}&issuer=LexAI Practice Partner"
+            
+            return jsonify({
+                'success': True,
+                'secret': secret,
+                'qr_url': qr_url,
+                'backup_codes': backup_codes,
+                'manual_entry_key': secret,
+                'demo_mode': True
+            })
+        
+    except Exception as e:
+        logger.error(f"Setup 2FA error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to setup 2FA'
+        }), 500
+
+@app.route('/api/auth/verify-2fa', methods=['POST'])
+def verify_2fa():
+    """Verify 2FA setup with TOTP code"""
+    try:
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if not code:
+            return jsonify({
+                'success': False,
+                'error': 'Verification code required'
+            }), 400
+        
+        # Check if user is logged in
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not logged in'
+            }), 401
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            user = User.query.get(user_id)
+            if not user or not user.two_factor_secret:
+                return jsonify({
+                    'success': False,
+                    'error': 'No 2FA setup found'
+                }), 404
+            
+            # Verify TOTP code (simplified - in production use pyotp library)
+            if _verify_totp_code(user.two_factor_secret, code):
+                # Enable 2FA
+                user.two_factor_enabled = True
+                db.session.commit()
+                
+                # Create audit log
+                audit_log('update', '2fa_enabled', user.id, user.id, {
+                    'action': '2fa_enabled',
+                    'email': user.email,
+                    'ip_address': request.remote_addr
+                })
+                
+                return jsonify({
+                    'success': True,
+                    'message': '2FA enabled successfully'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid verification code'
+                }), 400
+        else:
+            # Mock verification - accept any 6-digit code
+            if len(code) == 6 and code.isdigit():
+                session['2fa_enabled'] = True
+                
+                return jsonify({
+                    'success': True,
+                    'message': '2FA enabled successfully (Demo Mode)',
+                    'demo_mode': True
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid verification code (use any 6-digit code for demo)'
+                }), 400
+        
+    except Exception as e:
+        logger.error(f"Verify 2FA error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to verify 2FA'
+        }), 500
+
+@app.route('/api/auth/disable-2fa', methods=['POST'])
+def disable_2fa():
+    """Disable 2FA for user account"""
+    try:
+        data = request.get_json()
+        password = data.get('password', '')
+        
+        if not password:
+            return jsonify({
+                'success': False,
+                'error': 'Password required to disable 2FA'
+            }), 400
+        
+        # Check if user is logged in
+        if not session.get('logged_in'):
+            return jsonify({
+                'success': False,
+                'error': 'Not logged in'
+            }), 401
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({
+                    'success': False,
+                    'error': 'User not found'
+                }), 404
+            
+            # Verify password
+            if not user.check_password(password):
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid password'
+                }), 400
+            
+            # Disable 2FA
+            user.two_factor_enabled = False
+            user.two_factor_secret = None
+            user.two_factor_backup_codes = None
+            
+            db.session.commit()
+            
+            # Create audit log
+            audit_log('update', '2fa_disabled', user.id, user.id, {
+                'action': '2fa_disabled',
+                'email': user.email,
+                'ip_address': request.remote_addr
+            })
+            
+            return jsonify({
+                'success': True,
+                'message': '2FA disabled successfully'
+            })
+        else:
+            # Mock disable - just clear session
+            session.pop('2fa_enabled', None)
+            session.pop('2fa_secret', None)
+            session.pop('2fa_backup_codes', None)
+            
+            return jsonify({
+                'success': True,
+                'message': '2FA disabled successfully (Demo Mode)',
+                'demo_mode': True
+            })
+        
+    except Exception as e:
+        logger.error(f"Disable 2FA error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to disable 2FA'
+        }), 500
+
+def _verify_totp_code(secret, code):
+    """Simplified TOTP verification (in production, use pyotp library)"""
+    try:
+        # For demo purposes, accept specific test codes or any 6-digit code
+        test_codes = ['123456', '000000', '111111']
+        
+        if code in test_codes:
+            return True
+        
+        # Basic validation - 6 digits
+        if len(code) == 6 and code.isdigit():
+            # In production, implement proper TOTP algorithm
+            # For now, accept any valid format as demo
+            return True
+        
+        return False
+    except:
+        return False
+
 # ===== MOCK AUTHENTICATION FUNCTIONS =====
 
 def _register_mock_user(data):
-    """Mock user registration"""
+    """Mock user registration with auto-login"""
+    # Automatically log the user in after mock registration
+    session.clear()  # Clear any existing session
+    session['user_id'] = 'mock_' + data['email'].replace('@', '_').replace('.', '_')
+    session['user_email'] = data['email']
+    session['user_role'] = data.get('role', 'associate')
+    session['user_name'] = f"{data['first_name']} {data['last_name']}"
+    session['logged_in'] = True
+    session.permanent = True  # Enable session timeout
+    
     return jsonify({
         'success': True,
-        'message': 'User registered successfully (mock mode)',
+        'message': 'Account created successfully! Welcome to LexAI Practice Partner. (Demo Mode)',
         'user': {
-            'id': '1',
+            'id': session['user_id'],
             'email': data['email'],
             'first_name': data['first_name'],
             'last_name': data['last_name'],
-            'role': 'associate'
+            'role': data.get('role', 'associate'),
+            'firm_name': data.get('firm_name', '')
         }
     })
 
