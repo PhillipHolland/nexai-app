@@ -987,7 +987,7 @@ def platform_page():
                              bagel_available=BAGEL_AI_AVAILABLE,
                              spanish_available=SPANISH_AVAILABLE,
                              stripe_available=STRIPE_AVAILABLE,
-                             cache_buster=get_cache_buster())
+                             cache_buster=str(uuid.uuid4())[:8])
     except Exception as e:
         logger.error(f"Platform page error: {e}")
         return f"Platform error: {e}", 500
