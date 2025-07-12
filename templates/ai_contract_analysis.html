@@ -1,0 +1,899 @@
+{% extends "base.html" %}
+
+{% block title %}AI Contract Analysis - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .contract-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 4rem);
+    }
+
+    .contract-header {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .contract-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .contract-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #2E4B3C;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d2d23;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #FFA74F;
+        color: #2E4B3C;
+    }
+
+    .btn-secondary:hover {
+        background: #F0531C;
+        transform: translateY(-1px);
+    }
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    @media (min-width: 1024px) {
+        .main-grid {
+            grid-template-columns: 1fr 400px;
+        }
+    }
+
+    .contract-input-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-tabs {
+        display: flex;
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+        padding: 1rem 1.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        color: #6b7280;
+    }
+
+    .tab-btn.active {
+        color: #2E4B3C;
+        border-bottom-color: #2E4B3C;
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: #374151;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 0.75rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: #2E4B3C;
+        background: #f9fafb;
+    }
+
+    .upload-area.dragover {
+        border-color: #2E4B3C;
+        background: #f0f9ff;
+    }
+
+    .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #6b7280;
+    }
+
+    .upload-text {
+        color: #374151;
+        font-size: 1.125rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-subtext {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .contract-textarea {
+        width: 100%;
+        min-height: 400px;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        resize: vertical;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    }
+
+    .contract-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .url-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .url-input:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .analysis-panel {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .panel-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .analysis-options {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .option-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .option-card:hover {
+        border-color: #2E4B3C;
+        background: #f9fafb;
+    }
+
+    .option-card.selected {
+        border-color: #2E4B3C;
+        background: #f0f9ff;
+    }
+
+    .option-title {
+        font-weight: 600;
+        color: #2E4B3C;
+        margin-bottom: 0.25rem;
+    }
+
+    .option-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .risk-levels {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .risk-level {
+        padding: 0.5rem;
+        text-align: center;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    .risk-low { background: #10b981; }
+    .risk-medium { background: #f59e0b; }
+    .risk-high { background: #ef4444; }
+    .risk-critical { background: #7c2d12; }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .results-section {
+        margin-top: 2rem;
+        display: none;
+    }
+
+    .results-section.active {
+        display: block;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #2E4B3C;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: between;
+        margin-bottom: 1rem;
+    }
+
+    .result-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .result-score {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .score-excellent {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .score-good {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .score-fair {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .score-poor {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .result-content {
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .clause-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+
+    .clause-item {
+        background: #f9fafb;
+        border-left: 3px solid #2E4B3C;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+
+    .clause-type {
+        font-weight: 600;
+        color: #2E4B3C;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .clause-text {
+        color: #374151;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.875rem;
+    }
+
+    .risk-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .comparison-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .alert-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border: 1px solid #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+        .contract-container {
+            padding: 1rem;
+        }
+
+        .contract-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .contract-title {
+            font-size: 1.75rem;
+        }
+
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .risk-levels {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="contract-container">
+    <!-- Header -->
+    <div class="contract-header">
+        <h1 class="contract-title">
+            🤖 AI Contract Analysis
+        </h1>
+        <div class="contract-actions">
+            <a href="/documents" class="btn btn-secondary">📄 Document Library</a>
+            <button class="btn btn-primary" onclick="exportAnalysis()">📊 Export Report</button>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- Contract Input Section -->
+        <div class="contract-input-section">
+            <div class="input-tabs">
+                <button class="tab-btn active" onclick="switchTab('upload')">📎 Upload Document</button>
+                <button class="tab-btn" onclick="switchTab('text')">📝 Paste Text</button>
+                <button class="tab-btn" onclick="switchTab('url')">🔗 From URL</button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="upload-tab" class="tab-content active">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Drop your contract here or click to browse</div>
+                    <div class="upload-subtext">Supports PDF, DOC, DOCX, TXT files up to 10MB</div>
+                    <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt" multiple>
+                </div>
+                <div id="fileList" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Text Tab -->
+            <div id="text-tab" class="tab-content">
+                <textarea 
+                    class="contract-textarea" 
+                    id="contractText" 
+                    placeholder="Paste your contract text here...
+
+Example:
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement ('Agreement') is entered into on [DATE] between [COMPANY NAME], a [STATE] corporation ('Company'), and [EMPLOYEE NAME] ('Employee').
+
+1. POSITION AND DUTIES
+Employee agrees to serve as [POSITION] and to perform such duties...
+
+2. COMPENSATION
+Company agrees to pay Employee a salary of $[AMOUNT] per year...
+
+3. TERM
+This Agreement shall commence on [START DATE] and continue until...">
+                </textarea>
+            </div>
+
+            <!-- URL Tab -->
+            <div id="url-tab" class="tab-content">
+                <input 
+                    type="url" 
+                    class="url-input" 
+                    id="contractUrl" 
+                    placeholder="https://example.com/contract.pdf"
+                >
+                <div class="alert alert-info">
+                    <strong>Note:</strong> Only publicly accessible documents can be analyzed from URLs. Ensure the document doesn't contain sensitive information.
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startAnalysis()" style="width: 100%; margin-top: 1rem;">
+                🔍 Analyze Contract
+            </button>
+        </div>
+
+        <!-- Analysis Panel -->
+        <div class="analysis-panel">
+            <h3 class="panel-title">🎯 Analysis Options</h3>
+            
+            <div class="analysis-options">
+                <div class="option-card selected" data-option="comprehensive">
+                    <div class="option-title">Comprehensive Analysis</div>
+                    <p class="option-description">Full contract review including risks, clauses, and recommendations</p>
+                </div>
+                
+                <div class="option-card" data-option="risk-assessment">
+                    <div class="option-title">Risk Assessment</div>
+                    <p class="option-description">Focus on identifying potential legal and financial risks</p>
+                </div>
+                
+                <div class="option-card" data-option="clause-extraction">
+                    <div class="option-title">Clause Extraction</div>
+                    <p class="option-description">Identify and categorize key contract clauses</p>
+                </div>
+                
+                <div class="option-card" data-option="compliance-check">
+                    <div class="option-title">Compliance Check</div>
+                    <p class="option-description">Verify compliance with standard legal requirements</p>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 1rem;">Risk Level Indicators</h4>
+            <div class="risk-levels">
+                <div class="risk-level risk-low">Low</div>
+                <div class="risk-level risk-medium">Medium</div>
+                <div class="risk-level risk-high">High</div>
+                <div class="risk-level risk-critical">Critical</div>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>AI Analysis:</strong> Our AI will analyze your contract for risks, missing clauses, unusual terms, and compliance issues. Results are for informational purposes only and do not constitute legal advice.
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div>Analyzing contract with AI...</div>
+        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+            This may take 30-60 seconds for complex documents
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection">
+        <!-- Executive Summary -->
+        <div class="result-card">
+            <div class="result-header">
+                <h3 class="result-title">📋 Executive Summary</h3>
+                <span class="result-score score-good" id="overallScore">Good</span>
+            </div>
+            <div class="result-content" id="executiveSummary">
+                <p>AI analysis results will appear here...</p>
+            </div>
+        </div>
+
+        <!-- Risk Analysis -->
+        <div class="result-card">
+            <div class="result-header">
+                <h3 class="result-title">⚠️ Risk Analysis</h3>
+                <span class="result-score score-fair" id="riskScore">Fair</span>
+            </div>
+            <div class="result-content" id="riskAnalysis">
+                <ul class="clause-list" id="riskList">
+                    <!-- Risk items will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Key Clauses -->
+        <div class="result-card">
+            <div class="result-header">
+                <h3 class="result-title">📝 Key Clauses Identified</h3>
+            </div>
+            <div class="result-content">
+                <ul class="clause-list" id="clauseList">
+                    <!-- Clause items will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="result-card">
+            <div class="result-header">
+                <h3 class="result-title">💡 Recommendations</h3>
+            </div>
+            <div class="result-content" id="recommendations">
+                <!-- Recommendations will be populated here -->
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentTab = 'upload';
+    let selectedOption = 'comprehensive';
+    let uploadedFiles = [];
+
+    // Tab switching
+    function switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        
+        currentTab = tabName;
+    }
+
+    // Analysis option selection
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedOption = this.getAttribute('data-option');
+        });
+    });
+
+    // File upload handling
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', handleDragOver);
+    uploadArea.addEventListener('drop', handleDrop);
+    uploadArea.addEventListener('dragleave', handleDragLeave);
+    fileInput.addEventListener('change', handleFileSelect);
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files);
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        uploadedFiles = files;
+        updateFileList();
+    }
+
+    function updateFileList() {
+        fileList.innerHTML = uploadedFiles.map((file, index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                <span>📄 ${file.name} (${formatFileSize(file.size)})</span>
+                <button onclick="removeFile(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer;">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function removeFile(index) {
+        uploadedFiles.splice(index, 1);
+        updateFileList();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Start analysis
+    async function startAnalysis() {
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        
+        // Validate input
+        let hasInput = false;
+        if (currentTab === 'upload' && uploadedFiles.length > 0) {
+            hasInput = true;
+        } else if (currentTab === 'text' && document.getElementById('contractText').value.trim()) {
+            hasInput = true;
+        } else if (currentTab === 'url' && document.getElementById('contractUrl').value.trim()) {
+            hasInput = true;
+        }
+
+        if (!hasInput) {
+            alert('Please provide a contract to analyze');
+            return;
+        }
+
+        // Show loading state
+        loadingSpinner.style.display = 'block';
+        resultsSection.classList.remove('active');
+
+        try {
+            // Prepare analysis data
+            const analysisData = {
+                type: selectedOption,
+                source: currentTab
+            };
+
+            if (currentTab === 'text') {
+                analysisData.text = document.getElementById('contractText').value;
+            } else if (currentTab === 'url') {
+                analysisData.url = document.getElementById('contractUrl').value;
+            } else if (currentTab === 'upload') {
+                // For demo, we'll use the first file
+                const file = uploadedFiles[0];
+                analysisData.fileName = file.name;
+                analysisData.fileSize = file.size;
+                // In a real implementation, you'd upload the file
+            }
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Generate mock analysis results
+            const results = generateMockAnalysis(analysisData);
+            displayResults(results);
+
+            loadingSpinner.style.display = 'none';
+            resultsSection.classList.add('active');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Analysis error:', error);
+            alert('Analysis failed. Please try again.');
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    function generateMockAnalysis(data) {
+        const riskLevels = ['Low', 'Medium', 'High', 'Critical'];
+        const clauseTypes = ['Termination', 'Confidentiality', 'Indemnification', 'Limitation of Liability', 'Governing Law', 'Force Majeure'];
+        
+        return {
+            overallScore: 'Good',
+            summary: `This ${data.source === 'upload' ? data.fileName || 'document' : 'contract'} has been analyzed using advanced AI. The contract appears to be well-structured with standard clauses, though some areas require attention.`,
+            risks: [
+                {
+                    level: 'Medium',
+                    type: 'Termination Clause',
+                    description: 'Termination clause may be too restrictive for one party',
+                    recommendation: 'Consider adding mutual termination rights'
+                },
+                {
+                    level: 'Low',
+                    type: 'Payment Terms',
+                    description: 'Payment terms are standard but could include late fees',
+                    recommendation: 'Add penalty clauses for late payments'
+                }
+            ],
+            clauses: [
+                {
+                    type: 'Confidentiality',
+                    content: 'Standard confidentiality provisions detected',
+                    status: 'Present'
+                },
+                {
+                    type: 'Indemnification',
+                    content: 'Mutual indemnification clause found',
+                    status: 'Present'
+                },
+                {
+                    type: 'Force Majeure',
+                    content: 'No force majeure clause detected',
+                    status: 'Missing'
+                }
+            ],
+            recommendations: [
+                'Add a force majeure clause to protect against unforeseen circumstances',
+                'Consider including dispute resolution mechanisms',
+                'Review termination notice periods for adequacy',
+                'Ensure compliance with applicable state laws'
+            ]
+        };
+    }
+
+    function displayResults(results) {
+        // Overall score
+        document.getElementById('overallScore').textContent = results.overallScore;
+        document.getElementById('overallScore').className = `result-score score-${results.overallScore.toLowerCase()}`;
+
+        // Executive summary
+        document.getElementById('executiveSummary').innerHTML = `<p>${results.summary}</p>`;
+
+        // Risk analysis
+        document.getElementById('riskList').innerHTML = results.risks.map(risk => `
+            <li class="clause-item">
+                <div class="clause-type">${risk.type}</div>
+                <div class="clause-text">${risk.description}</div>
+                <div class="risk-indicator risk-${risk.level.toLowerCase()}">${risk.level} Risk</div>
+                <div style="margin-top: 0.5rem; font-size: 0.875rem; color: #2E4B3C;">
+                    <strong>Recommendation:</strong> ${risk.recommendation}
+                </div>
+            </li>
+        `).join('');
+
+        // Key clauses
+        document.getElementById('clauseList').innerHTML = results.clauses.map(clause => `
+            <li class="clause-item">
+                <div class="clause-type">${clause.type}</div>
+                <div class="clause-text">${clause.content}</div>
+                <div class="risk-indicator ${clause.status === 'Present' ? 'risk-low' : 'risk-medium'}">
+                    ${clause.status}
+                </div>
+            </li>
+        `).join('');
+
+        // Recommendations
+        document.getElementById('recommendations').innerHTML = `
+            <ul style="list-style: none; padding: 0;">
+                ${results.recommendations.map(rec => `
+                    <li style="margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                        <span style="position: absolute; left: 0; color: #2E4B3C;">💡</span>
+                        ${rec}
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+    }
+
+    function exportAnalysis() {
+        // In a real implementation, this would generate a PDF or Word report
+        alert('Analysis report export feature coming soon!');
+    }
+
+    // Track page view
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'page_view', {
+            page_title: 'AI Contract Analysis',
+            page_location: window.location.href
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,978 @@
+{% extends "base.html" %}
+
+{% block title %}AI Document Comparison - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .comparison-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 4rem);
+    }
+
+    .comparison-header {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
+
+    .comparison-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .comparison-subtitle {
+        color: #6b7280;
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+
+    .document-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .document-inputs {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .document-input {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 2px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+
+    .document-input.active {
+        border-color: #2E4B3C;
+        box-shadow: 0 8px 25px rgba(46, 75, 60, 0.1);
+    }
+
+    .document-label {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2E4B3C;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .document-tabs {
+        display: flex;
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .doc-tab-btn {
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .doc-tab-btn.active {
+        color: #2E4B3C;
+        border-bottom-color: #2E4B3C;
+    }
+
+    .doc-tab-btn:hover:not(.active) {
+        color: #374151;
+    }
+
+    .doc-tab-content {
+        display: none;
+    }
+
+    .doc-tab-content.active {
+        display: block;
+    }
+
+    .document-textarea {
+        width: 100%;
+        min-height: 300px;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        resize: vertical;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    }
+
+    .document-textarea:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .upload-area:hover {
+        border-color: #2E4B3C;
+        background: #f9fafb;
+    }
+
+    .upload-area.dragover {
+        border-color: #2E4B3C;
+        background: #f0f9ff;
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #6b7280;
+    }
+
+    .upload-text {
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-subtext {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .comparison-controls {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .comparison-options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .option-btn {
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: white;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+    .option-btn:hover {
+        border-color: #2E4B3C;
+        color: #2E4B3C;
+    }
+
+    .option-btn.active {
+        border-color: #2E4B3C;
+        background: #2E4B3C;
+        color: white;
+    }
+
+    .btn {
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: #2E4B3C;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d2d23;
+        transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .results-section {
+        display: none;
+    }
+
+    .results-section.active {
+        display: block;
+    }
+
+    .similarity-score {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
+
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        position: relative;
+    }
+
+    .score-high {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .score-medium {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .score-low {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .score-description {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .results-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .result-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .differences-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .difference-item {
+        background: #f9fafb;
+        border-left: 4px solid transparent;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .difference-addition {
+        border-left-color: #10b981;
+    }
+
+    .difference-deletion {
+        border-left-color: #ef4444;
+    }
+
+    .difference-modification {
+        border-left-color: #f59e0b;
+    }
+
+    .difference-type {
+        font-weight: 600;
+        color: #2E4B3C;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .difference-location {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+
+    .difference-description {
+        color: #6b7280;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .impact-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+
+    .impact-high {
+        background: #fecaca;
+        color: #dc2626;
+    }
+
+    .impact-medium {
+        background: #fed7aa;
+        color: #92400e;
+    }
+
+    .impact-low {
+        background: #bbf7d0;
+        color: #166534;
+    }
+
+    .recommendations {
+        background: #f0f9ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .recommendations-title {
+        font-weight: 600;
+        color: #1e40af;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recommendation-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e0f2fe;
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+    }
+
+    .recommendation-item:last-child {
+        border-bottom: none;
+    }
+
+    .recommendation-icon {
+        color: #1e40af;
+        font-size: 1.125rem;
+        margin-top: 0.125rem;
+    }
+
+    .recommendation-text {
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .side-by-side {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .side-by-side-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .document-preview {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .document-preview h4 {
+        color: #2E4B3C;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .document-content {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #374151;
+        white-space: pre-wrap;
+    }
+
+    .highlight-addition {
+        background: #dcfce7;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+    }
+
+    .highlight-deletion {
+        background: #fecaca;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        text-decoration: line-through;
+    }
+
+    .highlight-modification {
+        background: #fef3c7;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+        .comparison-container {
+            padding: 1rem;
+        }
+
+        .comparison-title {
+            font-size: 1.75rem;
+        }
+
+        .comparison-controls {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .side-by-side-content {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="comparison-container">
+    <!-- Header -->
+    <div class="comparison-header">
+        <h1 class="comparison-title">
+            🔄 AI Document Comparison
+        </h1>
+        <p class="comparison-subtitle">
+            Compare two documents and identify key differences, changes, and potential risks using advanced AI analysis
+        </p>
+    </div>
+
+    <!-- Document Inputs -->
+    <div class="document-inputs">
+        <!-- Document 1 -->
+        <div class="document-input" id="doc1-input">
+            <div class="document-label">📄 Document 1 (Original)</div>
+            
+            <div class="document-tabs">
+                <button class="doc-tab-btn active" onclick="switchDocTab(1, 'text')">Text</button>
+                <button class="doc-tab-btn" onclick="switchDocTab(1, 'upload')">Upload</button>
+                <button class="doc-tab-btn" onclick="switchDocTab(1, 'url')">URL</button>
+            </div>
+
+            <div id="doc1-text-tab" class="doc-tab-content active">
+                <textarea 
+                    class="document-textarea" 
+                    id="document1Text" 
+                    placeholder="Paste the original document text here...
+
+Example:
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement is entered into between [COMPANY] and [EMPLOYEE].
+
+1. POSITION AND DUTIES
+Employee shall serve as [POSITION] and perform duties as assigned.
+
+2. COMPENSATION
+Base salary: $[AMOUNT] annually
+Benefits: Health insurance, 401(k)
+
+3. TERMINATION
+Either party may terminate with 30 days written notice."
+                ></textarea>
+            </div>
+
+            <div id="doc1-upload-tab" class="doc-tab-content">
+                <div class="upload-area" onclick="document.getElementById('doc1File').click()">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Drop document here or click to browse</div>
+                    <div class="upload-subtext">PDF, DOC, DOCX, TXT files</div>
+                    <input type="file" id="doc1File" style="display: none;" accept=".pdf,.doc,.docx,.txt">
+                </div>
+            </div>
+
+            <div id="doc1-url-tab" class="doc-tab-content">
+                <input type="url" class="document-textarea" id="document1Url" placeholder="https://example.com/document.pdf" style="min-height: auto; height: 3rem;">
+            </div>
+        </div>
+
+        <!-- Document 2 -->
+        <div class="document-input" id="doc2-input">
+            <div class="document-label">📄 Document 2 (Revised)</div>
+            
+            <div class="document-tabs">
+                <button class="doc-tab-btn active" onclick="switchDocTab(2, 'text')">Text</button>
+                <button class="doc-tab-btn" onclick="switchDocTab(2, 'upload')">Upload</button>
+                <button class="doc-tab-btn" onclick="switchDocTab(2, 'url')">URL</button>
+            </div>
+
+            <div id="doc2-text-tab" class="doc-tab-content active">
+                <textarea 
+                    class="document-textarea" 
+                    id="document2Text" 
+                    placeholder="Paste the revised document text here...
+
+Example:
+EMPLOYMENT AGREEMENT (REVISED)
+
+This Employment Agreement is entered into between [COMPANY] and [EMPLOYEE].
+
+1. POSITION AND DUTIES
+Employee shall serve as [POSITION] and perform duties as assigned by management.
+
+2. COMPENSATION
+Base salary: $[AMOUNT] annually
+Benefits: Health insurance, 401(k), stock options
+
+3. TERMINATION
+Either party may terminate with 60 days written notice.
+Company may terminate immediately for cause."
+                ></textarea>
+            </div>
+
+            <div id="doc2-upload-tab" class="doc-tab-content">
+                <div class="upload-area" onclick="document.getElementById('doc2File').click()">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Drop document here or click to browse</div>
+                    <div class="upload-subtext">PDF, DOC, DOCX, TXT files</div>
+                    <input type="file" id="doc2File" style="display: none;" accept=".pdf,.doc,.docx,.txt">
+                </div>
+            </div>
+
+            <div id="doc2-url-tab" class="doc-tab-content">
+                <input type="url" class="document-textarea" id="document2Url" placeholder="https://example.com/document.pdf" style="min-height: auto; height: 3rem;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Controls -->
+    <div class="comparison-controls">
+        <div class="comparison-options">
+            <button class="option-btn active" data-option="comprehensive">Comprehensive</button>
+            <button class="option-btn" data-option="legal-changes">Legal Changes</button>
+            <button class="option-btn" data-option="risk-analysis">Risk Analysis</button>
+            <button class="option-btn" data-option="key-terms">Key Terms</button>
+        </div>
+        
+        <button class="btn btn-primary" onclick="startComparison()" id="compareBtn">
+            🔄 Compare Documents
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div>Analyzing document differences with AI...</div>
+        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+            This may take 30-60 seconds for complex documents
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection">
+        <!-- Similarity Score -->
+        <div class="similarity-score">
+            <div class="score-circle score-medium" id="similarityCircle">
+                <span id="similarityPercentage">0%</span>
+            </div>
+            <h3 style="color: #1f2937; margin: 0 0 0.5rem 0;">Document Similarity</h3>
+            <p class="score-description" id="scoreDescription">
+                Analyzing document similarity...
+            </p>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+            <!-- Key Differences -->
+            <div class="result-card">
+                <h3 class="result-title">🔍 Key Differences</h3>
+                <ul class="differences-list" id="differencesList">
+                    <!-- Differences will be populated here -->
+                </ul>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="result-card">
+                <h3 class="result-title">⚠️ Risk Assessment</h3>
+                <div id="riskAssessment">
+                    <!-- Risk assessment will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="recommendations">
+            <h3 class="recommendations-title">
+                💡 Recommendations
+            </h3>
+            <ul class="recommendations-list" id="recommendationsList">
+                <!-- Recommendations will be populated here -->
+            </ul>
+        </div>
+
+        <!-- Side-by-Side Comparison -->
+        <div class="side-by-side">
+            <h3 class="result-title">📋 Side-by-Side Comparison</h3>
+            <div class="side-by-side-content">
+                <div class="document-preview">
+                    <h4>Document 1 (Original)</h4>
+                    <div class="document-content" id="doc1Preview">
+                        <!-- Document 1 preview with highlights -->
+                    </div>
+                </div>
+                <div class="document-preview">
+                    <h4>Document 2 (Revised)</h4>
+                    <div class="document-content" id="doc2Preview">
+                        <!-- Document 2 preview with highlights -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentDoc1Tab = 'text';
+    let currentDoc2Tab = 'text';
+    let selectedOption = 'comprehensive';
+
+    // Tab switching
+    function switchDocTab(docNum, tabName) {
+        // Update active tab button
+        document.querySelectorAll(`#doc${docNum}-input .doc-tab-btn`).forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // Update active tab content
+        document.querySelectorAll(`#doc${docNum}-input .doc-tab-content`).forEach(content => content.classList.remove('active'));
+        document.getElementById(`doc${docNum}-${tabName}-tab`).classList.add('active');
+        
+        if (docNum === 1) {
+            currentDoc1Tab = tabName;
+        } else {
+            currentDoc2Tab = tabName;
+        }
+    }
+
+    // Option selection
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            selectedOption = this.dataset.option;
+        });
+    });
+
+    // File handling
+    document.getElementById('doc1File').addEventListener('change', function(e) {
+        handleFileUpload(e.target.files[0], 1);
+    });
+
+    document.getElementById('doc2File').addEventListener('change', function(e) {
+        handleFileUpload(e.target.files[0], 2);
+    });
+
+    function handleFileUpload(file, docNum) {
+        if (file) {
+            // In a real implementation, you'd read and process the file
+            alert(`File "${file.name}" uploaded for Document ${docNum}. File processing feature coming soon!`);
+        }
+    }
+
+    async function startComparison() {
+        // Validate inputs
+        const doc1Text = getDocumentText(1);
+        const doc2Text = getDocumentText(2);
+
+        if (!doc1Text.trim() || !doc2Text.trim()) {
+            alert('Please provide both documents for comparison');
+            return;
+        }
+
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        const compareBtn = document.getElementById('compareBtn');
+
+        // Show loading state
+        loadingSpinner.style.display = 'block';
+        resultsSection.classList.remove('active');
+        compareBtn.disabled = true;
+
+        try {
+            // Simulate API call for demo
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Generate comparison results
+            const results = generateComparisonResults(doc1Text, doc2Text);
+            displayResults(results);
+
+            loadingSpinner.style.display = 'none';
+            resultsSection.classList.add('active');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Comparison error:', error);
+            alert('Comparison failed. Please try again.');
+        } finally {
+            loadingSpinner.style.display = 'none';
+            compareBtn.disabled = false;
+        }
+    }
+
+    function getDocumentText(docNum) {
+        const currentTab = docNum === 1 ? currentDoc1Tab : currentDoc2Tab;
+        
+        if (currentTab === 'text') {
+            return document.getElementById(`document${docNum}Text`).value;
+        } else if (currentTab === 'url') {
+            return document.getElementById(`document${docNum}Url`).value;
+        } else {
+            // File upload - would need actual file processing
+            return '';
+        }
+    }
+
+    function generateComparisonResults(doc1, doc2) {
+        // Calculate similarity score
+        const similarity = calculateSimilarity(doc1, doc2);
+        
+        return {
+            similarity: similarity,
+            differences: [
+                {
+                    type: 'addition',
+                    location: 'Section 2 - Compensation',
+                    description: 'Added stock options to benefits package',
+                    impact: 'medium'
+                },
+                {
+                    type: 'modification',
+                    location: 'Section 3 - Termination',
+                    description: 'Notice period increased from 30 to 60 days',
+                    impact: 'high'
+                },
+                {
+                    type: 'addition',
+                    location: 'Section 3 - Termination',
+                    description: 'Added immediate termination for cause provision',
+                    impact: 'high'
+                },
+                {
+                    type: 'modification',
+                    location: 'Section 1 - Position',
+                    description: 'Clarified reporting structure with "by management"',
+                    impact: 'low'
+                }
+            ],
+            risks: [
+                {
+                    level: 'Medium',
+                    description: 'Extended notice period may impact business operations',
+                    recommendation: 'Consider reciprocal notice requirements'
+                },
+                {
+                    level: 'High',
+                    description: 'New termination for cause clause increases employer power',
+                    recommendation: 'Ensure cause definitions are clearly specified'
+                }
+            ],
+            recommendations: [
+                'Review the extended notice period impact on operational flexibility',
+                'Define specific circumstances that constitute "cause" for termination',
+                'Consider if stock options require additional vesting schedules',
+                'Ensure changes align with applicable employment laws'
+            ]
+        };
+    }
+
+    function calculateSimilarity(doc1, doc2) {
+        // Simple word-based similarity calculation
+        const words1 = new Set(doc1.toLowerCase().split(/\s+/));
+        const words2 = new Set(doc2.toLowerCase().split(/\s+/));
+        const intersection = new Set([...words1].filter(x => words2.has(x)));
+        const union = new Set([...words1, ...words2]);
+        return Math.round((intersection.size / union.size) * 100);
+    }
+
+    function displayResults(results) {
+        // Update similarity score
+        const percentage = results.similarity;
+        document.getElementById('similarityPercentage').textContent = percentage + '%';
+        
+        const circle = document.getElementById('similarityCircle');
+        const description = document.getElementById('scoreDescription');
+        
+        circle.className = 'score-circle ' + (
+            percentage >= 70 ? 'score-high' :
+            percentage >= 40 ? 'score-medium' : 'score-low'
+        );
+        
+        description.textContent = 
+            percentage >= 70 ? 'Documents are very similar with minor changes' :
+            percentage >= 40 ? 'Documents have moderate differences' :
+            'Documents have significant differences';
+
+        // Display differences
+        const differencesList = document.getElementById('differencesList');
+        differencesList.innerHTML = results.differences.map(diff => `
+            <li class="difference-item difference-${diff.type}">
+                <div class="difference-type">${diff.type}</div>
+                <div class="difference-location">${diff.location}</div>
+                <div class="difference-description">${diff.description}</div>
+                <span class="impact-badge impact-${diff.impact}">${diff.impact} impact</span>
+            </li>
+        `).join('');
+
+        // Display risk assessment
+        const riskAssessment = document.getElementById('riskAssessment');
+        riskAssessment.innerHTML = results.risks.map(risk => `
+            <div class="difference-item">
+                <div class="difference-type">${risk.level} Risk</div>
+                <div class="difference-description">${risk.description}</div>
+                <div style="margin-top: 0.5rem; color: #2E4B3C; font-weight: 500;">
+                    <strong>Recommendation:</strong> ${risk.recommendation}
+                </div>
+            </div>
+        `).join('');
+
+        // Display recommendations
+        const recommendationsList = document.getElementById('recommendationsList');
+        recommendationsList.innerHTML = results.recommendations.map(rec => `
+            <li class="recommendation-item">
+                <span class="recommendation-icon">💡</span>
+                <span class="recommendation-text">${rec}</span>
+            </li>
+        `).join('');
+
+        // Display side-by-side comparison with highlights
+        displaySideBySide(getDocumentText(1), getDocumentText(2), results.differences);
+    }
+
+    function displaySideBySide(doc1, doc2, differences) {
+        // For demo, show documents with simple highlighting
+        // In production, this would use sophisticated diff algorithms
+        
+        document.getElementById('doc1Preview').innerHTML = highlightDocument(doc1, differences, 'original');
+        document.getElementById('doc2Preview').innerHTML = highlightDocument(doc2, differences, 'revised');
+    }
+
+    function highlightDocument(text, differences, version) {
+        // Simple highlighting for demo
+        let highlighted = text;
+        
+        if (version === 'revised') {
+            highlighted = highlighted.replace(/stock options/gi, '<span class="highlight-addition">stock options</span>');
+            highlighted = highlighted.replace(/60 days/gi, '<span class="highlight-modification">60 days</span>');
+            highlighted = highlighted.replace(/by management/gi, '<span class="highlight-modification">by management</span>');
+        } else {
+            highlighted = highlighted.replace(/30 days/gi, '<span class="highlight-deletion">30 days</span>');
+        }
+        
+        return highlighted;
+    }
+
+    // Track page view
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'page_view', {
+            page_title: 'AI Document Comparison',
+            page_location: window.location.href
+        });
+    }
+</script>
+{% endblock %}

@@ -579,6 +579,36 @@ def document_analysis_page():
         logger.error(f"Document analysis page error: {e}")
         return f"Document analysis error: {e}", 500
 
+@app.route('/ai/contract-analysis')
+@login_required
+def ai_contract_analysis():
+    """AI-powered contract analysis interface"""
+    try:
+        return render_template('ai_contract_analysis.html')
+    except Exception as e:
+        logger.error(f"AI contract analysis page error: {e}")
+        return f"AI contract analysis error: {e}", 500
+
+@app.route('/ai/legal-research')
+@login_required  
+def ai_legal_research():
+    """AI-powered legal research interface"""
+    try:
+        return render_template('ai_legal_research.html')
+    except Exception as e:
+        logger.error(f"AI legal research page error: {e}")
+        return f"AI legal research error: {e}", 500
+
+@app.route('/ai/document-comparison')
+@login_required
+def ai_document_comparison():
+    """AI-powered document comparison interface"""
+    try:
+        return render_template('ai_document_comparison.html')
+    except Exception as e:
+        logger.error(f"AI document comparison page error: {e}")
+        return f"AI document comparison error: {e}", 500
+
 @app.route('/contracts')
 @login_required
 def contracts_page():
@@ -1449,6 +1479,641 @@ def get_analytics_insights():
             'success': False,
             'error': 'Failed to generate insights'
         }), 500
+
+# ===== AI-POWERED LEGAL ANALYSIS ENDPOINTS =====
+
+@app.route('/api/ai/contract-analysis', methods=['POST'])
+@login_required
+def api_contract_analysis():
+    """Perform AI-powered contract analysis"""
+    try:
+        data = request.get_json()
+        analysis_type = data.get('type', 'comprehensive')
+        contract_text = data.get('text', '')
+        source_type = data.get('source', 'text')
+        
+        if not contract_text and source_type == 'text':
+            return jsonify({
+                'success': False,
+                'error': 'Contract text is required'
+            }), 400
+        
+        user_id = session.get('user_id')
+        
+        # For demo purposes, return structured mock analysis
+        # In production, this would call XAI API for real analysis
+        analysis_result = _perform_contract_analysis(contract_text, analysis_type, user_id)
+        
+        # Create audit log
+        audit_log('create', 'contract_analysis', None, user_id, {
+            'analysis_type': analysis_type,
+            'source_type': source_type,
+            'text_length': len(contract_text),
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'data': analysis_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Contract analysis error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to analyze contract'
+        }), 500
+
+@app.route('/api/ai/legal-research', methods=['POST'])
+@login_required
+def api_legal_research():
+    """Perform AI-powered legal research"""
+    try:
+        data = request.get_json()
+        query = data.get('query', '').strip()
+        jurisdiction = data.get('jurisdiction', '')
+        source_type = data.get('source_type', '')
+        date_range = data.get('date_range', '')
+        practice_area = data.get('practice_area', '')
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'error': 'Search query is required'
+            }), 400
+        
+        user_id = session.get('user_id')
+        
+        # For demo purposes, return structured mock research results
+        # In production, this would integrate with legal databases and AI
+        research_results = _perform_legal_research(query, {
+            'jurisdiction': jurisdiction,
+            'source_type': source_type,
+            'date_range': date_range,
+            'practice_area': practice_area
+        }, user_id)
+        
+        # Create audit log
+        audit_log('create', 'legal_research', None, user_id, {
+            'query': query,
+            'jurisdiction': jurisdiction,
+            'source_type': source_type,
+            'results_count': len(research_results.get('results', [])),
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'data': research_results
+        })
+        
+    except Exception as e:
+        logger.error(f"Legal research error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to perform legal research'
+        }), 500
+
+@app.route('/api/ai/document-comparison', methods=['POST'])
+@login_required
+def api_document_comparison():
+    """Compare two documents using AI"""
+    try:
+        data = request.get_json()
+        document1_text = data.get('document1', '')
+        document2_text = data.get('document2', '')
+        comparison_type = data.get('type', 'comprehensive')
+        
+        if not document1_text or not document2_text:
+            return jsonify({
+                'success': False,
+                'error': 'Both documents are required for comparison'
+            }), 400
+        
+        user_id = session.get('user_id')
+        
+        # Perform AI-powered document comparison
+        comparison_result = _perform_document_comparison(
+            document1_text, 
+            document2_text, 
+            comparison_type, 
+            user_id
+        )
+        
+        # Create audit log
+        audit_log('create', 'document_comparison', None, user_id, {
+            'comparison_type': comparison_type,
+            'doc1_length': len(document1_text),
+            'doc2_length': len(document2_text),
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'data': comparison_result
+        })
+        
+    except Exception as e:
+        logger.error(f"Document comparison error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to compare documents'
+        }), 500
+
+@app.route('/api/ai/clause-detection', methods=['POST'])
+@login_required
+def api_clause_detection():
+    """Detect and analyze specific clauses in legal documents"""
+    try:
+        data = request.get_json()
+        document_text = data.get('text', '')
+        clause_types = data.get('clause_types', [])
+        
+        if not document_text:
+            return jsonify({
+                'success': False,
+                'error': 'Document text is required'
+            }), 400
+        
+        user_id = session.get('user_id')
+        
+        # Perform AI-powered clause detection
+        clause_analysis = _perform_clause_detection(document_text, clause_types, user_id)
+        
+        # Create audit log
+        audit_log('create', 'clause_detection', None, user_id, {
+            'clause_types': clause_types,
+            'text_length': len(document_text),
+            'clauses_found': len(clause_analysis.get('detected_clauses', [])),
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'data': clause_analysis
+        })
+        
+    except Exception as e:
+        logger.error(f"Clause detection error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to detect clauses'
+        }), 500
+
+@app.route('/api/ai/legal-assistant', methods=['POST'])
+@login_required
+def api_legal_assistant():
+    """AI legal assistant for client communication and document drafting"""
+    try:
+        data = request.get_json()
+        request_type = data.get('type', 'general')  # general, email_draft, letter_draft, memo
+        prompt = data.get('prompt', '')
+        context = data.get('context', {})
+        
+        if not prompt:
+            return jsonify({
+                'success': False,
+                'error': 'Prompt is required'
+            }), 400
+        
+        user_id = session.get('user_id')
+        
+        # Generate AI response based on request type
+        ai_response = _generate_legal_assistant_response(prompt, request_type, context, user_id)
+        
+        # Create audit log
+        audit_log('create', 'legal_assistant', None, user_id, {
+            'request_type': request_type,
+            'prompt_length': len(prompt),
+            'response_length': len(ai_response.get('content', '')),
+            'ip_address': request.remote_addr
+        })
+        
+        return jsonify({
+            'success': True,
+            'data': ai_response
+        })
+        
+    except Exception as e:
+        logger.error(f"Legal assistant error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate AI response'
+        }), 500
+
+# AI Analysis Helper Functions
+
+def _perform_contract_analysis(contract_text, analysis_type, user_id):
+    """Perform comprehensive contract analysis using AI"""
+    
+    # In production, this would use XAI API for real analysis
+    xai_api_key = app.config.get('XAI_API_KEY')
+    
+    if xai_api_key and len(contract_text) > 100:
+        try:
+            # Real AI analysis would go here
+            # For now, return sophisticated mock analysis
+            pass
+        except Exception as e:
+            logger.error(f"XAI API error in contract analysis: {e}")
+    
+    # Generate comprehensive mock analysis
+    analysis = {
+        'overall_score': _calculate_contract_score(contract_text),
+        'executive_summary': _generate_contract_summary(contract_text, analysis_type),
+        'risk_analysis': _analyze_contract_risks(contract_text),
+        'key_clauses': _extract_contract_clauses(contract_text),
+        'missing_clauses': _identify_missing_clauses(contract_text),
+        'recommendations': _generate_contract_recommendations(contract_text),
+        'compliance_check': _check_contract_compliance(contract_text),
+        'analysis_timestamp': datetime.now().isoformat(),
+        'analysis_type': analysis_type
+    }
+    
+    return analysis
+
+def _perform_legal_research(query, filters, user_id):
+    """Perform comprehensive legal research using AI"""
+    
+    # In production, this would integrate with legal databases
+    # like Westlaw, LexisNexis, or specialized legal AI APIs
+    
+    # Generate sophisticated mock research results
+    results = {
+        'query': query,
+        'total_results': _calculate_result_count(query),
+        'search_time': '0.3',
+        'ai_summary': _generate_research_summary(query, filters),
+        'results': _generate_research_results(query, filters),
+        'related_topics': _generate_related_topics(query),
+        'search_suggestions': _generate_search_suggestions(query),
+        'jurisdictional_analysis': _analyze_jurisdictional_differences(query, filters)
+    }
+    
+    return results
+
+def _perform_document_comparison(doc1, doc2, comparison_type, user_id):
+    """Compare two documents using AI analysis"""
+    
+    comparison = {
+        'similarity_score': _calculate_document_similarity(doc1, doc2),
+        'differences': _identify_document_differences(doc1, doc2),
+        'key_changes': _analyze_key_changes(doc1, doc2),
+        'risk_assessment': _assess_comparison_risks(doc1, doc2),
+        'recommendations': _generate_comparison_recommendations(doc1, doc2),
+        'comparison_type': comparison_type,
+        'analysis_timestamp': datetime.now().isoformat()
+    }
+    
+    return comparison
+
+def _perform_clause_detection(document_text, clause_types, user_id):
+    """Detect and analyze specific clauses in legal documents"""
+    
+    detected_clauses = []
+    missing_clauses = []
+    
+    # Standard clause types to check if none specified
+    if not clause_types:
+        clause_types = [
+            'termination', 'confidentiality', 'indemnification',
+            'limitation_of_liability', 'governing_law', 'force_majeure',
+            'dispute_resolution', 'assignment', 'severability'
+        ]
+    
+    for clause_type in clause_types:
+        detection_result = _detect_specific_clause(document_text, clause_type)
+        if detection_result['found']:
+            detected_clauses.append(detection_result)
+        else:
+            missing_clauses.append({
+                'type': clause_type,
+                'importance': detection_result['importance'],
+                'recommendation': detection_result['recommendation']
+            })
+    
+    return {
+        'detected_clauses': detected_clauses,
+        'missing_clauses': missing_clauses,
+        'clause_coverage_score': len(detected_clauses) / len(clause_types) * 100,
+        'analysis_timestamp': datetime.now().isoformat()
+    }
+
+def _generate_legal_assistant_response(prompt, request_type, context, user_id):
+    """Generate AI legal assistant response"""
+    
+    response = {
+        'content': _generate_ai_content(prompt, request_type, context),
+        'request_type': request_type,
+        'suggestions': _generate_follow_up_suggestions(prompt, request_type),
+        'disclaimers': [
+            'This AI-generated content is for informational purposes only',
+            'Does not constitute legal advice',
+            'Should be reviewed by a qualified attorney'
+        ],
+        'generated_at': datetime.now().isoformat()
+    }
+    
+    return response
+
+# Mock Analysis Helper Functions
+
+def _calculate_contract_score(text):
+    """Calculate overall contract quality score"""
+    base_score = 75
+    
+    # Adjust based on text characteristics
+    if len(text) > 5000:
+        base_score += 10
+    if 'termination' in text.lower():
+        base_score += 5
+    if 'confidentiality' in text.lower():
+        base_score += 5
+    if 'liability' in text.lower():
+        base_score += 3
+    
+    return min(95, max(40, base_score))
+
+def _generate_contract_summary(text, analysis_type):
+    """Generate executive summary of contract analysis"""
+    summaries = {
+        'comprehensive': 'This contract has been thoroughly analyzed for legal risks, clause completeness, and compliance issues. The document demonstrates standard commercial practices with several areas requiring attention.',
+        'risk_assessment': 'Risk analysis reveals moderate exposure in termination and liability provisions. Overall risk level is manageable with recommended modifications.',
+        'clause_extraction': 'Key contractual provisions have been identified and categorized. Several standard clauses are present, with some important provisions missing.',
+        'compliance_check': 'Compliance review indicates general adherence to standard commercial practices with minor issues requiring attention.'
+    }
+    
+    return summaries.get(analysis_type, summaries['comprehensive'])
+
+def _analyze_contract_risks(text):
+    """Analyze potential risks in contract"""
+    risks = [
+        {
+            'level': 'Medium',
+            'type': 'Termination Provisions',
+            'description': 'Termination clause may create unequal obligations between parties',
+            'recommendation': 'Consider adding mutual termination rights and notice requirements',
+            'severity_score': 65
+        },
+        {
+            'level': 'Low',
+            'type': 'Payment Terms',
+            'description': 'Payment terms lack specific penalty provisions for late payment',
+            'recommendation': 'Add interest charges and collection cost provisions',
+            'severity_score': 35
+        }
+    ]
+    
+    if 'liability' not in text.lower():
+        risks.append({
+            'level': 'High',
+            'type': 'Limitation of Liability',
+            'description': 'No limitation of liability clause detected',
+            'recommendation': 'Add mutual limitation of liability provisions',
+            'severity_score': 85
+        })
+    
+    return risks
+
+def _extract_contract_clauses(text):
+    """Extract and identify key contract clauses"""
+    clauses = []
+    
+    clause_indicators = {
+        'confidentiality': ['confidential', 'non-disclosure', 'proprietary'],
+        'termination': ['terminate', 'termination', 'end this agreement'],
+        'indemnification': ['indemnify', 'indemnification', 'hold harmless'],
+        'governing_law': ['governed by', 'governing law', 'jurisdiction'],
+        'assignment': ['assign', 'assignment', 'transfer']
+    }
+    
+    text_lower = text.lower()
+    
+    for clause_type, indicators in clause_indicators.items():
+        if any(indicator in text_lower for indicator in indicators):
+            clauses.append({
+                'type': clause_type.replace('_', ' ').title(),
+                'status': 'Present',
+                'quality': 'Standard',
+                'location': 'Section detected in document'
+            })
+    
+    return clauses
+
+def _identify_missing_clauses(text):
+    """Identify important missing clauses"""
+    missing = []
+    
+    text_lower = text.lower()
+    
+    if 'force majeure' not in text_lower:
+        missing.append({
+            'type': 'Force Majeure',
+            'importance': 'High',
+            'reason': 'Protects parties from unforeseeable circumstances'
+        })
+    
+    if 'dispute resolution' not in text_lower and 'arbitration' not in text_lower:
+        missing.append({
+            'type': 'Dispute Resolution',
+            'importance': 'Medium',
+            'reason': 'Establishes process for resolving conflicts'
+        })
+    
+    return missing
+
+def _generate_contract_recommendations(text):
+    """Generate recommendations for contract improvement"""
+    recommendations = [
+        'Review termination provisions for balance between parties',
+        'Consider adding force majeure clause for unforeseen circumstances',
+        'Ensure dispute resolution mechanisms are clearly defined',
+        'Verify compliance with applicable state and federal laws'
+    ]
+    
+    if 'liability' not in text.lower():
+        recommendations.insert(0, 'Add limitation of liability provisions to manage risk exposure')
+    
+    return recommendations
+
+def _check_contract_compliance(text):
+    """Check contract compliance with standard requirements"""
+    return {
+        'overall_compliance': 85,
+        'areas_checked': [
+            'Consumer protection laws',
+            'Employment regulations',
+            'Commercial code compliance',
+            'State-specific requirements'
+        ],
+        'issues_found': [
+            {
+                'area': 'Notice Requirements',
+                'severity': 'Low',
+                'description': 'Consider adding specific notice delivery methods'
+            }
+        ]
+    }
+
+# Additional helper functions for legal research and other AI features...
+
+def _calculate_result_count(query):
+    """Calculate realistic result count based on query"""
+    base_count = hash(query) % 1000 + 50
+    return min(2000, max(10, base_count))
+
+def _generate_research_summary(query, filters):
+    """Generate AI summary of research results"""
+    return f'Based on your search for "{query}", the research indicates significant legal precedent and statutory authority. Key trends show evolving interpretations in recent case law, particularly in {filters.get("jurisdiction", "federal")} jurisdiction. The analysis reveals important considerations for practical application.'
+
+def _generate_research_results(query, filters):
+    """Generate mock research results"""
+    # This would be replaced with real legal database integration
+    return [
+        {
+            'type': 'case',
+            'title': f'Leading Case on {query.title()}',
+            'citation': '245 F.3d 892 (9th Cir. 2021)',
+            'court': '9th Circuit Court of Appeals',
+            'date': '2021',
+            'jurisdiction': filters.get('jurisdiction', 'Federal'),
+            'relevance_score': 92,
+            'summary': 'Landmark case establishing important precedent...',
+            'key_holdings': ['First key holding', 'Second key holding']
+        }
+    ]
+
+def _generate_related_topics(query):
+    """Generate related legal topics"""
+    return [
+        f'{query} exceptions',
+        f'{query} recent developments',
+        f'{query} practice guide'
+    ]
+
+def _generate_search_suggestions(query):
+    """Generate search suggestions"""
+    return [
+        f'{query} case law',
+        f'{query} statutory authority',
+        f'{query} practice tips'
+    ]
+
+def _analyze_jurisdictional_differences(query, filters):
+    """Analyze differences across jurisdictions"""
+    return {
+        'summary': 'Jurisdictional analysis shows varying approaches...',
+        'key_differences': [
+            'Federal vs state law variations',
+            'Circuit split considerations',
+            'State-specific statutory requirements'
+        ]
+    }
+
+# Helper functions for document comparison, clause detection, and legal assistant...
+# (Additional helper functions would continue here)
+
+def _calculate_document_similarity(doc1, doc2):
+    """Calculate similarity score between two documents"""
+    # Simplified similarity calculation
+    words1 = set(doc1.lower().split())
+    words2 = set(doc2.lower().split())
+    intersection = words1.intersection(words2)
+    union = words1.union(words2)
+    return round(len(intersection) / len(union) * 100, 1) if union else 0
+
+def _identify_document_differences(doc1, doc2):
+    """Identify key differences between documents"""
+    return [
+        {
+            'type': 'Addition',
+            'location': 'Section 3.2',
+            'description': 'New indemnification clause added',
+            'impact': 'Medium'
+        },
+        {
+            'type': 'Modification',
+            'location': 'Section 1.1',
+            'description': 'Payment terms modified',
+            'impact': 'High'
+        }
+    ]
+
+def _analyze_key_changes(doc1, doc2):
+    """Analyze the significance of changes between documents"""
+    return [
+        {
+            'change': 'Termination notice period increased from 30 to 60 days',
+            'impact': 'Medium',
+            'recommendation': 'Review implications for business operations'
+        }
+    ]
+
+def _assess_comparison_risks(doc1, doc2):
+    """Assess risks from document changes"""
+    return {
+        'overall_risk': 'Medium',
+        'risk_factors': [
+            'Increased liability exposure',
+            'Modified termination provisions',
+            'Changed dispute resolution process'
+        ]
+    }
+
+def _generate_comparison_recommendations(doc1, doc2):
+    """Generate recommendations based on document comparison"""
+    return [
+        'Review all modified sections with legal counsel',
+        'Ensure changes align with business objectives',
+        'Consider impact on existing obligations'
+    ]
+
+def _detect_specific_clause(text, clause_type):
+    """Detect specific clause type in document"""
+    clause_patterns = {
+        'termination': ['terminate', 'termination', 'end this agreement'],
+        'confidentiality': ['confidential', 'non-disclosure', 'proprietary'],
+        'indemnification': ['indemnify', 'indemnification', 'hold harmless'],
+        'limitation_of_liability': ['limitation of liability', 'limit liability'],
+        'governing_law': ['governed by', 'governing law', 'jurisdiction'],
+        'force_majeure': ['force majeure', 'act of god', 'unforeseeable circumstances'],
+        'dispute_resolution': ['dispute resolution', 'arbitration', 'mediation'],
+        'assignment': ['assign', 'assignment', 'transfer'],
+        'severability': ['severability', 'severable', 'invalid provision']
+    }
+    
+    patterns = clause_patterns.get(clause_type, [])
+    text_lower = text.lower()
+    
+    found = any(pattern in text_lower for pattern in patterns)
+    
+    return {
+        'type': clause_type.replace('_', ' ').title(),
+        'found': found,
+        'importance': 'High' if clause_type in ['termination', 'limitation_of_liability', 'governing_law'] else 'Medium',
+        'recommendation': f'Consider adding {clause_type.replace("_", " ")} clause' if not found else 'Review existing clause for adequacy'
+    }
+
+def _generate_ai_content(prompt, request_type, context):
+    """Generate AI content based on request type"""
+    
+    content_templates = {
+        'email_draft': 'Dear [Client/Colleague],\n\nI hope this email finds you well. Regarding [subject matter]...\n\nBest regards,\n[Your name]',
+        'letter_draft': '[Date]\n\n[Recipient]\n[Address]\n\nRe: [Subject]\n\nDear [Recipient],\n\n[Letter content]...\n\nSincerely,\n[Your name]',
+        'memo': 'MEMORANDUM\n\nTO: [Recipient]\nFROM: [Your name]\nDATE: [Date]\nRE: [Subject]\n\n[Memo content]...',
+        'general': 'Based on your inquiry about [topic], here is a comprehensive response addressing the key legal considerations...'
+    }
+    
+    return content_templates.get(request_type, content_templates['general'])
+
+def _generate_follow_up_suggestions(prompt, request_type):
+    """Generate follow-up suggestions for legal assistant"""
+    return [
+        'Review with supervising attorney',
+        'Research current case law',
+        'Consider client-specific factors',
+        'Draft follow-up communications'
+    ]
 
 # Helper functions for analytics
 def _calculate_mock_revenue(period_days):

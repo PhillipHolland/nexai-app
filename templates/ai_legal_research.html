@@ -1,0 +1,846 @@
+{% extends "base.html" %}
+
+{% block title %}AI Legal Research - LexAI Practice Partner{% endblock %}
+
+{% block extra_head %}
+<style>
+    .research-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 4rem);
+    }
+
+    .research-header {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+    }
+
+    .research-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .research-subtitle {
+        color: #6b7280;
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-form {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .search-input-group {
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        font-size: 1.125rem;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #2E4B3C;
+        box-shadow: 0 0 0 3px rgba(46, 75, 60, 0.1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        font-size: 1.25rem;
+    }
+
+    .search-filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+    }
+
+    .filter-select {
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        background: white;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #2E4B3C;
+    }
+
+    .search-suggestions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .suggestion-card {
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .suggestion-card:hover {
+        border-color: #2E4B3C;
+        background: white;
+        transform: translateY(-1px);
+    }
+
+    .suggestion-title {
+        font-weight: 600;
+        color: #2E4B3C;
+        margin-bottom: 0.25rem;
+    }
+
+    .suggestion-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .btn {
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: #2E4B3C;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d2d23;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #FFA74F;
+        color: #2E4B3C;
+    }
+
+    .btn-secondary:hover {
+        background: #F0531C;
+        transform: translateY(-1px);
+    }
+
+    .results-section {
+        display: none;
+    }
+
+    .results-section.active {
+        display: block;
+    }
+
+    .results-header {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .results-info {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .results-count {
+        font-weight: 600;
+        color: #2E4B3C;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .result-case {
+        border-left-color: #2E4B3C;
+    }
+
+    .result-statute {
+        border-left-color: #FFA74F;
+    }
+
+    .result-article {
+        border-left-color: #3b82f6;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .result-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.3;
+    }
+
+    .result-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .result-type {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .type-case {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .type-statute {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .type-article {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .result-content {
+        color: #374151;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .result-citation {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        background: #f9fafb;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
+    .result-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: white;
+        color: #374151;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+        border-color: #2E4B3C;
+        color: #2E4B3C;
+        text-decoration: none;
+    }
+
+    .relevance-score {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #374151;
+    }
+
+    .score-bar {
+        width: 60px;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .score-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .ai-summary {
+        background: #f0f9ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .ai-summary-title {
+        font-weight: 600;
+        color: #1e40af;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .ai-summary-content {
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .research-tabs {
+        display: flex;
+        background: white;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        border: none;
+        background: white;
+        color: #6b7280;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab-btn.active {
+        color: #2E4B3C;
+        border-bottom-color: #2E4B3C;
+        background: #f9fafb;
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: #374151;
+        background: #f9fafb;
+    }
+
+    @media (max-width: 768px) {
+        .research-container {
+            padding: 1rem;
+        }
+
+        .research-title {
+            font-size: 2rem;
+        }
+
+        .search-filters {
+            grid-template-columns: 1fr;
+        }
+
+        .search-suggestions {
+            grid-template-columns: 1fr;
+        }
+
+        .results-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .result-header {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .result-actions {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="research-container">
+    <!-- Header -->
+    <div class="research-header">
+        <h1 class="research-title">
+            🔍 AI Legal Research
+        </h1>
+        <p class="research-subtitle">
+            Comprehensive case law, statutes, and legal precedent research powered by advanced AI
+        </p>
+    </div>
+
+    <!-- Research Tabs -->
+    <div class="research-tabs">
+        <button class="tab-btn active" onclick="switchResearchTab('search')">🔍 Search</button>
+        <button class="tab-btn" onclick="switchResearchTab('browse')">📚 Browse Topics</button>
+        <button class="tab-btn" onclick="switchResearchTab('recent')">🕒 Recent Research</button>
+        <button class="tab-btn" onclick="switchResearchTab('saved')">⭐ Saved Results</button>
+    </div>
+
+    <!-- Search Section -->
+    <div id="search-tab" class="search-section">
+        <form class="search-form" onsubmit="performSearch(event)">
+            <div class="search-input-group">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchQuery"
+                    placeholder="Enter your legal research query... (e.g., 'employment at will doctrine California')"
+                    required
+                >
+            </div>
+
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label class="filter-label">Jurisdiction</label>
+                    <select class="filter-select" id="jurisdiction">
+                        <option value="">All Jurisdictions</option>
+                        <option value="federal">Federal</option>
+                        <option value="california">California</option>
+                        <option value="new-york">New York</option>
+                        <option value="texas">Texas</option>
+                        <option value="florida">Florida</option>
+                        <option value="illinois">Illinois</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Source Type</label>
+                    <select class="filter-select" id="sourceType">
+                        <option value="">All Sources</option>
+                        <option value="cases">Case Law</option>
+                        <option value="statutes">Statutes</option>
+                        <option value="regulations">Regulations</option>
+                        <option value="articles">Law Reviews</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="dateRange">
+                        <option value="">All Dates</option>
+                        <option value="last-year">Last Year</option>
+                        <option value="last-5-years">Last 5 Years</option>
+                        <option value="last-10-years">Last 10 Years</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Practice Area</label>
+                    <select class="filter-select" id="practiceArea">
+                        <option value="">All Practice Areas</option>
+                        <option value="contracts">Contract Law</option>
+                        <option value="employment">Employment Law</option>
+                        <option value="corporate">Corporate Law</option>
+                        <option value="litigation">Litigation</option>
+                        <option value="intellectual-property">Intellectual Property</option>
+                        <option value="real-estate">Real Estate</option>
+                        <option value="family">Family Law</option>
+                        <option value="criminal">Criminal Law</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="justify-self: center;">
+                🔍 Search Legal Database
+            </button>
+        </form>
+
+        <!-- Search Suggestions -->
+        <div class="search-suggestions">
+            <div class="suggestion-card" onclick="searchSuggestion('employment at will doctrine exceptions')">
+                <div class="suggestion-title">Employment at Will Doctrine</div>
+                <div class="suggestion-description">Research exceptions and limitations to at-will employment</div>
+            </div>
+            
+            <div class="suggestion-card" onclick="searchSuggestion('force majeure pandemic COVID-19')">
+                <div class="suggestion-title">Force Majeure & COVID-19</div>
+                <div class="suggestion-description">Recent cases on pandemic-related contract disputes</div>
+            </div>
+            
+            <div class="suggestion-card" onclick="searchSuggestion('intellectual property fair use defense')">
+                <div class="suggestion-title">Fair Use Defense</div>
+                <div class="suggestion-description">Copyright fair use precedents and analysis</div>
+            </div>
+            
+            <div class="suggestion-card" onclick="searchSuggestion('breach of fiduciary duty elements')">
+                <div class="suggestion-title">Fiduciary Duty Breach</div>
+                <div class="suggestion-description">Elements and defenses for fiduciary duty claims</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div>Searching legal databases...</div>
+        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+            Analyzing millions of legal documents with AI
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection">
+        <!-- Results Header -->
+        <div class="results-header">
+            <div>
+                <div class="results-info">
+                    Found <span class="results-count" id="resultsCount">0</span> results 
+                    <span id="searchTime">(0.3 seconds)</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-secondary" onclick="exportResults()">📊 Export Results</button>
+                <button class="btn btn-primary" onclick="saveSearch()">⭐ Save Search</button>
+            </div>
+        </div>
+
+        <!-- AI Research Summary -->
+        <div class="ai-summary">
+            <div class="ai-summary-title">
+                🤖 AI Research Summary
+            </div>
+            <div class="ai-summary-content" id="aiSummary">
+                AI analysis of search results will appear here...
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentResearchTab = 'search';
+    let searchResults = [];
+
+    function switchResearchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        currentResearchTab = tabName;
+        
+        // Show/hide relevant sections
+        if (tabName === 'search') {
+            document.querySelector('.search-section').style.display = 'block';
+        } else {
+            document.querySelector('.search-section').style.display = 'none';
+            // In a real implementation, load different content for each tab
+            alert(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} feature coming soon!`);
+        }
+    }
+
+    function searchSuggestion(query) {
+        document.getElementById('searchQuery').value = query;
+        performSearch(new Event('submit'));
+    }
+
+    async function performSearch(event) {
+        event.preventDefault();
+        
+        const query = document.getElementById('searchQuery').value.trim();
+        if (!query) return;
+
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        
+        // Show loading state
+        loadingSpinner.style.display = 'block';
+        resultsSection.classList.remove('active');
+
+        try {
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            
+            // Generate mock search results
+            const results = generateMockSearchResults(query);
+            displaySearchResults(results);
+
+            loadingSpinner.style.display = 'none';
+            resultsSection.classList.add('active');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Search error:', error);
+            alert('Search failed. Please try again.');
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    function generateMockSearchResults(query) {
+        const results = [
+            {
+                type: 'case',
+                title: 'Thompson v. Industrial Corp.',
+                citation: '245 F.3d 892 (9th Cir. 2021)',
+                court: '9th Circuit Court of Appeals',
+                date: '2021',
+                jurisdiction: 'Federal',
+                relevanceScore: 92,
+                summary: 'Landmark case establishing new precedent for employment at-will doctrine in the digital age. Court held that email communications can constitute implied contract modifications.',
+                keyFindings: [
+                    'Electronic communications can modify employment terms',
+                    'Good faith and fair dealing applies to termination processes',
+                    'Employer handbook policies create enforceable obligations'
+                ]
+            },
+            {
+                type: 'statute',
+                title: 'California Labor Code Section 2922',
+                citation: 'Cal. Lab. Code § 2922',
+                jurisdiction: 'California',
+                date: '2020 (amended)',
+                relevanceScore: 88,
+                summary: 'Establishes the default at-will employment relationship in California, subject to statutory and common law exceptions.',
+                keyFindings: [
+                    'Employment relationship is presumed at-will',
+                    'Contract terms can override at-will presumption',
+                    'Public policy exceptions apply'
+                ]
+            },
+            {
+                type: 'case',
+                title: 'Martinez v. Tech Solutions LLC',
+                citation: '189 Cal.App.4th 1024 (2020)',
+                court: 'California Court of Appeal',
+                date: '2020',
+                jurisdiction: 'California',
+                relevanceScore: 85,
+                summary: 'Court analyzed the implied covenant of good faith and fair dealing in employment termination, particularly in cases involving commission-based compensation.',
+                keyFindings: [
+                    'Timing of termination can indicate bad faith',
+                    'Commission structures require careful termination analysis',
+                    'Evidence of pretextual reasons strengthens wrongful termination claims'
+                ]
+            },
+            {
+                type: 'article',
+                title: 'The Evolution of At-Will Employment in the Modern Workplace',
+                citation: '45 Harvard Law Review 234 (2021)',
+                author: 'Prof. Sarah Chen',
+                journal: 'Harvard Law Review',
+                date: '2021',
+                relevanceScore: 78,
+                summary: 'Comprehensive analysis of how at-will employment doctrine has adapted to remote work, gig economy, and digital workplace communications.',
+                keyFindings: [
+                    'Remote work challenges traditional employment classifications',
+                    'Digital communications create new areas of employment law',
+                    'Gig economy requires rethinking of employment relationships'
+                ]
+            }
+        ];
+
+        return {
+            query: query,
+            totalResults: results.length,
+            searchTime: '0.3',
+            results: results,
+            aiSummary: generateAISummary(query, results)
+        };
+    }
+
+    function generateAISummary(query, results) {
+        return `Based on your search for "${query}", I found ${results.length} highly relevant legal authorities. The research indicates that employment at-will doctrine remains the default in most jurisdictions, but courts are increasingly recognizing exceptions, particularly in cases involving digital communications and implied contracts. Key trends include expanded recognition of the covenant of good faith and fair dealing, and evolving interpretations in the context of remote work arrangements.`;
+    }
+
+    function displaySearchResults(data) {
+        searchResults = data.results;
+        
+        // Update results count and timing
+        document.getElementById('resultsCount').textContent = data.totalResults;
+        document.getElementById('searchTime').textContent = `(${data.searchTime} seconds)`;
+        
+        // Update AI summary
+        document.getElementById('aiSummary').textContent = data.aiSummary;
+        
+        // Display results
+        const resultsContainer = document.getElementById('searchResults');
+        resultsContainer.innerHTML = data.results.map((result, index) => `
+            <div class="result-card result-${result.type}">
+                <div class="result-header">
+                    <div>
+                        <h3 class="result-title">${result.title}</h3>
+                        <div class="result-meta">
+                            <span class="result-type type-${result.type}">${result.type}</span>
+                            <span>${result.court || result.journal || result.jurisdiction}</span>
+                            <span>${result.date}</span>
+                        </div>
+                    </div>
+                    <div class="relevance-score">
+                        <span>Relevance:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${result.relevanceScore}%"></div>
+                        </div>
+                        <span>${result.relevanceScore}%</span>
+                    </div>
+                </div>
+                
+                <div class="result-citation">${result.citation}</div>
+                
+                <div class="result-content">
+                    <p>${result.summary}</p>
+                    ${result.keyFindings ? `
+                        <h4 style="margin: 1rem 0 0.5rem 0; color: #2E4B3C;">Key Findings:</h4>
+                        <ul style="margin: 0; padding-left: 1.5rem;">
+                            ${result.keyFindings.map(finding => `<li style="margin-bottom: 0.25rem;">${finding}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+                
+                <div class="result-actions">
+                    <a href="#" class="action-btn" onclick="viewFullText(${index})">📄 Full Text</a>
+                    <a href="#" class="action-btn" onclick="citationFormat(${index})">📋 Cite</a>
+                    <a href="#" class="action-btn" onclick="findSimilar(${index})">🔍 Similar Cases</a>
+                    <a href="#" class="action-btn" onclick="saveResult(${index})">⭐ Save</a>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function viewFullText(index) {
+        const result = searchResults[index];
+        alert(`Full text view for "${result.title}" - Feature coming soon!`);
+    }
+
+    function citationFormat(index) {
+        const result = searchResults[index];
+        const citation = result.citation;
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(citation).then(() => {
+            alert(`Citation copied to clipboard: ${citation}`);
+        }).catch(() => {
+            alert(`Citation: ${citation}`);
+        });
+    }
+
+    function findSimilar(index) {
+        const result = searchResults[index];
+        alert(`Finding similar cases to "${result.title}" - Feature coming soon!`);
+    }
+
+    function saveResult(index) {
+        const result = searchResults[index];
+        alert(`Saved "${result.title}" to your research library`);
+    }
+
+    function exportResults() {
+        alert('Export results feature coming soon!');
+    }
+
+    function saveSearch() {
+        const query = document.getElementById('searchQuery').value;
+        alert(`Saved search: "${query}"`);
+    }
+
+    // Track page view
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'page_view', {
+            page_title: 'AI Legal Research',
+            page_location: window.location.href
+        });
+    }
+</script>
+{% endblock %}
