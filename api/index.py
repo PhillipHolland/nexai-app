@@ -980,14 +980,14 @@ def time_tracking_page():
         return f"Time tracking error: {e}", 500
 
 @app.route('/platform')
-@login_required
 def platform_page():
-    """Platform overview page"""
+    """Platform overview page - publicly accessible"""
     try:
         return render_template('platform_overview.html',
                              bagel_available=BAGEL_AI_AVAILABLE,
                              spanish_available=SPANISH_AVAILABLE,
-                             stripe_available=STRIPE_AVAILABLE)
+                             stripe_available=STRIPE_AVAILABLE,
+                             cache_buster=get_cache_buster())
     except Exception as e:
         logger.error(f"Platform page error: {e}")
         return f"Platform error: {e}", 500

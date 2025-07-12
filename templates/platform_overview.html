@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Platform Overview - LexAI Practice Partner</title>
-    <meta name="description" content="Comprehensive overview of LexAI's AI-powered legal platform. Advanced evidence analysis, document authentication, AI detection, and professional legal tools.">
+    <meta name="description" content="Comprehensive overview of LexAI's AI-powered legal platform. Advanced contract analysis, legal research, document comparison, and complete practice management tools.">
     
     <!-- Google Analytics -->
     {% if google_analytics_id %}
@@ -39,185 +39,189 @@
         .platform-hero {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
             color: white;
-            padding: 3rem 0 2rem 0;
+            padding: 4rem 0 3rem 0;
             text-align: center;
         }
         
         .platform-hero h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: white;
         }
         
         .platform-hero p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 500px;
-            margin: 0 auto 1.5rem;
+            font-size: 1.25rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
         }
         
         .platform-stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .stat-item {
             text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 1rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
         }
         
         .stat-number {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 700;
             color: #FFA74F;
+            margin-bottom: 0.5rem;
         }
         
         .stat-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
+            font-size: 0.875rem;
+            opacity: 0.9;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .platform-section {
-            padding: 2rem 0;
+            padding: 4rem 0;
         }
         
         .platform-section:nth-child(even) {
-            background-color: #F7EDDA;
+            background-color: #f8fafc;
         }
         
         .section-header {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 3rem;
         }
         
         .section-title {
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             font-weight: 700;
             color: #2E4B3C;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         
         .section-subtitle {
-            font-size: 1rem;
+            font-size: 1.125rem;
             color: #6b7280;
-            max-width: 500px;
+            max-width: 600px;
             margin: 0 auto;
+            line-height: 1.6;
         }
         
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        @media (max-width: 1024px) {
-            .tools-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        /* Portrait orientation fix - single column for mobile */
-        @media (max-width: 768px) and (orientation: portrait) {
-            .tools-grid {
-                grid-template-columns: 1fr !important;
-            }
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
         
         .tool-showcase {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #FFA74F;
             transition: all 0.3s ease;
             position: relative;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            height: auto;
-            min-height: 300px;
         }
         
         .tool-showcase:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         }
         
         .tool-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             gap: 1rem;
         }
         
         .tool-icon {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 3rem;
+            height: 3rem;
             background: linear-gradient(135deg, #2E4B3C, #4a7c59);
-            border-radius: 8px;
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             color: white;
             flex-shrink: 0;
         }
         
         .tool-title {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #2E4B3C;
             margin: 0;
+            line-height: 1.3;
         }
         
         .tool-description {
             color: #6b7280;
-            line-height: 1.4;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            flex-grow: 1;
         }
         
         .tool-features {
             list-style: none;
             padding: 0;
-            margin: 0;
-            flex-grow: 1;
+            margin: 0 0 1.5rem 0;
         }
         
         .tool-features li {
-            padding: 0.25rem 0;
+            padding: 0.5rem 0;
             color: #374151;
             position: relative;
-            padding-left: 1.2rem;
-            font-size: 0.85rem;
+            padding-left: 1.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
         }
         
         .tool-features li::before {
             content: "✓";
             position: absolute;
             left: 0;
-            top: 0.25rem;
+            top: 0.5rem;
             color: #FFA74F;
             font-weight: bold;
-            font-size: 0.75rem;
-            line-height: 1;
+            font-size: 0.875rem;
         }
         
         .tool-status {
             display: inline-block;
-            padding: 0.2rem 0.6rem;
+            padding: 0.5rem 1rem;
             background: #2E4B3C;
             color: white;
-            border-radius: 15px;
-            font-size: 0.7rem;
-            font-weight: 500;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            top: 1.5rem;
+            right: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .tool-status.available {
+            background: #10b981;
         }
         
         .tool-status.coming-soon {
@@ -225,126 +229,65 @@
             color: #2E4B3C;
         }
         
-        .security-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .security-feature {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-        }
-        
-        .security-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            background: #F0531C;
-            border-radius: 50%;
-            display: flex;
+        .tool-link {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: #2E4B3C;
             color: white;
-            font-size: 1rem;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+            margin-top: auto;
         }
         
-        .security-title {
-            font-weight: 600;
+        .tool-link:hover {
+            background: #1d2d23;
+            text-decoration: none;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .demo-link {
+            background: #FFA74F;
             color: #2E4B3C;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
         }
         
-        .security-desc {
-            font-size: 0.8rem;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-        
-        .faq-section {
-            background: linear-gradient(135deg, #F7EDDA 0%, #F7DFBA 100%);
-        }
-        
-        .faq-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        
-        .faq-item {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .faq-item:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-        
-        .faq-question {
-            font-weight: 600;
+        .demo-link:hover {
+            background: #f59e0b;
             color: #2E4B3C;
-            margin-bottom: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
         }
         
-        .faq-answer {
-            color: #6b7280;
-            line-height: 1.5;
-            display: none;
-            font-size: 0.85rem;
-        }
-        
-        .faq-answer.show {
-            display: block;
-            margin-top: 1rem;
-        }
-        
-        .faq-toggle {
-            font-size: 1.2rem;
-            color: #FFA74F;
-            transition: transform 0.3s ease;
-        }
-        
-        .faq-toggle.rotate {
-            transform: rotate(45deg);
+        .feature-highlight {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0284c7;
+            border-left: 4px solid #0284c7;
         }
         
         .cta-platform {
             background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
             color: white;
-            padding: 3rem 0;
+            padding: 4rem 0;
             text-align: center;
         }
         
         .cta-platform h2 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
             color: white;
         }
         
         .cta-platform p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 1.5rem;
-            max-width: 500px;
+            font-size: 1.125rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+            max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+            line-height: 1.6;
         }
         
         .cta-buttons {
@@ -365,11 +308,12 @@
             background: #FFA74F;
             color: #2E4B3C;
             padding: 1rem 2rem;
-            border-radius: 8px;
+            border-radius: 0.75rem;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s ease;
             border: 2px solid #FFA74F;
+            font-size: 1.125rem;
         }
         
         .btn-platform:hover {
@@ -377,6 +321,8 @@
             border-color: #F0531C;
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            color: #2E4B3C;
         }
         
         .btn-platform.secondary {
@@ -391,149 +337,39 @@
         }
         
         /* Mobile Adjustments */
-        @media (max-width: 767px) {
+        @media (max-width: 768px) {
             .platform-hero h1 {
-                font-size: 2rem;
+                font-size: 2.25rem;
                 line-height: 1.2;
             }
             
+            .platform-hero p {
+                font-size: 1.125rem;
+            }
+            
             .section-title {
-                font-size: 1.5rem;
-            }
-            
-            .tool-showcase {
-                padding: 1rem;
-                margin-bottom: 1rem;
-                min-height: auto;
-            }
-            
-            .tool-description {
-                font-size: 0.85rem;
-                line-height: 1.4;
-            }
-            
-            .tool-features {
-                margin-top: 0.75rem;
-            }
-            
-            .tool-features li {
-                padding: 0.2rem 0;
-                font-size: 0.8rem;
-                padding-left: 1rem;
-            }
-            
-            .tool-features li::before {
-                font-size: 0.7rem;
-                top: 0.2rem;
-            }
-            
-            .tool-icon {
-                width: 2rem;
-                height: 2rem;
-                font-size: 1rem;
-            }
-            
-            .tool-status {
-                font-size: 0.65rem;
-                padding: 0.15rem 0.5rem;
-                top: 0.75rem;
-                right: 0.75rem;
+                font-size: 2rem;
             }
             
             .platform-stats {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
                 gap: 1rem;
-            }
-            
-            .faq-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            
-            .security-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            
-            .security-feature {
-                padding: 0.75rem;
             }
             
             .tools-grid {
                 grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            /* Improve text wrapping and spacing */
-            .tool-title {
-                word-wrap: break-word;
-                hyphens: auto;
-            }
-            
-            .tool-description {
-                word-wrap: break-word;
-                hyphens: auto;
-            }
-        }
-        
-        /* iOS Safari specific fixes */
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 1rem;
+                gap: 1.5rem;
             }
             
             .tool-showcase {
-                padding: 0.75rem;
-                border-radius: 8px;
-                min-height: auto;
+                padding: 1.5rem;
             }
             
-            .tool-title {
-                font-size: 1rem;
-                margin-bottom: 0.5rem;
-                line-height: 1.3;
-            }
-            
-            .tool-description {
-                font-size: 0.8rem;
-                margin-bottom: 0.75rem;
-                line-height: 1.4;
-            }
-            
-            .tool-features {
-                margin-top: 0.5rem;
-            }
-            
-            .tool-features li {
-                font-size: 0.75rem;
-                padding: 0.1rem 0;
-                padding-left: 0.9rem;
-                line-height: 1.3;
-            }
-            
-            .tool-features li::before {
-                font-size: 0.65rem;
-                top: 0.1rem;
-                left: 0;
-            }
-            
-            .section-title {
-                font-size: 1.25rem;
-                margin-bottom: 0.5rem;
-            }
-            
-            .section-subtitle {
-                font-size: 0.9rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .platform-hero h1 {
-                font-size: 1.75rem;
+            .tool-status {
+                position: static;
                 margin-bottom: 1rem;
-            }
-            
-            .platform-section {
-                padding: 2rem 0;
+                display: block;
+                text-align: center;
             }
         }
     </style>
@@ -563,7 +399,6 @@
                     <div class="nav-links">
                         <a href="/#features" class="nav-link">Features</a>
                         <a href="/platform" class="nav-link" onclick="trackEvent('click', 'navigation', 'platform_overview', 1)">Platform</a>
-                        <a href="/privacy-dashboard" class="nav-link" onclick="trackEvent('click', 'navigation', 'privacy_dashboard', 1)">Privacy</a>
                         <a href="/#how-it-works" class="nav-link">How It Works</a>
                         <a href="/#pricing" class="nav-link">Pricing</a>
                     </div>
@@ -575,13 +410,13 @@
     <!-- Hero Section -->
     <section class="platform-hero">
         <div class="container">
-            <h1>🛡️ Privacy-First Legal AI Platform</h1>
-            <p>The only legal AI platform that protects attorney-client privilege while delivering superior results. Advanced privacy protection meets professional-grade AI tools designed specifically for legal professionals.</p>
+            <h1>🤖 Complete AI-Powered Legal Platform</h1>
+            <p>The most comprehensive legal AI platform available. From advanced contract analysis to complete practice management, LexAI delivers professional-grade tools that enhance every aspect of legal practice while protecting attorney-client privilege.</p>
             
             <div class="platform-stats">
                 <div class="stat-item">
-                    <div class="stat-number">Zero</div>
-                    <div class="stat-label">Data Exposure</div>
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">AI Tools</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">99.2%</div>
@@ -592,30 +427,88 @@
                     <div class="stat-label">Encryption</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">SOC 2</div>
-                    <div class="stat-label">Compliant</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Availability</div>
+                    <div class="stat-number">Zero</div>
+                    <div class="stat-label">Data Exposure</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- AI Tools Suite -->
+    <!-- Advanced AI Tools Suite -->
     <section class="platform-section">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">🛡️ Privacy-Protected Legal AI Tools</h2>
-                <p class="section-subtitle">Advanced artificial intelligence with built-in privacy protection. Zero client data exposure while delivering superior legal results.</p>
+                <h2 class="section-title">🚀 Advanced AI Legal Tools</h2>
+                <p class="section-subtitle">Cutting-edge AI technology designed specifically for legal professionals. Comprehensive analysis, research, and document processing with built-in privacy protection.</p>
             </div>
             
-            <div class="tools-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+            <div class="tools-grid">
+                <div class="tool-showcase feature-highlight">
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">📋</div>
+                        <h3 class="tool-title">AI Contract Analysis</h3>
+                    </div>
+                    <p class="tool-description">
+                        Advanced AI-powered contract analysis with risk assessment, clause detection, and compliance checking. Upload contracts and receive comprehensive analysis in minutes.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Comprehensive risk assessment scoring</li>
+                        <li>Intelligent clause detection and categorization</li>
+                        <li>Legal compliance verification</li>
+                        <li>Key terms extraction and analysis</li>
+                        <li>Recommendation engine for improvements</li>
+                        <li>Export detailed analysis reports</li>
+                    </ul>
+                    <a href="/ai-contract-analysis" class="tool-link">🔍 Try Contract Analysis</a>
+                </div>
+                
+                <div class="tool-showcase feature-highlight">
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">🔍</div>
+                        <h3 class="tool-title">AI Legal Research</h3>
+                    </div>
+                    <p class="tool-description">
+                        Comprehensive legal research platform with AI-powered case law analysis, statute search, and precedent identification. Access millions of legal documents instantly.
+                    </p>
+                    <ul class="tool-features">
+                        <li>AI-enhanced case law and statute search</li>
+                        <li>Intelligent relevance scoring and ranking</li>
+                        <li>Multi-jurisdictional coverage</li>
+                        <li>Citation management and validation</li>
+                        <li>Research history and saved searches</li>
+                        <li>Export citations and summaries</li>
+                    </ul>
+                    <a href="/ai-legal-research" class="tool-link">⚖️ Start Research</a>
+                </div>
+                
+                <div class="tool-showcase feature-highlight">
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">🔄</div>
+                        <h3 class="tool-title">AI Document Comparison</h3>
+                    </div>
+                    <p class="tool-description">
+                        Advanced document comparison with AI-powered difference detection, risk analysis, and change tracking. Perfect for contract revisions and version control.
+                    </p>
+                    <ul class="tool-features">
+                        <li>AI-powered difference detection</li>
+                        <li>Similarity scoring and analysis</li>
+                        <li>Risk assessment for changes</li>
+                        <li>Side-by-side comparison view</li>
+                        <li>Change impact analysis</li>
+                        <li>Detailed recommendation reports</li>
+                    </ul>
+                    <a href="/ai-document-comparison" class="tool-link">🔄 Compare Documents</a>
+                </div>
+                
                 <div class="tool-showcase">
-                    <div class="tool-icon">🛡️</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Privacy-First AI Legal Assistant</h3>
+                    <div class="tool-status available">Available Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">🛡️</div>
+                        <h3 class="tool-title">Privacy-First AI Assistant</h3>
+                    </div>
                     <p class="tool-description">
                         Conversational AI with automatic anonymization and privilege protection. Get instant answers and research support while maintaining attorney-client confidentiality.
                     </p>
@@ -624,48 +517,38 @@
                         <li>Automatic privilege detection and protection</li>
                         <li>Zero external data exposure</li>
                         <li>Document drafting with confidentiality safeguards</li>
-                        <li>Multi-jurisdictional support with local privacy compliance</li>
+                        <li>Multi-jurisdictional legal guidance</li>
                     </ul>
+                    <a href="/dashboard" class="tool-link">🤖 Access AI Assistant</a>
                 </div>
                 
                 <div class="tool-showcase">
-                    <div class="tool-icon">🔍</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Privacy-Protected AI Content Detection</h3>
+                    <div class="tool-status available">Available Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">🔐</div>
+                        <h3 class="tool-title">AI Content Detection</h3>
+                    </div>
                     <p class="tool-description">
                         Advanced pattern recognition with client data anonymization. Detect AI-generated text and authenticate digital communications while protecting sensitive information.
                     </p>
                     <ul class="tool-features">
-                        <li>AI-generated text detection with privacy protection</li>
+                        <li>AI-generated text detection with 99.2% accuracy</li>
                         <li>Anonymous document analysis</li>
                         <li>Client-safe authenticity scoring</li>
                         <li>Privacy-compliant pattern recognition</li>
                         <li>Court-admissible reports with redaction options</li>
                     </ul>
+                    <a href="/dashboard" class="tool-link">🔍 Try Detection Tool</a>
                 </div>
                 
                 <div class="tool-showcase">
-                    <div class="tool-icon">🔐</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Document Authentication</h3>
+                    <div class="tool-status available">Available Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">⚖️</div>
+                        <h3 class="tool-title">Evidence Analysis</h3>
+                    </div>
                     <p class="tool-description">
-                        Comprehensive document integrity verification using hash analysis, metadata extraction, and digital forensics techniques.
-                    </p>
-                    <ul class="tool-features">
-                        <li>MD5/SHA256 hash verification</li>
-                        <li>Metadata analysis and extraction</li>
-                        <li>File tampering detection</li>
-                        <li>Chain of custody tracking</li>
-                        <li>Security threat analysis</li>
-                    </ul>
-                </div>
-                
-                <div class="tool-showcase">
-                    <div class="tool-icon">⚖️</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Legal Admissibility Checker</h3>
-                    <p class="tool-description">
-                        Comprehensive analysis of evidence for hearsay issues, authentication requirements, and Federal Rules of Evidence compliance.
+                        Comprehensive analysis of evidence for hearsay issues, authentication requirements, and Federal Rules of Evidence compliance with expert opinions.
                     </p>
                     <ul class="tool-features">
                         <li>Hearsay rule analysis (Rules 802-807)</li>
@@ -674,382 +557,190 @@
                         <li>Relevance and prejudicial effect analysis</li>
                         <li>Expert testimony foundation review</li>
                     </ul>
-                </div>
-                
-                <div class="tool-showcase">
-                    <div class="tool-icon">📋</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Court-Ready Reports</h3>
-                    <p class="tool-description">
-                        Generate professional, court-ready evidence analysis reports with expert opinions, technical documentation, and legal citations.
-                    </p>
-                    <ul class="tool-features">
-                        <li>Professional court formatting</li>
-                        <li>Expert opinion statements</li>
-                        <li>Chain of custody documentation</li>
-                        <li>Technical methodology details</li>
-                        <li>Legal admissibility guidance</li>
-                    </ul>
+                    <a href="/dashboard" class="tool-link">📊 Analyze Evidence</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Practice Management Suite -->
-    <section class="platform-section" style="background: #f8f9fa;">
+    <!-- Complete Practice Management -->
+    <section class="platform-section" style="background: #f8fafc;">
         <div class="container">
             <div class="section-header">
                 <h2 class="section-title">⚖️ Complete Practice Management</h2>
-                <p class="section-subtitle">Comprehensive tools to run your entire legal practice efficiently and professionally</p>
+                <p class="section-subtitle">Everything you need to run a modern legal practice efficiently and professionally. Integrated billing, client management, and analytics.</p>
             </div>
             
-            <div class="tools-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+            <div class="tools-grid">
                 <div class="tool-showcase">
-                    <div class="tool-icon">👥</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Client Management</h3>
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">👥</div>
+                        <h3 class="tool-title">Client Management</h3>
+                    </div>
                     <p class="tool-description">
                         Complete client relationship management with case tracking, document organization, and secure client portal access.
                     </p>
                     <ul class="tool-features">
                         <li>Client database and contact management</li>
-                        <li>Case matter organization</li>
-                        <li>Client portal for document sharing</li>
-                        <li>Communication history tracking</li>
-                        <li>Secure client file access</li>
+                        <li>Case matter organization and tracking</li>
+                        <li>Secure client portal for document sharing</li>
+                        <li>Communication history and notes</li>
+                        <li>Client onboarding workflows</li>
                     </ul>
+                    <a href="/dashboard" class="tool-link">👥 Manage Clients</a>
                 </div>
                 
                 <div class="tool-showcase">
-                    <div class="tool-icon">💰</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Time & Billing</h3>
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">💰</div>
+                        <h3 class="tool-title">Time & Billing</h3>
+                    </div>
                     <p class="tool-description">
-                        Automated time tracking, expense management, and professional invoicing with integrated payment processing.
+                        Automated time tracking, expense management, and professional invoicing with integrated Stripe payment processing.
                     </p>
                     <ul class="tool-features">
-                        <li>Automatic time tracking</li>
+                        <li>Automatic time tracking and categorization</li>
                         <li>Professional invoice generation</li>
-                        <li>Stripe payment integration</li>
-                        <li>Expense tracking and categorization</li>
+                        <li>Stripe payment integration with 1.9% platform fee</li>
+                        <li>Expense tracking and reimbursement</li>
                         <li>Revenue analytics and reporting</li>
                     </ul>
+                    <a href="/billing" class="tool-link">💳 Access Billing</a>
                 </div>
                 
                 <div class="tool-showcase">
-                    <div class="tool-icon">📅</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Calendar & Deadlines</h3>
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">📊</div>
+                        <h3 class="tool-title">Analytics Dashboard</h3>
+                    </div>
                     <p class="tool-description">
-                        Never miss important dates with integrated calendar management, court deadline tracking, and team scheduling.
-                    </p>
-                    <ul class="tool-features">
-                        <li>Court deadline management</li>
-                        <li>Appointment scheduling</li>
-                        <li>Team calendar coordination</li>
-                        <li>Automatic deadline reminders</li>
-                        <li>Client booking integration</li>
-                    </ul>
-                </div>
-                
-                <div class="tool-showcase">
-                    <div class="tool-icon">📄</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Document Management</h3>
-                    <p class="tool-description">
-                        Centralized document library with AI-powered analysis, version control, and secure sharing capabilities.
-                    </p>
-                    <ul class="tool-features">
-                        <li>Document library and organization</li>
-                        <li>AI-powered document analysis</li>
-                        <li>Version control and tracking</li>
-                        <li>Secure document sharing</li>
-                        <li>Advanced search and tagging</li>
-                    </ul>
-                </div>
-                
-                <div class="tool-showcase">
-                    <div class="tool-icon">📊</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Analytics & Reporting</h3>
-                    <p class="tool-description">
-                        Comprehensive practice insights with revenue tracking, case analytics, and performance metrics.
+                        Comprehensive practice insights with revenue tracking, case analytics, and performance metrics to optimize your practice.
                     </p>
                     <ul class="tool-features">
                         <li>Practice performance dashboards</li>
                         <li>Revenue and billing analytics</li>
-                        <li>Case outcome tracking</li>
-                        <li>Time utilization reports</li>
-                        <li>Client satisfaction metrics</li>
+                        <li>Case outcome tracking and metrics</li>
+                        <li>Time utilization and efficiency reports</li>
+                        <li>Client satisfaction and retention analysis</li>
                     </ul>
+                    <a href="/analytics-dashboard" class="tool-link">📈 View Analytics</a>
                 </div>
                 
                 <div class="tool-showcase">
-                    <div class="tool-icon">🔍</div>
-                    <span class="tool-status">Available Now</span>
-                    <h3 class="tool-title">Legal Research</h3>
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">📅</div>
+                        <h3 class="tool-title">Calendar & Scheduling</h3>
+                    </div>
                     <p class="tool-description">
-                        AI-enhanced legal research using free databases with intelligent source ranking and citation management.
+                        Never miss important dates with integrated calendar management, court deadline tracking, and automated client scheduling.
                     </p>
                     <ul class="tool-features">
-                        <li>Case law and statute research</li>
-                        <li>AI-powered source relevance ranking</li>
-                        <li>Citation management and validation</li>
-                        <li>Multi-jurisdictional coverage</li>
-                        <li>Research history and notes</li>
+                        <li>Court deadline management and alerts</li>
+                        <li>Appointment scheduling and reminders</li>
+                        <li>Team calendar coordination</li>
+                        <li>Automatic deadline calculations</li>
+                        <li>Client booking integration</li>
                     </ul>
+                    <a href="/dashboard" class="tool-link">📅 Manage Calendar</a>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">📄</div>
+                        <h3 class="tool-title">Document Management</h3>
+                    </div>
+                    <p class="tool-description">
+                        Centralized document library with AI-powered analysis, version control, and secure sharing capabilities for all case materials.
+                    </p>
+                    <ul class="tool-features">
+                        <li>Document library and organization</li>
+                        <li>AI-powered document analysis and tagging</li>
+                        <li>Version control and change tracking</li>
+                        <li>Secure document sharing with clients</li>
+                        <li>Advanced search and filtering</li>
+                    </ul>
+                    <a href="/dashboard" class="tool-link">📁 Access Documents</a>
+                </div>
+                
+                <div class="tool-showcase">
+                    <div class="tool-status available">Live Now</div>
+                    <div class="tool-header">
+                        <div class="tool-icon">🔒</div>
+                        <h3 class="tool-title">Security & Compliance</h3>
+                    </div>
+                    <p class="tool-description">
+                        Enterprise-grade security with attorney-client privilege protection, audit trails, and compliance management built-in.
+                    </p>
+                    <ul class="tool-features">
+                        <li>256-bit encryption for all data</li>
+                        <li>Attorney-client privilege protection</li>
+                        <li>Complete audit trails and logging</li>
+                        <li>SOC 2 Type II compliance</li>
+                        <li>Zero-knowledge architecture</li>
+                    </ul>
+                    <a href="/dashboard" class="tool-link">🛡️ Security Center</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Privacy-First Architecture -->
+    <!-- Platform Benefits -->
     <section class="platform-section" style="background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%); color: white;">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title" style="color: white;">🛡️ Privacy-First Architecture</h2>
-                <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">The only legal AI platform designed from the ground up to protect attorney-client privilege and client confidentiality</p>
-            </div>
-            
-            <div class="tools-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
-                    <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">🎭</div>
-                    <span class="tool-status" style="background: #FFA74F; color: #2E4B3C;">Core Feature</span>
-                    <h3 class="tool-title" style="color: white;">Smart Anonymization</h3>
-                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
-                        Intelligently anonymize client data while preserving legal context. Process sensitive cases with AI confidence and zero privacy risk.
-                    </p>
-                    <ul class="tool-features">
-                        <li style="color: rgba(255,255,255,0.9);">Context-aware entity replacement</li>
-                        <li style="color: rgba(255,255,255,0.9);">Preserve legal meaning and relationships</li>
-                        <li style="color: rgba(255,255,255,0.9);">Reversible anonymization for internal use</li>
-                        <li style="color: rgba(255,255,255,0.9);">Industry-specific anonymization templates</li>
-                        <li style="color: rgba(255,255,255,0.9);">Real-time privacy risk assessment</li>
-                    </ul>
-                </div>
-                
-                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
-                    <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">⚖️</div>
-                    <span class="tool-status" style="background: #FFA74F; color: #2E4B3C;">Core Feature</span>
-                    <h3 class="tool-title" style="color: white;">Automatic Privilege Protection</h3>
-                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
-                        AI automatically detects and protects attorney-client privileged communications. Prevent inadvertent privilege waiver with built-in safeguards.
-                    </p>
-                    <ul class="tool-features">
-                        <li style="color: rgba(255,255,255,0.9);">Real-time privilege detection</li>
-                        <li style="color: rgba(255,255,255,0.9);">Work product doctrine protection</li>
-                        <li style="color: rgba(255,255,255,0.9);">Automatic privilege log generation</li>
-                        <li style="color: rgba(255,255,255,0.9);">Inadvertent disclosure prevention</li>
-                        <li style="color: rgba(255,255,255,0.9);">Compliance audit trails</li>
-                    </ul>
-                </div>
-                
-                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
-                    <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">🏠</div>
-                    <span class="tool-status" style="background: #FFA74F; color: #2E4B3C;">Enterprise</span>
-                    <h3 class="tool-title" style="color: white;">On-Premises Deployment</h3>
-                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
-                        For ultra-sensitive cases, deploy LexAI locally with zero external data transmission. Air-gapped security with full AI capabilities.
-                    </p>
-                    <ul class="tool-features">
-                        <li style="color: rgba(255,255,255,0.9);">Complete local deployment</li>
-                        <li style="color: rgba(255,255,255,0.9);">Air-gapped security architecture</li>
-                        <li style="color: rgba(255,255,255,0.9);">Zero external API calls</li>
-                        <li style="color: rgba(255,255,255,0.9);">Government and enterprise ready</li>
-                        <li style="color: rgba(255,255,255,0.9);">Custom security protocols</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Security & Compliance -->
-    <section class="platform-section" style="background: #F7EDDA;">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">🛡️ Enterprise Privacy & Security</h2>
-                <p class="section-subtitle">Military-grade security with privacy-first design. Built specifically for sensitive legal data and attorney-client privilege protection.</p>
-            </div>
-            
-            <div class="security-grid">
-                <div class="security-feature">
-                    <div class="security-icon">🔒</div>
-                    <h4 class="security-title">End-to-End Encryption</h4>
-                    <p class="security-desc">256-bit AES encryption for all data in transit and at rest</p>
-                </div>
-                
-                <div class="security-feature">
-                    <div class="security-icon">🏛️</div>
-                    <h4 class="security-title">SOC 2 Type II Compliant</h4>
-                    <p class="security-desc">Independently audited security controls and processes</p>
-                </div>
-                
-                <div class="security-feature">
-                    <div class="security-icon">⚖️</div>
-                    <h4 class="security-title">Attorney-Client Privilege</h4>
-                    <p class="security-desc">Designed to maintain confidentiality and privilege protection</p>
-                </div>
-                
-                <div class="security-feature">
-                    <div class="security-icon">🔄</div>
-                    <h4 class="security-title">Chain of Custody</h4>
-                    <p class="security-desc">Immutable evidence tracking for court admissibility</p>
-                </div>
-                
-                <div class="security-feature">
-                    <div class="security-icon">🌐</div>
-                    <h4 class="security-title">Zero-Knowledge Architecture</h4>
-                    <p class="security-desc">We cannot access your confidential client data</p>
-                </div>
-                
-                <div class="security-feature">
-                    <div class="security-icon">📋</div>
-                    <h4 class="security-title">Audit Trails</h4>
-                    <p class="security-desc">Complete activity logging for compliance and discovery</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Technical Specifications -->
-    <section class="platform-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">🔧 Technical Specifications</h2>
-                <p class="section-subtitle">Professional-grade infrastructure built for legal practice demands</p>
+                <h2 class="section-title" style="color: white;">🌟 Why Choose LexAI Platform</h2>
+                <p class="section-subtitle" style="color: rgba(255,255,255,0.9);">The only legal platform that combines advanced AI with complete practice management while protecting attorney-client privilege</p>
             </div>
             
             <div class="tools-grid">
-                <div class="tool-showcase">
-                    <div class="tool-icon">📁</div>
-                    <h3 class="tool-title">File Format Support</h3>
-                    <p class="tool-description">
-                        Comprehensive support for legal document formats with advanced parsing and analysis capabilities.
+                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
+                    <div class="tool-header">
+                        <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">🛡️</div>
+                        <h3 class="tool-title" style="color: white;">Privacy-First Design</h3>
+                    </div>
+                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
+                        The only legal AI platform designed from the ground up to protect attorney-client privilege. Smart anonymization preserves context while ensuring zero client data exposure.
                     </p>
                     <ul class="tool-features">
-                        <li>PDF documents (all versions)</li>
-                        <li>Microsoft Word (.docx, .doc)</li>
-                        <li>Images (JPEG, PNG, TIFF)</li>
-                        <li>Text files and transcripts</li>
-                        <li>Email formats (EML, MSG)</li>
+                        <li style="color: rgba(255,255,255,0.9);">Automatic privilege detection and protection</li>
+                        <li style="color: rgba(255,255,255,0.9);">Smart anonymization preserves legal context</li>
+                        <li style="color: rgba(255,255,255,0.9);">Zero external data transmission</li>
                     </ul>
                 </div>
                 
-                <div class="tool-showcase">
-                    <div class="tool-icon">🔗</div>
-                    <h3 class="tool-title">Integration Capabilities</h3>
-                    <p class="tool-description">
-                        Seamless integration with existing legal technology stack and practice management systems.
+                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
+                    <div class="tool-header">
+                        <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">🚀</div>
+                        <h3 class="tool-title" style="color: white;">Complete Integration</h3>
+                    </div>
+                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
+                        Unlike fragmented solutions, LexAI provides everything in one platform. AI tools seamlessly integrate with practice management for maximum efficiency.
                     </p>
                     <ul class="tool-features">
-                        <li>REST API access</li>
-                        <li>Webhook notifications</li>
-                        <li>Practice management integration</li>
-                        <li>Document management systems</li>
-                        <li>eDiscovery platform support</li>
+                        <li style="color: rgba(255,255,255,0.9);">All tools share data and insights</li>
+                        <li style="color: rgba(255,255,255,0.9);">Single login for complete workflow</li>
+                        <li style="color: rgba(255,255,255,0.9);">Unified billing and client management</li>
                     </ul>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="platform-section faq-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">❓ Frequently Asked Questions</h2>
-                <p class="section-subtitle">Common questions about LexAI's platform, security, and legal applications</p>
-            </div>
-            
-            <div class="faq-grid">
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        How accurate is the AI content detection?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Our AI content detection achieves 99.2% accuracy in identifying AI-generated text through advanced pattern recognition, writing style analysis, and linguistic markers. The system is continuously updated to detect new AI models and generation techniques.
-                    </div>
-                </div>
                 
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        Can the analysis reports be used in court?
-                        <span class="faq-toggle">+</span>
+                <div class="tool-showcase" style="background: rgba(255,255,255,0.1); border-left: 4px solid #FFA74F; color: white;">
+                    <div class="tool-header">
+                        <div class="tool-icon" style="background: linear-gradient(135deg, #FFA74F, #ff8c1a);">⚡</div>
+                        <h3 class="tool-title" style="color: white;">Professional Grade</h3>
                     </div>
-                    <div class="faq-answer">
-                        Yes, our reports are designed for legal proceedings and include technical documentation, chain of custody tracking, and expert testimony support. However, we recommend consulting with legal experts for specific case requirements and jurisdictional rules.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        How is my client data protected?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        All data is protected with 256-bit encryption, SOC 2 compliance, and zero-knowledge architecture. We cannot access your confidential data, and all processing maintains attorney-client privilege. Complete audit trails are available for compliance.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        What file formats are supported?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        We support PDF documents, Microsoft Word files, images (JPEG, PNG), text files, and email formats. Our system can analyze metadata, extract content, and perform security analysis across all supported formats.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        How does pricing work?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        We offer tiered pricing starting at $99/month for solo practitioners, with unlimited access to all AI tools for higher tiers. All plans include core security features, and enterprise options are available for larger firms with custom requirements.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        What makes LexAI different from other legal AI tools?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        LexAI is the only legal AI platform with privacy-first architecture. We automatically protect attorney-client privilege, anonymize sensitive data, and offer on-premises deployment. Unlike other AI tools that expose client data to external services, LexAI ensures zero client data exposure while delivering superior results.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        How does LexAI protect attorney-client privilege?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        LexAI automatically detects privileged communications and applies smart anonymization before any AI processing. Our system preserves legal context while protecting client identities, prevents inadvertent privilege waiver, and generates audit trails for compliance. We're the only AI platform designed specifically for attorney-client privilege protection.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        Can LexAI be deployed on-premises for sensitive cases?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Yes, our Enterprise Privacy plan includes on-premises deployment with air-gapped security. This ensures zero external data transmission for ultra-sensitive cases, government work, or firms with strict confidentiality requirements. Full AI capabilities remain available in the secure local environment.
-                    </div>
-                </div>
-                
-                <div class="faq-item" onclick="toggleFAQ(this)">
-                    <div class="faq-question">
-                        Do you offer training and support?
-                        <span class="faq-toggle">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        Yes, we provide comprehensive onboarding, training materials, and ongoing support. Professional and Enterprise plans include priority support, and we offer expert consultation for complex cases requiring specialized analysis.
-                    </div>
+                    <p class="tool-description" style="color: rgba(255,255,255,0.9);">
+                        Built specifically for legal professionals with court-ready reports, compliance features, and enterprise security that meets the highest standards.
+                    </p>
+                    <ul class="tool-features">
+                        <li style="color: rgba(255,255,255,0.9);">Court-admissible analysis reports</li>
+                        <li style="color: rgba(255,255,255,0.9);">SOC 2 Type II compliance</li>
+                        <li style="color: rgba(255,255,255,0.9);">24/7 uptime and reliability</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -1058,30 +749,30 @@
     <!-- Call to Action -->
     <section class="cta-platform">
         <div class="container">
-            <h2>Ready for Privacy-First Legal AI?</h2>
+            <h2>Experience the Future of Legal Practice</h2>
             <p>
-                Join hundreds of legal professionals using LexAI's privacy-protected AI platform. Experience the confidence of AI-powered legal work without compromising attorney-client privilege or client confidentiality.
+                Join thousands of legal professionals using LexAI's comprehensive platform. From AI-powered contract analysis to complete practice management, everything you need is here - with privacy protection built-in.
             </p>
             <div class="cta-buttons">
                 <a href="/dashboard" class="btn-platform" onclick="trackEvent('click', 'conversion', 'start_trial_platform', 1)">
-                    Start Free Trial
+                    🚀 Start Free Trial
                 </a>
                 <a href="mailto:sales@lexai.com" class="btn-platform secondary" onclick="trackEvent('click', 'engagement', 'contact_sales_platform', 1)">
-                    Contact Sales
+                    💬 Contact Sales
                 </a>
             </div>
-            <p style="margin-top: 1.5rem; opacity: 0.8; font-size: 0.9rem;">
-                No credit card required • 14-day free trial • Enterprise demos available
+            <p style="margin-top: 1.5rem; opacity: 0.9; font-size: 1rem;">
+                No credit card required • 14-day free trial • Full access to all AI tools
             </p>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" style="background: #1f2937; color: white; padding: 2rem 0; text-align: center;">
         <div class="container">
-            <img src="/static/lexAI.png" alt="LexAI Practice Partner">
-            <p>AI-Powered Legal Assistant for Legal Practices</p>
-            <p>© 2025 LexAI Practice Partner. Professional legal AI technology.</p>
+            <img src="/static/lexAI.png" alt="LexAI Practice Partner" style="max-height: 40px; margin-bottom: 1rem;">
+            <p style="margin: 0.5rem 0; opacity: 0.8;">Complete AI-Powered Legal Platform for Modern Law Practices</p>
+            <p style="margin: 0; opacity: 0.6; font-size: 0.875rem;">© 2025 LexAI Practice Partner. Professional legal AI technology with privacy protection.</p>
         </div>
     </footer>
 
@@ -1105,32 +796,13 @@
             });
         });
         
-        function toggleFAQ(element) {
-            const answer = element.querySelector('.faq-answer');
-            const toggle = element.querySelector('.faq-toggle');
-            
-            if (answer.classList.contains('show')) {
-                answer.classList.remove('show');
-                toggle.textContent = '+';
-                toggle.classList.remove('rotate');
-            } else {
-                // Close all other FAQs
-                document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('show'));
-                document.querySelectorAll('.faq-toggle').forEach(t => {
-                    t.textContent = '+';
-                    t.classList.remove('rotate');
-                });
-                
-                // Open this FAQ
-                answer.classList.add('show');
-                toggle.textContent = '×';
-                toggle.classList.add('rotate');
-            }
-            
-            // Track FAQ engagement
-            if (typeof trackEvent === 'function') {
-                trackEvent('click', 'engagement', 'faq_toggle', 1);
-            }
+        // Track page engagement
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'engagement', {
+                event_category: 'platform_overview',
+                event_label: 'page_view',
+                value: 1
+            });
         }
     </script>
 </body>
