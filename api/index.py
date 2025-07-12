@@ -983,6 +983,523 @@ def analytics_dashboard():
         logger.error(f"Analytics dashboard error: {e}")
         return f"Analytics dashboard error: {e}", 500
 
+# ===== ANALYTICS API ENDPOINTS =====
+
+@app.route('/api/analytics/overview', methods=['GET'])
+@login_required
+def get_analytics_overview():
+    """Get overview analytics data for dashboard"""
+    try:
+        period = request.args.get('period', '30')  # Default to 30 days
+        period_days = int(period)
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            # Get real data from database
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=period_days)
+            
+            # Calculate revenue metrics
+            invoices = Invoice.query.filter(
+                Invoice.user_id == user_id,
+                Invoice.created_at >= start_date,
+                Invoice.status.in_([InvoiceStatus.PAID, InvoiceStatus.SENT])
+            ).all()
+            
+            total_revenue = sum(invoice.total_amount for invoice in invoices)
+            
+            # Calculate billable hours
+            time_entries = TimeEntry.query.filter(
+                TimeEntry.user_id == user_id,
+                TimeEntry.date >= start_date.date(),
+                TimeEntry.status == TimeEntryStatus.APPROVED
+            ).all()
+            
+            total_hours = sum(entry.duration for entry in time_entries) / 3600  # Convert to hours
+            
+            # Count active clients
+            active_clients = Client.query.filter(
+                Client.user_id == user_id,
+                Client.created_at >= start_date
+            ).count()
+            
+            # Calculate average hourly rate
+            avg_rate = total_revenue / total_hours if total_hours > 0 else 350
+            
+            # Previous period comparison
+            prev_start = start_date - timedelta(days=period_days)
+            prev_invoices = Invoice.query.filter(
+                Invoice.user_id == user_id,
+                Invoice.created_at >= prev_start,
+                Invoice.created_at < start_date,
+                Invoice.status.in_([InvoiceStatus.PAID, InvoiceStatus.SENT])
+            ).all()
+            
+            prev_revenue = sum(invoice.total_amount for invoice in prev_invoices)
+            prev_time_entries = TimeEntry.query.filter(
+                TimeEntry.user_id == user_id,
+                TimeEntry.date >= prev_start.date(),
+                TimeEntry.date < start_date.date(),
+                TimeEntry.status == TimeEntryStatus.APPROVED
+            ).all()
+            
+            prev_hours = sum(entry.duration for entry in prev_time_entries) / 3600
+            prev_clients = Client.query.filter(
+                Client.user_id == user_id,
+                Client.created_at >= prev_start,
+                Client.created_at < start_date
+            ).count()
+            
+            # Calculate percentage changes
+            revenue_change = ((total_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue > 0 else 0
+            hours_change = ((total_hours - prev_hours) / prev_hours * 100) if prev_hours > 0 else 0
+            clients_change = ((active_clients - prev_clients) / prev_clients * 100) if prev_clients > 0 else 0
+            
+        else:
+            # Mock data for development
+            total_revenue = _calculate_mock_revenue(period_days)
+            total_hours = total_revenue / 350
+            active_clients = min(15 + period_days // 10, 25)
+            avg_rate = 350
+            
+            # Mock changes
+            revenue_change = (hash(str(period_days)) % 30) - 5  # -5% to +25%
+            hours_change = (hash(str(period_days + 1)) % 25) - 3
+            clients_change = (hash(str(period_days + 2)) % 20) - 2
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'metrics': {
+                    'total_revenue': float(total_revenue),
+                    'billable_hours': float(total_hours),
+                    'active_clients': int(active_clients),
+                    'avg_hourly_rate': float(avg_rate),
+                    'changes': {
+                        'revenue': float(revenue_change),
+                        'hours': float(hours_change),
+                        'clients': float(clients_change),
+                        'rate': 0.0
+                    }
+                },
+                'period_days': period_days
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Analytics overview error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load analytics overview'
+        }), 500
+
+@app.route('/api/analytics/revenue-trends', methods=['GET'])
+@login_required
+def get_revenue_trends():
+    """Get revenue trend data for charts"""
+    try:
+        period = request.args.get('period', '30')
+        period_days = int(period)
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            # Get daily revenue data
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=period_days)
+            
+            # Query invoices grouped by day
+            daily_revenue = {}
+            invoices = Invoice.query.filter(
+                Invoice.user_id == user_id,
+                Invoice.created_at >= start_date,
+                Invoice.status.in_([InvoiceStatus.PAID, InvoiceStatus.SENT])
+            ).all()
+            
+            for invoice in invoices:
+                day_key = invoice.created_at.strftime('%Y-%m-%d')
+                daily_revenue[day_key] = daily_revenue.get(day_key, 0) + float(invoice.total_amount)
+        else:
+            # Generate mock daily revenue data
+            daily_revenue = _generate_mock_daily_revenue(period_days)
+        
+        # Fill in missing days with 0
+        dates = []
+        revenues = []
+        for i in range(period_days):
+            date = datetime.now() - timedelta(days=period_days - i - 1)
+            day_key = date.strftime('%Y-%m-%d')
+            dates.append(date.strftime('%m/%d'))
+            revenues.append(daily_revenue.get(day_key, 0))
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'labels': dates,
+                'revenue': revenues
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Revenue trends error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load revenue trends'
+        }), 500
+
+@app.route('/api/analytics/client-engagement', methods=['GET'])
+@login_required
+def get_client_engagement():
+    """Get client engagement analytics"""
+    try:
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            # Get clients with engagement data
+            clients = Client.query.filter(Client.user_id == user_id).all()
+            
+            engagement_data = []
+            for client in clients:
+                # Calculate engagement score based on recent activity
+                recent_cases = Case.query.filter(
+                    Case.client_id == client.id,
+                    Case.created_at >= datetime.now() - timedelta(days=30)
+                ).count()
+                
+                recent_invoices = Invoice.query.filter(
+                    Invoice.client_id == client.id,
+                    Invoice.created_at >= datetime.now() - timedelta(days=30)
+                ).all()
+                
+                recent_revenue = sum(inv.total_amount for inv in recent_invoices)
+                last_contact = max((inv.created_at for inv in recent_invoices), default=client.created_at)
+                days_since_contact = (datetime.now() - last_contact).days
+                
+                # Simple engagement score algorithm
+                score = 100
+                score -= min(days_since_contact * 2, 50)  # Penalize for no recent contact
+                score += min(recent_cases * 10, 30)  # Reward for active cases
+                score = max(20, min(100, score))  # Keep between 20-100
+                
+                engagement_data.append({
+                    'client_name': f"{client.first_name} {client.last_name}",
+                    'engagement_score': int(score),
+                    'last_contact': _format_relative_date(last_contact),
+                    'revenue': float(recent_revenue)
+                })
+            
+            # Sort by engagement score
+            engagement_data.sort(key=lambda x: x['engagement_score'], reverse=True)
+            
+        else:
+            # Mock client engagement data
+            engagement_data = [
+                {
+                    'client_name': 'Acme Corp',
+                    'engagement_score': 95,
+                    'last_contact': '2 days ago',
+                    'revenue': 12500.0
+                },
+                {
+                    'client_name': 'Smith Enterprises',
+                    'engagement_score': 82,
+                    'last_contact': '5 days ago',
+                    'revenue': 8750.0
+                },
+                {
+                    'client_name': 'Johnson LLC',
+                    'engagement_score': 67,
+                    'last_contact': '2 weeks ago',
+                    'revenue': 4200.0
+                },
+                {
+                    'client_name': 'Tech Innovations',
+                    'engagement_score': 43,
+                    'last_contact': '1 month ago',
+                    'revenue': 1800.0
+                }
+            ]
+        
+        return jsonify({
+            'success': True,
+            'data': engagement_data[:10]  # Top 10 clients
+        })
+        
+    except Exception as e:
+        logger.error(f"Client engagement error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load client engagement data'
+        }), 500
+
+@app.route('/api/analytics/time-utilization', methods=['GET'])
+@login_required
+def get_time_utilization():
+    """Get time utilization breakdown"""
+    try:
+        period = request.args.get('period', '30')
+        period_days = int(period)
+        
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            # Get time entries for the period
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=period_days)
+            
+            time_entries = TimeEntry.query.filter(
+                TimeEntry.user_id == user_id,
+                TimeEntry.date >= start_date.date()
+            ).all()
+            
+            # Categorize time entries
+            categories = {
+                'Billable Work': 0,
+                'Client Meetings': 0,
+                'Admin Tasks': 0,
+                'Business Development': 0
+            }
+            
+            for entry in time_entries:
+                duration_hours = entry.duration / 3600
+                description = entry.description.lower()
+                
+                if 'meeting' in description or 'call' in description:
+                    categories['Client Meetings'] += duration_hours
+                elif 'admin' in description or 'invoice' in description:
+                    categories['Admin Tasks'] += duration_hours
+                elif 'business' in description or 'marketing' in description:
+                    categories['Business Development'] += duration_hours
+                else:
+                    categories['Billable Work'] += duration_hours
+            
+            # Convert to percentages
+            total_time = sum(categories.values())
+            if total_time > 0:
+                for category in categories:
+                    categories[category] = round((categories[category] / total_time) * 100, 1)
+        else:
+            # Mock time utilization data
+            categories = {
+                'Billable Work': 65.0,
+                'Client Meetings': 20.0,
+                'Admin Tasks': 10.0,
+                'Business Development': 5.0
+            }
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'labels': list(categories.keys()),
+                'values': list(categories.values())
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Time utilization error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load time utilization data'
+        }), 500
+
+@app.route('/api/analytics/practice-areas', methods=['GET'])
+@login_required
+def get_practice_areas_performance():
+    """Get practice areas performance data"""
+    try:
+        user_id = session.get('user_id')
+        
+        if DATABASE_AVAILABLE:
+            # Get cases grouped by practice area
+            cases = Case.query.filter(Case.user_id == user_id).all()
+            
+            areas = {}
+            for case in cases:
+                area = case.practice_area or 'General'
+                if area not in areas:
+                    areas[area] = {'revenue': 0, 'cases': 0}
+                
+                # Calculate revenue for this case
+                case_invoices = Invoice.query.filter(
+                    Invoice.case_id == case.id,
+                    Invoice.status.in_([InvoiceStatus.PAID, InvoiceStatus.SENT])
+                ).all()
+                
+                case_revenue = sum(inv.total_amount for inv in case_invoices)
+                areas[area]['revenue'] += case_revenue
+                areas[area]['cases'] += 1
+            
+            # Convert to list and calculate percentages
+            total_revenue = sum(area['revenue'] for area in areas.values())
+            practice_areas = []
+            
+            for area_name, data in areas.items():
+                percentage = (data['revenue'] / total_revenue * 100) if total_revenue > 0 else 0
+                practice_areas.append({
+                    'name': area_name,
+                    'revenue': float(data['revenue']),
+                    'percentage': round(percentage, 1),
+                    'cases': data['cases']
+                })
+            
+            # Sort by revenue
+            practice_areas.sort(key=lambda x: x['revenue'], reverse=True)
+            
+        else:
+            # Mock practice areas data
+            practice_areas = [
+                {'name': 'Corporate Law', 'revenue': 18500.0, 'percentage': 42.0, 'cases': 12},
+                {'name': 'Litigation', 'revenue': 12200.0, 'percentage': 28.0, 'cases': 8},
+                {'name': 'Contract Review', 'revenue': 8750.0, 'percentage': 20.0, 'cases': 15},
+                {'name': 'Family Law', 'revenue': 4550.0, 'percentage': 10.0, 'cases': 6}
+            ]
+        
+        return jsonify({
+            'success': True,
+            'data': practice_areas
+        })
+        
+    except Exception as e:
+        logger.error(f"Practice areas error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load practice areas data'
+        }), 500
+
+@app.route('/api/analytics/insights', methods=['GET'])
+@login_required
+def get_analytics_insights():
+    """Get AI-generated insights about practice performance"""
+    try:
+        period = request.args.get('period', '30')
+        period_days = int(period)
+        
+        user_id = session.get('user_id')
+        insights = []
+        
+        if DATABASE_AVAILABLE:
+            # Generate insights based on real data
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=period_days)
+            
+            # Revenue insights
+            invoices = Invoice.query.filter(
+                Invoice.user_id == user_id,
+                Invoice.created_at >= start_date,
+                Invoice.status.in_([InvoiceStatus.PAID, InvoiceStatus.SENT])
+            ).all()
+            
+            if invoices:
+                daily_revenues = {}
+                for invoice in invoices:
+                    day = invoice.created_at.strftime('%A')
+                    daily_revenues[day] = daily_revenues.get(day, 0) + float(invoice.total_amount)
+                
+                best_day = max(daily_revenues.keys(), key=lambda k: daily_revenues[k])
+                best_revenue = daily_revenues[best_day]
+                
+                insights.append({
+                    'type': 'revenue',
+                    'text': f'Your highest revenue day was <span class="insight-value">{best_day}</span> with <span class="insight-value">${best_revenue:,.0f}</span> in billable work.'
+                })
+            
+            # Client insights
+            total_revenue = sum(float(inv.total_amount) for inv in invoices)
+            target_revenue = 50000  # Example target
+            
+            if total_revenue > target_revenue:
+                excess = total_revenue - target_revenue
+                insights.append({
+                    'type': 'target',
+                    'text': f'You exceeded your target by <span class="insight-value">${excess:,.0f}</span> this period.'
+                })
+            else:
+                shortfall = target_revenue - total_revenue
+                insights.append({
+                    'type': 'target',
+                    'text': f'You\'re <span class="insight-value">${shortfall:,.0f}</span> away from your target revenue.'
+                })
+            
+        else:
+            # Mock insights
+            insights = [
+                {
+                    'type': 'revenue',
+                    'text': f'Your highest revenue day generated <span class="insight-value">${1500 + hash(str(period_days)) % 1000:,.0f}</span> in billable work.'
+                },
+                {
+                    'type': 'engagement',
+                    'text': f'Client engagement increased by <span class="insight-value">{10 + hash(str(period_days)) % 20:.1f}%</span> this period.'
+                },
+                {
+                    'type': 'forecast',
+                    'text': f'You\'re on track to exceed your target by <span class="insight-value">${2000 + hash(str(period_days)) % 6000:,.0f}</span>.'
+                }
+            ]
+        
+        return jsonify({
+            'success': True,
+            'data': insights
+        })
+        
+    except Exception as e:
+        logger.error(f"Analytics insights error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate insights'
+        }), 500
+
+# Helper functions for analytics
+def _calculate_mock_revenue(period_days):
+    """Calculate mock revenue based on period"""
+    base_daily = 1500
+    total = 0
+    for i in range(period_days):
+        variation = (hash(str(i)) % 40 - 20) / 100  # ±20% variation
+        daily_revenue = base_daily * (1 + variation)
+        total += daily_revenue
+    return total
+
+def _generate_mock_daily_revenue(period_days):
+    """Generate mock daily revenue data"""
+    daily_revenue = {}
+    base_daily = 1500
+    
+    for i in range(period_days):
+        date = datetime.now() - timedelta(days=period_days - i - 1)
+        day_key = date.strftime('%Y-%m-%d')
+        
+        # Add some realistic variation
+        variation = (hash(day_key) % 40 - 20) / 100
+        daily_amount = base_daily * (1 + variation)
+        
+        # Some days have no revenue (weekends, holidays)
+        if date.weekday() >= 5:  # Weekend
+            daily_amount *= 0.3
+        
+        daily_revenue[day_key] = max(0, daily_amount)
+    
+    return daily_revenue
+
+def _format_relative_date(date):
+    """Format date as relative time"""
+    now = datetime.now()
+    diff = now - date
+    
+    if diff.days == 0:
+        return 'Today'
+    elif diff.days == 1:
+        return 'Yesterday'
+    elif diff.days < 7:
+        return f'{diff.days} days ago'
+    elif diff.days < 30:
+        weeks = diff.days // 7
+        return f'{weeks} week{"s" if weeks > 1 else ""} ago'
+    else:
+        months = diff.days // 30
+        return f'{months} month{"s" if months > 1 else ""} ago'
+
 # ===== CLIENT PORTAL ROUTES =====
 
 def client_portal_auth_required(f):

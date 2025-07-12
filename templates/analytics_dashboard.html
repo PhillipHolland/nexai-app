@@ -3,24 +3,30 @@
 {% block title %}Analytics Dashboard - LexAI Practice Partner{% endblock %}
 
 {% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
 <style>
     .analytics-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 2rem 1rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 4rem);
     }
 
     .analytics-header {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid #e5e7eb;
     }
 
     .analytics-title {
-        font-size: 2rem;
+        font-size: 2.25rem;
         font-weight: 700;
         color: #1f2937;
         margin: 0;
@@ -29,152 +35,331 @@
         gap: 0.75rem;
     }
 
-    .refresh-btn {
-        background: linear-gradient(135deg, #2E4B3C, #4a7c59);
-        color: white;
+    .time-period-selector {
+        display: flex;
+        gap: 0.5rem;
+        background: #f3f4f6;
+        padding: 0.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .period-btn {
+        padding: 0.5rem 1rem;
         border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
+        background: transparent;
+        border-radius: 0.5rem;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+        color: #6b7280;
     }
 
-    .refresh-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(46, 75, 60, 0.3);
+    .period-btn.active {
+        background: #2E4B3C;
+        color: white;
+        box-shadow: 0 2px 4px rgba(46, 75, 60, 0.2);
     }
 
-    .metrics-grid {
+    .period-btn:hover:not(.active) {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .metrics-overview {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
     .metric-card {
         background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e5e7eb;
-        transition: all 0.2s ease;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
     }
 
     .metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
     }
 
     .metric-title {
-        font-size: 1.125rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .metric-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-change {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .metric-change.positive {
+        color: #10b981;
+    }
+
+    .metric-change.negative {
+        color: #ef4444;
+    }
+
+    .metric-change.neutral {
+        color: #6b7280;
+    }
+
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .chart-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: between;
+        margin-bottom: 2rem;
+    }
+
+    .chart-title {
+        font-size: 1.25rem;
         font-weight: 600;
         color: #1f2937;
+        margin: 0;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 400px;
         margin-bottom: 1rem;
+    }
+
+    .insights-panel {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .insights-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 
-    .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #2E4B3C;
-        margin-bottom: 0.5rem;
+    .insight-item {
+        background: #f8fafc;
+        border-left: 4px solid #2E4B3C;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
 
-    .metric-label {
-        color: #6b7280;
+    .insight-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .insight-text {
+        color: #374151;
         font-size: 0.875rem;
-        font-weight: 500;
+        line-height: 1.6;
+        margin: 0;
     }
 
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 0.5rem;
+    .insight-value {
+        color: #2E4B3C;
+        font-weight: 600;
     }
 
-    .status-healthy { 
-        background: #10b981; 
-    }
-    
-    .status-warning { 
-        background: #f59e0b; 
-    }
-    
-    .status-error { 
-        background: #ef4444; 
+    .detailed-analytics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
     }
 
-    .status-item {
+    .analytics-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
-        padding: 0.5rem 0;
+        gap: 0.5rem;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .data-table th {
+        text-align: left;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table td {
+        padding: 0.75rem 0.5rem;
         font-size: 0.875rem;
         color: #374151;
-    }
-
-    .endpoint-list {
-        max-height: 300px;
-        overflow-y: auto;
-        padding-right: 0.5rem;
-    }
-
-    .endpoint-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 0;
         border-bottom: 1px solid #f3f4f6;
     }
 
-    .endpoint-item:last-child {
-        border-bottom: none;
+    .data-table tr:hover {
+        background: #f9fafb;
     }
 
-    .endpoint-name {
-        font-weight: 500;
-        color: #374151;
-        font-size: 0.875rem;
+    .progress-bar {
+        width: 100%;
+        height: 0.5rem;
+        background: #e5e7eb;
+        border-radius: 0.25rem;
+        overflow: hidden;
+        margin: 0.5rem 0;
     }
 
-    .endpoint-time {
-        color: #2E4B3C;
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2E4B3C, #4a7c59);
+        border-radius: 0.25rem;
+        transition: width 0.3s ease;
+    }
+
+    .client-score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        font-size: 0.75rem;
         font-weight: 600;
-        font-size: 0.875rem;
-        background: #f0f9ff;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        border: 1px solid #e0f2fe;
+        color: white;
     }
 
-    .security-item {
+    .score-excellent {
+        background: #10b981;
+    }
+
+    .score-good {
+        background: #3b82f6;
+    }
+
+    .score-average {
+        background: #f59e0b;
+    }
+
+    .score-poor {
+        background: #ef4444;
+    }
+
+    .loading-state {
         display: flex;
         align-items: center;
-        padding: 0.5rem 0;
-        font-size: 0.875rem;
-        color: #374151;
-    }
-
-    .security-item .emoji {
-        margin-right: 0.5rem;
-        font-size: 1rem;
-    }
-
-    .loading-text {
+        justify-content: center;
+        height: 200px;
         color: #6b7280;
         font-style: italic;
-        text-align: center;
-        padding: 2rem;
+    }
+
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #2E4B3C;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .alert-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border: 1px solid #fed7aa;
+        color: #92400e;
     }
 
     /* Responsive design */
+    @media (max-width: 1024px) {
+        .analytics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 768px) {
         .analytics-container {
             padding: 1rem;
@@ -187,181 +372,569 @@
         }
 
         .analytics-title {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
         }
 
-        .metrics-grid {
+        .metrics-overview {
             grid-template-columns: 1fr;
-            gap: 1rem;
         }
 
-        .metric-card {
-            padding: 1rem;
+        .detailed-analytics {
+            grid-template-columns: 1fr;
         }
 
-        .metric-value {
-            font-size: 1.5rem;
+        .time-period-selector {
+            justify-content: center;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="analytics-container">
+<main class="analytics-container">
+    <!-- Header -->
     <div class="analytics-header">
-        <h1 class="analytics-title">📊 Analytics Dashboard</h1>
-        <button class="refresh-btn" onclick="refreshData()">
-            🔄 Refresh Data
-        </button>
-    </div>
-    
-    <div class="metrics-grid">
-        <div class="metric-card">
-            <div class="metric-title">🖥️ System Status</div>
-            <div id="system-status">
-                <div class="status-item">
-                    <span class="status-indicator status-healthy"></span>
-                    Database Connected
-                </div>
-                <div class="status-item">
-                    <span class="status-indicator status-healthy"></span>
-                    Authentication Active
-                </div>
-                <div class="status-item">
-                    <span class="status-indicator status-healthy"></span>
-                    Storage Available
-                </div>
-                <div class="status-item">
-                    <span class="status-indicator status-healthy"></span>
-                    RBAC Enforced
-                </div>
-            </div>
-        </div>
-        
-        <div class="metric-card">
-            <div class="metric-title">⚡ Performance</div>
-            <div class="metric-value" id="avg-response-time">Loading...</div>
-            <div class="metric-label">Average Response Time (ms)</div>
-        </div>
-        
-        <div class="metric-card">
-            <div class="metric-title">📈 Total Requests</div>
-            <div class="metric-value" id="total-requests">Loading...</div>
-            <div class="metric-label">Since Last Restart</div>
-        </div>
-        
-        <div class="metric-card">
-            <div class="metric-title">🛡️ Active Rate Limits</div>
-            <div class="metric-value" id="rate-limits">Loading...</div>
-            <div class="metric-label">Tracked IP Addresses</div>
+        <h1 class="analytics-title">
+            📊 Practice Analytics
+        </h1>
+        <div class="time-period-selector">
+            <button class="period-btn active" data-period="7">7 Days</button>
+            <button class="period-btn" data-period="30">30 Days</button>
+            <button class="period-btn" data-period="90">90 Days</button>
+            <button class="period-btn" data-period="365">1 Year</button>
         </div>
     </div>
-    
-    <div class="metrics-grid">
+
+    <!-- Key Metrics Overview -->
+    <div class="metrics-overview">
         <div class="metric-card">
-            <div class="metric-title">📊 Endpoint Performance</div>
-            <div class="endpoint-list" id="endpoint-performance">
-                <div class="loading-text">Loading endpoint data...</div>
+            <div class="metric-header">
+                <span class="metric-title">Total Revenue</span>
+                <div class="metric-icon" style="background: #dcfce7;">💰</div>
+            </div>
+            <div class="metric-value" id="totalRevenue">$0</div>
+            <div class="metric-change positive" id="revenueChange">
+                <span>↗</span> +0% from last period
             </div>
         </div>
-        
+
         <div class="metric-card">
-            <div class="metric-title">🔐 Security Metrics</div>
-            <div id="security-metrics">
-                <div class="security-item">
-                    <span class="emoji">✅</span>
-                    RBAC Protection: Active
-                </div>
-                <div class="security-item">
-                    <span class="emoji">✅</span>
-                    Rate Limiting: Enforced
-                </div>
-                <div class="security-item">
-                    <span class="emoji">✅</span>
-                    Input Validation: Active
-                </div>
-                <div class="security-item">
-                    <span class="emoji">✅</span>
-                    Session Security: Enabled
-                </div>
+            <div class="metric-header">
+                <span class="metric-title">Billable Hours</span>
+                <div class="metric-icon" style="background: #fef3c7;">⏱️</div>
+            </div>
+            <div class="metric-value" id="billableHours">0h</div>
+            <div class="metric-change positive" id="hoursChange">
+                <span>↗</span> +0% from last period
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <span class="metric-title">Active Clients</span>
+                <div class="metric-icon" style="background: #dbeafe;">👥</div>
+            </div>
+            <div class="metric-value" id="activeClients">0</div>
+            <div class="metric-change positive" id="clientsChange">
+                <span>↗</span> +0% from last period
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-header">
+                <span class="metric-title">Average Hourly Rate</span>
+                <div class="metric-icon" style="background: #f3e8ff;">💎</div>
+            </div>
+            <div class="metric-value" id="avgHourlyRate">$0</div>
+            <div class="metric-change neutral" id="rateChange">
+                <span>→</span> No change
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Main Analytics Grid -->
+    <div class="analytics-grid">
+        <!-- Revenue Chart -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">💰 Revenue Trends</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="insights-panel">
+            <h3 class="insights-title">🎯 Key Insights</h3>
+            <div id="insightsContainer">
+                <div class="insight-item">
+                    <p class="insight-text">
+                        Your <span class="insight-value">highest revenue day</span> was Monday with 
+                        <span class="insight-value">$2,450</span> in billable work.
+                    </p>
+                </div>
+                <div class="insight-item">
+                    <p class="insight-text">
+                        <span class="insight-value">Client engagement</span> increased by 
+                        <span class="insight-value">23%</span> this month.
+                    </p>
+                </div>
+                <div class="insight-item">
+                    <p class="insight-text">
+                        You're on track to exceed your monthly target by 
+                        <span class="insight-value">$5,200</span>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analytics Sections -->
+    <div class="detailed-analytics">
+        <!-- Time Utilization -->
+        <div class="analytics-section">
+            <h3 class="section-title">⏰ Time Utilization</h3>
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="timeUtilizationChart"></canvas>
+            </div>
+            <div class="alert alert-info">
+                <strong>Tip:</strong> Your most productive hours are 10 AM - 2 PM. Consider scheduling important tasks during this window.
+            </div>
+        </div>
+
+        <!-- Client Engagement -->
+        <div class="analytics-section">
+            <h3 class="section-title">👥 Client Engagement Analytics</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Engagement Score</th>
+                        <th>Last Contact</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="clientEngagementTable">
+                    <tr>
+                        <td>Acme Corp</td>
+                        <td><span class="client-score score-excellent">95</span></td>
+                        <td>2 days ago</td>
+                        <td>$12,500</td>
+                    </tr>
+                    <tr>
+                        <td>Smith Enterprises</td>
+                        <td><span class="client-score score-good">82</span></td>
+                        <td>5 days ago</td>
+                        <td>$8,750</td>
+                    </tr>
+                    <tr>
+                        <td>Johnson LLC</td>
+                        <td><span class="client-score score-average">67</span></td>
+                        <td>2 weeks ago</td>
+                        <td>$4,200</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Practice Areas Performance -->
+        <div class="analytics-section">
+            <h3 class="section-title">⚖️ Practice Areas Performance</h3>
+            <div id="practiceAreasContainer">
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.875rem; color: #374151;">Corporate Law</span>
+                        <span style="font-size: 0.875rem; color: #2E4B3C; font-weight: 600;">$18,500 (42%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.875rem; color: #374151;">Litigation</span>
+                        <span style="font-size: 0.875rem; color: #2E4B3C; font-weight: 600;">$12,200 (28%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 60%;"></div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.875rem; color: #374151;">Contract Review</span>
+                        <span style="font-size: 0.875rem; color: #2E4B3C; font-weight: 600;">$8,750 (20%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 40%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.875rem; color: #374151;">Family Law</span>
+                        <span style="font-size: 0.875rem; color: #2E4B3C; font-weight: 600;">$4,550 (10%)</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Forecasting -->
+        <div class="analytics-section">
+            <h3 class="section-title">📈 Revenue Forecasting</h3>
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="forecastChart"></canvas>
+            </div>
+            <div class="alert alert-success">
+                <strong>Forecast:</strong> Based on current trends, you're projected to reach <strong>$52,000</strong> in revenue this month.
+            </div>
+        </div>
+    </div>
+</main>
 
 <script>
-    async function refreshData() {
-        try {
-            // Show loading state
-            document.getElementById('avg-response-time').textContent = 'Loading...';
-            document.getElementById('total-requests').textContent = 'Loading...';
-            document.getElementById('rate-limits').textContent = 'Loading...';
-            
-            // Fetch performance data
-            const perfResponse = await fetch('/api/analytics/performance');
-            const perfData = await perfResponse.json();
-            
-            if (perfData.success) {
-                // Update metrics
-                document.getElementById('avg-response-time').textContent = 
-                    (perfData.summary.avg_response_time * 1000).toFixed(0);
-                document.getElementById('total-requests').textContent = 
-                    perfData.summary.total_requests;
-                
-                // Update endpoint performance
-                const endpointList = document.getElementById('endpoint-performance');
-                endpointList.innerHTML = '';
-                
-                if (perfData.endpoints && Object.keys(perfData.endpoints).length > 0) {
-                    Object.entries(perfData.endpoints).forEach(([name, data]) => {
-                        const item = document.createElement('div');
-                        item.className = 'endpoint-item';
-                        item.innerHTML = `
-                            <span class="endpoint-name">${name}</span>
-                            <span class="endpoint-time">${(data.avg_response_time * 1000).toFixed(0)}ms</span>
-                        `;
-                        endpointList.appendChild(item);
-                    });
-                } else {
-                    endpointList.innerHTML = '<div class="loading-text">No endpoint data available</div>';
+    let currentPeriod = 7;
+    let revenueChart, timeChart, forecastChart;
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        loadAnalyticsData();
+        setupEventListeners();
+    });
+
+    function setupEventListeners() {
+        // Time period selector
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelector('.period-btn.active').classList.remove('active');
+                this.classList.add('active');
+                currentPeriod = parseInt(this.dataset.period);
+                loadAnalyticsData();
+            });
+        });
+    }
+
+    function initializeCharts() {
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Revenue',
+                    data: [],
+                    borderColor: '#2E4B3C',
+                    backgroundColor: 'rgba(46, 75, 60, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 6,
+                        hoverRadius: 8
+                    }
                 }
-            } else {
-                // Handle API error
-                document.getElementById('avg-response-time').textContent = 'N/A';
-                document.getElementById('total-requests').textContent = 'N/A';
-                document.getElementById('endpoint-performance').innerHTML = 
-                    '<div class="loading-text">Performance data unavailable</div>';
+            }
+        });
+
+        // Time Utilization Chart
+        const timeCtx = document.getElementById('timeUtilizationChart').getContext('2d');
+        timeChart = new Chart(timeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Billable Work', 'Client Meetings', 'Admin Tasks', 'Business Development'],
+                datasets: [{
+                    data: [65, 20, 10, 5],
+                    backgroundColor: [
+                        '#2E4B3C',
+                        '#4a7c59',
+                        '#FFA74F',
+                        '#F0531C'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        // Forecast Chart
+        const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+        forecastChart = new Chart(forecastCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Actual Revenue',
+                        data: [],
+                        borderColor: '#2E4B3C',
+                        backgroundColor: 'rgba(46, 75, 60, 0.1)',
+                        borderWidth: 3,
+                        fill: false
+                    },
+                    {
+                        label: 'Projected Revenue',
+                        data: [],
+                        borderColor: '#FFA74F',
+                        backgroundColor: 'rgba(255, 167, 79, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadAnalyticsData() {
+        try {
+            showLoadingState();
+            
+            // Load all analytics data in parallel
+            const [overviewResponse, trendsResponse, engagementResponse, timeResponse, areasResponse, insightsResponse] = await Promise.all([
+                fetch(`/api/analytics/overview?period=${currentPeriod}`),
+                fetch(`/api/analytics/revenue-trends?period=${currentPeriod}`),
+                fetch(`/api/analytics/client-engagement`),
+                fetch(`/api/analytics/time-utilization?period=${currentPeriod}`),
+                fetch(`/api/analytics/practice-areas`),
+                fetch(`/api/analytics/insights?period=${currentPeriod}`)
+            ]);
+            
+            const overview = await overviewResponse.json();
+            const trends = await trendsResponse.json();
+            const engagement = await engagementResponse.json();
+            const timeUtil = await timeResponse.json();
+            const areas = await areasResponse.json();
+            const insights = await insightsResponse.json();
+            
+            if (overview.success) {
+                updateMetricCards(overview.data.metrics);
             }
             
-            // Fetch usage data
-            const usageResponse = await fetch('/api/analytics/usage');
-            const usageData = await usageResponse.json();
-            
-            if (usageData.success) {
-                document.getElementById('rate-limits').textContent = 
-                    usageData.rate_limiting?.active_limits || '0';
-            } else {
-                document.getElementById('rate-limits').textContent = 'N/A';
+            if (trends.success && timeUtil.success) {
+                updateCharts({
+                    revenue: trends.data,
+                    timeUtilization: timeUtil.data
+                });
             }
             
+            if (engagement.success) {
+                updateClientEngagementTable(engagement.data);
+            }
+            
+            if (areas.success) {
+                updatePracticeAreas(areas.data);
+            }
+            
+            if (insights.success) {
+                updateInsights(insights.data);
+            }
+            
+            hideLoadingState();
         } catch (error) {
-            console.error('Failed to refresh data:', error);
-            
-            // Show error state
-            document.getElementById('avg-response-time').textContent = 'Error';
-            document.getElementById('total-requests').textContent = 'Error';
-            document.getElementById('rate-limits').textContent = 'Error';
-            document.getElementById('endpoint-performance').innerHTML = 
-                '<div class="loading-text">Failed to load endpoint data</div>';
+            console.error('Failed to load analytics data:', error);
+            showErrorState();
         }
     }
-    
-    // Auto-refresh every 30 seconds
-    setInterval(refreshData, 30000);
-    
-    // Initial load
-    document.addEventListener('DOMContentLoaded', function() {
-        refreshData();
-    });
+
+
+    function updateMetricCards(metrics) {
+        document.getElementById('totalRevenue').textContent = '$' + metrics.totalRevenue.toLocaleString();
+        document.getElementById('billableHours').textContent = metrics.billableHours + 'h';
+        document.getElementById('activeClients').textContent = metrics.activeClients;
+        document.getElementById('avgHourlyRate').textContent = '$' + metrics.avgHourlyRate;
+
+        // Update change indicators
+        updateChangeIndicator('revenueChange', metrics.changes.revenue);
+        updateChangeIndicator('hoursChange', metrics.changes.hours);
+        updateChangeIndicator('clientsChange', metrics.changes.clients);
+        updateChangeIndicator('rateChange', metrics.changes.rate);
+    }
+
+    function updateChangeIndicator(elementId, change) {
+        const element = document.getElementById(elementId);
+        const isPositive = change > 0;
+        const isNegative = change < 0;
+        
+        element.className = 'metric-change ' + (isPositive ? 'positive' : isNegative ? 'negative' : 'neutral');
+        
+        const arrow = isPositive ? '↗' : isNegative ? '↘' : '→';
+        const sign = isPositive ? '+' : '';
+        const text = change === 0 ? 'No change' : `${sign}${change.toFixed(1)}% from last period`;
+        
+        element.innerHTML = `<span>${arrow}</span> ${text}`;
+    }
+
+    function updateCharts(chartData) {
+        // Update revenue chart
+        if (chartData.revenue) {
+            revenueChart.data.labels = chartData.revenue.labels;
+            revenueChart.data.datasets[0].data = chartData.revenue.revenue;
+            revenueChart.update();
+        }
+
+        // Update time utilization chart
+        if (chartData.timeUtilization) {
+            timeChart.data.labels = chartData.timeUtilization.labels;
+            timeChart.data.datasets[0].data = chartData.timeUtilization.values;
+            timeChart.update();
+        }
+
+        // Generate forecast data for forecast chart
+        if (chartData.revenue) {
+            const labels = chartData.revenue.labels;
+            const actual = chartData.revenue.revenue;
+            const projected = [];
+            
+            // Simple projection: extend the trend
+            const lastValue = actual[actual.length - 1];
+            const growth = 1.1; // 10% growth
+            
+            for (let i = 0; i < labels.length; i++) {
+                if (i < actual.length - 7) {
+                    projected.push(null);
+                } else {
+                    projected.push(lastValue * growth);
+                }
+            }
+            
+            forecastChart.data.labels = labels;
+            forecastChart.data.datasets[0].data = actual;
+            forecastChart.data.datasets[1].data = projected;
+            forecastChart.update();
+        }
+    }
+
+    function updateClientEngagementTable(engagementData) {
+        const tableBody = document.getElementById('clientEngagementTable');
+        if (!tableBody) return;
+        
+        tableBody.innerHTML = engagementData.map(client => {
+            const scoreClass = client.engagement_score >= 80 ? 'score-excellent' :
+                             client.engagement_score >= 60 ? 'score-good' :
+                             client.engagement_score >= 40 ? 'score-average' : 'score-poor';
+            
+            return `
+                <tr>
+                    <td>${client.client_name}</td>
+                    <td><span class="client-score ${scoreClass}">${client.engagement_score}</span></td>
+                    <td>${client.last_contact}</td>
+                    <td>$${client.revenue.toLocaleString()}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function updatePracticeAreas(areasData) {
+        const container = document.getElementById('practiceAreasContainer');
+        if (!container) return;
+        
+        container.innerHTML = areasData.map(area => `
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                    <span style="font-size: 0.875rem; color: #374151;">${area.name}</span>
+                    <span style="font-size: 0.875rem; color: #2E4B3C; font-weight: 600;">$${area.revenue.toLocaleString()} (${area.percentage}%)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${Math.min(area.percentage, 100)}%;"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateInsights(insights) {
+        const container = document.getElementById('insightsContainer');
+        container.innerHTML = insights.map(insight => 
+            `<div class="insight-item">
+                <p class="insight-text">${insight.text}</p>
+            </div>`
+        ).join('');
+    }
+
+    function showLoadingState() {
+        // Add loading indicators to charts
+        document.querySelectorAll('.chart-container').forEach(container => {
+            const existing = container.querySelector('.loading-state');
+            if (!existing) {
+                const loading = document.createElement('div');
+                loading.className = 'loading-state';
+                loading.innerHTML = '<div class="spinner"></div>Loading analytics data...';
+                container.appendChild(loading);
+            }
+        });
+    }
+
+    function hideLoadingState() {
+        document.querySelectorAll('.loading-state').forEach(el => el.remove());
+    }
+
+    function showErrorState() {
+        hideLoadingState();
+        // Show error message
+    }
+
+    // Track analytics page view
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'page_view', {
+            page_title: 'Analytics Dashboard',
+            page_location: window.location.href
+        });
+    }
 </script>
 {% endblock %}
