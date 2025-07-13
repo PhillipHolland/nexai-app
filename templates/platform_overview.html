@@ -339,7 +339,7 @@
             }
         }
         
-        .btn-platform {
+        .btn-platform:not(.nav-enter-platform) {
             background: linear-gradient(135deg, #FFA74F, #f59e0b);
             color: #2E4B3C;
             padding: 1rem 2rem;
@@ -354,7 +354,7 @@
             overflow: hidden;
         }
         
-        .btn-platform:hover {
+        .btn-platform:not(.nav-enter-platform):hover {
             background: #F0531C;
             border-color: #F0531C;
             transform: translateY(-2px);
@@ -363,13 +363,13 @@
             color: #2E4B3C;
         }
         
-        .btn-platform.secondary {
+        .btn-platform.secondary:not(.nav-enter-platform) {
             background: transparent;
             color: white;
             border-color: white;
         }
         
-        .btn-platform.secondary:hover {
+        .btn-platform.secondary:not(.nav-enter-platform):hover {
             background: white;
             color: #2E4B3C;
         }
@@ -521,7 +521,7 @@
                 align-items: center;
             }
 
-            .btn-platform {
+            .btn-platform:not(.nav-enter-platform) {
                 width: 100%;
                 max-width: 280px;
                 padding: 1rem 1.5rem;
@@ -592,7 +592,7 @@
                 font-size: 1.75rem;
             }
 
-            .btn-platform {
+            .btn-platform:not(.nav-enter-platform) {
                 padding: 0.875rem 1.25rem;
                 font-size: 0.9rem;
             }
@@ -620,12 +620,12 @@
                 transition: transform 0.1s ease;
             }
 
-            .btn-platform {
+            .btn-platform:not(.nav-enter-platform) {
                 min-height: 48px;
                 -webkit-tap-highlight-color: transparent;
             }
 
-            .btn-platform:active {
+            .btn-platform:not(.nav-enter-platform):active {
                 transform: translateY(0);
                 transition: transform 0.1s ease;
             }
@@ -715,7 +715,7 @@
         }
 
         /* Enhanced Button Interactions */
-        .btn-platform::before {
+        .btn-platform:not(.nav-enter-platform)::before {
             content: '';
             position: absolute;
             top: 0;
@@ -726,7 +726,7 @@
             transition: left 0.5s;
         }
 
-        .btn-platform:hover::before {
+        .btn-platform:not(.nav-enter-platform):hover::before {
             left: 100%;
         }
 
