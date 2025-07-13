@@ -773,6 +773,33 @@
             animation: slideInUp 0.8s ease-out 0.6s both;
         }
 
+        /* Ensure navigation button uses original styling */
+        .nav-enter-platform.btn-primary {
+            background: #FFA74F !important;
+            color: #2E4B3C !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 0.5rem !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            border: none !important;
+            font-size: 0.875rem !important;
+            box-shadow: none !important;
+            position: static !important;
+            overflow: visible !important;
+        }
+
+        .nav-enter-platform.btn-primary:hover {
+            background: #F0531C !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+            color: #2E4B3C !important;
+        }
+
+        .nav-enter-platform.btn-primary::before {
+            display: none !important;
+        }
+
         /* Enhanced Mobile Status Positioning */
         @media (max-width: 768px) {
             .tool-status {
