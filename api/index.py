@@ -13,7 +13,6 @@ import re
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from flask import Flask, request, jsonify, render_template, session, redirect, make_response
-from flask_socketio import SocketIO, emit
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -39,15 +38,16 @@ except ImportError as e:
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
-# Initialize SocketIO for real-time updates
+# Initialize SocketIO for real-time updates (optional)
 try:
+    from flask_socketio import SocketIO, emit
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
     SOCKETIO_AVAILABLE = True
     logger.info("SocketIO initialized successfully")
 except ImportError:
     SOCKETIO_AVAILABLE = False
     socketio = None
-    logger.warning("SocketIO not available - install flask-socketio for real-time updates")
+    logger.warning("SocketIO not available - falling back to standard HTTP responses")
 
 # Configure secure session settings
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
@@ -2831,6 +2831,8 @@ def _emit_progress_update(progress_data):
     """Emit progress update via WebSocket if available"""
     if SOCKETIO_AVAILABLE and socketio:
         try:
+            # Import emit here to avoid import issues
+            from flask_socketio import emit
             socketio.emit('analysis_progress', progress_data, namespace='/')
         except Exception as e:
             logger.warning(f"Failed to emit progress update: {e}")
