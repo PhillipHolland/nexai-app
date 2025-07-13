@@ -77,18 +77,40 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <!-- Floating Legal Metrics -->
+        <div class="floating-metrics">
+            <div class="metric-card card-1">
+                <span class="metric-number" id="contracts-analyzed">1,247</span>
+                Contracts Analyzed Today
+            </div>
+            <div class="metric-card card-2">
+                <span class="metric-number" id="time-saved">24.7hrs</span>
+                Time Saved This Week
+            </div>
+            <div class="metric-card card-3">
+                <span class="metric-number" id="accuracy-rate">99.2%</span>
+                Legal Analysis Accuracy
+            </div>
+            <div class="metric-card card-4">
+                <span class="metric-number" id="risk-alerts">18</span>
+                Risk Alerts Prevented
+            </div>
+        </div>
+
         <div class="container">
             <h1>
                 Reclaim Your Time. Redefine Your Practice.<br>
-                <span class="highlight">With LexAI.</span>
+                <span class="ai-glitch" data-text="With AI-Powered LexAI">With <span class="highlight">AI-Powered</span> LexAI</span>
             </h1>
             <p>
-                Our AI-powered assistant handles the complexities of legal operations, 
-                freeing you to deliver unparalleled service and build stronger client relationships.
+                Our intelligent legal assistant transforms complex document analysis, contract drafting, and legal research 
+                into instant insights—freeing you to focus on what matters most: your clients.
             </p>
             <div class="hero-buttons">
-                <a href="/onboarding" class="btn-primary" onclick="trackEvent('click', 'conversion', 'start_free_trial_hero', 1)">Start Free Trial</a>
-                <a href="#features" class="btn-secondary">See Features</a>
+                <a href="/onboarding" class="btn-primary" onclick="trackEvent('click', 'conversion', 'start_free_trial_hero', 1)">
+                    🚀 Experience Legal AI
+                </a>
+                <a href="#features" class="btn-secondary">⚡ See AI in Action</a>
             </div>
         </div>
     </section>
@@ -589,9 +611,40 @@
             loadComplete: 0
         };
 
+        // Dynamic metrics animation
+        function animateCounter(element, start, end, duration, suffix = '') {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = Math.floor(progress * (end - start) + start);
+                element.textContent = current.toLocaleString() + suffix;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Animate metrics when page loads
+        function startMetricsAnimation() {
+            const contractsEl = document.getElementById('contracts-analyzed');
+            const timeEl = document.getElementById('time-saved');
+            const accuracyEl = document.getElementById('accuracy-rate');
+            const alertsEl = document.getElementById('risk-alerts');
+
+            if (contractsEl) animateCounter(contractsEl, 0, 1247, 2000);
+            if (timeEl) animateCounter(timeEl, 0, 24.7, 2500, 'hrs');
+            if (accuracyEl) animateCounter(accuracyEl, 85, 99.2, 3000, '%');
+            if (alertsEl) animateCounter(alertsEl, 0, 18, 1500);
+        }
+
         // Track performance metrics
         document.addEventListener('DOMContentLoaded', function() {
             performanceData.domContentLoaded = performance.now();
+            
+            // Start metrics animation after a brief delay
+            setTimeout(startMetricsAnimation, 500);
             
             // Track Core Web Vitals
             if ('PerformanceObserver' in window) {
@@ -662,8 +715,31 @@
             }
         });
 
-        // Intersection Observer for lazy loading (future enhancements)
+        // Scroll-triggered animations
         if ('IntersectionObserver' in window) {
+            // Animate elements on scroll
+            const animateOnScroll = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Apply animation to feature cards and sections
+            const animatedElements = document.querySelectorAll('.feature-card, .section-header, .pricing-card');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                animateOnScroll.observe(el);
+            });
+
+            // Lazy loading for images
             const lazyImages = document.querySelectorAll('img[loading="lazy"]');
             const imageObserver = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
@@ -677,6 +753,20 @@
             });
 
             lazyImages.forEach(img => imageObserver.observe(img));
+
+            // Add parallax effect to floating metrics
+            const parallaxElements = document.querySelectorAll('.metric-card');
+            const parallaxObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const scrolled = window.pageYOffset;
+                        const rate = scrolled * -0.2;
+                        entry.target.style.transform = `translateY(${rate}px)`;
+                    }
+                });
+            });
+
+            parallaxElements.forEach(el => parallaxObserver.observe(el));
         }
     </script>
 </body>
