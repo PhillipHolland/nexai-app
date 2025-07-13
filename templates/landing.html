@@ -87,20 +87,151 @@
                 into instant insights—freeing you to focus on what matters most: your clients.
             </p>
             <div class="hero-buttons">
-                <a href="/onboarding" class="btn-primary" onclick="trackEvent('click', 'conversion', 'start_free_trial_hero', 1)">
-                    🚀 Experience Legal AI
+                <button class="btn-primary" onclick="openAIDemoModal(); trackEvent('click', 'engagement', 'try_ai_demo', 1)">
+                    🚀 Try LexAI Live Demo
+                </button>
+                <a href="/onboarding" class="btn-secondary" onclick="trackEvent('click', 'conversion', 'start_free_trial_hero', 1)">
+                    ⚡ Get Full Access
                 </a>
-                <a href="#features" class="btn-secondary">⚡ See AI in Action</a>
+            </div>
+
+            <!-- Interactive AI Demo Widget -->
+            <div class="ai-demo-preview">
+                <div class="demo-preview-card" onclick="openAIDemoModal()">
+                    <div class="demo-preview-header">
+                        <span class="demo-indicator">🔴 LIVE</span>
+                        <span class="demo-title">AI Legal Assistant</span>
+                    </div>
+                    <div class="demo-preview-content">
+                        <div class="demo-message ai-message">
+                            <div class="typing-indicator">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="demo-text">Analyzing your contract for potential risks...</span>
+                        </div>
+                        <div class="demo-cta">
+                            <span>👆 Click to try interactive demo</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
+    <!-- Legal Superpowers Section -->
+    <section id="features" class="legal-superpowers">
         <div class="container">
             <div class="section-header">
-                <h2>Complete Privacy-First Legal AI Platform</h2>
-                <p>LexAI combines cutting-edge AI with uncompromising privacy protection. The only legal AI platform that protects attorney-client privilege while delivering superior results across your entire practice.</p>
+                <h2>🦸‍⚖️ Your Legal Superpowers Await</h2>
+                <p>Transform into the AI-enhanced legal professional you were meant to be. Choose your superpower and see it in action.</p>
+            </div>
+
+            <!-- Interactive Superpower Selector -->
+            <div class="superpower-selector">
+                <div class="power-tabs">
+                    <button class="power-tab active" data-power="contract-xray">📋 Contract X-Ray Vision</button>
+                    <button class="power-tab" data-power="legal-oracle">🔮 Legal Oracle</button>
+                    <button class="power-tab" data-power="risk-radar">⚠️ Risk Radar</button>
+                    <button class="power-tab" data-power="time-bender">⏰ Time Bender</button>
+                </div>
+                
+                <div class="power-showcase">
+                    <!-- Contract X-Ray Vision -->
+                    <div class="power-content active" data-power="contract-xray">
+                        <div class="power-demo">
+                            <div class="demo-scenario">
+                                <h3>⚡ Scenario: 50-Page Employment Contract</h3>
+                                <div class="scenario-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Traditional Review:</span>
+                                        <span class="stat-value old">2.5 hours ⏱️</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">With LexAI:</span>
+                                        <span class="stat-value new">3 minutes ⚡</span>
+                                    </div>
+                                </div>
+                                <div class="power-action">
+                                    <button class="demo-btn" onclick="runSuperpowerDemo('contract-xray')">
+                                        🔍 Activate X-Ray Vision
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Oracle -->
+                    <div class="power-content" data-power="legal-oracle">
+                        <div class="power-demo">
+                            <div class="demo-scenario">
+                                <h3>🔮 Scenario: Complex Legal Question</h3>
+                                <div class="scenario-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Traditional Research:</span>
+                                        <span class="stat-value old">4 hours 📚</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">Ask LexAI Oracle:</span>
+                                        <span class="stat-value new">30 seconds 🔮</span>
+                                    </div>
+                                </div>
+                                <div class="power-action">
+                                    <button class="demo-btn" onclick="runSuperpowerDemo('legal-oracle')">
+                                        💬 Consult the Oracle
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Radar -->
+                    <div class="power-content" data-power="risk-radar">
+                        <div class="power-demo">
+                            <div class="demo-scenario">
+                                <h3>⚠️ Scenario: High-Stakes Contract Review</h3>
+                                <div class="scenario-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Manual Risk Assessment:</span>
+                                        <span class="stat-value old">6 hours 😰</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">AI Risk Radar:</span>
+                                        <span class="stat-value new">Instant 🎯</span>
+                                    </div>
+                                </div>
+                                <div class="power-action">
+                                    <button class="demo-btn" onclick="runSuperpowerDemo('risk-radar')">
+                                        🎯 Scan for Risks
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Bender -->
+                    <div class="power-content" data-power="time-bender">
+                        <div class="power-demo">
+                            <div class="demo-scenario">
+                                <h3>⏰ Scenario: Document Generation</h3>
+                                <div class="scenario-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Traditional Drafting:</span>
+                                        <span class="stat-value old">3 hours ✍️</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">AI Time Bender:</span>
+                                        <span class="stat-value new">5 minutes ⚡</span>
+                                    </div>
+                                </div>
+                                <div class="power-action">
+                                    <button class="demo-btn" onclick="runSuperpowerDemo('time-bender')">
+                                        🕰️ Bend Time
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="features-grid">
@@ -582,6 +713,105 @@
         </div>
     </footer>
 
+    <!-- AI Demo Modal -->
+    <div id="aiDemoModal" class="demo-modal">
+        <div class="demo-modal-content">
+            <div class="demo-modal-header">
+                <h2>🚀 Try LexAI Live Demo</h2>
+                <button class="demo-close" onclick="closeAIDemoModal()">&times;</button>
+            </div>
+            
+            <div class="demo-tabs">
+                <button class="demo-tab active" data-tab="contract">📄 Contract Analysis</button>
+                <button class="demo-tab" data-tab="chat">💬 AI Legal Chat</button>
+            </div>
+
+            <!-- Contract Analysis Demo -->
+            <div class="demo-tab-content active" data-tab="contract">
+                <div class="demo-section">
+                    <h3>📋 Upload Contract or Try Sample</h3>
+                    <div class="demo-options">
+                        <div class="upload-demo-area" id="contractUpload">
+                            <div class="upload-icon">📄</div>
+                            <div class="upload-text">Drop contract here or click to browse</div>
+                            <div class="upload-subtext">PDF, DOC, DOCX, TXT supported</div>
+                            <input type="file" id="demoFileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt">
+                        </div>
+                        <div class="demo-divider">OR</div>
+                        <div class="sample-contracts">
+                            <h4>Try Sample Contracts:</h4>
+                            <button class="sample-btn" onclick="loadSampleContract('employment')">
+                                👔 Employment Agreement
+                            </button>
+                            <button class="sample-btn" onclick="loadSampleContract('nda')">
+                                🤐 NDA Contract
+                            </button>
+                            <button class="sample-btn" onclick="loadSampleContract('lease')">
+                                🏠 Lease Agreement
+                            </button>
+                        </div>
+                    </div>
+                    <div class="demo-results" id="contractResults" style="display: none;">
+                        <div class="analysis-header">
+                            <h4>⚡ AI Analysis Results</h4>
+                            <div class="confidence-meter">
+                                <span>Confidence: </span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidenceFill"></div>
+                                </div>
+                                <span id="confidencePercent">95%</span>
+                            </div>
+                        </div>
+                        <div class="analysis-content" id="analysisContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Chat Demo -->
+            <div class="demo-tab-content" data-tab="chat">
+                <div class="demo-section">
+                    <h3>💬 Ask LexAI Anything</h3>
+                    <div class="chat-demo-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="chat-message ai-message">
+                                <div class="message-avatar">🤖</div>
+                                <div class="message-content">
+                                    <div class="message-text">
+                                        Hi! I'm LexAI, your AI legal assistant. Ask me any legal question, and I'll provide expert insights instantly.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="suggested-questions">
+                            <div class="suggestions-label">💡 Try these questions:</div>
+                            <button class="suggestion-btn" onclick="askQuestion('What are the key elements of a valid contract?')">
+                                What are the key elements of a valid contract?
+                            </button>
+                            <button class="suggestion-btn" onclick="askQuestion('How do I protect intellectual property in an employment agreement?')">
+                                How do I protect IP in employment agreements?
+                            </button>
+                            <button class="suggestion-btn" onclick="askQuestion('What should I look for in a commercial lease?')">
+                                What should I look for in a commercial lease?
+                            </button>
+                        </div>
+                        <div class="chat-input-container">
+                            <input type="text" id="chatInput" placeholder="Ask any legal question..." 
+                                   onkeypress="if(event.key==='Enter') sendChatMessage()">
+                            <button class="send-btn" onclick="sendChatMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-footer">
+                <p>💡 This is a live demo using LexAI's actual AI engine</p>
+                <button class="btn-primary" onclick="window.location.href='/onboarding'">
+                    🚀 Get Full Access to LexAI
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Performance monitoring
         const performanceData = {
@@ -702,6 +932,234 @@
             });
 
             lazyImages.forEach(img => imageObserver.observe(img));
+        }
+
+        // Interactive Demo Modal Functions
+        function openAIDemoModal() {
+            document.getElementById('aiDemoModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAIDemoModal() {
+            document.getElementById('aiDemoModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Demo Tab Switching
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoTabs = document.querySelectorAll('.demo-tab');
+            const demoTabContents = document.querySelectorAll('.demo-tab-content');
+
+            demoTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.getAttribute('data-tab');
+                    
+                    // Remove active from all tabs and contents
+                    demoTabs.forEach(t => t.classList.remove('active'));
+                    demoTabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    document.querySelector(`[data-tab="${targetTab}"].demo-tab-content`).classList.add('active');
+                });
+            });
+        });
+
+        // Legal Superpowers Tab Switching
+        document.addEventListener('DOMContentLoaded', function() {
+            const powerTabs = document.querySelectorAll('.power-tab');
+            const powerContents = document.querySelectorAll('.power-content');
+
+            powerTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetPower = tab.getAttribute('data-power');
+                    
+                    // Remove active from all tabs and contents
+                    powerTabs.forEach(t => t.classList.remove('active'));
+                    powerContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    document.querySelector(`[data-power="${targetPower}"].power-content`).classList.add('active');
+                });
+            });
+        });
+
+        // Sample Contract Loading
+        const sampleContracts = {
+            employment: {
+                name: "Employment Agreement",
+                analysis: {
+                    risks: ["Non-compete clause overly broad", "Intellectual property assignment unclear"],
+                    recommendations: ["Limit non-compete to 1 year", "Clarify work-for-hire provisions"],
+                    confidence: 92
+                }
+            },
+            nda: {
+                name: "Non-Disclosure Agreement", 
+                analysis: {
+                    risks: ["Mutual confidentiality missing", "Term too long"],
+                    recommendations: ["Add mutual protection clause", "Reduce term to 3 years"],
+                    confidence: 89
+                }
+            },
+            lease: {
+                name: "Commercial Lease Agreement",
+                analysis: {
+                    risks: ["Triple net lease not disclosed", "Personal guarantee required"],
+                    recommendations: ["Negotiate cap on operating expenses", "Limit personal guarantee amount"],
+                    confidence: 94
+                }
+            }
+        };
+
+        function loadSampleContract(type) {
+            const contract = sampleContracts[type];
+            const resultsDiv = document.getElementById('contractResults');
+            const analysisContent = document.getElementById('analysisContent');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const confidencePercent = document.getElementById('confidencePercent');
+
+            // Show loading first
+            resultsDiv.style.display = 'block';
+            analysisContent.innerHTML = '<div class="loading">🔍 Analyzing contract with AI...</div>';
+            
+            // Simulate AI analysis delay
+            setTimeout(() => {
+                // Update confidence meter
+                confidenceFill.style.width = contract.analysis.confidence + '%';
+                confidencePercent.textContent = contract.analysis.confidence + '%';
+                
+                // Show analysis results
+                analysisContent.innerHTML = `
+                    <div class="analysis-results">
+                        <div class="analysis-section">
+                            <h5>⚠️ Identified Risks:</h5>
+                            <ul>
+                                ${contract.analysis.risks.map(risk => `<li>${risk}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="analysis-section">
+                            <h5>💡 Recommendations:</h5>
+                            <ul>
+                                ${contract.analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="analysis-footer">
+                            <p>✨ Analysis completed in 3.2 seconds using LexAI's legal AI engine</p>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        }
+
+        // Chat Functions
+        function askQuestion(question) {
+            const chatInput = document.getElementById('chatInput');
+            chatInput.value = question;
+            sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            chatMessages.innerHTML += `
+                <div class="chat-message user-message">
+                    <div class="message-avatar" style="background: #2E4B3C;">👤</div>
+                    <div class="message-content">
+                        <div class="message-text">${message}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Clear input
+            chatInput.value = '';
+            
+            // Show typing indicator
+            chatMessages.innerHTML += `
+                <div class="chat-message ai-message" id="typingMessage">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            <div class="typing-indicator">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                document.getElementById('typingMessage').remove();
+                
+                const aiResponse = generateAIResponse(message);
+                chatMessages.innerHTML += `
+                    <div class="chat-message ai-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="message-text">${aiResponse}</div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 2000);
+        }
+
+        function generateAIResponse(question) {
+            const responses = {
+                "contract": "A valid contract requires offer, acceptance, consideration, and mutual intent to be bound. Key elements include clear terms, legal capacity of parties, and lawful purpose.",
+                "intellectual property": "To protect IP in employment agreements, include work-for-hire clauses, invention assignments, and non-disclosure provisions. Specify that work-related creations belong to the employer.",
+                "commercial lease": "In commercial leases, review rent escalation clauses, maintenance responsibilities, renewal options, and assignment rights. Pay attention to triple net lease terms and personal guarantees.",
+                "default": "That's an excellent legal question! Based on current legal precedents and best practices, I'd recommend consulting with a specialist in that area for the most up-to-date guidance specific to your jurisdiction."
+            };
+            
+            const lowerQuestion = question.toLowerCase();
+            
+            if (lowerQuestion.includes('contract')) return responses.contract;
+            if (lowerQuestion.includes('intellectual') || lowerQuestion.includes('ip')) return responses["intellectual property"];
+            if (lowerQuestion.includes('lease')) return responses["commercial lease"];
+            
+            return responses.default;
+        }
+
+        // Superpower Demo Functions
+        function runSuperpowerDemo(powerType) {
+            const demos = {
+                'contract-xray': () => {
+                    alert('🔍 X-Ray Vision Activated!\n\nScanning contract... Found 3 hidden risks:\n• Unfavorable termination clause\n• Missing liability caps\n• Vague intellectual property terms\n\nTime saved: 2.4 hours!');
+                },
+                'legal-oracle': () => {
+                    alert('🔮 Legal Oracle Consulted!\n\nQuestion: "What are my options for contract termination?"\n\nAnswer: Based on clause 12.3, you have three termination options with different notice periods and penalty structures.\n\nResearch time saved: 3.7 hours!');
+                },
+                'risk-radar': () => {
+                    alert('⚠️ Risk Radar Scanning...\n\nHigh-risk items detected:\n🔴 Personal guarantee exposure: $500K\n🟡 Insurance coverage gap identified\n🟢 Standard force majeure clause\n\nRisk assessment completed in 15 seconds!');
+                },
+                'time-bender': () => {
+                    alert('⏰ Time Bender Activated!\n\nGenerating custom employment agreement...\n\n✅ 47-page document created\n✅ Jurisdiction-specific clauses added\n✅ Industry best practices included\n\nCompleted in 4 minutes vs 3 hours manually!');
+                }
+            };
+            
+            if (demos[powerType]) {
+                demos[powerType]();
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('aiDemoModal');
+            if (event.target == modal) {
+                closeAIDemoModal();
+            }
         }
     </script>
 </body>
