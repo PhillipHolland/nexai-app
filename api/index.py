@@ -126,9 +126,7 @@ def add_performance_headers(response):
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
     
-    # Compress responses
-    if response.mimetype.startswith('text/') or response.mimetype == 'application/json':
-        response.headers['Content-Encoding'] = 'gzip'
+    # Note: Vercel handles compression automatically, don't set Content-Encoding manually
     
     return response
 
