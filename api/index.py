@@ -12,7 +12,8 @@ import requests
 import re
 from datetime import datetime, timedelta, date
 from decimal import Decimal
-from flask import Flask, request, jsonify, render_template, session, redirect
+from flask import Flask, request, jsonify, render_template, session, redirect, make_response
+from flask_socketio import SocketIO, emit
 from functools import wraps
 from dotenv import load_dotenv
 
@@ -37,6 +38,16 @@ except ImportError as e:
 # Create Flask app
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+
+# Initialize SocketIO for real-time updates
+try:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+    SOCKETIO_AVAILABLE = True
+    logger.info("SocketIO initialized successfully")
+except ImportError:
+    SOCKETIO_AVAILABLE = False
+    socketio = None
+    logger.warning("SocketIO not available - install flask-socketio for real-time updates")
 
 # Configure secure session settings
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
@@ -2141,17 +2152,314 @@ def api_contract_analysis():
             'ip_address': request.remote_addr
         })
         
+        # Generate unique export ID for this analysis
+        export_id = str(uuid.uuid4())[:8]
+        analysis_result['export_id'] = export_id
+        analysis_result['export_available'] = True
+        
+        # Store analysis result for export (in production, use Redis or database)
+        # For now, store in session
+        if 'analysis_exports' not in session:
+            session['analysis_exports'] = {}
+        session['analysis_exports'][export_id] = {
+            'analysis': analysis_result,
+            'metadata': {
+                'filename': file_metadata.get('filename', 'contract') if 'file_metadata' in locals() and file_metadata else 'contract',
+                'analysis_type': analysis_type,
+                'timestamp': datetime.now().isoformat(),
+                'user_id': user_id
+            }
+        }
+        
         return jsonify({
             'success': True,
             'data': analysis_result
         })
         
     except Exception as e:
+        error_details = _handle_analysis_error(e, 'contract_analysis')
         logger.error(f"Contract analysis error: {e}")
         return jsonify({
             'success': False,
-            'error': f'Failed to analyze contract: {str(e)}'
+            'error': error_details['user_message'],
+            'error_code': error_details['error_code'],
+            'suggestions': error_details['suggestions']
+        }), error_details['status_code']
+
+@app.route('/api/export/contract-analysis/<export_id>', methods=['GET'])
+@login_required
+def export_contract_analysis(export_id):
+    """Export contract analysis as PDF report"""
+    try:
+        # Retrieve analysis from session
+        if 'analysis_exports' not in session or export_id not in session['analysis_exports']:
+            return jsonify({
+                'success': False,
+                'error': 'Export not found or expired'
+            }), 404
+        
+        export_data = session['analysis_exports'][export_id]
+        analysis = export_data['analysis']
+        metadata = export_data['metadata']
+        
+        # Generate HTML report
+        html_report = _generate_analysis_report_html(analysis, metadata)
+        
+        # For now, return HTML. In production, convert to PDF using libraries like weasyprint
+        # Try to generate PDF if possible, otherwise return HTML
+        try:
+            # Try to import PDF generation library
+            from weasyprint import HTML, CSS
+            
+            # Generate PDF
+            pdf_buffer = HTML(string=html_report).write_pdf()
+            
+            response = make_response(pdf_buffer)
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'attachment; filename="contract_analysis_{export_id}.pdf"'
+            return response
+            
+        except ImportError:
+            # Fallback to HTML download
+            from flask import make_response
+            response = make_response(html_report)
+            response.headers['Content-Type'] = 'text/html'
+            response.headers['Content-Disposition'] = f'attachment; filename="contract_analysis_{export_id}.html"'
+            return response
+            
+    except Exception as e:
+        logger.error(f"Export error for {export_id}: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Export failed: {str(e)}'
         }), 500
+
+def _generate_analysis_report_html(analysis, metadata):
+    """Generate professional HTML report for contract analysis"""
+    
+    # Extract data safely
+    overall_score = analysis.get('overall_score', 'N/A')
+    if isinstance(overall_score, dict):
+        score_text = overall_score.get('grade', overall_score.get('score', 'N/A'))
+    else:
+        score_text = str(overall_score)
+    
+    summary = analysis.get('executive_summary', analysis.get('summary', 'Analysis completed'))
+    risks = analysis.get('risks', [])
+    clauses = analysis.get('clauses', [])
+    recommendations = analysis.get('recommendations', [])
+    
+    html_template = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Contract Analysis Report - {metadata['filename']}</title>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 40px;
+                color: #333;
+                background: #fff;
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 3px solid #2E4B3C;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }}
+            .header h1 {{
+                color: #2E4B3C;
+                font-size: 2.5em;
+                margin: 0;
+            }}
+            .header .subtitle {{
+                color: #666;
+                font-size: 1.2em;
+                margin-top: 10px;
+            }}
+            .metadata {{
+                background: #f8fafc;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 30px;
+                border-left: 4px solid #FFA74F;
+            }}
+            .metadata h2 {{
+                color: #2E4B3C;
+                margin-top: 0;
+            }}
+            .score-card {{
+                background: linear-gradient(135deg, #2E4B3C 0%, #4a7c59 100%);
+                color: white;
+                padding: 25px;
+                border-radius: 12px;
+                text-align: center;
+                margin: 30px 0;
+            }}
+            .score-card .score {{
+                font-size: 3em;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }}
+            .section {{
+                margin: 40px 0;
+                page-break-inside: avoid;
+            }}
+            .section h2 {{
+                color: #2E4B3C;
+                border-bottom: 2px solid #2E4B3C;
+                padding-bottom: 10px;
+                font-size: 1.8em;
+            }}
+            .risk-item {{
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 15px 0;
+                border-left: 4px solid #ef4444;
+            }}
+            .risk-item.medium {{
+                border-left-color: #f59e0b;
+            }}
+            .risk-item.low {{
+                border-left-color: #10b981;
+            }}
+            .risk-item h3 {{
+                margin-top: 0;
+                color: #2E4B3C;
+            }}
+            .clause-item {{
+                background: #f9fafb;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 10px 0;
+                border-left: 3px solid #2E4B3C;
+            }}
+            .recommendation {{
+                background: #f0f9ff;
+                border: 1px solid #bfdbfe;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 10px 0;
+                border-left: 4px solid #3b82f6;
+            }}
+            .footer {{
+                margin-top: 50px;
+                padding-top: 20px;
+                border-top: 1px solid #ddd;
+                text-align: center;
+                color: #666;
+                font-size: 0.9em;
+            }}
+            @media print {{
+                body {{ margin: 20px; }}
+                .header {{ page-break-after: avoid; }}
+                .section {{ page-break-inside: avoid; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🤖 Contract Analysis Report</h1>
+            <div class="subtitle">AI-Powered Legal Document Analysis</div>
+        </div>
+        
+        <div class="metadata">
+            <h2>📋 Document Information</h2>
+            <p><strong>Filename:</strong> {metadata['filename']}</p>
+            <p><strong>Analysis Type:</strong> {metadata['analysis_type'].title()}</p>
+            <p><strong>Generated:</strong> {datetime.fromisoformat(metadata['timestamp']).strftime('%B %d, %Y at %I:%M %p')}</p>
+            <p><strong>Export ID:</strong> {analysis.get('export_id', 'N/A')}</p>
+        </div>
+        
+        <div class="score-card">
+            <div class="score">{score_text}</div>
+            <div>Overall Assessment</div>
+        </div>
+        
+        <div class="section">
+            <h2>📝 Executive Summary</h2>
+            <p>{summary}</p>
+        </div>
+        
+        <div class="section">
+            <h2>⚠️ Risk Analysis</h2>
+            {_format_risks_html(risks)}
+        </div>
+        
+        <div class="section">
+            <h2>📋 Key Clauses Identified</h2>
+            {_format_clauses_html(clauses)}
+        </div>
+        
+        <div class="section">
+            <h2>💡 Recommendations</h2>
+            {_format_recommendations_html(recommendations)}
+        </div>
+        
+        <div class="footer">
+            <p>This report was generated by LexAI Practice Partner's AI-powered contract analysis system.</p>
+            <p><strong>Disclaimer:</strong> This analysis is for informational purposes only and does not constitute legal advice.</p>
+            <p>Generated on {datetime.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return html_template
+
+def _format_risks_html(risks):
+    """Format risk items for HTML report"""
+    if not risks:
+        return "<p>No significant risks identified.</p>"
+    
+    html = ""
+    for risk in risks:
+        risk_level = risk.get('level', 'Unknown').lower()
+        html += f"""
+        <div class="risk-item {risk_level}">
+            <h3>{risk.get('type', 'Risk Item')}</h3>
+            <p><strong>Description:</strong> {risk.get('description', 'No description available')}</p>
+            <p><strong>Recommendation:</strong> {risk.get('recommendation', 'No recommendation available')}</p>
+            <p><strong>Risk Level:</strong> {risk.get('level', 'Unknown')}</p>
+        </div>
+        """
+    return html
+
+def _format_clauses_html(clauses):
+    """Format clause items for HTML report"""
+    if not clauses:
+        return "<p>No key clauses identified.</p>"
+    
+    html = ""
+    for clause in clauses:
+        html += f"""
+        <div class="clause-item">
+            <h3>{clause.get('type', 'Clause')}</h3>
+            <p>{clause.get('content', 'No content available')}</p>
+            <p><strong>Status:</strong> {clause.get('status', 'Unknown')}</p>
+        </div>
+        """
+    return html
+
+def _format_recommendations_html(recommendations):
+    """Format recommendations for HTML report"""
+    if not recommendations:
+        return "<p>No specific recommendations available.</p>"
+    
+    html = ""
+    for i, rec in enumerate(recommendations, 1):
+        html += f"""
+        <div class="recommendation">
+            <strong>{i}.</strong> {rec}
+        </div>
+        """
+    return html
 
 @app.route('/api/ai/legal-research', methods=['POST'])
 @login_required
@@ -2362,8 +2670,173 @@ def _perform_contract_analysis(contract_text, analysis_type, user_id):
     
     return analysis
 
+def _handle_analysis_error(error, operation_type):
+    """Handle analysis errors with user-friendly messages and suggestions"""
+    error_str = str(error).lower()
+    
+    # File-related errors
+    if 'no file uploaded' in error_str or 'file not found' in error_str:
+        return {
+            'error_code': 'FILE_MISSING',
+            'user_message': 'No file was uploaded. Please select a file to analyze.',
+            'suggestions': [
+                'Click "Browse" to select a file from your computer',
+                'Drag and drop a file into the upload area',
+                'Make sure the file is not empty'
+            ],
+            'status_code': 400
+        }
+    
+    elif 'file too large' in error_str or 'exceeded' in error_str:
+        return {
+            'error_code': 'FILE_TOO_LARGE',
+            'user_message': 'The uploaded file is too large. Please use a smaller file.',
+            'suggestions': [
+                'Compress your PDF or document',
+                'Split large documents into smaller sections',
+                'Maximum file size is 50MB for PDFs, 25MB for Word documents'
+            ],
+            'status_code': 413
+        }
+    
+    elif 'unsupported file type' in error_str or 'invalid file format' in error_str:
+        return {
+            'error_code': 'UNSUPPORTED_FORMAT',
+            'user_message': 'The file format is not supported. Please use PDF, Word, text, or image files.',
+            'suggestions': [
+                'Convert your file to PDF, DOCX, or TXT format',
+                'Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG, TIFF',
+                'For scanned documents, use image formats (JPG, PNG)'
+            ],
+            'status_code': 415
+        }
+    
+    # Text extraction errors
+    elif 'failed to extract text' in error_str or 'extraction error' in error_str:
+        return {
+            'error_code': 'EXTRACTION_FAILED',
+            'user_message': 'Unable to extract text from the document. The file may be corrupted or password-protected.',
+            'suggestions': [
+                'Try saving the document in a different format',
+                'Remove password protection from PDFs',
+                'For scanned documents, ensure the image quality is clear',
+                'Contact support if the problem persists'
+            ],
+            'status_code': 422
+        }
+    
+    # AI API errors
+    elif 'api key' in error_str or 'authentication' in error_str:
+        return {
+            'error_code': 'AI_AUTH_ERROR',
+            'user_message': 'AI service is temporarily unavailable. Please try again in a few moments.',
+            'suggestions': [
+                'Wait a few moments and try again',
+                'Contact support if the issue persists',
+                'Check your internet connection'
+            ],
+            'status_code': 503
+        }
+    
+    elif 'rate limit' in error_str or 'quota exceeded' in error_str:
+        return {
+            'error_code': 'RATE_LIMIT',
+            'user_message': 'Analysis limit reached. Please wait before submitting another request.',
+            'suggestions': [
+                'Wait a few minutes before trying again',
+                'Consider upgrading your plan for higher limits',
+                'Use batch processing for multiple documents'
+            ],
+            'status_code': 429
+        }
+    
+    elif 'timeout' in error_str or 'request failed' in error_str:
+        return {
+            'error_code': 'AI_TIMEOUT',
+            'user_message': 'The analysis is taking longer than expected. Please try again.',
+            'suggestions': [
+                'Try again with a shorter document',
+                'Check your internet connection',
+                'Contact support for very large documents'
+            ],
+            'status_code': 504
+        }
+    
+    # Network/connectivity errors
+    elif 'connection' in error_str or 'network' in error_str:
+        return {
+            'error_code': 'NETWORK_ERROR',
+            'user_message': 'Connection issue detected. Please check your internet connection and try again.',
+            'suggestions': [
+                'Check your internet connection',
+                'Try refreshing the page',
+                'Contact support if the problem continues'
+            ],
+            'status_code': 503
+        }
+    
+    # Processing errors
+    elif 'processing failed' in error_str or 'analysis failed' in error_str:
+        return {
+            'error_code': 'PROCESSING_ERROR',
+            'user_message': 'Document processing failed. The document may contain unsupported content.',
+            'suggestions': [
+                'Try a simpler document format',
+                'Remove complex formatting or embedded objects',
+                'Contact support with document details'
+            ],
+            'status_code': 422
+        }
+    
+    # Memory/resource errors
+    elif 'memory' in error_str or 'resource' in error_str:
+        return {
+            'error_code': 'RESOURCE_ERROR',
+            'user_message': 'System resources are temporarily unavailable. Please try again shortly.',
+            'suggestions': [
+                'Try again in a few minutes',
+                'Use smaller documents',
+                'Contact support if the issue persists'
+            ],
+            'status_code': 503
+        }
+    
+    # Generic server errors
+    elif 'internal server error' in error_str or 'server error' in error_str:
+        return {
+            'error_code': 'SERVER_ERROR',
+            'user_message': 'An internal server error occurred. Our team has been notified.',
+            'suggestions': [
+                'Try again in a few minutes',
+                'Contact support if the problem persists',
+                'Include your analysis details when contacting support'
+            ],
+            'status_code': 500
+        }
+    
+    # Default fallback
+    return {
+        'error_code': 'UNKNOWN_ERROR',
+        'user_message': 'An unexpected error occurred during analysis. Please try again.',
+        'suggestions': [
+            'Try again with the same document',
+            'Try a different document format',
+            'Contact support if the problem continues',
+            'Include error details when contacting support'
+        ],
+        'status_code': 500
+    }
+
+def _emit_progress_update(progress_data):
+    """Emit progress update via WebSocket if available"""
+    if SOCKETIO_AVAILABLE and socketio:
+        try:
+            socketio.emit('analysis_progress', progress_data, namespace='/')
+        except Exception as e:
+            logger.warning(f"Failed to emit progress update: {e}")
+
 def _process_batch_files(files, analysis_type, source_type):
-    """Process multiple files in batch for contract analysis"""
+    """Process multiple files in batch for contract analysis with progress updates"""
     try:
         user_id = session.get('user_id')
         batch_results = []
@@ -2371,15 +2844,39 @@ def _process_batch_files(files, analysis_type, source_type):
         successful_analyses = 0
         failed_analyses = 0
         
+        # Emit initial progress
+        _emit_progress_update({
+            'type': 'batch_start',
+            'total_files': total_files,
+            'message': f'Starting batch processing of {total_files} files...'
+        })
+        
         # Process each file
         for i, uploaded_file in enumerate(files):
             if not uploaded_file.filename:
                 continue
                 
             try:
+                # Emit file processing start
+                _emit_progress_update({
+                    'type': 'file_start',
+                    'current_file': i + 1,
+                    'total_files': total_files,
+                    'filename': uploaded_file.filename,
+                    'message': f'Processing file {i + 1}/{total_files}: {uploaded_file.filename}'
+                })
+                
                 # Extract file content and metadata
                 file_content = uploaded_file.read()
                 file_type = uploaded_file.content_type or 'application/octet-stream'
+                
+                # Emit text extraction progress
+                _emit_progress_update({
+                    'type': 'extraction',
+                    'current_file': i + 1,
+                    'filename': uploaded_file.filename,
+                    'message': f'Extracting text from {uploaded_file.filename}...'
+                })
                 
                 # Extract text from file
                 extracted_text = _extract_text_from_file(file_content, uploaded_file.filename, file_type)
@@ -2397,6 +2894,14 @@ def _process_batch_files(files, analysis_type, source_type):
                     })
                     failed_analyses += 1
                     continue
+                
+                # Emit AI analysis progress
+                _emit_progress_update({
+                    'type': 'analysis',
+                    'current_file': i + 1,
+                    'filename': uploaded_file.filename,
+                    'message': f'Running AI analysis on {uploaded_file.filename}...'
+                })
                 
                 # Perform AI analysis
                 analysis_result = _perform_contract_analysis(extracted_text, analysis_type, user_id)
@@ -2427,6 +2932,16 @@ def _process_batch_files(files, analysis_type, source_type):
                 
                 successful_analyses += 1
                 
+                # Emit file completion
+                _emit_progress_update({
+                    'type': 'file_complete',
+                    'current_file': i + 1,
+                    'total_files': total_files,
+                    'filename': uploaded_file.filename,
+                    'message': f'Completed analysis of {uploaded_file.filename}',
+                    'progress_percent': ((i + 1) / total_files) * 100
+                })
+                
             except Exception as e:
                 logger.error(f"Error processing file {uploaded_file.filename}: {e}")
                 batch_results.append({
@@ -2450,6 +2965,16 @@ def _process_batch_files(files, analysis_type, source_type):
             'analysis_type': analysis_type,
             'processing_time': datetime.now().isoformat()
         }
+        
+        # Emit batch completion
+        _emit_progress_update({
+            'type': 'batch_complete',
+            'total_files': total_files,
+            'successful_analyses': successful_analyses,
+            'failed_analyses': failed_analyses,
+            'success_rate': batch_summary['success_rate'],
+            'message': f'Batch processing complete: {successful_analyses}/{total_files} files analyzed successfully'
+        })
         
         # Create audit log for batch operation
         audit_log('create', 'batch_contract_analysis', None, user_id, {
