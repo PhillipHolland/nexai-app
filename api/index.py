@@ -1163,7 +1163,7 @@ def document_analysis_page():
         return f"Document analysis error: {e}", 500
 
 @app.route('/ai/contract-analysis')
-@login_required
+# @login_required  # Temporarily disabled for mobile testing
 def ai_contract_analysis():
     """AI-powered contract analysis interface"""
     try:
