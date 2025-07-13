@@ -1237,6 +1237,15 @@ def billing_page():
         logger.error(f"Billing page error: {e}")
         return f"Billing error: {e}", 500
 
+@app.route('/mobile-test')
+def mobile_test():
+    """Mobile optimization test page - public access"""
+    try:
+        return render_template('ai_contract_analysis.html')
+    except Exception as e:
+        logger.error(f"Mobile test page error: {e}")
+        return f"Mobile test error: {e}", 500
+
 @app.route('/platform-verification')
 def platform_verification_page():
     """Platform fee verification and testing dashboard"""
