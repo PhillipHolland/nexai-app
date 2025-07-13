@@ -32,8 +32,9 @@
     </script>
     {% endif %}
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/landing.css?v={{ cache_buster }}">
+    <!-- Custom CSS with performance optimization -->
+    <link rel="preload" href="{{ versioned_static('landing.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ versioned_static('landing.css') }}"></noscript>
 </head>
 <body>
     <!-- Navigation -->
@@ -49,7 +50,12 @@
 
                 <!-- Logo -->
                 <div class="logo">
-                    <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+                    <img src="{{ versioned_static('lexAI.png') }}" 
+                         alt="LexAI Practice Partner" 
+                         width="120" 
+                         height="40" 
+                         loading="eager"
+                         decoding="async">
                 </div>
                 
                 <!-- Enter Platform Button (Desktop & Mobile) -->
@@ -563,31 +569,115 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <img src="/static/lexAI.png" alt="LexAI Practice Partner">
+            <img src="{{ versioned_static('lexAI.png') }}" 
+                 alt="LexAI Practice Partner" 
+                 width="120" 
+                 height="40" 
+                 loading="lazy"
+                 decoding="async">
             <p>AI-Powered Legal Assistant for Legal Practices</p>
             <p>© 2025 LexAI Practice Partner. Professional legal AI technology.</p>
         </div>
     </footer>
 
     <script>
+        // Performance monitoring
+        const performanceData = {
+            loadStart: performance.timeOrigin,
+            navigationStart: performance.timing.navigationStart,
+            domContentLoaded: 0,
+            loadComplete: 0
+        };
+
+        // Track performance metrics
         document.addEventListener('DOMContentLoaded', function() {
+            performanceData.domContentLoaded = performance.now();
+            
+            // Track Core Web Vitals
+            if ('PerformanceObserver' in window) {
+                // Largest Contentful Paint
+                const lcp = new PerformanceObserver((list) => {
+                    const entries = list.getEntries();
+                    const lastEntry = entries[entries.length - 1];
+                    console.log('LCP:', lastEntry.startTime);
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'LCP', {
+                            event_category: 'Performance',
+                            value: Math.round(lastEntry.startTime),
+                            non_interaction: true
+                        });
+                    }
+                });
+                lcp.observe({type: 'largest-contentful-paint', buffered: true});
+
+                // First Input Delay
+                const fid = new PerformanceObserver((list) => {
+                    for (const entry of list.getEntries()) {
+                        console.log('FID:', entry.processingStart - entry.startTime);
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'FID', {
+                                event_category: 'Performance',
+                                value: Math.round(entry.processingStart - entry.startTime),
+                                non_interaction: true
+                            });
+                        }
+                    }
+                });
+                fid.observe({type: 'first-input', buffered: true});
+            }
+
+            // Navigation functionality
             const hamburgerMenu = document.querySelector('.hamburger-menu');
             const navLinksContainer = document.querySelector('.nav-links-mobile-container');
 
-            hamburgerMenu.addEventListener('click', function() {
-                const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
-                this.setAttribute('aria-expanded', !isExpanded);
-                navLinksContainer.classList.toggle('open');
-            });
+            if (hamburgerMenu && navLinksContainer) {
+                hamburgerMenu.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true' || false;
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    navLinksContainer.classList.toggle('open');
+                });
 
-            // Close menu when a link is clicked (for single-page navigation)
-            navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinksContainer.classList.remove('open');
-                    hamburgerMenu.setAttribute('aria-expanded', 'false');
+                // Close menu when a link is clicked (for single-page navigation)
+                navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinksContainer.classList.remove('open');
+                        hamburgerMenu.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+        });
+
+        // Track page load completion
+        window.addEventListener('load', function() {
+            performanceData.loadComplete = performance.now();
+            console.log('Page performance:', performanceData);
+            
+            // Send performance data to analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'page_load_time', {
+                    event_category: 'Performance',
+                    value: Math.round(performanceData.loadComplete),
+                    non_interaction: true
+                });
+            }
+        });
+
+        // Intersection Observer for lazy loading (future enhancements)
+        if ('IntersectionObserver' in window) {
+            const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src || img.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
                 });
             });
-        });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+        }
     </script>
 </body>
 </html>

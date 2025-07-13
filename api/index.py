@@ -75,6 +75,10 @@ app.config.update({
     'BAGEL_RL_API_KEY': os.environ.get('BAGEL_RL_API_KEY'),
     'XAI_API_KEY': os.environ.get('XAI_API_KEY'),
     'GOOGLE_ANALYTICS_ID': os.environ.get('GOOGLE_ANALYTICS_ID'),
+    # Performance optimizations
+    'SEND_FILE_MAX_AGE_DEFAULT': 31536000,  # 1 year cache for static files
+    'COMPRESS_ALGORITHM': 'gzip',
+    'COMPRESS_LEVEL': 6,
 })
 
 # Initialize Stripe if available
@@ -98,6 +102,52 @@ PRIVACY_AI_AVAILABLE = False
 
 logger.info(f"BAGEL_AI_AVAILABLE: {BAGEL_AI_AVAILABLE}")
 logger.info(f"SPANISH_AVAILABLE: {SPANISH_AVAILABLE}")
+
+# ===== PERFORMANCE OPTIMIZATION MIDDLEWARE =====
+
+@app.after_request
+def add_performance_headers(response):
+    """Add performance and security headers to all responses"""
+    # Cache static assets aggressively
+    if request.endpoint == 'static':
+        response.cache_control.max_age = 31536000  # 1 year
+        response.cache_control.immutable = True
+        response.headers['Vary'] = 'Accept-Encoding'
+        
+    # Add security headers
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Add performance headers
+    if request.endpoint != 'static':
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    
+    # Compress responses
+    if response.mimetype.startswith('text/') or response.mimetype == 'application/json':
+        response.headers['Content-Encoding'] = 'gzip'
+    
+    return response
+
+def get_versioned_static_url(filename):
+    """Generate versioned URLs for static files to enable cache busting"""
+    # Use file modification time as version for cache busting
+    import os
+    try:
+        static_path = os.path.join(app.static_folder, filename)
+        if os.path.exists(static_path):
+            mtime = int(os.path.getmtime(static_path))
+            return f"/static/{filename}?v={mtime}"
+        else:
+            return f"/static/{filename}?v={str(uuid.uuid4())[:8]}"
+    except:
+        return f"/static/{filename}?v={str(uuid.uuid4())[:8]}"
+
+# Make versioned URL function available in templates
+app.jinja_env.globals['versioned_static'] = get_versioned_static_url
 logger.info(f"STRIPE_AVAILABLE: {STRIPE_AVAILABLE}")
 
 # ===== DOCUMENT PROCESSING AND AI ANALYSIS HELPER FUNCTIONS =====
