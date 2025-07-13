@@ -439,31 +439,366 @@
         color: #dc2626;
     }
 
+    /* Enhanced Mobile Optimization */
     @media (max-width: 768px) {
         .contract-container {
-            padding: 1rem;
+            padding: 0.75rem;
+            min-height: calc(100vh - 2rem);
         }
 
         .contract-header {
             flex-direction: column;
             gap: 1rem;
             align-items: stretch;
+            padding: 1.5rem 1rem;
+            margin-bottom: 1rem;
         }
 
         .contract-title {
             font-size: 1.75rem;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .contract-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .contract-actions .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 1rem;
+            font-size: 1rem;
         }
 
         .main-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
-        .comparison-grid {
-            grid-template-columns: 1fr;
+        .contract-input-section,
+        .analysis-panel {
+            padding: 1.5rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-tabs {
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            min-width: fit-content;
+        }
+
+        .upload-area {
+            padding: 2rem 1rem;
+            min-height: 120px;
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+        }
+
+        .upload-subtext {
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .contract-textarea {
+            min-height: 250px;
+            font-size: 1rem;
+            padding: 1rem;
+        }
+
+        .analysis-options {
+            gap: 0.75rem;
+        }
+
+        .option-card {
+            padding: 1rem;
+        }
+
+        .option-title {
+            font-size: 1rem;
+        }
+
+        .option-description {
+            font-size: 0.8rem;
         }
 
         .risk-levels {
             grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .risk-level {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .results-section {
+            margin-top: 1rem;
+        }
+
+        .result-card {
+            padding: 1.5rem 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-header {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: stretch;
+        }
+
+        .result-title {
+            font-size: 1.125rem;
+        }
+
+        .result-score {
+            align-self: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content {
+            font-size: 0.9rem;
+        }
+
+        .clause-item {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .clause-type {
+            font-size: 0.8rem;
+        }
+
+        .clause-text {
+            font-size: 0.85rem;
+        }
+
+        .loading-spinner {
+            padding: 2rem 1rem;
+        }
+
+        .spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+    }
+
+    /* Small Mobile Devices */
+    @media (max-width: 480px) {
+        .contract-container {
+            padding: 0.5rem;
+        }
+
+        .contract-header {
+            padding: 1rem;
+        }
+
+        .contract-title {
+            font-size: 1.5rem;
+        }
+
+        .contract-input-section,
+        .analysis-panel {
+            padding: 1rem;
+        }
+
+        .input-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 0.875rem;
+            font-size: 0.8rem;
+        }
+
+        .upload-area {
+            padding: 1.5rem 0.75rem;
+            min-height: 100px;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+        }
+
+        .upload-subtext {
+            font-size: 0.75rem;
+        }
+
+        .contract-textarea {
+            min-height: 200px;
+            padding: 0.875rem;
+            font-size: 0.9rem;
+        }
+
+        .option-card {
+            padding: 0.875rem;
+        }
+
+        .result-card {
+            padding: 1rem;
+        }
+
+        .result-title {
+            font-size: 1rem;
+        }
+
+        .result-content {
+            font-size: 0.85rem;
+        }
+
+        .risk-levels {
+            grid-template-columns: 1fr;
+        }
+
+        .risk-level {
+            text-align: center;
+            padding: 0.75rem;
+        }
+    }
+
+    /* Touch-Friendly Interactions */
+    @media (hover: none) and (pointer: coarse) {
+        .btn {
+            min-height: 48px;
+            padding: 0.875rem 1.25rem;
+        }
+
+        .tab-btn {
+            min-height: 44px;
+        }
+
+        .option-card {
+            min-height: 60px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .option-card:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+
+        .upload-area {
+            min-height: 120px;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .upload-area:active {
+            transform: scale(0.99);
+            transition: transform 0.1s ease;
+            background: #e0f2fe !important;
+            border-color: #2E4B3C !important;
+        }
+
+        /* Enhanced mobile file upload experience */
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 0.75rem;
+            background: transparent;
+            transition: background 0.2s ease;
+            pointer-events: none;
+        }
+
+        .upload-area:hover::before {
+            background: rgba(46, 75, 60, 0.05);
+        }
+
+        .upload-area.dragover::before {
+            background: rgba(46, 75, 60, 0.1);
+        }
+
+        /* Mobile-specific upload button */
+        .mobile-upload-btn {
+            display: none;
+            background: #2E4B3C;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-upload-btn:active {
+            background: #1d2d23;
+            transform: scale(0.98);
+        }
+
+        /* Show mobile upload button on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .mobile-upload-btn {
+                display: block;
+            }
+            
+            .upload-area {
+                padding: 1.5rem 1rem 0.5rem 1rem;
+            }
+            
+            .upload-subtext {
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+
+    /* Landscape Mobile Orientation */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .contract-container {
+            padding: 0.5rem;
+        }
+
+        .contract-header {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contract-title {
+            font-size: 1.5rem;
+        }
+
+        .upload-area {
+            padding: 1.5rem 1rem;
+            min-height: 80px;
+        }
+
+        .contract-textarea {
+            min-height: 150px;
+        }
+
+        .analysis-panel {
+            padding: 1rem;
         }
     }
 </style>
@@ -499,6 +834,9 @@
                     <div class="upload-icon">📄</div>
                     <div class="upload-text">Drop your contract(s) here or click to browse</div>
                     <div class="upload-subtext">Supports PDF, DOC, DOCX, TXT, and image files up to 10MB each. Select multiple files for batch processing.</div>
+                    <button type="button" class="mobile-upload-btn" id="mobileUploadBtn">
+                        📱 Choose Files from Device
+                    </button>
                     <input type="file" id="fileInput" style="display: none;" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.tiff,.bmp" multiple>
                 </div>
                 <div id="fileList" style="margin-top: 1rem;"></div>
@@ -744,8 +1082,30 @@ This Agreement shall commence on [START DATE] and continue until...">
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const fileList = document.getElementById('fileList');
+    const mobileUploadBtn = document.getElementById('mobileUploadBtn');
 
-    uploadArea.addEventListener('click', () => fileInput.click());
+    // Enhanced mobile-friendly upload handling
+    uploadArea.addEventListener('click', (e) => {
+        // Prevent double-triggering on mobile
+        if (e.target === mobileUploadBtn) return;
+        fileInput.click();
+    });
+    
+    // Mobile upload button
+    if (mobileUploadBtn) {
+        mobileUploadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+        
+        // Add haptic feedback on supported devices
+        mobileUploadBtn.addEventListener('touchstart', () => {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(50);
+            }
+        });
+    }
+    
     uploadArea.addEventListener('dragover', handleDragOver);
     uploadArea.addEventListener('drop', handleDrop);
     uploadArea.addEventListener('dragleave', handleDragLeave);
@@ -780,9 +1140,23 @@ This Agreement shall commence on [START DATE] and continue until...">
 
     function updateFileList() {
         fileList.innerHTML = uploadedFiles.map((file, index) => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.5rem;">
-                <span>📄 ${file.name} (${formatFileSize(file.size)})</span>
-                <button onclick="removeFile(${index})" style="background: none; border: none; color: #ef4444; cursor: pointer;">✕</button>
+            <div class="file-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.75rem; margin-bottom: 0.75rem; border-left: 4px solid #2E4B3C;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        📄 ${file.name}
+                    </div>
+                    <div style="font-size: 0.875rem; color: #6b7280;">
+                        ${formatFileSize(file.size)} • ${getFileTypeDisplay(file.type || file.name)}
+                    </div>
+                </div>
+                <button 
+                    onclick="removeFile(${index})" 
+                    style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; cursor: pointer; padding: 0.5rem; border-radius: 0.5rem; margin-left: 0.75rem; min-width: 40px; min-height: 40px; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent;"
+                    onmouseover="this.style.background='#fee2e2'"
+                    onmouseout="this.style.background='#fef2f2'"
+                    ontouchstart="this.style.background='#fee2e2'"
+                    ontouchend="this.style.background='#fef2f2'"
+                >✕</button>
             </div>
         `).join('');
     }
@@ -798,6 +1172,30 @@ This Agreement shall commence on [START DATE] and continue until...">
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileTypeDisplay(fileType) {
+        if (typeof fileType === 'string') {
+            if (fileType.includes('pdf')) return 'PDF Document';
+            if (fileType.includes('word') || fileType.includes('doc')) return 'Word Document';
+            if (fileType.includes('text')) return 'Text File';
+            if (fileType.includes('image')) return 'Image File';
+        }
+        
+        // Fallback to file extension
+        const extension = fileType.split('.').pop()?.toLowerCase();
+        switch (extension) {
+            case 'pdf': return 'PDF Document';
+            case 'doc':
+            case 'docx': return 'Word Document';
+            case 'txt': return 'Text File';
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'tiff':
+            case 'bmp': return 'Image File';
+            default: return 'Document';
+        }
     }
 
     // Start analysis

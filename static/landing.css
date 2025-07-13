@@ -121,12 +121,21 @@ body {
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
+    padding: 0.5rem; /* Larger touch target */
     z-index: 100;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .hamburger-menu:focus {
     outline: none;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hamburger-menu:active {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(0.95);
 }
 
 .hamburger-icon {
@@ -192,17 +201,25 @@ body {
     .nav-links-mobile-container {
         flex-direction: column;
         position: absolute;
-        top: 4rem; /* Below the navbar */
+        top: 4.5rem; /* Below the navbar */
         left: 0;
+        right: 0;
         width: 100%;
-        background-color: #2E4B3C; /* dark-green */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #2E4B3C 0%, #1a3429 100%);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         z-index: 99;
         padding: 1rem 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        opacity: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .nav-links-mobile-container.open {
         display: flex; /* Show when open */
+        max-height: 300px; /* Enough height for menu items */
+        opacity: 1;
     }
 
     .nav-links {
@@ -210,16 +227,50 @@ body {
         flex-direction: column;
         width: 100%;
         gap: 0;
+        padding: 0 1rem;
     }
 
     .nav-link {
-        padding: 0.75rem 1rem;
+        padding: 1rem 1.5rem;
         width: 100%;
         text-align: center;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        margin: 0.25rem 0;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 48px; /* Touch-friendly height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .nav-link:hover {
-        background-color: #09332C; /* darkest-green */
+    .nav-link:hover,
+    .nav-link:active {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+    }
+
+    .nav-link:active {
+        background-color: rgba(255, 255, 255, 0.2);
+        transform: scale(0.98) translateX(4px);
+    }
+
+    /* Enhanced button styling for mobile */
+    .nav-enter-platform {
+        background: #FFA74F !important;
+        color: #2E4B3C !important;
+        font-weight: 600 !important;
+        margin: 0.5rem 1rem !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 4px 12px rgba(255, 167, 79, 0.3) !important;
+    }
+
+    .nav-enter-platform:hover,
+    .nav-enter-platform:active {
+        background: #F0531C !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 16px rgba(255, 167, 79, 0.4) !important;
     }
 }
 
@@ -320,12 +371,27 @@ body {
     text-decoration: none;
     transition: all 0.2s ease;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    min-height: 48px; /* Touch-friendly minimum height */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-primary:hover {
     background-color: #F0531C; /* bright-coral */
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:active {
+    background-color: #F0531C; /* bright-coral */
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.1s ease;
 }
 
 /* Dashboard button styling - always orange like Enter Platform button */
@@ -643,11 +709,25 @@ body {
     text-align: center;
     display: block;
     transition: all 0.2s ease;
+    min-height: 48px; /* Touch-friendly minimum height */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-outline:hover {
     background-color: #09332C; /* darkest-green */
     color: #ffffff !important; /* ensure white on hover */
+    transform: translateY(-1px);
+}
+
+.btn-outline:active {
+    background-color: #09332C; /* darkest-green */
+    color: #ffffff !important;
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
 }
 
 .btn-outline.featured {
@@ -1813,5 +1893,135 @@ body {
     
     .container {
         padding: 0 1rem;
+    }
+}
+
+/* ========================================
+   MOBILE TOUCH INTERACTION OPTIMIZATIONS
+   ======================================== */
+
+/* Global touch-friendly button standards */
+button, input[type="submit"], input[type="button"], .btn, .button {
+    min-height: 48px;
+    min-width: 48px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+}
+
+/* Enhanced touch feedback for all interactive elements */
+a, button, input, select, textarea, [role="button"], [tabindex] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Input fields should allow text selection */
+input[type="text"], input[type="email"], input[type="password"], textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* Mobile-specific touch interactions */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets on mobile */
+    .nav-link {
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-outline {
+        min-height: 52px;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    /* Enhanced tap feedback */
+    .btn:active, .button:active, [role="button"]:active {
+        transform: scale(0.97);
+        transition: transform 0.1s ease;
+    }
+    
+    /* Prevent text selection on touch */
+    .hero, .features, .pricing, .cta {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* Optimize form controls for touch */
+    select, input[type="file"] {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Touch-friendly dropdown menus */
+    .dropdown-content a {
+        min-height: 48px;
+        padding: 0.875rem 1rem;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+    /* Reduce vertical spacing in landscape */
+    .hero {
+        padding: 2rem 0;
+    }
+    
+    .section {
+        padding: 2rem 0;
+    }
+    
+    /* Optimize button sizes for landscape */
+    .btn-primary, .btn-secondary, .btn-outline {
+        min-height: 44px;
+        padding: 0.75rem 1.25rem;
+    }
+}
+
+/* High-DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Ensure crisp borders and shadows on retina displays */
+    .btn, .button, .nav-link {
+        border-width: 0.5px;
+    }
+}
+
+/* Accessibility improvements for touch */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Focus improvements for keyboard navigation on mobile */
+@media (max-width: 768px) {
+    a:focus, button:focus, input:focus, select:focus, textarea:focus {
+        outline: 2px solid #FFA74F;
+        outline-offset: 2px;
+        border-radius: 0.25rem;
+    }
+    
+    /* Skip link for accessibility */
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 6px;
+        background: #2E4B3C;
+        color: white;
+        padding: 8px;
+        text-decoration: none;
+        border-radius: 4px;
+        z-index: 1000;
+    }
+    
+    .skip-link:focus {
+        top: 6px;
     }
 }
